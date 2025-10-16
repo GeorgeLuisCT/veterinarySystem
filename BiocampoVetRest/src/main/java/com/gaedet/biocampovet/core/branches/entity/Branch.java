@@ -1,0 +1,47 @@
+package com.gaedet.biocampovet.core.branches.entity;
+
+import com.gaedet.biocampovet.core.clinic.entity.BranchClinicalService;
+import com.gaedet.biocampovet.core.employees.entity.EmployeeBranch;
+import com.gaedet.biocampovet.core.inventory.entity.ProductBranchStock;
+
+import lombok.*;
+
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
+
+@Entity
+@Table(name = "branches")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Branch {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String name;
+
+    @Column(nullable = false)
+    private String location;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id", nullable = false)
+    private Company company;
+
+    @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<ProductBranchStock> productBranchStock;
+
+    @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EmployeeBranch> employeeBranches = new HashSet<>();
+
+    @OneToMany(mappedBy = "branch", orphanRemoval = true)
+    private Set<BranchClinicalService> clinicalServiceLinks = new HashSet<>();
+
+    @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<OperatingRoom> operatingRooms = new HashSet<>();
+}
