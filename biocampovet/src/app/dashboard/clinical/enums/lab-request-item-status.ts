@@ -1,0 +1,7 @@
+export enum LabRequestItemStatus {
+    REQUESTED = "REQUESTED",
+    IN_PROGRESS = "IN_PROGRESS",
+    WITH_RESULTS = "WITH_RESULTS",
+    VERIFIED = "VERIFIED",
+    CANCELLED = "CANCELLED",
+}

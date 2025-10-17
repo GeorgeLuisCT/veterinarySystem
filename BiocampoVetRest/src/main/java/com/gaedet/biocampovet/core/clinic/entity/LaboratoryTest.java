@@ -1,28 +1,41 @@
 package com.gaedet.biocampovet.core.clinic.entity;
-import com.gaedet.biocampovet.core.branches.entity.Laboratory;
-import lombok.*;
 
-import javax.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.util.HashSet;
+import java.util.Set;
 
 @Entity
-@Table(name = "laboratory_tests",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"laboratory_id", "code"}))
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Table(name = "laboratory_tests")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class LaboratoryTest {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "laboratory_id", nullable = false)
-    private Laboratory laboratory; // el “dueño” del catálogo
-
-    @Column(nullable = false, length = 40)
-    private String code;           // p.ej. HEMO_COMP, PERF_BIOQ
+    @Column(nullable = false, length = 40, unique = true)
+    private String code;
 
     @Column(nullable = false, length = 200)
-    private String name;           // p.ej. Hemograma Completo
+    private String name;
 
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -30,8 +43,14 @@ public class LaboratoryTest {
     @Column(nullable = false)
     private boolean active = true;
 
-    // opcional: precio, TAT estimado, etc.
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
+
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<LaboratoryTestParameter> parameters = new HashSet<>();
+
+    @OneToMany(mappedBy = "laboratoryTest", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<LaboratoryTestLaboratory> laboratoryLinks = new HashSet<>();
 }

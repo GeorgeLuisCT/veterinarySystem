@@ -1,10 +1,12 @@
 package com.gaedet.biocampovet.core.clinic.entity;
 
+import com.gaedet.biocampovet.core.clinic.enums.LabRequestItemStatus;
 import lombok.*;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "laboratory_request_items")

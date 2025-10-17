@@ -165,10 +165,12 @@ public final class ClinicalAttentionMapper {
     }
 
     private static LaboratoryRequestItemResponse toLaboratoryItemResponse(LaboratoryRequestItem item) {
+        var test = item.getTest();
         return LaboratoryRequestItemResponse.builder()
                 .id(item.getId())
-                .testName(item.getTestName())
-                .sampleType(item.getSampleType())
+                .testId(test != null ? test.getId() : null)
+                .testCode(test != null ? test.getCode() : null)
+                .testName(test != null ? test.getName() : null)
                 .unitPrice(item.getUnitPrice())
                 .quantity(item.getQuantity())
                 .subtotal(item.getSubtotal())

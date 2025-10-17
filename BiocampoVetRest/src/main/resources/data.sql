@@ -334,3 +334,35 @@ WHERE b.name = 'Segunda sucursal'
   AND NOT EXISTS (
       SELECT 1 FROM laboratories lab WHERE lab.branch_id = b.id AND lab.name = 'Laboratorio Especializado ' || b.name
   );
+
+-- Seed laboratory tests
+INSERT INTO laboratory_tests (code, name, description, active, price) VALUES
+('HEMO_COMP', 'Hemograma Completo', 'Análisis completo de células sanguíneas.', true, 50.00),
+('PERF_BIOQ', 'Perfil Bioquímico', 'Evaluación de función renal, hepática y pancreática.', true, 80.00),
+('URO_ANAL', 'Uroanálisis', 'Análisis físico, químico y microscópico de la orina.', true, 40.00)
+ON CONFLICT (code) DO NOTHING;
+
+-- Link laboratory tests to laboratories
+INSERT INTO laboratory_test_laboratories (laboratory_test_id, laboratory_id, is_active)
+SELECT lt.id, l.id, true
+FROM laboratory_tests lt, laboratories l
+WHERE lt.code = 'HEMO_COMP' AND l.name = 'Laboratorio Central Primera sucursal'
+ON CONFLICT (laboratory_test_id, laboratory_id) DO NOTHING;
+
+INSERT INTO laboratory_test_laboratories (laboratory_test_id, laboratory_id, is_active)
+SELECT lt.id, l.id, true
+FROM laboratory_tests lt, laboratories l
+WHERE lt.code = 'PERF_BIOQ' AND l.name = 'Laboratorio Central Primera sucursal'
+ON CONFLICT (laboratory_test_id, laboratory_id) DO NOTHING;
+
+INSERT INTO laboratory_test_laboratories (laboratory_test_id, laboratory_id, is_active)
+SELECT lt.id, l.id, true
+FROM laboratory_tests lt, laboratories l
+WHERE lt.code = 'URO_ANAL' AND l.name = 'Laboratorio Especializado Segunda sucursal'
+ON CONFLICT (laboratory_test_id, laboratory_id) DO NOTHING;
+
+INSERT INTO laboratory_test_laboratories (laboratory_test_id, laboratory_id, is_active)
+SELECT lt.id, l.id, true
+FROM laboratory_tests lt, laboratories l
+WHERE lt.code = 'HEMO_COMP' AND l.name = 'Laboratorio Especializado Segunda sucursal'
+ON CONFLICT (laboratory_test_id, laboratory_id) DO NOTHING;

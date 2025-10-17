@@ -1,6 +1,7 @@
 package com.gaedet.biocampovet.core.clinic.entity;
 import com.gaedet.biocampovet.core.animal.entity.AnimalSpecies;
 import com.gaedet.biocampovet.core.animal.enums.AnimalSex;
+import com.gaedet.biocampovet.core.clinic.enums.LabValueType;
 import lombok.*;
 
 import javax.persistence.*;

@@ -40,10 +40,9 @@ public class AddClinicalAttentionLaboratoryRequest {
     @AllArgsConstructor
     public static class Item {
 
-        @NotBlank
-        private String testName;
+        @NotNull
+        private Long testId;
 
-        private String sampleType;
 
         @NotNull
         private BigDecimal unitPrice;

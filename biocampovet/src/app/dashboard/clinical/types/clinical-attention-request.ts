@@ -191,15 +191,13 @@ export const addClinicalAttentionSurgicalOrderSchema = z.object({
 export type AddClinicalAttentionSurgicalOrderRequest = z.infer<typeof addClinicalAttentionSurgicalOrderSchema>;
 
 export const laboratoryRequestItemSchema = z.object({
-  testName: z
-    .string({ required_error: "El nombre de la prueba es obligatorio." })
-    .min(1, "El nombre de la prueba es obligatorio.")
-    .max(255, "El nombre de la prueba no puede exceder los 255 caracteres."),
-  sampleType: z
-    .string()
-    .max(255, "El tipo de muestra no puede exceder los 255 caracteres.")
-    .optional()
-    .nullable(),
+  testId: z
+    .number({
+      required_error: "Debes seleccionar una prueba.",
+      invalid_type_error: "La selección de la prueba no es válida.",
+    })
+    .int("La selección de la prueba no es válida.")
+    .min(1, "Debes seleccionar una prueba."),
   unitPrice: z.preprocess(
     (val) => (val === "" || val === undefined ? undefined : Number(val)),
     z.number({

@@ -14,10 +14,12 @@ import com.gaedet.biocampovet.core.clinic.entity.ClinicalService;
 import com.gaedet.biocampovet.core.clinic.entity.ClinicalServiceItem;
 import com.gaedet.biocampovet.core.clinic.entity.LaboratoryRequest;
 import com.gaedet.biocampovet.core.clinic.entity.LaboratoryRequestItem;
+import com.gaedet.biocampovet.core.clinic.entity.LaboratoryTest;
 import com.gaedet.biocampovet.core.clinic.entity.MedicationAdministration;
 import com.gaedet.biocampovet.core.clinic.entity.SurgicalOrder;
 import com.gaedet.biocampovet.core.clinic.enums.ClinicalAttentionStatus;
 import com.gaedet.biocampovet.core.clinic.enums.ClinicalServiceCategory;
+import com.gaedet.biocampovet.core.clinic.enums.LabRequestItemStatus;
 import com.gaedet.biocampovet.core.clinic.enums.LabRequestStatus;
 import com.gaedet.biocampovet.core.clinic.enums.SurgicalOrderStatus;
 import com.gaedet.biocampovet.core.clinic.mapper.ClinicalAttentionMapper;
@@ -26,6 +28,7 @@ import com.gaedet.biocampovet.core.clinic.repository.ClinicalAttentionRepository
 import com.gaedet.biocampovet.core.clinic.repository.ClinicalServiceItemRepository;
 import com.gaedet.biocampovet.core.clinic.repository.ClinicalServiceRepository;
 import com.gaedet.biocampovet.core.clinic.repository.LaboratoryRequestRepository;
+import com.gaedet.biocampovet.core.clinic.repository.LaboratoryTestRepository;
 import com.gaedet.biocampovet.core.clinic.repository.MedicationAdministrationRepository;
 import com.gaedet.biocampovet.core.clinic.repository.SurgicalOrderRepository;
 import com.gaedet.biocampovet.core.clinic.specs.ClinicalAttentionSpecs;
@@ -62,6 +65,7 @@ public class ClinicalAttentionService {
     private final MedicationAdministrationRepository medicationAdministrationRepository;
     private final ClinicalServiceItemRepository clinicalServiceItemRepository;
     private final LaboratoryRequestRepository laboratoryRequestRepository;
+    private final LaboratoryTestRepository laboratoryTestRepository;
     private final SurgicalOrderRepository surgicalOrderRepository;
     private final ProductRepository productRepository;
     private final EmployeeRepository employeeRepository;
@@ -298,10 +302,13 @@ public class ClinicalAttentionService {
         }
 
         request.getItems().forEach(itemRequest -> {
+            LaboratoryTest test = laboratoryTestRepository.findById(itemRequest.getTestId())
+                    .orElseThrow(() -> new IllegalArgumentException("Prueba de laboratorio no encontrada: id=" + itemRequest.getTestId()));
+
             LaboratoryRequestItem item = LaboratoryRequestItem.builder()
                     .laboratoryRequest(laboratoryRequest)
-                    .testName(itemRequest.getTestName())
-                    .sampleType(normalize(itemRequest.getSampleType()))
+                    .test(test)
+                    .status(LabRequestItemStatus.REQUESTED)
                     .unitPrice(itemRequest.getUnitPrice())
                     .quantity(itemRequest.getQuantity())
                     .subtotal(itemRequest.getUnitPrice().multiply(itemRequest.getQuantity()))
