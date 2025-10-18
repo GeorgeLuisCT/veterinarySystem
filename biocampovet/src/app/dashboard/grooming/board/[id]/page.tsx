@@ -1,205 +1,173 @@
+// app/dashboard/grooming/[id]/page.tsx
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { MessageSquare, Microscope, Camera, CheckCircle, ArrowLeft } from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
+import { Loader2, Save, ArrowLeft } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
+import EmployeeService from "@/app/dashboard/staff/employees/service/employee-service";
+import { RoleName } from "@/enums/role-name";
+import { EmployeeSummaryResponse } from "@/app/dashboard/staff/employees/types/employee-summary-response";
+import { GroomingSessionDetailResponse } from "../../types/grooming-session-response";
+import GroomingSessionForm, {Option, GroomingSessionFormHandle } from "../../components/grooming-session-form";
+import GroomingSessionService from "../../service/grooming-session-service";
+import { GroomingStatusLabels } from "../../enums/grooming-status";
 
-// --- Tipos ---
-type GroomingStatus = "Esperando" | "En Baño" | "En Secado" | "En Corte" | "Finalizado";
-type GroomingPatient = {
-  id: number;
-  name: string;
-  ownerName: string;
-  service: string;
-  status: GroomingStatus;
-  groomerId: number;
-  notes?: string;
-  clinicalObservations?: string;
-};
-type Groomer = { id: number; name: string };
-
-// --- UI mínimos ---
-const Button = ({
-  children,
-  onClick,
-  variant = "default",
-  className = "",
-  disabled,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  variant?: "default" | "outline";
-  className?: string;
-  disabled?: boolean;
-}) => {
-  const styles =
-    variant === "outline"
-      ? "border bg-white text-slate-900 hover:bg-slate-50"
-      : "bg-pink-600 hover:bg-pink-700 text-white";
-  return (
-    <button
-      disabled={disabled}
-      className={`inline-flex items-center justify-center rounded-md text-sm font-medium px-3 py-1.5 transition-colors disabled:opacity-50 ${styles} ${className}`}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  );
+const ensureOption = (options: Option[], id: number | null, label: string | null) => {
+  if (!id || !label) return options;
+  const exists = options.some((option) => Number(option.value) === id);
+  if (exists) return options;
+  return [...options, { value: String(id), label }];
 };
 
-const Card = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <div className={`rounded-xl border bg-white text-slate-900 shadow-sm ${className}`}>{children}</div>
-);
-const CardHeader = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <div className={`flex flex-col space-y-1.5 p-6 ${className}`}>{children}</div>
-);
-const CardTitle = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <h3 className={`text-lg font-semibold leading-none tracking-tight ${className}`}>{children}</h3>
-);
-const CardContent = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <div className={`p-6 pt-0 ${className}`}>{children}</div>
-);
-const Textarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
-  <textarea
-    {...props}
-    className={`flex min-h-[80px] w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${
-      props.className || ""
-    }`}
-  />
-);
+export default function GroomingSessionDetailPage() {
+  const params = useParams();
+  const idParam = params?.id;
+  const { toast } = useToast();
 
-// --- Datos DEMO y helpers (reemplaza por llamadas a tu API) ---
-const groomers: Groomer[] = [
-  { id: 101, name: "Ana" },
-  { id: 102, name: "Carlos" },
-];
-const statusConfig: Record<GroomingStatus, { text: string; color: string }> = {
-  Esperando: { text: "Esperando", color: "bg-gray-100 text-gray-800" },
-  "En Baño": { text: "En Baño", color: "bg-cyan-100 text-cyan-800" },
-  "En Secado": { text: "En Secado", color: "bg-sky-100 text-sky-800" },
-  "En Corte": { text: "En Corte", color: "bg-indigo-100 text-indigo-800" },
-  Finalizado: { text: "Listo para Recoger", color: "bg-pink-100 text-pink-800" },
-};
+  const [attentionId, setAttentionId] = useState<number | null>(null);
+  const [detail, setDetail] = useState<GroomingSessionDetailResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-// Simulación: obtén los datos por ID (haz tu fetch real aquí)
-function getPatientById(id: number): GroomingPatient | null {
-  const demo: GroomingPatient[] = [
-    { id: 1, name: "Kiara", ownerName: "Sofía Gomez", service: "Baño y Corte", status: "En Baño", groomerId: 101 },
-    { id: 6, name: "Princesa", ownerName: "Laura Vera", service: "Baño Básico", status: "Esperando", groomerId: 102 },
-    { id: 7, name: "Paco", ownerName: "David Rios", service: "Corte de Raza", status: "Esperando", groomerId: 101 },
-  ];
-  return demo.find((p) => p.id === id) ?? null;
-}
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [employeeOptions, setEmployeeOptions] = useState<Option[]>([]);
 
-export default function GroomingDetailPage() {
-  const router = useRouter();
-  const params = useParams<{ id: string }>();
-  const id = Number(params.id);
+  const formRef = useRef<GroomingSessionFormHandle>(null);
 
-  const initial = useMemo(() => getPatientById(id), [id]);
-  const [patient, setPatient] = useState<GroomingPatient | null>(initial);
+  const fetchDetail = useCallback(async (attId: number) => {
+    setLoading(true);
+    try {
+      const response = await GroomingSessionService.getOrCreateByAttention(attId);
+      setDetail(response);
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "No se pudo cargar la sesión de peluquería." });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
 
-  const updateStatus = (newStatus: GroomingStatus) => {
-    if (!patient) return;
-    setPatient({ ...patient, status: newStatus });
-    // TODO: llamar a tu API para persistir el estado
+  useEffect(() => {
+    if (!idParam) {
+      setLoading(false);
+      toast({ variant: "destructive", title: "Sesión no encontrada", description: "No se proporcionó un identificador válido." });
+      return;
+    }
+    const numericId = Number(Array.isArray(idParam) ? idParam[0] : idParam);
+    if (Number.isNaN(numericId)) {
+      setLoading(false);
+      toast({ variant: "destructive", title: "Identificador inválido", description: "El identificador no es un número válido." });
+      return;
+    }
+    setAttentionId(numericId);
+    void fetchDetail(numericId);
+  }, [idParam, fetchDetail, toast]);
+
+  useEffect(() => {
+    if (!detail) return;
+    let active = true;
+    const loadOptions = async () => {
+      setOptionsLoading(true);
+      try {
+        const [groomersRes] = await Promise.all([
+          EmployeeService.getEmployeesByRoles([RoleName.ROLE_GROOMER]).catch(async () => {
+            const fallback = await EmployeeService.getEmployeesByRoles([RoleName.ROLE_ASSISTANT]).catch(() => []);
+            return fallback;
+          }),
+        ]);
+
+        if (!active) return;
+
+        const mapEmployees = (employees: EmployeeSummaryResponse[]) =>
+          employees.map<Option>((e) => ({
+            value: String(e.id),
+            label: e.branchNames ? `${e.firstName} ${e.lastName} • ${e.branchNames}` : `${e.firstName} ${e.lastName}`,
+          }));
+
+        setEmployeeOptions(
+          ensureOption(mapEmployees(groomersRes ?? []), detail.assignedProfessionalId, detail.assignedProfessionalFullName)
+        );
+      } finally {
+        if (active) setOptionsLoading(false);
+      }
+    };
+    void loadOptions();
+    return () => {
+      active = false;
+    };
+  }, [detail]);
+
+  const handleSaveAll = async () => {
+    if (!formRef.current) return;
+    setSaving(true);
+    try {
+      await formRef.current.triggerSaveAll();
+      toast({ title: "Cambios guardados", description: "La sesión se actualizó correctamente." });
+      if (attentionId) await fetchDetail(attentionId);
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "No se pudieron guardar los cambios." });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleFinalize = () => {
-    if (!patient) return;
-    updateStatus("Finalizado");
-    alert(
-      `SERVICIO FINALIZADO PARA ${patient.name}\n\n- Se enviará una notificación a ${patient.ownerName}.\n- Los cargos por "${patient.service}" se han enviado al Punto de Venta.`
-    );
-  };
-
-  if (!patient) {
+  if (loading) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <Button variant="outline" onClick={() => router.push("/dashboard/grooming")} className="mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2" /> Volver a la cola
-        </Button>
-        <p>No se encontró el paciente.</p>
+      <div className="flex h-screen items-center justify-center text-muted-foreground">
+        <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Cargando sesión de peluquería...
       </div>
     );
   }
 
-  const status = statusConfig[patient.status];
-  const groomer = groomers.find((g) => g.id === patient.groomerId);
+  if (!detail || !attentionId) {
+    return (
+      <div className="flex h-screen items-center justify-center text-muted-foreground">No se encontró la sesión solicitada.</div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-4">
-      <Button variant="outline" onClick={() => router.push("/dashboard/grooming")}>
-        <ArrowLeft className="h-4 w-4 mr-2" /> Volver a la cola
-      </Button>
-
-      <Card className="flex flex-col">
-        <CardHeader>
-          <div className="flex justify-between items-center">
+    <div className="min-h-screen bg-gray-50">
+      <div className="sticky top-0 z-10 border-b bg-white p-4 shadow-sm">
+        <div className="mx-auto flex max-w-5xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-2">
+            <Link href="/dashboard/grooming" className="inline-flex">
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Volver
+              </Button>
+            </Link>
             <div>
-              <CardTitle className="text-2xl">{patient.name}</CardTitle>
-              <p className="text-sm text-gray-500">
-                {patient.service} con <span className="font-medium">{groomer?.name}</span> para {patient.ownerName}
+              <h1 className="text-2xl font-bold text-slate-900">Sesión #{detail.id}</h1>
+              <p className="text-sm text-muted-foreground">
+                Paciente: <span className="font-semibold text-pink-600">{detail.summary.animalName}</span> • Atención #{detail.attentionId}
               </p>
             </div>
-            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${status.color}`}>{status.text}</span>
           </div>
-        </CardHeader>
-
-        <CardContent className="space-y-6">
-          <div>
-            <h4 className="font-semibold mb-2">Actualizar Estado</h4>
-            <div className="flex flex-wrap gap-2">
-              {Object.keys(statusConfig).map((s) => (
-                <Button
-                  key={s}
-                  variant={patient.status === s ? "default" : "outline"}
-                  onClick={() => updateStatus(s as GroomingStatus)}
-                >
-                  {statusConfig[s as GroomingStatus].text}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium flex items-center mb-1">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Notas de Comportamiento
-              </label>
-              <Textarea rows={3} placeholder="Ej: Se portó excelente, un poco ansioso con el secador..." />
-            </div>
-
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <label className="text-sm font-medium text-red-800 flex items-center mb-1">
-                <Microscope className="h-4 w-4 mr-2" />
-                Observaciones Clínicas Relevantes
-              </label>
-              <Textarea
-                rows={3}
-                placeholder="¡IMPORTANTE! Anotar aquí cualquier hallazgo en la piel, bultos, parásitos, etc."
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium flex items-center mb-1">
-                <Camera className="h-4 w-4 mr-2" />
-                Fotos (Antes y Después)
-              </label>
-              <div className="p-4 border-2 border-dashed rounded-lg flex justify-center items-center">
-                <Button variant="outline">Subir Fotos</Button>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-2 flex justify-end">
-            <Button onClick={handleFinalize} disabled={patient.status === "Finalizado"}>
-              <CheckCircle className="mr-2 h-4 w-4" /> Finalizar y Notificar
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">{GroomingStatusLabels[detail.status]}</Badge>
+            <Button variant="outline" onClick={() => attentionId && fetchDetail(attentionId)} disabled={loading}>
+              <Loader2 className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Actualizar
+            </Button>
+            <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={handleSaveAll} disabled={saving}>
+              {saving ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</>) : (<><Save className="mr-2 h-4 w-4" /> Guardar cambios</>)}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <GroomingSessionForm
+          ref={formRef}
+          sessionId={detail.id}
+          detail={detail}
+          setDetail={setDetail}
+          employeeOptions={employeeOptions}
+          employeesLoading={optionsLoading}
+        />
+      </div>
     </div>
   );
 }

@@ -48,7 +48,7 @@ export default function HospitalizationChartPage() {
         return <div>No se encontró la hospitalización.</div>;
     }
 
-    const { animalName, reasonForAdmission, admissionDate, treatmentSchedules, evolutionNotes } = hospitalization;
+    const { animalName, admissionDate, treatmentSchedules, evolutionNotes } = hospitalization;
 
     const timeSlots = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00', '00:00', '02:00', '04:00', '06:00'];
 
@@ -135,7 +135,6 @@ export default function HospitalizationChartPage() {
                     <Card>
                         <CardHeader><CardTitle>Resumen del Paciente</CardTitle></CardHeader>
                         <CardContent className="space-y-2 text-sm">
-                            <p><strong>Motivo de Admisión:</strong> {reasonForAdmission}</p>
                             <p><strong>Fecha de Ingreso:</strong> {new Date(admissionDate).toLocaleString('es-ES')}</p>
                         </CardContent>
                     </Card>
