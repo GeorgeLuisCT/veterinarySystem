@@ -5,13 +5,21 @@ import java.time.LocalDate;
 public record AnimalQuickSearchResponse(
         Long id,
         String name,
-        LocalDate birthDate
+        LocalDate birthDate,
+        String ownerName,
+        String speciesName,
+        String photoUrl,
+        String microchipNumber
 ) {
     public static AnimalQuickSearchResponse fromNativeRow(Object[] row) {
         return new AnimalQuickSearchResponse(
-                ((Number) row[0]).longValue(),    // id
-                (String) row[1],                  // name
-                ((java.sql.Date) row[2]).toLocalDate()  // birth_date
+                ((Number) row[0]).longValue(),
+                (String) row[1],
+                ((java.sql.Date) row[2]).toLocalDate(),
+                (String) row[3],
+                (String) row[4],
+                (String) row[5],
+                (String) row[6]
         );
     }
 }

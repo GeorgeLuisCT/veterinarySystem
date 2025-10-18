@@ -68,16 +68,14 @@ public class AnimalService {
                 .build();
     }
 
-    public List<AnimalQuickSearchResponse> searchAnimalsByName(Long customerId, String query) {
+    @Transactional(readOnly = true)
+    public List<AnimalQuickSearchResponse> quickSearch(String query, boolean isActive) {
         String searchQuery = (query == null || query.isBlank()) ? null : query.trim();
-
-        List<Object[]> rawResults = animalRepository.quickAnimalSearch(customerId, searchQuery, true);
-
+        List<Object[]> rawResults = animalRepository.quickAnimalSearch(searchQuery, isActive);
         return rawResults.stream()
                 .map(AnimalQuickSearchResponse::fromNativeRow)
                 .toList();
     }
-
     @Transactional
     public AnimalSummaryResponse updateAnimal(AnimalUpdateRequest request) {
         Animal animal = animalRepository.findById(request.getId())

@@ -1,6 +1,7 @@
 package com.gaedet.biocampovet.core.branches.entity;
 
 import com.gaedet.biocampovet.core.clinic.entity.BranchClinicalService;
+import com.gaedet.biocampovet.core.clinic.entity.Cage;
 import com.gaedet.biocampovet.core.employees.entity.EmployeeBranch;
 import com.gaedet.biocampovet.core.inventory.entity.ProductBranchStock;
 
@@ -44,4 +45,7 @@ public class Branch {
 
     @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OperatingRoom> operatingRooms = new HashSet<>();
+
+    @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Cage> cages = new HashSet<>();
 }

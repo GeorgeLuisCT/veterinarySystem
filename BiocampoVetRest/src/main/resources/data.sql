@@ -366,3 +366,34 @@ SELECT lt.id, l.id, true
 FROM laboratory_tests lt, laboratories l
 WHERE lt.code = 'HEMO_COMP' AND l.name = 'Laboratorio Especializado Segunda sucursal'
 ON CONFLICT (laboratory_test_id, laboratory_id) DO NOTHING;
+
+-- Seed cages for branches
+INSERT INTO cages (name, size, is_occupied, branch_id)
+SELECT 'Jaula 01', 'Pequeña', false, b.id
+FROM branches b WHERE b.name = 'Primera sucursal'
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO cages (name, size, is_occupied, branch_id)
+SELECT 'Jaula 02', 'Mediana', false, b.id
+FROM branches b WHERE b.name = 'Primera sucursal'
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO cages (name, size, is_occupied, branch_id)
+SELECT 'Jaula 03', 'Grande', false, b.id
+FROM branches b WHERE b.name = 'Primera sucursal'
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO cages (name, size, is_occupied, branch_id)
+SELECT 'Jaula 04', 'Pequeña', false, b.id
+FROM branches b WHERE b.name = 'Segunda sucursal'
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO cages (name, size, is_occupied, branch_id)
+SELECT 'Jaula 05', 'Mediana', false, b.id
+FROM branches b WHERE b.name = 'Segunda sucursal'
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO cages (name, size, is_occupied, branch_id)
+SELECT 'Jaula 06', 'Grande', false, b.id
+FROM branches b WHERE b.name = 'Segunda sucursal'
+ON CONFLICT (name) DO NOTHING;

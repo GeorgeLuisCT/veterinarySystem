@@ -22,8 +22,8 @@ public class GroomingSession {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "appointment_id", nullable = false)
-    private Appointment appointment;
+    @JoinColumn(name = "attention_id", unique = true, nullable = false)
+    private Attentions attention;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

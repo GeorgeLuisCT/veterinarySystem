@@ -44,11 +44,11 @@ public class AnimalController {
     }
 
     @GetMapping("/quick-search")
-    public ResponseEntity<List<AnimalQuickSearchResponse>> searchAnimalsByName(
-            @RequestParam Long customerId,
-            @RequestParam(required = false) String name
+    public ResponseEntity<List<AnimalQuickSearchResponse>> quickSearch(
+            @RequestParam(required = false) String query,
+            @RequestParam(defaultValue = "true") boolean active
     ) {
-        return ResponseEntity.ok(animalService.searchAnimalsByName(customerId, name));
+        return ResponseEntity.ok(animalService.quickSearch(query, active));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
