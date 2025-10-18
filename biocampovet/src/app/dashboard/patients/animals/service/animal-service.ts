@@ -16,10 +16,11 @@ interface AnimalQueryParams {
   active: boolean;
 }
 
-interface AnimalSearchParams {
-  customerId: number;
-  name?: string;
+interface AnimalQuickSearchParams {
+  query?: string;
+  active?: boolean;
 }
+
 
 export const AnimalService = {
   createAnimal: async (
@@ -64,14 +65,13 @@ export const AnimalService = {
   },
 
   searchAnimals: async (
-    customerId: number,
-    name?: string
+    query?: string,
+    active: boolean = true
   ): Promise<AnimalQuickSearchResponse[]> => {
-    const params: AnimalSearchParams = { customerId };
-    if (name && name.trim() !== "") {
-      params.name = name.trim();
+    const params: AnimalQuickSearchParams = { active };
+    if (query && query.trim() !== "") {
+      params.query = query.trim();
     }
-
     const response = await api.get<AnimalQuickSearchResponse[]>(
       "/animals/quick-search",
       { params }

@@ -112,17 +112,16 @@ export function NewAppointmentModal({ open, onOpenChange, onCreated, initialDate
   const loadAnimals = React.useCallback(
     async (query?: string) => {
       try {
-        const response = await AnimalService.getAnimals({
-          page: 0,
-          size: 20,
-          active: true,
-          query: query?.trim() ? query.trim() : undefined,
-        });
+        const results = await AnimalService.searchAnimals(
+          query?.trim() ? query.trim() : undefined,
+          true
+        );
 
-        const options = response.content.map((animal) => ({
-          id: animal.id,
-          label: `${animal.name} • ${animal.ownerName}`,
+        const options = results.map((a) => ({
+          id: a.id,
+          label: `${a.name} • ${a.ownerName ?? "Sin propietario"} • ${a.speciesName ?? ""}`.trim(),
         }));
+
         setAnimalOptions(options);
         return options;
       } catch (error) {
