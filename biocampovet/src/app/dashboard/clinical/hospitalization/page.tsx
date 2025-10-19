@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AnimalSpeciesDetails } from "../../patients/animals/enums/animal-species";
 import { CageSizeLabels } from "../enums/cage-size";
+import { formatAdmissionTime } from "@/utils/farmated-dates";
 
 
 export default function HospitalizationBoardPage() {
@@ -90,30 +91,12 @@ export default function HospitalizationBoardPage() {
     </DropdownMenu>
   );
 
-  const formatAdmissionTime = (admissionDate: string) => {
-    const admission = new Date(admissionDate);
-    const now = new Date();
-    const diffMs = now.getTime() - admission.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffDays > 0) {
-      const remainingHours = diffHours % 24;
-      return `Ingresado hace: ${diffDays} día${diffDays > 1 ? 's' : ''}${remainingHours > 0 ? ` ${remainingHours}h` : ''}`;
-    } else if (diffHours > 0) {
-      return `Ingresado hace: ${diffHours} horas ${diffMinutes} min`;
-    } else {
-      return `Ingresado hace: ${diffMinutes} min`;
-    }
-  };
-
   const OccupiedCageCard = ({ cage }: { cage: CageResponse }) => {
     const hosp = cage.currentHospitalization!;
     if (!hosp || !hosp.cause) return null;
 
     const causeDetails = HospitalizationCauseDetails[hosp.cause];
-    const speciesDetails = AnimalSpeciesDetails[hosp.animalSpecies];
+    const speciesDetails = AnimalSpeciesDetails[hosp.animalBasicResponse.animalSpecies];
     const CauseIcon = causeDetails.icon;
     const SpeciesIcon = speciesDetails?.icon;
 
@@ -130,10 +113,10 @@ export default function HospitalizationBoardPage() {
 
         <CardContent className="p-4 flex flex-col flex-grow">
           <div className="flex items-start gap-4 mb-4">
-            {hosp.animalPhotoUrl ? (
+            {hosp.animalBasicResponse.animalPhotoUrl ? (
               <img
-                src={hosp.animalPhotoUrl}
-                alt={hosp.animalName}
+                src={hosp.animalBasicResponse.animalPhotoUrl}
+                alt={hosp.animalBasicResponse.animalName}
                 className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
                 loading="lazy"
               />
@@ -150,12 +133,12 @@ export default function HospitalizationBoardPage() {
             )}
 
             <div className="flex-grow">
-              <h4 className="text-xl font-bold text-gray-800">{hosp.animalName}</h4>
+              <h4 className="text-xl font-bold text-gray-800">{hosp.animalBasicResponse.animalName}</h4>
 
               <div className="flex items-center gap-2 text-gray-600 mt-1 text-sm">
                 {SpeciesIcon && <SpeciesIcon className="h-5 w-5 text-gray-500" />}
                 <span>
-                  {speciesDetails ? speciesDetails.label : hosp.animalSpecies} - {hosp.animalBreed || "Mestizo"}
+                  {speciesDetails ? speciesDetails.label : hosp.animalBasicResponse.animalSpecies} - {hosp.animalBasicResponse.animalBreed || "Mestizo"}
                 </span>
               </div>
 
@@ -231,7 +214,7 @@ export default function HospitalizationBoardPage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+      <div className="h-full bg-gray-50 p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
             <div>

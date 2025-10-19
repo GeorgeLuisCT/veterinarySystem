@@ -1,7 +1,9 @@
 package com.gaedet.biocampovet.core.clinic.entity;
 
 import javax.persistence.*;
+import javax.validation.constraints.AssertTrue;
 
+import com.gaedet.biocampovet.core.clinic.enums.AttentionType;
 import com.gaedet.biocampovet.core.clinic.enums.ClinicalAttentionStatus;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -71,4 +73,9 @@ public class ClinicalAttention {
     @OneToMany(mappedBy = "clinicalAttention", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<LaboratoryRequest> laboratoryRequests = new HashSet<>();
+
+    @AssertTrue(message = "La atención clínica solo aplica a atenciones de tipo CLINIC")
+    public boolean attentionMustBeClinic() {
+        return attention == null || attention.getType() == AttentionType.CLINIC;
+    }
 }

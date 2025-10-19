@@ -1,10 +1,12 @@
 package com.gaedet.biocampovet.core.clinic.entity;
 
 import com.gaedet.biocampovet.core.branches.entity.OperatingRoom;
+import com.gaedet.biocampovet.core.clinic.enums.AttentionType;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
 import com.gaedet.biocampovet.core.clinic.enums.SurgicalReportStatus;
 import lombok.*;
 import javax.persistence.*;
+import javax.validation.constraints.AssertTrue;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -77,4 +79,9 @@ public class SurgicalReport {
     @OneToMany(mappedBy = "surgicalReport", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<PostOperativeIndication> postOperativeIndications = new HashSet<>();
+
+    @AssertTrue(message = "El reporte quirúrgico solo aplica a atenciones de tipo SURGERY")
+    public boolean attentionMustBeSurgical() {
+        return attention == null || attention.getType() == AttentionType.SURGERY;
+    }
 }

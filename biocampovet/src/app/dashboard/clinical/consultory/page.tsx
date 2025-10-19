@@ -201,7 +201,7 @@ export default function ConsultoryPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+        <div className="h-full bg-gray-50 p-4 sm:p-6">
             <div className="max-w-screen-2xl mx-auto">
                 <div className="mb-6 flex justify-between items-center">
                     <div>

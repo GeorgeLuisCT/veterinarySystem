@@ -143,11 +143,23 @@ export default function ConsultationPage() {
                 </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row max-w-screen-2xl mx-auto p-4 gap-4">
-                <PatientDetails animalId={clinicalAttention.summary.animalId} />
-                <ConsultationForm ref={formRef} detail={clinicalAttention} setDetail={setClinicalAttention} />
-                <QuickHistory animalId={clinicalAttention.summary.animalId} />
+            <div className="w-full flex flex-col gap-4 sm:flex-row pt-4 mx-2">
+                <PatientDetails
+                    animalId={clinicalAttention.summary.animalId}
+                    className="sm:basis-[18%] sm:shrink-0 w-full"
+                />
+                <ConsultationForm
+                    ref={formRef}
+                    detail={clinicalAttention}
+                    setDetail={setClinicalAttention}
+                    className="sm:basis-[72%] sm:min-w-0 w-full flex flex-col gap-4"
+                />
+                <QuickHistory
+                    animalId={clinicalAttention.summary.animalId}
+                    className="sm:basis-[10%] sm:shrink-0 w-full"
+                />
             </div>
+
 
             <DeriveHospitalizationModal
                 open={deriveOpen}

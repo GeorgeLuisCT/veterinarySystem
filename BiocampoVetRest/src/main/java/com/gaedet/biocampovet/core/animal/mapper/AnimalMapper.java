@@ -3,6 +3,7 @@ package com.gaedet.biocampovet.core.animal.mapper;
 import com.gaedet.biocampovet.core.animal.dto.*;
 import com.gaedet.biocampovet.core.animal.entity.Animal;
 import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
+import com.gaedet.biocampovet.core.clinic.entity.Hospitalization;
 import com.gaedet.biocampovet.core.customer.entity.Customer;
 import com.gaedet.biocampovet.core.customer.mapper.CustomerMapper;
 import org.springframework.stereotype.Component;
@@ -46,6 +47,18 @@ public class AnimalMapper {
                 .chronicConditions(entity.getChronicConditions())
                 .isActive(entity.isActive())
                 .build();
+    }
+
+    public static AnimalBasicResponse toBasicResponse(Animal animal) {
+        AnimalBasicResponse animalBasicResponse = new AnimalBasicResponse();
+        animalBasicResponse.setAnimalId(animal.getId());
+        animalBasicResponse.setAnimalName(animal.getName());
+        animalBasicResponse.setAnimalPhotoUrl(animal.getPhotoUrl());
+        animalBasicResponse.setAnimalSpecies(animal.getSpecies());
+        animalBasicResponse.setAnimalBreed(animal.getBreed());
+        animalBasicResponse.setSex(animal.getSex());
+        animalBasicResponse.setMicrochipNumber(animal.getMicrochipNumber());
+        return animalBasicResponse;
     }
 
     public AnimalSummaryResponse toAnimalSummaryResponse(Animal entity) {

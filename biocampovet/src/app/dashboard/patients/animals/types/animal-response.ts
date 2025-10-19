@@ -1,13 +1,13 @@
 import { CustomerResponse } from "@/app/dashboard/customer/management/types/customer-response";
-import { AnimalSpeciesResponse } from "./animal-species-response";
 import { AnimalSex } from "../enums/animal-sex";
+import { AnimalSpecies } from "../enums/animal-species";
 
 export interface AnimalResponse {
   id: number;
   name: string;
   photoUrl?: string;
   owner: CustomerResponse;
-  species: AnimalSpeciesResponse;
+  species: AnimalSpecies;
   breed?: string;
   birthDate: string;
   sex: AnimalSex;

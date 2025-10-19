@@ -2,8 +2,7 @@ import { HospitalizationStatus } from "@/app/dashboard/clinical/enums/hospitaliz
 import { AdmissionTiming } from "../enums/admission-timing";
 import { HospitalizationCause } from "../enums/hospitalization-cause";
 import { CageSize } from "../enums/cage-size";
-import { AnimalSpecies } from "../../patients/animals/enums/animal-species";
-import { AnimalSex } from "../../patients/animals/enums/animal-sex";
+import { AnimalBasicResponse } from "../../patients/animals/types/animal-basic-response";
 
 export interface CageResponse {
   id: number;
@@ -17,13 +16,7 @@ export interface CageResponse {
 
 export interface CurrentHospitalizationBrief {
   id: number;
-  animalId: number;
-  animalName: string;
-  animalPhotoUrl: string | null;
-  animalSpecies: AnimalSpecies;
-  animalBreed: string | null;
-  sex: AnimalSex;
-  microchipNumber: string | null;
+  animalBasicResponse: AnimalBasicResponse;
   status: HospitalizationStatus;
   admissionDate: string;
   admissionTiming: AdmissionTiming;

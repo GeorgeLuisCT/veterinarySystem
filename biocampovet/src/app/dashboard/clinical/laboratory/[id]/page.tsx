@@ -65,7 +65,7 @@ export default function LaboratoryRequestDetailPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+        <div className="h-full bg-gray-50 p-4 sm:p-6">
             <div className="max-w-4xl mx-auto">
                 <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
                     <h1 className="text-2xl font-bold">Solicitud de Laboratorio #{requestDetail.id}</h1>

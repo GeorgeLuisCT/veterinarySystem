@@ -28,13 +28,14 @@ type FormShape = z.infer<typeof updateClinicalAttentionSchema>;
 interface Props {
   detail: ClinicalAttentionDetailResponse;
   setDetail: (detail: ClinicalAttentionDetailResponse) => void;
+  className?: string;
 }
 
 export interface ConsultationFormHandle {
   triggerSaveAll: () => Promise<void>;
 }
 
-const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, setDetail }, ref) => {
+const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, setDetail, className }, ref) => {
   const { toast } = useToast();
 
   const [medications, setMedications] = useState<MedicationAdministrationResponse[]>(detail.medicationAdministrations || []);
@@ -169,7 +170,7 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
   }, [form]);
 
   return (
-    <div className="space-y-6 p-4 flex-grow md:w-1/2 lg:w-2/3">
+    <div className={className}>
       <Card>
         <CardHeader>
           <CardTitle>S - Subjetivo</CardTitle>
@@ -361,30 +362,6 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
           <CardTitle>P - Plan</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Form {...form}>
-            <FormField
-              control={form.control}
-              name="plan"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Textarea
-                      id="plan"
-                      value={field.value ?? ""}
-                      onChange={(e) => {
-                        field.onChange(e.target.value);
-                        autosave("plan", e.target.value === "" ? null : e.target.value);
-                      }}
-                      rows={3}
-                      placeholder="Indicaciones al propietario"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </Form>
-
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => setOpenMedication(true)}>
               <Pill className="mr-2 h-4 w-4" />
@@ -485,6 +462,31 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
               </div>
             </div>
           </div>
+
+          <Form {...form}>
+            <FormField
+              control={form.control}
+              name="plan"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      id="plan"
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        autosave("plan", e.target.value === "" ? null : e.target.value);
+                      }}
+                      rows={3}
+                      placeholder="Indicaciones al propietario"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Form>
+
         </CardContent>
       </Card>
 

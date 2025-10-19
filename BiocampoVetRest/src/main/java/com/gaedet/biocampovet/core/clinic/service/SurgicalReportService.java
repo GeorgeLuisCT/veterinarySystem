@@ -17,6 +17,7 @@ import com.gaedet.biocampovet.core.clinic.entity.Attentions;
 import com.gaedet.biocampovet.core.clinic.entity.PostOperativeIndication;
 import com.gaedet.biocampovet.core.clinic.entity.SurgicalMaterial;
 import com.gaedet.biocampovet.core.clinic.entity.SurgicalReport;
+import com.gaedet.biocampovet.core.clinic.enums.AttentionType;
 import com.gaedet.biocampovet.core.clinic.enums.SurgicalReportStatus;
 import com.gaedet.biocampovet.core.clinic.mapper.SurgicalReportMapper;
 import com.gaedet.biocampovet.core.clinic.repository.AnestheticDrugRepository;
@@ -77,6 +78,13 @@ public class SurgicalReportService {
                 .orElseGet(() -> {
                     Attentions attention = attentionRepository.findWithDetailsById(attentionId)
                             .orElseThrow(() -> new IllegalArgumentException("Atención no encontrada: id=" + attentionId));
+
+                    if (attention.getType() != AttentionType.SURGERY) {
+                        throw new IllegalStateException(
+                                "Solo se puede crear un reporte quirúrgico para atenciones de tipo SURGERY. "
+                                        + "Atención " + attentionId + " es de tipo " + attention.getType()
+                        );
+                    }
 
                     SurgicalReport report = SurgicalReport.builder()
                             .attention(attention)

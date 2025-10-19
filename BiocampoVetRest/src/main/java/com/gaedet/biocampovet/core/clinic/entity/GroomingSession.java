@@ -1,7 +1,9 @@
 package com.gaedet.biocampovet.core.clinic.entity;
 
 import javax.persistence.*;
+import javax.validation.constraints.AssertTrue;
 
+import com.gaedet.biocampovet.core.clinic.enums.AttentionType;
 import com.gaedet.biocampovet.core.clinic.enums.GroomingStatus;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
 import lombok.*;
@@ -69,4 +71,8 @@ public class GroomingSession {
     @Builder.Default
     private Set<GroomingMaterialUsed> materialsUsed = new HashSet<>();
 
+    @AssertTrue(message = "La sesión de grooming solo aplica a atenciones de tipo GROOMING")
+    public boolean attentionMustBeGrooming() {
+        return attention == null || attention.getType() == AttentionType.GROOMING;
+    }
 }

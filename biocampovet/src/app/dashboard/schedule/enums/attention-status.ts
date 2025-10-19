@@ -1,3 +1,6 @@
+import { Hourglass, Stethoscope, Workflow, CheckCircle } from "lucide-react";
+import React from "react";
+
 export enum AttentionStatus {
   WAITING = "WAITING",
   IN_CONSULTATION = "IN_CONSULTATION",
@@ -12,8 +15,38 @@ export const AttentionStatusLabels: Record<AttentionStatus, string> = {
   [AttentionStatus.FINISHED]: "Finalizada",
 };
 
-export const AttentionStatusOptions = (Object.values(AttentionStatus) as AttentionStatus[]).map((value) => ({
+export interface AttentionStatusDetailsType {
+  label: string;
+  icon: React.ElementType;
+  colorClass: string;
+}
+
+export const AttentionStatusDetails: Record<AttentionStatus, AttentionStatusDetailsType> = {
+  [AttentionStatus.WAITING]: {
+    label: "En espera",
+    icon: Hourglass,
+    colorClass: "bg-amber-500",
+  },
+  [AttentionStatus.IN_CONSULTATION]: {
+    label: "En atención",
+    icon: Stethoscope,
+    colorClass: "bg-blue-500",
+  },
+  [AttentionStatus.IN_PROGRESS]: {
+    label: "En progreso",
+    icon: Workflow,
+    colorClass: "bg-violet-500",
+  },
+  [AttentionStatus.FINISHED]: {
+    label: "Finalizada",
+    icon: CheckCircle,
+    colorClass: "bg-emerald-600",
+  },
+};
+
+export const AttentionStatusOptions = (
+  Object.values(AttentionStatus) as AttentionStatus[]
+).map((value) => ({
   value,
   label: AttentionStatusLabels[value],
 }));
-

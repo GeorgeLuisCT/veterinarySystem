@@ -1,5 +1,6 @@
 package com.gaedet.biocampovet.core.clinic.dto;
 
+import com.gaedet.biocampovet.core.animal.dto.AnimalBasicResponse;
 import com.gaedet.biocampovet.core.branches.dto.BranchResponse;
 import com.gaedet.biocampovet.core.clinic.enums.AttentionType;
 import com.gaedet.biocampovet.core.clinic.enums.AttentionsStatus;
@@ -15,8 +16,7 @@ public class AttentionResponse {
     private final Long id;
     private final Long appointmentId;
     private final BranchResponse branch;
-    private final Long animalId;
-    private final String animalName;
+    private final AnimalBasicResponse animalBasicResponse;
     private final Long attendingEmployeeId;
     private final String attendingEmployeeFullName;
     private final LocalDateTime checkInTime;

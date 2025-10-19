@@ -1,5 +1,7 @@
 package com.gaedet.biocampovet.core.clinic.mapper;
 
+import com.gaedet.biocampovet.core.animal.dto.AnimalBasicResponse;
+import com.gaedet.biocampovet.core.animal.mapper.AnimalMapper;
 import com.gaedet.biocampovet.core.branches.entity.Branch;
 import com.gaedet.biocampovet.core.clinic.entity.Cage;
 import com.gaedet.biocampovet.core.clinic.dto.CageRequest;
@@ -21,14 +23,11 @@ public class CageMapper {
 
         if (current != null) {
             CageResponse.CurrentHospitalizationBrief brief = new CageResponse.CurrentHospitalizationBrief();
+
+            AnimalBasicResponse animalBasicResponse = AnimalMapper.toBasicResponse(current.getAnimal());
+
             brief.setId(current.getId());
-            brief.setAnimalId(current.getAnimal().getId());
-            brief.setAnimalName(current.getAnimal().getName());
-            brief.setAnimalPhotoUrl(current.getAnimal().getPhotoUrl());
-            brief.setAnimalSpecies(current.getAnimal().getSpecies());
-            brief.setAnimalBreed(current.getAnimal().getBreed());
-            brief.setSex(current.getAnimal().getSex());
-            brief.setMicrochipNumber(current.getAnimal().getMicrochipNumber());
+            brief.setAnimalBasicResponse(animalBasicResponse);
             brief.setStatus(current.getStatus());
             brief.setAdmissionDate(current.getAdmissionDate());
             brief.setAdmissionTiming(current.getAdmissionTiming());

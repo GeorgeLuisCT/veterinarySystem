@@ -60,7 +60,7 @@ export default function LabRequestsPage() {
     }, [router]);
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+        <div className="h-full bg-gray-50 p-4 sm:p-6">
             <div className="max-w-7xl mx-auto">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">

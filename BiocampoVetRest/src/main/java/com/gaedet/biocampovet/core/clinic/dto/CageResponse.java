@@ -1,5 +1,6 @@
 package com.gaedet.biocampovet.core.clinic.dto;
 
+import com.gaedet.biocampovet.core.animal.dto.AnimalBasicResponse;
 import com.gaedet.biocampovet.core.animal.enums.AnimalSex;
 import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
 import com.gaedet.biocampovet.core.clinic.enums.AdmissionTiming;
@@ -27,14 +28,7 @@ public class CageResponse {
     @Setter
     public static class CurrentHospitalizationBrief {
         private Long id;
-        private Long animalId;
-        private String animalName;
-        private String animalPhotoUrl;
-        private AnimalSpecies animalSpecies;
-        private String animalBreed;
-        private AnimalSex sex;
-        private String microchipNumber;
-
+        private AnimalBasicResponse animalBasicResponse;
         private HospitalizationStatus status;
         private LocalDateTime admissionDate;
 

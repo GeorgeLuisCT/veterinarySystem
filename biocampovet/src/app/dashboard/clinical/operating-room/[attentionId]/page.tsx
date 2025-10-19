@@ -17,16 +17,16 @@ import { OperatingRoomService } from "@/app/dashboard/branche/services/operating
 import SurgicalReportForm, { Option, SurgicalReportFormHandle } from "../../components/operating-room/surgical-report-form";
 
 
-const ensureOption = (options: Option[], id: number | null, label: string | null) => {
-  if (!id || !label) return options;
-  const exists = options.some((option) => Number(option.value) === id);
+const ensureOption = (options: Option[], attentionId: number | null, label: string | null) => {
+  if (!attentionId || !label) return options;
+  const exists = options.some((option) => Number(option.value) === attentionId);
   if (exists) return options;
-  return [...options, { value: String(id), label }];
+  return [...options, { value: String(attentionId), label }];
 };
 
 export default function SurgicalReportDetailPage() {
   const params = useParams();
-  const idParam = params?.id;
+  const attentionIdParam = params?.attentionId;
   const { toast } = useToast();
 
   const [reportId, setReportId] = useState<number | null>(null);
@@ -48,6 +48,7 @@ export default function SurgicalReportDetailPage() {
       const response = await SurgicalReportService.getOrCreateByAttention(attentionId);
       console.log(response);
       setDetail(response);
+      setReportId(response.id);
     } catch (error) {
       console.error("Error fetching surgical report:", error);
       toast({ variant: "destructive", title: "Error", description: "No se pudo cargar el reporte quirúrgico." });
@@ -57,20 +58,19 @@ export default function SurgicalReportDetailPage() {
   }, [toast]);
 
   useEffect(() => {
-    if (!idParam) {
+    if (!attentionIdParam) {
       setLoading(false);
       toast({ variant: "destructive", title: "Reporte no encontrado", description: "No se proporcionó un identificador válido." });
       return;
     }
-    const numericId = Number(Array.isArray(idParam) ? idParam[0] : idParam);
-    if (Number.isNaN(numericId)) {
+    const numericAttentionId = Number(Array.isArray(attentionIdParam) ? attentionIdParam[0] : attentionIdParam);
+    if (Number.isNaN(numericAttentionId)) {
       setLoading(false);
       toast({ variant: "destructive", title: "Identificador inválido", description: "El identificador no es un número válido." });
       return;
     }
-    setReportId(numericId);
-    void fetchDetail(numericId);
-  }, [idParam, fetchDetail, toast]);
+    void fetchDetail(numericAttentionId);
+  }, [attentionIdParam, fetchDetail, toast]);
 
   useEffect(() => {
     if (!detail) return;

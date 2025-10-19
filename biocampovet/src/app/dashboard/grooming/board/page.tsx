@@ -250,7 +250,7 @@ export default function GroomingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+    <div className="h-full bg-gray-50 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>

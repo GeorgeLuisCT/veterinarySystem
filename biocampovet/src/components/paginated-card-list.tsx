@@ -158,7 +158,6 @@ export function PaginatedCardList<T>({
               return (
                 <div
                   key={key}
-                  className={classes}
                   role={clickable ? "button" : undefined}
                   tabIndex={clickable ? 0 : -1}
                   onClick={(event) => handleCardClick(item, event)}

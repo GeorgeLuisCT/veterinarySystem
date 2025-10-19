@@ -387,3 +387,93 @@ INSERT INTO cages (name, size, is_occupied, branch_id)
 SELECT 'Jaula 06', 'LARGE', false, b.id
 FROM branches b WHERE b.name = 'Segunda sucursal'
 ON CONFLICT (name) DO NOTHING;
+
+-- Seed health plans
+INSERT INTO health_plans (name, description, price, notes) VALUES
+    ('Plan de Vacunación Canina Anual', 'Incluye la vacuna séxtuple y la vacuna antirrábica, más una desparasitación interna.', 250.00, 'Recomendado para todos los caninos adultos.'),
+    ('Plan de Control Geriátrico Felino', 'Chequeo completo para gatos mayores de 7 años, incluye análisis de sangre y orina.', 350.00, 'Ideal para detección temprana de enfermedades comunes en la vejez.'),
+    ('Plan de Bienestar para Cachorros', 'Paquete inicial para cachorros que cubre las primeras vacunas, desparasitaciones y una consulta de orientación.', 450.00, 'Válido para cachorros de hasta 6 meses.')
+ON CONFLICT (name) DO NOTHING;
+
+-- Seed prescription templates
+INSERT INTO prescription_templates (name, purpose, notes) VALUES
+    ('Tratamiento para Otitis Externa', 'Tratamiento estándar para infecciones de oído.', 'Aplicar gotas óticas 2 veces al día por 7 días.'),
+    ('Tratamiento Post-operatorio Básico', 'Medicación para el manejo del dolor y prevención de infecciones después de una cirugía.', 'Administrar junto con comida.'),
+    ('Control de Parásitos Internos', 'Desparasitación interna de amplio espectro.', 'Repetir cada 3 meses.')
+ON CONFLICT (name) DO NOTHING;
+
+-- Link services to health plans
+-- Plan 'Plan de Control Geriátrico Felino'
+INSERT INTO health_plan_service_items (health_plan_id, clinical_service_id, quantity, notes)
+SELECT
+    (SELECT id FROM health_plans WHERE name = 'Plan de Control Geriátrico Felino'),
+    (SELECT id FROM clinical_services WHERE name = 'Consulta Clínica General'),
+    1,
+    'Chequeo geriátrico inicial.'
+WHERE
+    EXISTS (SELECT id FROM health_plans WHERE name = 'Plan de Control Geriátrico Felino') AND
+    EXISTS (SELECT id FROM clinical_services WHERE name = 'Consulta Clínica General') AND
+    NOT EXISTS (
+        SELECT 1 FROM health_plan_service_items
+        WHERE health_plan_id = (SELECT id FROM health_plans WHERE name = 'Plan de Control Geriátrico Felino')
+        AND clinical_service_id = (SELECT id FROM clinical_services WHERE name = 'Consulta Clínica General')
+    );
+
+-- Plan 'Plan de Bienestar para Cachorros'
+INSERT INTO health_plan_service_items (health_plan_id, clinical_service_id, quantity, notes)
+SELECT
+    (SELECT id FROM health_plans WHERE name = 'Plan de Bienestar para Cachorros'),
+    (SELECT id FROM clinical_services WHERE name = 'Consulta Clínica General'),
+    2,
+    'Consultas de seguimiento para el cachorro.'
+WHERE
+    EXISTS (SELECT id FROM health_plans WHERE name = 'Plan de Bienestar para Cachorros') AND
+    EXISTS (SELECT id FROM clinical_services WHERE name = 'Consulta Clínica General') AND
+    NOT EXISTS (
+        SELECT 1 FROM health_plan_service_items
+        WHERE health_plan_id = (SELECT id FROM health_plans WHERE name = 'Plan de Bienestar para Cachorros')
+        AND clinical_service_id = (SELECT id FROM clinical_services WHERE name = 'Consulta Clínica General')
+    );
+
+-- Link medications to prescription templates
+-- Template 'Tratamiento Post-operatorio Básico'
+INSERT INTO prescription_template_medications (prescription_template_id, product_id, dosage_amount, dosage_unit, frequency_value, frequency_unit, duration_value, duration_unit, instructions)
+SELECT
+    (SELECT id FROM prescription_templates WHERE name = 'Tratamiento Post-operatorio Básico'),
+    (SELECT id FROM products WHERE sku = 'ANTIP-001'),
+    1,
+    'TABLET',
+    12,
+    'HOURS',
+    3,
+    'DAYS',
+    'Administrar una tableta cada 12 horas durante 3 días para prevenir infecciones.'
+WHERE
+    EXISTS (SELECT id FROM prescription_templates WHERE name = 'Tratamiento Post-operatorio Básico') AND
+    EXISTS (SELECT id FROM products WHERE sku = 'ANTIP-001') AND
+    NOT EXISTS (
+        SELECT 1 FROM prescription_template_medications
+        WHERE prescription_template_id = (SELECT id FROM prescription_templates WHERE name = 'Tratamiento Post-operatorio Básico')
+        AND product_id = (SELECT id FROM products WHERE sku = 'ANTIP-001')
+    );
+
+-- Template 'Control de Parásitos Internos'
+INSERT INTO prescription_template_medications (prescription_template_id, product_id, dosage_amount, dosage_unit, frequency_value, frequency_unit, duration_value, duration_unit, instructions)
+SELECT
+    (SELECT id FROM prescription_templates WHERE name = 'Control de Parásitos Internos'),
+    (SELECT id FROM products WHERE sku = 'ANTIP-001'),
+    1,
+    'TABLET',
+    24,
+    'HOURS',
+    1,
+    'DAYS',
+    'Administrar una tableta como dosis única.'
+WHERE
+    EXISTS (SELECT id FROM prescription_templates WHERE name = 'Control de Parásitos Internos') AND
+    EXISTS (SELECT id FROM products WHERE sku = 'ANTIP-001') AND
+    NOT EXISTS (
+        SELECT 1 FROM prescription_template_medications
+        WHERE prescription_template_id = (SELECT id FROM prescription_templates WHERE name = 'Control de Parásitos Internos')
+        AND product_id = (SELECT id FROM products WHERE sku = 'ANTIP-001')
+    );

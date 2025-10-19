@@ -25,7 +25,7 @@ function formatDate(iso: string): string {
   }
 }
 
-export default function QuickHistory({ animalId }: { animalId: number }) {
+export default function QuickHistory({ animalId, className }: { animalId: number, className?: string }) {
   const [items, setItems] = React.useState<MedicalRecordSummaryResponse[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -51,7 +51,7 @@ export default function QuickHistory({ animalId }: { animalId: number }) {
   }, [animalId, toast]);
 
   return (
-    <aside className="hidden xl:block w-1/5 p-4">
+    <aside className={className}>
       <div className="sticky top-24">
         <h3 className="font-semibold mb-3 text-gray-700">Historial Rápido</h3>
 

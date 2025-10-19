@@ -4,6 +4,7 @@ import com.gaedet.biocampovet.core.clinic.dto.*;
 import com.gaedet.biocampovet.core.clinic.entity.Attentions;
 import com.gaedet.biocampovet.core.clinic.entity.GroomingMaterialUsed;
 import com.gaedet.biocampovet.core.clinic.entity.GroomingSession;
+import com.gaedet.biocampovet.core.clinic.enums.AttentionType;
 import com.gaedet.biocampovet.core.clinic.enums.GroomingStatus;
 import com.gaedet.biocampovet.core.clinic.mapper.GroomingSessionMapper;
 import com.gaedet.biocampovet.core.clinic.repository.AttentionRepository;
@@ -60,6 +61,13 @@ public class GroomingSessionService {
                 .orElseGet(() -> {
                     Attentions attention = attentionRepository.findWithDetailsById(attentionId)
                             .orElseThrow(() -> new IllegalArgumentException("Atención no encontrada: id=" + attentionId));
+
+                    if (attention.getType() != AttentionType.GROOMING) {
+                        throw new IllegalStateException(
+                                "Solo se puede crear una sesión de grooming para atenciones de tipo GROOMING. "
+                                        + "Atención " + attentionId + " es de tipo " + attention.getType()
+                        );
+                    }
 
                     GroomingSession entity = GroomingSession.builder()
                             .attention(attention)

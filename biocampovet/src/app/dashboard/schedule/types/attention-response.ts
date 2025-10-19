@@ -1,6 +1,7 @@
 import { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
 import { AttentionType } from "../enums/attention-type";
 import { AttentionStatus } from "../enums/attention-status";
+import { AnimalBasicResponse } from "../../patients/animals/types/animal-basic-response";
 
 export interface AttentionListParams {
   page?: number;
@@ -41,8 +42,7 @@ export interface AttentionResponse {
   id: number;
   appointmentId: number | null;
   branch: BranchResponse;
-  animalId: number;
-  animalName: string;
+  animalBasicResponse: AnimalBasicResponse;
   attendingEmployeeId: number | null;
   attendingEmployeeFullName: string | null;
   checkInTime: string;
