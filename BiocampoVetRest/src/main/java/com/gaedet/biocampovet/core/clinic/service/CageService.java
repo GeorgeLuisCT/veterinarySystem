@@ -4,6 +4,7 @@ import com.gaedet.biocampovet.core.branches.entity.Branch;
 import com.gaedet.biocampovet.core.branches.repository.BranchRepository;
 import com.gaedet.biocampovet.core.clinic.entity.Cage;
 import com.gaedet.biocampovet.core.clinic.entity.Hospitalization;
+import com.gaedet.biocampovet.core.clinic.enums.CageSize;
 import com.gaedet.biocampovet.core.clinic.enums.HospitalizationStatus;
 import com.gaedet.biocampovet.core.clinic.mapper.CageMapper;
 import com.gaedet.biocampovet.core.clinic.repository.CageRepository;
@@ -44,7 +45,7 @@ public class CageService {
 
     @Transactional(readOnly = true)
     public PaginatedResponse<CageResponse> list(
-            Long branchId, String name, String size, Boolean isOccupied, int page, int pageSize) {
+            Long branchId, String name, CageSize size, Boolean isOccupied, int page, int pageSize) {
 
         Specification<Cage> spec = CageSpecification.byFilters(branchId, name, size, isOccupied);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by("name").ascending());
@@ -54,7 +55,7 @@ public class CageService {
         List<CageResponse> cageResponses = cagePage.getContent().stream()
                 .map(cage -> {
                     Hospitalization current = null;
-                    if (Boolean.TRUE.equals(cage.isOccupied())) {
+                    if (cage.isOccupied()) {
                         List<Hospitalization> list = hospitalizationRepository
                                 .findActiveByCageIdOrderByAdmissionDesc(cage.getId(), ACTIVE_STATUSES);
                         if (!list.isEmpty()) current = list.get(0);

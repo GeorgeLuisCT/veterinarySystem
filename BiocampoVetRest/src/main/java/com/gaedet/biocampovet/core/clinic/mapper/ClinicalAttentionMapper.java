@@ -2,20 +2,8 @@ package com.gaedet.biocampovet.core.clinic.mapper;
 
 import com.gaedet.biocampovet.core.branches.dto.BranchResponse;
 import com.gaedet.biocampovet.core.branches.entity.Branch;
-import com.gaedet.biocampovet.core.clinic.dto.ClinicalAttentionDetailResponse;
-import com.gaedet.biocampovet.core.clinic.dto.ClinicalAttentionStatusGroupResponse;
-import com.gaedet.biocampovet.core.clinic.dto.ClinicalAttentionSummaryResponse;
-import com.gaedet.biocampovet.core.clinic.dto.ClinicalServiceItemResponse;
-import com.gaedet.biocampovet.core.clinic.dto.LaboratoryRequestItemResponse;
-import com.gaedet.biocampovet.core.clinic.dto.LaboratoryRequestResponse;
-import com.gaedet.biocampovet.core.clinic.dto.MedicationAdministrationResponse;
-import com.gaedet.biocampovet.core.clinic.dto.SurgicalOrderResponse;
-import com.gaedet.biocampovet.core.clinic.entity.ClinicalAttention;
-import com.gaedet.biocampovet.core.clinic.entity.ClinicalServiceItem;
-import com.gaedet.biocampovet.core.clinic.entity.LaboratoryRequest;
-import com.gaedet.biocampovet.core.clinic.entity.LaboratoryRequestItem;
-import com.gaedet.biocampovet.core.clinic.entity.MedicationAdministration;
-import com.gaedet.biocampovet.core.clinic.entity.SurgicalOrder;
+import com.gaedet.biocampovet.core.clinic.dto.*;
+import com.gaedet.biocampovet.core.clinic.entity.*;
 import com.gaedet.biocampovet.core.clinic.enums.ClinicalAttentionStatus;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
 import com.gaedet.biocampovet.core.inventory.entity.Product;
@@ -72,10 +60,14 @@ public final class ClinicalAttentionMapper {
                 .map(ClinicalAttentionMapper::toLaboratoryRequestResponse)
                 .collect(Collectors.toList());
 
+        Attentions attentionEntity = entity.getAttention();
+        AttentionSummaryResponse attentionSummary = AttentionMapper.toSummary(attentionEntity);
+
+
         return ClinicalAttentionDetailResponse.builder()
                 .id(entity.getId())
                 .version(entity.getVersion())
-                .attentionId(entity.getAttention() != null ? entity.getAttention().getId() : null)
+                .attentionId(attentionEntity.getId())
                 .status(entity.getStatus())
                 .visitDate(entity.getVisitDate())
                 .subjective(entity.getSubjective())
@@ -87,6 +79,7 @@ public final class ClinicalAttentionMapper {
                 .heartRate(entity.getHeartRate())
                 .respiratoryRate(entity.getRespiratoryRate())
                 .summary(toSummary(entity))
+                .attention(attentionSummary)
                 .medicationAdministrations(medications)
                 .serviceItems(services)
                 .surgicalOrders(orders)
@@ -133,8 +126,9 @@ public final class ClinicalAttentionMapper {
 
         return ClinicalServiceItemResponse.builder()
                 .id(entity.getId())
-                .clinicalServiceId(service != null ? service.getId() : null)
-                .clinicalServiceName(service != null ? service.getName() : null)
+                .clinicalServiceId(service.getId())
+                .clinicalServiceName(service.getName())
+                .clinicalServiceCategory(service.getClinicalServiceCategory())
                 .unitPrice(entity.getUnitPrice())
                 .quantity(entity.getQuantity())
                 .subtotal(entity.getSubtotal())

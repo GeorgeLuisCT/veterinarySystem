@@ -37,12 +37,6 @@ INSERT INTO document_type (name, abbreviation) VALUES
     ('Carné de Extranjería', 'CE')
 ON CONFLICT (name) DO UPDATE SET abbreviation = EXCLUDED.abbreviation;
 
--- Seed animal species
-INSERT INTO animal_specie (name, is_active) VALUES
-    ('Canino', true),
-    ('Felino', true)
-ON CONFLICT (name) DO UPDATE SET is_active = EXCLUDED.is_active;
-
 -- Seed customers
 INSERT INTO customer (name, email, phone_number, address, is_active, document_type_id, document_number)
 SELECT 'Juan Pérez', 'juan.perez@example.com', '999111222', 'Av. Siempre Viva 123, Chiclayo', true,
@@ -66,50 +60,46 @@ WHERE dt.abbreviation = 'RUC'
 ON CONFLICT (document_number) DO NOTHING;
 
 -- Seed animals
+-- Firulais (Perro)
 WITH owner AS (
     SELECT id FROM customer WHERE document_number = '12345678'
-), species AS (
-    SELECT id FROM animal_specie WHERE name = 'Canino'
 )
-INSERT INTO animal (customer_id, name, species_id, breed, birth_date, sex, microchip_number, photo_url, is_active)
-SELECT owner.id, 'Firulais', species.id, 'Mestizo', DATE '2021-01-15', 'MALE', NULL, NULL, true
-FROM owner, species
+INSERT INTO animal (customer_id, name, species, breed, birth_date, sex, microchip_number, photo_url, is_active)
+SELECT owner.id, 'Firulais', 'CANINE', 'Mestizo', DATE '2021-01-15', 'MALE', NULL, NULL, true
+FROM owner
 WHERE NOT EXISTS (
     SELECT 1 FROM animal WHERE LOWER(name) = LOWER('Firulais') AND customer_id = owner.id
 );
 
+-- Mishi (Gato)
 WITH owner AS (
     SELECT id FROM customer WHERE document_number = '12345678'
-), species AS (
-    SELECT id FROM animal_specie WHERE name = 'Felino'
 )
-INSERT INTO animal (customer_id, name, species_id, breed, birth_date, sex, microchip_number, photo_url, is_active)
-SELECT owner.id, 'Mishi', species.id, 'Siames', DATE '2022-03-10', 'FEMALE', NULL, NULL, true
-FROM owner, species
+INSERT INTO animal (customer_id, name, species, breed, birth_date, sex, microchip_number, photo_url, is_active)
+SELECT owner.id, 'Mishi', 'FELINE', 'Siames', DATE '2022-03-10', 'FEMALE', NULL, NULL, true
+FROM owner
 WHERE NOT EXISTS (
     SELECT 1 FROM animal WHERE LOWER(name) = LOWER('Mishi') AND customer_id = owner.id
 );
 
+-- Pelusa (Gato)
 WITH owner AS (
     SELECT id FROM customer WHERE document_number = '87654321'
-), species AS (
-    SELECT id FROM animal_specie WHERE name = 'Felino'
 )
-INSERT INTO animal (customer_id, name, species_id, breed, birth_date, sex, microchip_number, photo_url, is_active)
-SELECT owner.id, 'Pelusa', species.id, 'Persa', DATE '2020-07-05', 'FEMALE', 'MICRO-0001', NULL, true
-FROM owner, species
+INSERT INTO animal (customer_id, name, species, breed, birth_date, sex, microchip_number, photo_url, is_active)
+SELECT owner.id, 'Pelusa', 'FELINE', 'Persa', DATE '2020-07-05', 'FEMALE', 'MICRO-0001', NULL, true
+FROM owner
 WHERE NOT EXISTS (
     SELECT 1 FROM animal WHERE LOWER(name) = LOWER('Pelusa') AND customer_id = owner.id
 );
 
+-- Guardian (Perro)
 WITH owner AS (
     SELECT id FROM customer WHERE document_number = '20601234567'
-), species AS (
-    SELECT id FROM animal_specie WHERE name = 'Canino'
 )
-INSERT INTO animal (customer_id, name, species_id, breed, birth_date, sex, microchip_number, photo_url, is_active)
-SELECT owner.id, 'Guardian', species.id, 'Pastor Alemán', DATE '2019-11-20', 'MALE', 'MICRO-0002', NULL, true
-FROM owner, species
+INSERT INTO animal (customer_id, name, species, breed, birth_date, sex, microchip_number, photo_url, is_active)
+SELECT owner.id, 'Guardian', 'CANINE', 'Pastor Alemán', DATE '2019-11-20', 'MALE', 'MICRO-0002', NULL, true
+FROM owner
 WHERE NOT EXISTS (
     SELECT 1 FROM animal WHERE LOWER(name) = LOWER('Guardian') AND customer_id = owner.id
 );
@@ -369,31 +359,31 @@ ON CONFLICT (laboratory_test_id, laboratory_id) DO NOTHING;
 
 -- Seed cages for branches
 INSERT INTO cages (name, size, is_occupied, branch_id)
-SELECT 'Jaula 01', 'Pequeña', false, b.id
+SELECT 'Jaula 01', 'SMALL', false, b.id
 FROM branches b WHERE b.name = 'Primera sucursal'
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO cages (name, size, is_occupied, branch_id)
-SELECT 'Jaula 02', 'Mediana', false, b.id
+SELECT 'Jaula 02', 'MEDIUM', false, b.id
 FROM branches b WHERE b.name = 'Primera sucursal'
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO cages (name, size, is_occupied, branch_id)
-SELECT 'Jaula 03', 'Grande', false, b.id
+SELECT 'Jaula 03', 'LARGE', false, b.id
 FROM branches b WHERE b.name = 'Primera sucursal'
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO cages (name, size, is_occupied, branch_id)
-SELECT 'Jaula 04', 'Pequeña', false, b.id
+SELECT 'Jaula 04', 'SMALL', false, b.id
 FROM branches b WHERE b.name = 'Segunda sucursal'
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO cages (name, size, is_occupied, branch_id)
-SELECT 'Jaula 05', 'Mediana', false, b.id
+SELECT 'Jaula 05', 'MEDIUM', false, b.id
 FROM branches b WHERE b.name = 'Segunda sucursal'
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO cages (name, size, is_occupied, branch_id)
-SELECT 'Jaula 06', 'Grande', false, b.id
+SELECT 'Jaula 06', 'LARGE', false, b.id
 FROM branches b WHERE b.name = 'Segunda sucursal'
 ON CONFLICT (name) DO NOTHING;

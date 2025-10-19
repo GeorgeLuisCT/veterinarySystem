@@ -1,13 +1,7 @@
 package com.gaedet.biocampovet.core.clinic.controller;
 
+import com.gaedet.biocampovet.core.clinic.dto.*;
 import com.gaedet.biocampovet.core.clinic.enums.HospitalizationStatus;
-import com.gaedet.biocampovet.core.clinic.dto.AddEvolutionNoteRequest;
-import com.gaedet.biocampovet.core.clinic.dto.CreateHospitalizationRequest;
-import com.gaedet.biocampovet.core.clinic.dto.UpdateHospitalizationRequest;
-import com.gaedet.biocampovet.core.clinic.dto.UpdateTreatmentScheduleRequest;
-import com.gaedet.biocampovet.core.clinic.dto.HospitalizationPatchResponse;
-import com.gaedet.biocampovet.core.clinic.dto.HospitalizationResponse;
-import com.gaedet.biocampovet.core.clinic.dto.HospitalizationSummaryResponse;
 import com.gaedet.biocampovet.core.clinic.service.HospitalizationService;
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
@@ -49,9 +43,9 @@ public class HospitalizationController {
     }
 
     @PostMapping
-    public ResponseEntity<HospitalizationResponse> createHospitalization(@Valid @RequestBody CreateHospitalizationRequest request) {
-        HospitalizationResponse createdHospitalization = hospitalizationService.createHospitalization(request);
-        return new ResponseEntity<>(createdHospitalization, HttpStatus.CREATED);
+    public ResponseEntity<CageResponse> createHospitalization(@Valid @RequestBody CreateHospitalizationRequest request) {
+        CageResponse response = hospitalizationService.createHospitalization(request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PatchMapping("/{id}")

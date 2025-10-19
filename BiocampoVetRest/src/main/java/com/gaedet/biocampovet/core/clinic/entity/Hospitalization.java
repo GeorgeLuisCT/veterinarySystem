@@ -110,7 +110,7 @@ public class Hospitalization {
         if (cause == HospitalizationCause.PRE_SURGERY || cause == HospitalizationCause.POST_SURGERY) {
             return cat == ClinicalServiceCategory.SURGERY;
         }
-        if (cause == HospitalizationCause.GROOMING_OBSERVATION) {
+        if (cause == HospitalizationCause.POST_GROOMING) {
             return cat == ClinicalServiceCategory.GROOMING;
         }
         if (cause == HospitalizationCause.CLINICAL_OBSERVATION || cause == HospitalizationCause.MEDICATION_MONITORING) {

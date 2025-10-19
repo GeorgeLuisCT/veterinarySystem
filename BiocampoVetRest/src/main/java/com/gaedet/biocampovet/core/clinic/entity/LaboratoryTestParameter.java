@@ -1,6 +1,6 @@
 package com.gaedet.biocampovet.core.clinic.entity;
-import com.gaedet.biocampovet.core.animal.entity.AnimalSpecies;
 import com.gaedet.biocampovet.core.animal.enums.AnimalSex;
+import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
 import com.gaedet.biocampovet.core.clinic.enums.LabValueType;
 import lombok.*;
 
@@ -39,10 +39,9 @@ public class LaboratoryTestParameter {
     @Column(length = 200)
     private String refText;        // si el rango no es numérico o quieres anotar “6.0–17.0”
 
-    // Afinamiento opcional por especie/sexo/edad (si lo necesitas ahora o luego)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "species_id")
-    private AnimalSpecies species; // nullable; aplica a todos si es null
+    @Enumerated(EnumType.STRING)
+    @Column(name = "species", length = 32)
+    private AnimalSpecies species;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 8)

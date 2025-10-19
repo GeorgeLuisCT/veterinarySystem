@@ -2,6 +2,7 @@ package com.gaedet.biocampovet.core.animal.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.gaedet.biocampovet.core.animal.enums.AnimalSex;
+import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
 import com.gaedet.biocampovet.core.customer.dto.CustomerResponse;
 import lombok.*;
 
@@ -19,7 +20,7 @@ public class AnimalResponse {
     private String name;
     private String photoUrl;
     private CustomerResponse owner;
-    private AnimalSpeciesResponse species;
+    private AnimalSpecies species;
     private String breed;
     private LocalDate birthDate;
     private AnimalSex sex;

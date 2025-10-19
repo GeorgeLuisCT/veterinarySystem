@@ -2,7 +2,7 @@ package com.gaedet.biocampovet.core.animal.mapper;
 
 import com.gaedet.biocampovet.core.animal.dto.*;
 import com.gaedet.biocampovet.core.animal.entity.Animal;
-import com.gaedet.biocampovet.core.animal.entity.AnimalSpecies;
+import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
 import com.gaedet.biocampovet.core.customer.entity.Customer;
 import com.gaedet.biocampovet.core.customer.mapper.CustomerMapper;
 import org.springframework.stereotype.Component;
@@ -11,18 +11,16 @@ import org.springframework.stereotype.Component;
 public class AnimalMapper {
 
     private final CustomerMapper customerMapper;
-    private final AnimalSpeciesMapper animalSpeciesMapper;
 
-    public AnimalMapper(CustomerMapper customerMapper, AnimalSpeciesMapper animalSpeciesMapper) {
+    public AnimalMapper(CustomerMapper customerMapper) {
         this.customerMapper = customerMapper;
-        this.animalSpeciesMapper = animalSpeciesMapper;
     }
 
-    public Animal toEntity(AnimalCreateRequest request, Customer owner, AnimalSpecies species) {
+    public Animal toEntity(AnimalCreateRequest request, Customer owner) {
         return Animal.builder()
                 .name(request.getName())
                 .owner(owner)
-                .species(species)
+                .species(request.getSpecies())
                 .breed(request.getBreed())
                 .birthDate(request.getBirthDate())
                 .isActive(true)
@@ -39,7 +37,7 @@ public class AnimalMapper {
                 .name(entity.getName())
                 .photoUrl(entity.getPhotoUrl())
                 .owner(customerMapper.toResponse(entity.getOwner()))
-                .species(animalSpeciesMapper.toResponse(entity.getSpecies()))
+                .species(entity.getSpecies())
                 .breed(entity.getBreed())
                 .birthDate(entity.getBirthDate())
                 .sex(entity.getSex())
@@ -56,16 +54,16 @@ public class AnimalMapper {
                 entity.getName(),
                 entity.getBirthDate(),
                 entity.getBreed(),
-                entity.getSpecies().getName(),
+                entity.getSpecies(),
                 entity.getOwner().getName(),
                 entity.isActive()
         );
     }
 
-    public void updateEntity(Animal entity, AnimalUpdateRequest request, Customer owner, AnimalSpecies species) {
+    public void updateEntity(Animal entity, AnimalUpdateRequest request, Customer owner) {
         entity.setName(request.getName());
         entity.setOwner(owner);
-        entity.setSpecies(species);
+        entity.setSpecies(request.getSpecies());
         entity.setBreed(request.getBreed());
         entity.setBirthDate(request.getBirthDate());
     }

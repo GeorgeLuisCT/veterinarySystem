@@ -1,43 +1,62 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { BedDouble, PlusCircle, FileText } from "lucide-react";
+import {
+  PlusCircle, FileText, MoreHorizontal, Edit, Trash2, HeartPulse,
+  Pill, ClipboardEdit, PawPrint,
+  DoorOpen,
+  BriefcaseMedical
+} from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@/context/user-context";
-import { CageResponse, CurrentHospitalizationBrief } from "@/app/dashboard/clinical/types/cage-response";
+import { CageResponse } from "@/app/dashboard/clinical/types/cage-response";
+import { HospitalizationCauseDetails } from "@/app/dashboard/clinical/enums/hospitalization-cause";
 import CageService from "@/app/dashboard/clinical/service/cage-service";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
-import { HospitalizationStatusColors, HospitalizationStatusLabels } from "../enums/hospitalization-status";
 import { NewHospitalizationModal } from "../components/hospitalization/new-hospitalization-modal";
-import { HospitalizationCauseLabels } from "../enums/hospitalization-cause";
-import { AdmissionTimingLabels } from "../enums/admission-timing";
+import DashboardLayoutSection from "../../dashboard-layout-section";
+import { NewCageModal } from "../components/hospitalization/add-cage-modal";
+import { EditCageModal } from "../components/hospitalization/edit-cage-modal";
+import { DeleteCageModal } from "../components/hospitalization/delete-cage-modal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { AnimalSpeciesDetails } from "../../patients/animals/enums/animal-species";
+import { CageSizeLabels } from "../enums/cage-size";
+
 
 export default function HospitalizationBoardPage() {
   const { userInfo } = useUser();
   const { toast } = useToast();
   const [cages, setCages] = useState<CageResponse[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [isAdmitModalOpen, setAdmitModalOpen] = useState(false);
+  const [isAddCageModalOpen, setAddCageModalOpen] = useState(false);
+  const [isEditCageModalOpen, setEditCageModalOpen] = useState(false);
+  const [isDeleteCageModalOpen, setDeleteCageModalOpen] = useState(false);
+
   const [selectedCage, setSelectedCage] = useState<CageResponse | null>(null);
+  const [cageToEdit, setCageToEdit] = useState<CageResponse | null>(null);
+  const [cageToDelete, setCageToDelete] = useState<CageResponse | null>(null);
 
   const fetchBoardData = useCallback(async () => {
     if (!userInfo?.selectedBranch?.id) return;
-
     setLoading(true);
     try {
       const cageRes = await CageService.list({ branchId: userInfo.selectedBranch.id, pageSize: 100 });
-     console.log(cageRes);
-      setCages(cageRes.content);
-
-
+      setCages(cageRes.content.sort((a, b) => a.name.localeCompare(b.name)));
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: getAaxiosErrorMessage(error) ?? "No se pudo cargar el tablero de hospitalización.",
+        description: getAaxiosErrorMessage(error) ?? "No se pudo cargar el tablero.",
       });
     } finally {
       setLoading(false);
@@ -48,91 +67,191 @@ export default function HospitalizationBoardPage() {
     fetchBoardData();
   }, [fetchBoardData]);
 
-  const handleOpenAdmitModal = (cage: CageResponse) => {
-    setSelectedCage(cage);
-    setAdmitModalOpen(true);
+  const handleOpenAdmitModal = (cage: CageResponse) => { setSelectedCage(cage); setAdmitModalOpen(true); };
+  const handleOpenEditModal = (cage: CageResponse) => { setCageToEdit(cage); setEditCageModalOpen(true); };
+  const handleOpenDeleteModal = (cage: CageResponse) => { setCageToDelete(cage); setDeleteCageModalOpen(true); };
+  const handleCageCreated = (newCage: CageResponse) => { setCages((prev) => [newCage, ...prev].sort((a, b) => a.name.localeCompare(b.name))); };
+  const handleCageUpdated = (updatedCage: CageResponse) => { setCages((prev) => prev.map((c) => (c.id === updatedCage.id ? updatedCage : c))); };
+  const handleCageDeleted = (deletedCageId: number) => { setCages((prev) => prev.filter((c) => c.id !== deletedCageId)); };
+  const handleHospitalizationCreated = (updatedCage: CageResponse) => { handleCageUpdated(updatedCage); setSelectedCage(null); setAdmitModalOpen(false); };
+
+
+  const CageActions = ({ cage, isHeaderDark }: { cage: CageResponse; isHeaderDark: boolean }) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className={`h-8 w-8 p-0 absolute top-2 right-2 focus-visible:ring-offset-0 focus-visible:ring-2 focus-visible:ring-white/70 ${isHeaderDark ? 'text-white hover:bg-white/20' : 'text-gray-500 hover:bg-gray-200'}`}>
+          <MoreHorizontal className="h-5 w-5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => handleOpenEditModal(cage)}><Edit className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleOpenDeleteModal(cage)} disabled={cage.occupied} className="text-red-600 focus:text-red-600 focus:bg-red-50"><Trash2 className="mr-2 h-4 w-4" />Eliminar</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const formatAdmissionTime = (admissionDate: string) => {
+    const admission = new Date(admissionDate);
+    const now = new Date();
+    const diffMs = now.getTime() - admission.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays > 0) {
+      const remainingHours = diffHours % 24;
+      return `Ingresado hace: ${diffDays} día${diffDays > 1 ? 's' : ''}${remainingHours > 0 ? ` ${remainingHours}h` : ''}`;
+    } else if (diffHours > 0) {
+      return `Ingresado hace: ${diffHours} horas ${diffMinutes} min`;
+    } else {
+      return `Ingresado hace: ${diffMinutes} min`;
+    }
   };
 
-  const handleHospitalizationCreated = () => {
-    fetchBoardData();
-  };
+  const OccupiedCageCard = ({ cage }: { cage: CageResponse }) => {
+    const hosp = cage.currentHospitalization!;
+    if (!hosp || !hosp.cause) return null;
 
-  const OccupiedCageCard = ({ hosp }: { hosp: CurrentHospitalizationBrief }) => {
-    const style = HospitalizationStatusColors[hosp.status];
+    const causeDetails = HospitalizationCauseDetails[hosp.cause];
+    const speciesDetails = AnimalSpeciesDetails[hosp.animalSpecies];
+    const CauseIcon = causeDetails.icon;
+    const SpeciesIcon = speciesDetails?.icon;
+
+    const speciesColor = speciesDetails?.colorClass;
+    const borderClass = speciesColor ? speciesColor.replace("bg-", "border-") : "border-gray-200";
+    const iconClass = speciesColor ? speciesColor.replace("bg-", "text-") : "text-gray-400";
+
     return (
-      <Card className={`flex flex-col border-l-8 ${style.color}`}>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>{hosp.animalName}</CardTitle>
-            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${style.bg} ${style.text}`}>
-              {HospitalizationStatusLabels[hosp.status]}
-            </span>
-          </div>
-          <div className="mt-1 text-xs text-gray-500 space-y-0.5">
-            <p>
-              {hosp.cause ? HospitalizationCauseLabels[hosp.cause] : "—"} • {AdmissionTimingLabels[hosp.admissionTiming]}
-            </p>
-            <p>{hosp.clinicalServiceName ?? "—"}</p>
-          </div>
-        </CardHeader>
-        <CardContent className="flex-grow">
-          <p className="text-sm text-gray-700">Admitido: {new Date(hosp.admissionDate).toLocaleString()}</p>
-        </CardContent>
-        <div className="bg-gray-50 px-4 py-3 rounded-b-xl">
-          <Link href={`/dashboard/clinical/hospitalization/${hosp.id}`} className="w-full">
-            <Button variant="outline" size="sm" className="w-full">
-              <FileText className="mr-2 h-4 w-4" /> Ver Ficha
-            </Button>
-          </Link>
+      <Card className="flex flex-col overflow-hidden shadow-md bg-white rounded-lg pt-0 border-2">
+        <div className={`relative flex items-center justify-between p-3 text-white ${causeDetails.colorClass}`}>
+          <h3 className="font-bold text-lg">{cage.name}</h3>
+          <CageActions cage={cage} isHeaderDark={true} />
         </div>
+
+        <CardContent className="p-4 flex flex-col flex-grow">
+          <div className="flex items-start gap-4 mb-4">
+            {hosp.animalPhotoUrl ? (
+              <img
+                src={hosp.animalPhotoUrl}
+                alt={hosp.animalName}
+                className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                loading="lazy"
+              />
+            ) : (
+              <div
+                className={`w-16 h-16 rounded-full border-2 bg-white flex items-center justify-center ${borderClass}`}
+              >
+                {SpeciesIcon ? (
+                  <SpeciesIcon className={`h-8 w-8 ${iconClass}`} />
+                ) : (
+                  <PawPrint className={`h-8 w-8 ${iconClass}`} />
+                )}
+              </div>
+            )}
+
+            <div className="flex-grow">
+              <h4 className="text-xl font-bold text-gray-800">{hosp.animalName}</h4>
+
+              <div className="flex items-center gap-2 text-gray-600 mt-1 text-sm">
+                {SpeciesIcon && <SpeciesIcon className="h-5 w-5 text-gray-500" />}
+                <span>
+                  {speciesDetails ? speciesDetails.label : hosp.animalSpecies} - {hosp.animalBreed || "Mestizo"}
+                </span>
+              </div>
+
+              {hosp.clinicalServiceName ? (
+                <div className="flex items-center gap-2 text-gray-600 mt-1 text-sm h-5">
+                  <BriefcaseMedical className="h-5 w-5 text-gray-500" />
+                  <span className="truncate">{hosp.clinicalServiceName}</span>
+                </div>
+              ) : (
+                <div className="mt-1 h-5" />
+              )}
+
+            </div>
+          </div>
+
+          <div className="space-y-2 mb-4 ml-12">
+            <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${causeDetails.colorClass} text-white`}>
+              <CauseIcon className="mr-2" />
+              {causeDetails.label}
+            </div>
+            <p className="text-sm text-gray-500">{formatAdmissionTime(hosp.admissionDate)}</p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 my-4">
+            <Button variant="outline" size="sm" className="flex-col h-auto py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+              <HeartPulse className="h-5 w-5 mb-1" />Signos Vitales
+            </Button>
+            <Button variant="outline" size="sm" className="flex-col h-auto py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+              <Pill className="h-5 w-5 mb-1" />Medicar
+            </Button>
+            <Button variant="outline" size="sm" className="flex-col h-auto py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+              <ClipboardEdit className="h-5 w-5 mb-1" />Nota
+            </Button>
+          </div>
+
+          <div className="mt-auto pt-4 border-t border-gray-100">
+            <Link href={`/dashboard/clinical/hospitalization/${hosp.id}`} className="w-full">
+              <Button variant="outline" className="w-full text-gray-700 font-semibold">
+                <FileText className="mr-2 h-4 w-4" /> Ver Ficha Completa
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
       </Card>
     );
   };
 
+
   const EmptyCageCard = ({ cage }: { cage: CageResponse }) => (
-    <Card className="border-dashed border-2 flex flex-col items-center justify-center min-h-[180px]">
-      <div className="text-center text-gray-400">
-        <BedDouble className="mx-auto h-8 w-8 mb-2" />
-        <p className="font-semibold">{cage.name}</p>
-        <p className="text-sm">{cage.size}</p>
-        <Button variant="ghost" className="mt-2 text-blue-600" onClick={() => handleOpenAdmitModal(cage)}>
-          <PlusCircle className="mr-2 h-4 w-4" /> Admitir Paciente
-        </Button>
+    <Card
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-lg border-2 border-dashed border-slate-300 bg-white transition-colors duration-300 hover:border-emerald-400 pt-0"
+      onClick={() => handleOpenAdmitModal(cage)}
+    >
+      <div className={`relative flex items-center justify-between p-3 text-white`}>
+        <h3 className="font-semibold text-lg">{cage.name}</h3>
+        <CageActions cage={cage} isHeaderDark={true} />
       </div>
+
+      <CardContent className="flex flex-grow flex-col items-center justify-center p-6 text-center">
+        <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full border-2 border-dashed border-slate-300 transition-colors duration-300 group-hover:border-emerald-400">
+          <DoorOpen className="h-12 w-12 text-slate-400 transition-colors duration-300 group-hover:text-emerald-500" />
+        </div>
+
+        <p className="text-xl font-medium text-slate-600">
+          Disponible
+        </p>
+        <p className="text-sm text-slate-500">{CageSizeLabels[cage.size]}</p>
+      </CardContent>
     </Card>
   );
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) return <div>Cargando tablero de hospitalización...</div>;
 
   return (
-    <>
+    <DashboardLayoutSection>
       <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-slate-900">Tablero de Hospitalización</h1>
-            <p className="text-gray-600 mt-1">Estado en tiempo real de las jaulas y pacientes internados.</p>
+          <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Tablero de Hospitalización</h1>
+              <p className="text-gray-600 mt-1">Estado en tiempo real de las jaulas y pacientes internados.</p>
+            </div>
+            <Button onClick={() => setAddCageModalOpen(true)} >
+              <PlusCircle className="mr-2 h-4 w-4" /> Agregar Jaula
+            </Button>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {cages.map((cage) =>
-              cage.occupied && cage.currentHospitalization ? (
-                <OccupiedCageCard key={cage.id} hosp={cage.currentHospitalization} />
-              ) : (
-                <EmptyCageCard key={cage.id} cage={cage} />
-              )
-            )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+            {cages.map((cage) => (cage.occupied ? <OccupiedCageCard key={cage.id} cage={cage} /> : <EmptyCageCard key={cage.id} cage={cage} />))}
           </div>
         </div>
 
-        {isAdmitModalOpen && selectedCage && (
-          <NewHospitalizationModal
-            open={isAdmitModalOpen}
-            onOpenChange={setAdmitModalOpen}
-            cage={selectedCage}
-            onSuccess={handleHospitalizationCreated}
-          />
-        )}
+        {isAdmitModalOpen && selectedCage && <NewHospitalizationModal open={isAdmitModalOpen} onOpenChange={setAdmitModalOpen} cage={selectedCage} onSuccess={handleHospitalizationCreated} />}
+        <NewCageModal open={isAddCageModalOpen} onOpenChange={setAddCageModalOpen} onSuccess={handleCageCreated} />
+        <EditCageModal open={isEditCageModalOpen} onOpenChange={setEditCageModalOpen} onSuccess={handleCageUpdated} cageToEdit={cageToEdit} />
+        <DeleteCageModal open={isDeleteCageModalOpen} onOpenChange={setDeleteCageModalOpen} onSuccess={handleCageDeleted} cageToDelete={cageToDelete} />
       </div>
-    </>
+    </DashboardLayoutSection>
   );
 }

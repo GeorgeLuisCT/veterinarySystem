@@ -3,6 +3,7 @@ package com.gaedet.biocampovet.core.animal.entity;
 import javax.persistence.*;
 
 import com.gaedet.biocampovet.core.animal.enums.AnimalSex;
+import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
 import com.gaedet.biocampovet.core.customer.entity.Customer;
 import lombok.*;
 
@@ -31,8 +32,8 @@ public class Animal {
     @Column(name = "photo_url", length = 2048)
     private String photoUrl;
 
-    @ManyToOne
-    @JoinColumn(name = "species_id", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "species", nullable = false)
     private AnimalSpecies species;
 
     @Column(nullable = true)

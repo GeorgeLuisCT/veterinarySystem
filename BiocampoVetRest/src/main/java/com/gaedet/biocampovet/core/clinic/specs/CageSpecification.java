@@ -1,6 +1,7 @@
 package com.gaedet.biocampovet.core.clinic.specs;
 
 import com.gaedet.biocampovet.core.clinic.entity.Cage;
+import com.gaedet.biocampovet.core.clinic.enums.CageSize;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Predicate;
@@ -9,7 +10,7 @@ import java.util.List;
 
 public class CageSpecification {
 
-    public static Specification<Cage> byFilters(Long branchId, String name, String size, Boolean isOccupied) {
+    public static Specification<Cage> byFilters(Long branchId, String name, CageSize size, Boolean isOccupied) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -19,7 +20,7 @@ public class CageSpecification {
             if (name != null && !name.trim().isEmpty()) {
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
             }
-            if (size != null && !size.trim().isEmpty()) {
+            if (size != null) {
                 predicates.add(criteriaBuilder.equal(root.get("size"), size));
             }
             if (isOccupied != null) {

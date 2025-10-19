@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import ClinicalAttentionService from "../../service/clinical-attention-service";
 import { ClinicalAttentionDetailResponse } from "../../types/clinical-attention-response";
 import { useToast } from "@/hooks/use-toast";
+import DeriveHospitalizationModal from "../../components/hospitalization/derive-hospitalization-modal";
 
 export default function ConsultationPage() {
     const params = useParams();
@@ -18,6 +19,7 @@ export default function ConsultationPage() {
     const [clinicalAttention, setClinicalAttention] = useState<ClinicalAttentionDetailResponse | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [saving, setSaving] = useState<boolean>(false);
+    const [deriveOpen, setDeriveOpen] = useState<boolean>(false);
     const effectRan = useRef(false);
     const formRef = useRef<ConsultationFormHandle>(null);
 
@@ -126,9 +128,10 @@ export default function ConsultationPage() {
                                 <><Save className="h-4 w-4 mr-2" /> Guardar Borrador</>
                             )}
                         </Button>
-                        <Button variant="outline">
+                        <Button variant="outline" onClick={() => setDeriveOpen(true)}>
                             <Hospital className="h-4 w-4 mr-2" />
-                            Derivar a hospitalización</Button>
+                            Derivar a hospitalización
+                        </Button>
                         <Button
                             className="bg-green-600 hover:bg-green-700 text-white"
                             onClick={() => alert("Función de finalizar")}
@@ -139,15 +142,18 @@ export default function ConsultationPage() {
                     </div>
                 </div>
             </div>
+
             <div className="flex flex-col lg:flex-row max-w-screen-2xl mx-auto p-4 gap-4">
                 <PatientDetails animalId={clinicalAttention.summary.animalId} />
-                <ConsultationForm
-                    ref={formRef}
-                    detail={clinicalAttention}
-                    setDetail={setClinicalAttention}
-                />
+                <ConsultationForm ref={formRef} detail={clinicalAttention} setDetail={setClinicalAttention} />
                 <QuickHistory animalId={clinicalAttention.summary.animalId} />
             </div>
+
+            <DeriveHospitalizationModal
+                open={deriveOpen}
+                onOpenChange={setDeriveOpen}
+                detail={clinicalAttention}
+            />
         </div>
     );
 }

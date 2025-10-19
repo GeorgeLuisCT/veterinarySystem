@@ -2,6 +2,7 @@ package com.gaedet.biocampovet.core.clinic.controller;
 
 import com.gaedet.biocampovet.core.clinic.dto.CageRequest;
 import com.gaedet.biocampovet.core.clinic.dto.CageResponse;
+import com.gaedet.biocampovet.core.clinic.enums.CageSize;
 import com.gaedet.biocampovet.core.clinic.service.CageService;
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class CageController {
     public ResponseEntity<PaginatedResponse<CageResponse>> list(
             @RequestParam(required = false) Long branchId,
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) String size,
+            @RequestParam(required = false) CageSize size,
             @RequestParam(required = false) Boolean isOccupied,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize

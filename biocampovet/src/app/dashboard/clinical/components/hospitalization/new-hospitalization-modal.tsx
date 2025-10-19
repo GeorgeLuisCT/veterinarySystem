@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,24 +18,30 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import { FloatingLabelSelect } from "@/components/floating-label-select";
+
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
+
 import { CageResponse } from "@/app/dashboard/clinical/types/cage-response";
-import { FloatingLabelSelect } from "@/components/floating-label-select";
 import HospitalizationService from "../../service/hospitalization-service";
 import AnimalService from "@/app/dashboard/patients/animals/service/animal-service";
+
 import { createHospitalizationSchema } from "../../types/hospitalization-request";
 import { AdmissionTiming } from "../../enums/admission-timing";
+import {
+  HospitalizationCause,
+  HospitalizationCauseOptions,
+} from "../../enums/hospitalization-cause";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   cage: CageResponse;
-  onSuccess: () => void;
+  onSuccess: (updatedCage: CageResponse) => void;
 }
 
 type FormShape = z.infer<typeof createHospitalizationSchema>;
@@ -45,6 +52,17 @@ export function NewHospitalizationModal({ open, onOpenChange, cage, onSuccess }:
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [animalOptions, setAnimalOptions] = useState<Option[]>([]);
 
+  // Solo permitir: WAITING (ESPERA) y OTHER (OTROS)
+  const causeOptionsLimited = useMemo(
+    () =>
+      HospitalizationCauseOptions.filter(
+        (o) =>
+          o.value === HospitalizationCause.WAITING ||
+          o.value === HospitalizationCause.OTHER
+      ),
+    []
+  );
+
   const form = useForm<FormShape>({
     resolver: zodResolver(createHospitalizationSchema),
     defaultValues: {
@@ -52,7 +70,7 @@ export function NewHospitalizationModal({ open, onOpenChange, cage, onSuccess }:
       animalId: undefined,
       attentionId: null,
       admissionTiming: AdmissionTiming.NONE,
-      cause: null,
+      cause: null, // el usuario podrá elegir WAITING u OTHER
       clinicalServiceId: null,
       admissionNotes: "",
     },
@@ -74,7 +92,8 @@ export function NewHospitalizationModal({ open, onOpenChange, cage, onSuccess }:
         toast({
           variant: "destructive",
           title: "Error",
-          description: getAaxiosErrorMessage(error) ?? "No se pudieron cargar las mascotas.",
+          description:
+            getAaxiosErrorMessage(error) ?? "No se pudieron cargar las mascotas.",
         });
         setAnimalOptions([]);
       }
@@ -82,7 +101,12 @@ export function NewHospitalizationModal({ open, onOpenChange, cage, onSuccess }:
     [toast]
   );
 
-  const handleSearchAnimals = useCallback((q: string) => { void fetchAnimals(q); }, [fetchAnimals]);
+  const handleSearchAnimals = useCallback(
+    (q: string) => {
+      void fetchAnimals(q);
+    },
+    [fetchAnimals]
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -92,15 +116,16 @@ export function NewHospitalizationModal({ open, onOpenChange, cage, onSuccess }:
   const onSubmit = async (data: FormShape) => {
     setIsSubmitting(true);
     try {
-      await HospitalizationService.create(data);
+      const response = await HospitalizationService.create(data);
       toast({ title: "Éxito", description: "El paciente ha sido admitido a hospitalización." });
-      onSuccess();
+      onSuccess(response);
       onOpenChange(false);
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: getAaxiosErrorMessage(error) ?? "No se pudo admitir al paciente.",
+        description:
+          getAaxiosErrorMessage(error) ?? "No se pudo admitir al paciente.",
       });
     } finally {
       setIsSubmitting(false);
@@ -116,6 +141,7 @@ export function NewHospitalizationModal({ open, onOpenChange, cage, onSuccess }:
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Mascota */}
             <FormField
               control={form.control}
               name="animalId"
@@ -141,14 +167,44 @@ export function NewHospitalizationModal({ open, onOpenChange, cage, onSuccess }:
               )}
             />
 
+            {/* Causa: solo ESPERA y OTRO */}
+            <FormField
+              control={form.control}
+              name="cause"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FloatingLabelSelect
+                      id="hospitalization-cause"
+                      label="Causa"
+                      value={field.value ?? ""} // "" -> null
+                      onValueChange={(v) =>
+                        field.onChange((v as HospitalizationCause) || null)
+                      }
+                      options={causeOptionsLimited.map((opt) => ({
+                        value: opt.value,
+                        label: opt.label,
+                      }))}
+                      disabled={isSubmitting}
+                      emptyMessage="Selecciona una causa"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Notas de admisión */}
             <FormField
               control={form.control}
               name="admissionNotes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notas de Admisión</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Ej: Observación postoperatoria, terapia de fluidos, etc." {...field} />
+                    <Textarea
+                      placeholder="Ej: Observación, terapia de fluidos, etc."
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -156,7 +212,12 @@ export function NewHospitalizationModal({ open, onOpenChange, cage, onSuccess }:
             />
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+              >
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting}>

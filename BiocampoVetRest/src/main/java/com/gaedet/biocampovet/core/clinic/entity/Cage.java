@@ -2,6 +2,8 @@ package com.gaedet.biocampovet.core.clinic.entity;
 
 import com.gaedet.biocampovet.core.branches.entity.Branch;
 import javax.persistence.*;
+
+import com.gaedet.biocampovet.core.clinic.enums.CageSize;
 import lombok.*;
 
 /**
@@ -21,7 +23,9 @@ public class Cage {
     @Column(nullable = false, unique = true)
     private String name;
 
-    private String size;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CageSize size;
 
     @Column(name = "is_occupied")
     private boolean isOccupied;

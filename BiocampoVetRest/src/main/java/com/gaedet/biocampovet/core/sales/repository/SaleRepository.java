@@ -19,15 +19,13 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     List<Sale> findByCustomerId(Long customerId);
 
     @Query("""
-    SELECT s FROM Sale s 
+    SELECT s FROM Sale s
     LEFT JOIN FETCH s.saleProducts sp 
     LEFT JOIN FETCH sp.product p 
     LEFT JOIN FETCH p.category 
     LEFT JOIN FETCH p.branchStocks
     LEFT JOIN FETCH p.saleModes
-    LEFT JOIN FETCH sp.animal a 
-    LEFT JOIN FETCH a.species
-    
+    LEFT JOIN FETCH sp.animal
     
     LEFT JOIN FETCH s.salePayments spay 
     LEFT JOIN FETCH spay.payment pay

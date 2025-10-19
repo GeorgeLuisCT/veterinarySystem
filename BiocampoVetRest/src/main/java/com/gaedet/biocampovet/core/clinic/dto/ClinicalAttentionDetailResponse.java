@@ -27,6 +27,7 @@ public class ClinicalAttentionDetailResponse {
     private final Integer heartRate;
     private final Integer respiratoryRate;
     private final ClinicalAttentionSummaryResponse summary;
+    private final AttentionSummaryResponse attention;
     private final List<MedicationAdministrationResponse> medicationAdministrations;
     private final List<ClinicalServiceItemResponse> serviceItems;
     private final List<SurgicalOrderResponse> surgicalOrders;

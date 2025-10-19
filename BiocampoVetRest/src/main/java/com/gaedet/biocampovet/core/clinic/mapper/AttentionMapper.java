@@ -3,6 +3,7 @@ package com.gaedet.biocampovet.core.clinic.mapper;
 import com.gaedet.biocampovet.core.branches.dto.BranchResponse;
 import com.gaedet.biocampovet.core.branches.entity.Branch;
 import com.gaedet.biocampovet.core.clinic.dto.AttentionResponse;
+import com.gaedet.biocampovet.core.clinic.dto.AttentionSummaryResponse;
 import com.gaedet.biocampovet.core.clinic.entity.Attentions;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
 
@@ -32,6 +33,33 @@ public final class AttentionMapper {
                 .status(attention.getStatus())
                 .clinicalServiceId(service != null ? service.getId() : null)
                 .clinicalServiceName(service != null ? service.getName() : null)
+                .build();
+    }
+
+    public static AttentionSummaryResponse toSummary(Attentions attention) {
+        var appointment = attention.getAppointment();
+        var branch = attention.getBranch();
+        var animal = attention.getAnimal();
+        var employee = attention.getAttendingEmployee();
+        var service = attention.getService();
+        var order = attention.getSurgicalOrder();
+
+        return AttentionSummaryResponse.builder()
+                .id(attention.getId())
+                .checkInTime(attention.getCheckInTime())
+                .status(attention.getStatus())
+                .type(attention.getType())
+                .emergency(attention.isEmergency())
+                .animalId(animal != null ? animal.getId() : null)
+                .animalName(animal != null ? animal.getName() : null)
+                .branchId(branch != null ? branch.getId() : null)
+                .branchName(branch != null ? branch.getName() : null)
+                .attendingEmployeeId(employee != null ? employee.getId() : null)
+                .attendingEmployeeFullName(employee != null ? buildFullName(employee) : null)
+                .clinicalServiceId(service != null ? service.getId() : null)
+                .clinicalServiceName(service != null ? service.getName() : null)
+                .appointmentId(appointment != null ? appointment.getId() : null)
+                .surgicalOrderId(order != null ? order.getId() : null)
                 .build();
     }
 

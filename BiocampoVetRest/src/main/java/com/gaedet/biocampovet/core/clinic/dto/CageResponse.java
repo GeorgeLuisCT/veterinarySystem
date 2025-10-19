@@ -1,6 +1,9 @@
 package com.gaedet.biocampovet.core.clinic.dto;
 
+import com.gaedet.biocampovet.core.animal.enums.AnimalSex;
+import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
 import com.gaedet.biocampovet.core.clinic.enums.AdmissionTiming;
+import com.gaedet.biocampovet.core.clinic.enums.CageSize;
 import com.gaedet.biocampovet.core.clinic.enums.HospitalizationCause;
 import com.gaedet.biocampovet.core.clinic.enums.HospitalizationStatus;
 import lombok.Getter;
@@ -13,7 +16,7 @@ import java.time.LocalDateTime;
 public class CageResponse {
     private Long id;
     private String name;
-    private String size;
+    private CageSize size;
     private boolean isOccupied;
     private Long branchId;
     private String branchName;
@@ -26,6 +29,11 @@ public class CageResponse {
         private Long id;
         private Long animalId;
         private String animalName;
+        private String animalPhotoUrl;
+        private AnimalSpecies animalSpecies;
+        private String animalBreed;
+        private AnimalSex sex;
+        private String microchipNumber;
 
         private HospitalizationStatus status;
         private LocalDateTime admissionDate;

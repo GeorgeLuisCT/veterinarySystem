@@ -119,8 +119,8 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
         versionRef.current = res.version;
         form.setValue("version", res.version, { shouldDirty: false });
       } catch (error) {
-          console.error("Error en saveAll:", error);
-          throw error;
+        console.error("Error en saveAll:", error);
+        throw error;
       }
     },
     [form, detail.id]
@@ -139,6 +139,34 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
       })),
     []
   );
+
+  React.useEffect(() => {
+    setMedications(detail.medicationAdministrations || []);
+  }, [detail.medicationAdministrations]);
+
+  React.useEffect(() => {
+    setServiceItems(detail.serviceItems || []);
+  }, [detail.serviceItems]);
+
+  React.useEffect(() => {
+    setSurgicalOrders(detail.surgicalOrders || []);
+  }, [detail.surgicalOrders]);
+
+  React.useEffect(() => {
+    setLabRequests(detail.laboratoryRequests || []);
+  }, [detail.laboratoryRequests]);
+
+  const syncDetail = useCallback((patch: Partial<ClinicalAttentionDetailResponse>) => {
+    setDetail({
+      ...detail,
+      ...patch,
+    });
+  }, [detail, setDetail]);
+
+  const updateVersion = useCallback((newVersion: number) => {
+    versionRef.current = newVersion;
+    form.setValue("version", newVersion, { shouldDirty: false });
+  }, [form]);
 
   return (
     <div className="space-y-6 p-4 flex-grow md:w-1/2 lg:w-2/3">
@@ -466,8 +494,11 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
           onClose={() => setOpenMedication(false)}
           onAdded={(data) => {
             setMedications(data.medicationAdministrations);
-            versionRef.current = data.version;
-            form.setValue("version", data.version, { shouldDirty: false });
+            updateVersion(data.version);
+            syncDetail({
+              version: data.version,
+              medicationAdministrations: data.medicationAdministrations,
+            });
           }}
         />
       )}
@@ -478,8 +509,11 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
           onClose={() => setOpenServiceItem(false)}
           onAdded={(data) => {
             setServiceItems(data.serviceItems);
-            versionRef.current = data.version;
-            form.setValue("version", data.version, { shouldDirty: false });
+            updateVersion(data.version);
+            syncDetail({
+              version: data.version,
+              serviceItems: data.serviceItems,
+            });
           }}
         />
       )}
@@ -490,8 +524,11 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
           onClose={() => setOpenSurgicalOrder(false)}
           onAdded={(data) => {
             setSurgicalOrders(data.surgicalOrders);
-            versionRef.current = data.version;
-            form.setValue("version", data.version, { shouldDirty: false });
+            updateVersion(data.version);
+            syncDetail({
+              version: data.version,
+              surgicalOrders: data.surgicalOrders,
+            });
           }}
         />
       )}
@@ -502,11 +539,15 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
           onClose={() => setOpenLab(false)}
           onAdded={(data) => {
             setLabRequests(data.laboratoryRequests);
-            versionRef.current = data.version;
-            form.setValue("version", data.version, { shouldDirty: false });
+            updateVersion(data.version);
+            syncDetail({
+              version: data.version,
+              laboratoryRequests: data.laboratoryRequests,
+            });
           }}
         />
       )}
+
     </div>
   );
 });

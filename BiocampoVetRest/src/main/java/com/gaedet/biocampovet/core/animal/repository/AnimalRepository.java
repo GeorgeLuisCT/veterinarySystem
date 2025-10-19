@@ -22,33 +22,31 @@ public interface AnimalRepository extends JpaRepository<Animal, Long> {
         a.name,
         a.birth_date,
         a.breed,
-        s.name AS species_name,
+        a.species AS species_name,
         c.name AS owner_name,
         a.is_active
     FROM animal a
-    JOIN animal_specie s ON a.species_id = s.id
     JOIN customer c ON a.customer_id = c.id
     WHERE (:isActive IS NULL OR a.is_active = :isActive)
       AND (
             :query IS NULL OR
             LOWER(a.name) LIKE LOWER(CONCAT('%', :query, '%')) OR
             LOWER(a.breed) LIKE LOWER(CONCAT('%', :query, '%')) OR
-            LOWER(s.name) LIKE LOWER(CONCAT('%', :query, '%')) OR
+            LOWER(a.species) LIKE LOWER(CONCAT('%', :query, '%')) OR
             LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%'))
           )
     ORDER BY a.name
     """,
-            countQuery = """
+                countQuery = """
     SELECT COUNT(a.id)
     FROM animal a
-    JOIN animal_specie s ON a.species_id = s.id
     JOIN customer c ON a.customer_id = c.id
     WHERE (:isActive IS NULL OR a.is_active = :isActive)
       AND (
             :query IS NULL OR
             LOWER(a.name) LIKE LOWER(CONCAT('%', :query, '%')) OR
             LOWER(a.breed) LIKE LOWER(CONCAT('%', :query, '%')) OR
-            LOWER(s.name) LIKE LOWER(CONCAT('%', :query, '%')) OR
+            LOWER(a.species) LIKE LOWER(CONCAT('%', :query, '%')) OR
             LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%'))
           )
     """,
@@ -65,19 +63,18 @@ public interface AnimalRepository extends JpaRepository<Animal, Long> {
         a.name,
         a.birth_date,
         c.name AS owner_name,
-        s.name AS species_name,
+        a.species AS species_name,
         a.photo_url,
         a.microchip_number
     FROM animal a
     JOIN customer c ON a.customer_id = c.id
-    JOIN animal_specie s ON a.species_id = s.id
     WHERE (:isActive IS NULL OR a.is_active = :isActive)
       AND (
             :query IS NULL OR
             LOWER(a.name) LIKE LOWER(CONCAT('%', :query, '%')) OR
             LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%')) OR
             LOWER(a.breed) LIKE LOWER(CONCAT('%', :query, '%')) OR
-            LOWER(s.name) LIKE LOWER(CONCAT('%', :query, '%')) OR
+            LOWER(a.species) LIKE LOWER(CONCAT('%', :query, '%')) OR
             LOWER(a.microchip_number) LIKE LOWER(CONCAT('%', :query, '%'))
           )
     ORDER BY a.name

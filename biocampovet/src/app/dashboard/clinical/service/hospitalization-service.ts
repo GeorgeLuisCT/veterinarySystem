@@ -12,6 +12,7 @@ import {
   HospitalizationPatchResponse,
   HospitalizationSummaryResponse,
 } from "../types/hospitalization-response";
+import { CageResponse } from "../types/cage-response";
 
 export const HospitalizationService = {
   list: async (params: HospitalizationListParams): Promise<PaginatedResponse<HospitalizationSummaryResponse>> => {
@@ -38,8 +39,8 @@ export const HospitalizationService = {
     return response.data;
   },
 
-  create: async (data: CreateHospitalizationRequest): Promise<HospitalizationResponse> => {
-    const response = await api.post<HospitalizationResponse>("/hospitalizations", data);
+  create: async (data: CreateHospitalizationRequest): Promise<CageResponse> => {
+    const response = await api.post<CageResponse>("/hospitalizations", data);
     return response.data;
   },
 

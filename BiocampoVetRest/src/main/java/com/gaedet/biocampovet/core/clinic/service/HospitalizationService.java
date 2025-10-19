@@ -2,18 +2,13 @@ package com.gaedet.biocampovet.core.clinic.service;
 
 import com.gaedet.biocampovet.core.animal.entity.Animal;
 import com.gaedet.biocampovet.core.animal.repository.AnimalRepository;
+import com.gaedet.biocampovet.core.clinic.dto.*;
 import com.gaedet.biocampovet.core.clinic.entity.*;
 import com.gaedet.biocampovet.core.clinic.enums.AdmissionTiming;
 import com.gaedet.biocampovet.core.clinic.enums.HospitalizationStatus;
+import com.gaedet.biocampovet.core.clinic.mapper.CageMapper;
 import com.gaedet.biocampovet.core.clinic.mapper.HospitalizationMapper;
 import com.gaedet.biocampovet.core.clinic.repository.*;
-import com.gaedet.biocampovet.core.clinic.dto.AddEvolutionNoteRequest;
-import com.gaedet.biocampovet.core.clinic.dto.CreateHospitalizationRequest;
-import com.gaedet.biocampovet.core.clinic.dto.UpdateHospitalizationRequest;
-import com.gaedet.biocampovet.core.clinic.dto.UpdateTreatmentScheduleRequest;
-import com.gaedet.biocampovet.core.clinic.dto.HospitalizationPatchResponse;
-import com.gaedet.biocampovet.core.clinic.dto.HospitalizationResponse;
-import com.gaedet.biocampovet.core.clinic.dto.HospitalizationSummaryResponse;
 import com.gaedet.biocampovet.core.clinic.specs.HospitalizationSpecification;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
 import com.gaedet.biocampovet.core.employees.repository.EmployeeRepository;
@@ -88,7 +83,7 @@ public class HospitalizationService {
     }
 
     @Transactional
-    public HospitalizationResponse createHospitalization(CreateHospitalizationRequest request) {
+    public CageResponse createHospitalization(CreateHospitalizationRequest request) {
         Animal animal = animalRepository.findById(request.getAnimalId())
                 .orElseThrow(() -> new EntityNotFoundException("Animal not found with id: " + request.getAnimalId()));
         Cage cage = cageRepository.findById(request.getCageId())
@@ -111,16 +106,7 @@ public class HospitalizationService {
             }
         }
 
-        AdmissionTiming timing = request.getAdmissionTiming() != null
-                ? request.getAdmissionTiming()
-                : AdmissionTiming.NONE;
-
-        if (timing != AdmissionTiming.NONE && attention == null) {
-            throw new IllegalArgumentException("Admission timing requires an attention.");
-        }
-        if (timing == AdmissionTiming.NONE && attention != null) {
-            throw new IllegalArgumentException("When admission timing is NONE, attention must be null.");
-        }
+        AdmissionTiming timing = getAdmissionTiming(request, attention);
 
         ClinicalService clinicalService = null;
         if (request.getClinicalServiceId() != null) {
@@ -144,7 +130,8 @@ public class HospitalizationService {
         cageRepository.save(cage);
 
         hospitalization = hospitalizationRepository.save(hospitalization);
-        return HospitalizationMapper.toResponse(hospitalization);
+
+        return CageMapper.toResponse(cage, hospitalization);
     }
 
     @Transactional
@@ -241,5 +228,19 @@ public class HospitalizationService {
 
         Hospitalization updated = hospitalizationRepository.findById(hospitalizationId).orElseThrow();
         return HospitalizationMapper.toResponse(updated);
+    }
+
+    private static AdmissionTiming getAdmissionTiming(CreateHospitalizationRequest request, Attentions attention) {
+        AdmissionTiming timing = request.getAdmissionTiming() != null
+                ? request.getAdmissionTiming()
+                : AdmissionTiming.NONE;
+
+        if (timing != AdmissionTiming.NONE && attention == null) {
+            throw new IllegalArgumentException("Admission timing requires an attention.");
+        }
+        if (timing == AdmissionTiming.NONE && attention != null) {
+            throw new IllegalArgumentException("When admission timing is NONE, attention must be null.");
+        }
+        return timing;
     }
 }

@@ -1,5 +1,6 @@
 package com.gaedet.biocampovet.core.animal.dto;
 
+import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,7 +23,7 @@ public class BaseAnimalRequest {
     private Long ownerId;
 
     @NotNull(message = "La especie del animal es obligatoria")
-    private Long speciesId;
+    private AnimalSpecies species;
 
     @Size(max = 100, message = "La raza no debe exceder los 100 caracteres")
     private String breed;

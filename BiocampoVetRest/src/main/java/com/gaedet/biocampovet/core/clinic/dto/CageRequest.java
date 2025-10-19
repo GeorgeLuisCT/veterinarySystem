@@ -1,5 +1,6 @@
 package com.gaedet.biocampovet.core.clinic.dto;
 
+import com.gaedet.biocampovet.core.clinic.enums.CageSize;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,7 +14,8 @@ public class CageRequest {
     @NotBlank(message = "El nombre no puede estar vacío")
     private String name;
 
-    private String size;
+    @NotNull(message = "El tamaño no puede estar vacío")
+    private CageSize size;
 
     @NotNull(message = "La sucursal es obligatoria")
     private Long branchId;

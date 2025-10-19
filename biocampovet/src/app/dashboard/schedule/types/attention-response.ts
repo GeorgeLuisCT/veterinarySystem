@@ -14,6 +14,29 @@ export interface AttentionListParams {
   clinicalServiceId?: number;
 }
 
+export interface AttentionSummaryResponse {
+  id: number;
+  checkInTime: string;
+  status: AttentionStatus;
+  type: AttentionType;
+  emergency: boolean;
+
+  animalId: number | null;
+  animalName: string | null;
+
+  branchId: number | null;
+  branchName: string | null;
+
+  attendingEmployeeId: number | null;
+  attendingEmployeeFullName: string | null;
+
+  clinicalServiceId: number | null;
+  clinicalServiceName: string | null;
+
+  appointmentId: number | null;
+  surgicalOrderId: number | null;
+}
+
 export interface AttentionResponse {
   id: number;
   appointmentId: number | null;

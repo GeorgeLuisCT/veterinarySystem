@@ -1,5 +1,7 @@
 package com.gaedet.biocampovet.core.animal.dto;
 
+import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
+
 import java.time.LocalDate;
 
 public record AnimalSummaryResponse(
@@ -7,7 +9,7 @@ public record AnimalSummaryResponse(
         String name,
         LocalDate birthDate,
         String breed,
-        String speciesName,
+        AnimalSpecies species,
         String ownerName,
         boolean isActive
 ) {
@@ -17,7 +19,7 @@ public record AnimalSummaryResponse(
                 (String) row[1],                  // name
                 ((java.sql.Date) row[2]).toLocalDate(), // birthDate
                 (String) row[3],                  // breed
-                (String) row[4],                  // species name
+                AnimalSpecies.valueOf((String) row[4]),
                 (String) row[5],                  // owner name
                 (Boolean) row[6]                  // isActive
         );

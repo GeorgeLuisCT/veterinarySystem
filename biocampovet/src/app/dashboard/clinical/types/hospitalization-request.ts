@@ -15,13 +15,37 @@ export interface HospitalizationListParams {
 }
 
 export const createHospitalizationSchema = z.object({
-  animalId: z.number().int().min(1),
-  cageId: z.number().int().min(1),
-  attentionId: z.number().int().min(1).optional().nullable(),
-  admissionTiming: z.nativeEnum(AdmissionTiming),
-  cause: z.nativeEnum(HospitalizationCause).optional().nullable(),
-  clinicalServiceId: z.number().int().min(1).optional().nullable(),
-  admissionNotes: z.string().min(1),
+  animalId: z.number({
+    required_error: "Falta el paciente.",
+    invalid_type_error: "ID de paciente inválido.",
+  }).int("El ID de paciente debe ser entero.").min(1, "Paciente inválido."),
+
+  cageId: z.number({
+    required_error: "Selecciona una jaula.",
+    invalid_type_error: "ID de jaula inválido.",
+  }).int("El ID de jaula debe ser entero.").min(1, "Debes elegir una jaula."),
+
+  attentionId: z.number({
+    invalid_type_error: "ID de atención inválido.",
+  }).int("El ID de atención debe ser entero.").min(1, "Atención inválida.").optional().nullable(),
+
+  admissionTiming: z.nativeEnum(AdmissionTiming, {
+    required_error: "Selecciona el momento de admisión.",
+    invalid_type_error: "Momento de admisión inválido.",
+  }),
+
+  cause: z.nativeEnum(HospitalizationCause, {
+    invalid_type_error: "Causa inválida.",
+  }).optional().nullable(),
+
+  clinicalServiceId: z.number({
+    invalid_type_error: "ID de servicio inválido.",
+  }).int("El ID de servicio debe ser entero.").min(1, "Servicio inválido.").optional().nullable(),
+
+  admissionNotes: z.string({
+    required_error: "Agrega notas de admisión.",
+    invalid_type_error: "Notas inválidas.",
+  }).min(1, "Las notas de admisión son obligatorias."),
 });
 
 export type CreateHospitalizationRequest = z.infer<typeof createHospitalizationSchema>;

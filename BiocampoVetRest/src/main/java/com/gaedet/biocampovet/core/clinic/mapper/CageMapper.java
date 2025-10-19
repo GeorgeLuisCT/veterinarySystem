@@ -24,6 +24,11 @@ public class CageMapper {
             brief.setId(current.getId());
             brief.setAnimalId(current.getAnimal().getId());
             brief.setAnimalName(current.getAnimal().getName());
+            brief.setAnimalPhotoUrl(current.getAnimal().getPhotoUrl());
+            brief.setAnimalSpecies(current.getAnimal().getSpecies());
+            brief.setAnimalBreed(current.getAnimal().getBreed());
+            brief.setSex(current.getAnimal().getSex());
+            brief.setMicrochipNumber(current.getAnimal().getMicrochipNumber());
             brief.setStatus(current.getStatus());
             brief.setAdmissionDate(current.getAdmissionDate());
             brief.setAdmissionTiming(current.getAdmissionTiming());

@@ -1,5 +1,7 @@
 package com.gaedet.biocampovet.core.animal.dto;
 
+import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
+
 import java.time.LocalDate;
 
 public record AnimalQuickSearchResponse(
@@ -7,7 +9,7 @@ public record AnimalQuickSearchResponse(
         String name,
         LocalDate birthDate,
         String ownerName,
-        String speciesName,
+        AnimalSpecies species,
         String photoUrl,
         String microchipNumber
 ) {
@@ -17,7 +19,7 @@ public record AnimalQuickSearchResponse(
                 (String) row[1],
                 ((java.sql.Date) row[2]).toLocalDate(),
                 (String) row[3],
-                (String) row[4],
+                AnimalSpecies.valueOf((String) row[4]),
                 (String) row[5],
                 (String) row[6]
         );

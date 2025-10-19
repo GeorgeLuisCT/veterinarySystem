@@ -2,7 +2,9 @@ import { BranchResponse } from "../../branche/types/branch-response";
 import { AdministrationRoute } from "../../inventory/products/enums/administration-route";
 import { ProductUnitType } from "../../inventory/products/enums/product-unit-type";
 import { SurgicalOrderStatus } from "../../schedule/enums/surgical-order-status";
+import { AttentionSummaryResponse } from "../../schedule/types/attention-response";
 import { ClinicalAttentionStatus } from "../enums/clinical-attention-status";
+import { ClinicalServiceCategory } from "../enums/clinical-service-category";
 import { FrequencyUnit } from "../enums/frequency-unit";
 import { LabRequestStatus } from "../enums/lab-request-status";
 
@@ -39,6 +41,7 @@ export interface ClinicalServiceItemResponse {
   id: number;
   clinicalServiceId: number;
   clinicalServiceName: string;
+  clinicalServiceCategory: ClinicalServiceCategory;
   unitPrice: number;
   quantity: number;
   subtotal: number;
@@ -79,7 +82,7 @@ export interface SurgicalOrderResponse {
 export interface ClinicalAttentionDetailResponse {
   id: number;
   version: number;
-  attentionId: number;
+  attentionId: number | null;
   status: ClinicalAttentionStatus;
   visitDate: string;
   subjective: string | null;
@@ -91,6 +94,7 @@ export interface ClinicalAttentionDetailResponse {
   heartRate: number | null;
   respiratoryRate: number | null;
   summary: ClinicalAttentionSummaryResponse;
+  attention: AttentionSummaryResponse;
   medicationAdministrations: MedicationAdministrationResponse[];
   serviceItems: ClinicalServiceItemResponse[];
   surgicalOrders: SurgicalOrderResponse[];

@@ -2,10 +2,9 @@ package com.gaedet.biocampovet.core.animal.service;
 
 import com.gaedet.biocampovet.core.animal.dto.*;
 import com.gaedet.biocampovet.core.animal.entity.Animal;
-import com.gaedet.biocampovet.core.animal.entity.AnimalSpecies;
+import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
 import com.gaedet.biocampovet.core.animal.mapper.AnimalMapper;
 import com.gaedet.biocampovet.core.animal.repository.AnimalRepository;
-import com.gaedet.biocampovet.core.animal.repository.AnimalSpeciesRepository;
 import com.gaedet.biocampovet.core.animal.util.ClinicalHistoryUtils;
 import com.gaedet.biocampovet.core.customer.entity.Customer;
 import com.gaedet.biocampovet.core.customer.repository.CustomerRepository;
@@ -29,7 +28,6 @@ public class AnimalService {
 
     private final AnimalRepository animalRepository;
     private final CustomerRepository customerRepository;
-    private final AnimalSpeciesRepository animalSpeciesRepository;
     private final AnimalMapper animalMapper;
     private final EntityManager entityManager;
     private final SaleProductRepository saleProductRepository;
@@ -38,9 +36,8 @@ public class AnimalService {
     @Transactional
     public AnimalSummaryResponse createAnimal(AnimalCreateRequest request) {
         Customer owner = entityManager.getReference(Customer.class, request.getOwnerId());
-        AnimalSpecies species = entityManager.getReference(AnimalSpecies.class, request.getSpeciesId());
 
-        Animal animal = animalMapper.toEntity(request, owner, species);
+        Animal animal = animalMapper.toEntity(request, owner);
         animalRepository.save(animal);
 
         return animalMapper.toAnimalSummaryResponse(animal);
@@ -84,10 +81,8 @@ public class AnimalService {
         Customer owner = customerRepository.findById(request.getOwnerId())
                 .orElseThrow(() -> new RuntimeException("Dueño no encontrado"));
 
-        AnimalSpecies species = animalSpeciesRepository.findById(request.getSpeciesId())
-                .orElseThrow(() -> new RuntimeException("Especie no encontrada"));
 
-        animalMapper.updateEntity(animal, request, owner, species);
+        animalMapper.updateEntity(animal, request, owner);
 
         animalRepository.save(animal);
 

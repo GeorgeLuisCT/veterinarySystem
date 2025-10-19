@@ -11,10 +11,8 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 import AnimalService from "../service/animal-service";
-import AnimalSpeciesService from "../service/animal-species-service";
 import { useAnimalContext } from "../context/animal-context";
 import { animalCreateSchema, AnimalRequest, animalUpdateSchema } from "../types/animal-request";
-import { AnimalSpeciesResponse } from "../types/animal-species-response";
 import { mapToCreateAnimalRequest, mapToUpdateAnimalRequest } from "../helpers/animal-mapper";
 import { AnimalSummaryResponse } from "../types/animal-summary-response";
 import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
