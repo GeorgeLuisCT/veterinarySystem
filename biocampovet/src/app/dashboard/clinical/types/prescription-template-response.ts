@@ -16,6 +16,14 @@ export interface PrescriptionTemplateMedicationResponse {
   instructions?: string | null;
 }
 
+export type PrescriptionTemplateQuickSearchResponse = {
+  id: number;
+  name: string;
+  purpose: string | null;
+  notesSnippet: string | null;
+  medicationsCount: number;
+};
+
 export interface PrescriptionTemplateResponse {
   id: number;
   name: string;

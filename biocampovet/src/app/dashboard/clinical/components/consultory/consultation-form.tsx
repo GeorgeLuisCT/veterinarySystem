@@ -10,18 +10,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ClinicalAttentionStatus } from "../../enums/clinical-attention-status";
 import { ClinicalAttentionDetailResponse, MedicationAdministrationResponse, ClinicalServiceItemResponse, SurgicalOrderResponse, LaboratoryRequestResponse, ClinicalAttentionPatchResponse } from "../../types/clinical-attention-response";
 import { UpdateClinicalAttentionRequest, updateClinicalAttentionSchema } from "../../types/clinical-attention-request";
 import ClinicalAttentionService from "../../service/clinical-attention-service";
 import { FloatingLabelInput } from "@/components/floating-label-input";
-import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { MedicationModal } from "./add- medication-modal";
 import { ServiceItemModal } from "./service-item-modal";
 import { SurgicalOrderModal } from "./surgical-order-modal";
 import { LaboratoryRequestModal } from "./laboratory-request-modal";
+import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { AdministrationRouteAbbreviations } from "@/app/dashboard/inventory/products/enums/administration-route";
+import PrescriptionTemplateApplyModal from "./prescription-template-apply-modal";
 
 type FormShape = z.infer<typeof updateClinicalAttentionSchema>;
 
@@ -47,6 +48,8 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
   const [openServiceItem, setOpenServiceItem] = useState(false);
   const [openSurgicalOrder, setOpenSurgicalOrder] = useState(false);
   const [openLab, setOpenLab] = useState(false);
+  const [openTemplate, setOpenTemplate] = React.useState(false);
+  
 
   const form = useForm<FormShape>({
     resolver: zodResolver(updateClinicalAttentionSchema),
@@ -379,6 +382,11 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
               <ClipboardPlus className="mr-2 h-4 w-4" />
               Orden quirúrgica
             </Button>
+
+            <Button variant="outline" onClick={() => setOpenTemplate(true)}>
+              <ClipboardPlus className="mr-2 h-4 w-4" />
+              Desde plantilla
+            </Button>
           </div>
 
           <Separator />
@@ -404,7 +412,6 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
                 )}
               </div>
             </div>
-
             <div>
               <h4 className="mb-2 font-semibold">Servicios</h4>
               <div className="space-y-2">
@@ -414,15 +421,36 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
                   serviceItems.map((s) => (
                     <div key={s.id} className="rounded-md border p-2 text-sm">
                       <div className="flex items-center justify-between">
-                        <span>{s.clinicalServiceName}</span>
-                        <span>{(Number(s.subtotal) ?? 0).toFixed(2)}</span>
+                        <span className="font-medium">{s.clinicalServiceName}</span>
+                        <span className="tabular-nums">{Number(s.subtotal ?? 0).toFixed(2)}</span>
                       </div>
-                      <div className="text-muted-foreground">{s.quantity} x {s.unitPrice}</div>
+                      <div className="text-muted-foreground">
+                        {Number(s.quantity ?? 0)} x {Number(s.unitPrice ?? 0).toFixed(2)}
+                      </div>
+
+                      {s.products && s.products.length > 0 && (
+                        <ul className="mt-2 space-y-1">
+                          {s.products.map((p) => (
+                            <li key={p.id} className="flex items-center justify-between text-xs">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-medium text-foreground">{p.product.name}</span>
+                                <span className="text-muted-foreground">
+                                  {Number(p.dose ?? 0)} {ProductUnitTypeLabels[p.unit]}
+                                </span>
+                                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] leading-none text-foreground">
+                                  {AdministrationRouteAbbreviations[p.administrationRoute]}
+                                </span>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   ))
                 )}
               </div>
             </div>
+
 
             <div>
               <h4 className="mb-2 font-semibold">Órdenes quirúrgicas</h4>
@@ -549,6 +577,21 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
           }}
         />
       )}
+
+{openTemplate && (
+  <PrescriptionTemplateApplyModal
+    id={detail.id}
+    onClose={() => setOpenTemplate(false)}
+    onAdded={(data) => {
+      setMedications(data.medicationAdministrations);
+      updateVersion(data.version);
+      syncDetail({
+        version: data.version,
+        medicationAdministrations: data.medicationAdministrations,
+      });
+    }}
+  />
+)}  
 
     </div>
   );

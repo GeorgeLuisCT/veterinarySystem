@@ -24,15 +24,13 @@ import java.util.stream.Collectors;
 public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryProductRepository categoryRepository;
-    private final ProductMapper productMapper;
     private final EntityManager entityManager;
     private final SaleModeService saleModeService;
 
     ProductService(ProductRepository productRepository, CategoryProductRepository categoryRepository,
-                   EntityManager entityManager, ProductMapper productMapper, SaleModeService saleModeService) {
+                   EntityManager entityManager, SaleModeService saleModeService) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
-        this.productMapper = productMapper;
         this.entityManager = entityManager;
         this.saleModeService = saleModeService;
     }
@@ -49,15 +47,15 @@ public class ProductService {
         List<Branch> allBranches = entityManager.createQuery("SELECT b FROM Branch b", Branch.class)
                 .getResultList();
 
-        Product product = productRepository.save(productMapper.toEntity(request, category, allBranches));
+        Product product = productRepository.save(ProductMapper.toEntity(request, category, allBranches));
 
-        return productMapper.toProductSummaryResponse(product);
+        return ProductMapper.toProductSummaryResponse(product);
     }
 
     public ProductResponse getProduct(Long id) {
         Product product = productRepository.findWithDetailsById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-        return productMapper.toResponse(product);
+        return ProductMapper.toResponse(product);
     }
 
     public List<ProductResponse> getProducts(List<Long> ids) {
@@ -68,7 +66,7 @@ public class ProductService {
         }
 
         return products.stream()
-                .map(productMapper::toResponse)
+                .map(ProductMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -115,12 +113,12 @@ public class ProductService {
 
         saleModeService.deleteUnnecessarySaleModes(product, request);
 
-        productMapper.updateEntity(product, request, category);
+        ProductMapper.updateEntity(product, request, category);
 
         saleModeService.updateOrAddSaleModes(product, request);
 
         productRepository.save(product);
-        return productMapper.toProductSummaryResponse(product);
+        return ProductMapper.toProductSummaryResponse(product);
     }
 
     @Transactional
@@ -185,6 +183,6 @@ public class ProductService {
         }
 
         productRepository.save(product);
-        return productMapper.toProductSummaryResponse(product);
+        return ProductMapper.toProductSummaryResponse(product);
     }
 }

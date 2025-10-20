@@ -3,6 +3,8 @@ package com.gaedet.biocampovet.core.clinic.entity;
 import lombok.*;
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "clinical_service_items")
@@ -35,4 +37,8 @@ public class ClinicalServiceItem {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    @OneToMany(mappedBy = "clinicalServiceItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<ClinicalServiceProduct> products = new HashSet<>();;
 }

@@ -20,7 +20,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class InventoryMovementMapper {
 
-    private final ProductMapper productMapper;
     private final BranchMapper branchMapper;
     private final SupplierMapper supplierMapper;
     private final EmployeeMapper employeeMapper;
@@ -84,7 +83,7 @@ public class InventoryMovementMapper {
                         movement.getProducts().stream()
                                 .map(p -> InventoryMovementProductResponse.builder()
                                         .id(p.getId())
-                                        .product(productMapper.toResponse(p.getProduct()))
+                                        .product(ProductMapper.toResponse(p.getProduct()))
                                         .quantity(p.getQuantity())
                                         .productUnitType(p.getUnitType())
                                         .unitCost(p.getUnitCost())

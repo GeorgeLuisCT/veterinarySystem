@@ -6,6 +6,7 @@ import {
 } from "../types/prescription-template-request";
 import {
   PrescriptionTemplateListParams,
+  PrescriptionTemplateQuickSearchResponse,
   PrescriptionTemplateResponse,
   PrescriptionTemplateSummaryResponse,
 } from "../types/prescription-template-response";
@@ -31,6 +32,17 @@ export const PrescriptionTemplateService = {
 
   getById: async (id: number): Promise<PrescriptionTemplateResponse> => {
     const response = await api.get<PrescriptionTemplateResponse>(`/prescription-templates/detail?id=${id}`);
+    return response.data;
+  },
+
+  quickSearch: async (query?: string): Promise<PrescriptionTemplateQuickSearchResponse[]> => {
+    const params = new URLSearchParams();
+    if (query && query.trim().length > 0) {
+      params.append("query", query.trim());
+    }
+    const response = await api.get<PrescriptionTemplateQuickSearchResponse[]>(
+      `/prescription-templates/quick-search?${params.toString()}`
+    );
     return response.data;
   },
 

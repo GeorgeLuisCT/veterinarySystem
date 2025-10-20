@@ -13,16 +13,9 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Component
-public class ProductMapper {
+public final class ProductMapper {
 
-    private final CategoryProductMapper categoryProductMapper;
-
-    ProductMapper(CategoryProductMapper categoryProductMapper) {
-        this.categoryProductMapper = categoryProductMapper;
-    }
-
-    public Product toEntity(ProductCreateRequest request, CategoryProduct category, List<Branch> allBranches) {
+    public static Product toEntity(ProductCreateRequest request, CategoryProduct category, List<Branch> allBranches) {
         Product product = Product.builder()
                 .name(request.getName())
                 .description(request.getDescription())
@@ -63,7 +56,7 @@ public class ProductMapper {
         return product;
     }
 
-    public ProductResponse toResponse(Product product) {
+    public static ProductResponse toResponse(Product product) {
 
         List<ProductBranchStockResponse> branchStocks = product.getBranchStocks().stream()
                 .map(pbs -> ProductBranchStockResponse.builder()
@@ -89,7 +82,7 @@ public class ProductMapper {
                 .name(product.getName())
                 .description(product.getDescription())
                 .minStock(product.getMinStock())
-                .category(categoryProductMapper.toResponse(product.getCategory()))
+                .category(CategoryProductMapper.toResponse(product.getCategory()))
                 .sku(product.getSku())
                 .presentation(product.getPresentation())
                 .unitType(product.getUnitType())
@@ -100,7 +93,7 @@ public class ProductMapper {
                 .build();
     }
 
-    public ProductSummaryResponse toProductSummaryResponse(Product product) {
+    public static ProductSummaryResponse toProductSummaryResponse(Product product) {
         ProductUnitType unitType = product.getUnitType();
 
         int totalUnits = product.getBranchStocks().stream()
@@ -129,7 +122,7 @@ public class ProductMapper {
         );
     }
 
-    public void updateEntity(Product product, ProductUpdateRequest request, CategoryProduct category) {
+    public static void updateEntity(Product product, ProductUpdateRequest request, CategoryProduct category) {
         product.setName(request.getName());
         product.setDescription(request.getDescription());
         product.setMinStock(request.getMinStock());

@@ -130,6 +130,21 @@ export const addClinicalAttentionMedicationSchema = z.object({
 
 export type AddClinicalAttentionMedicationRequest = z.infer<typeof addClinicalAttentionMedicationSchema>;
 
+export const addClinicalServiceProductRequestSchema = z.object({
+  productId: z
+    .number({ required_error: "Debes seleccionar un producto.", invalid_type_error: "Producto inválido." })
+    .int("Producto inválido.")
+    .min(1, "Debes seleccionar un producto."),
+  dose: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number({ required_error: "La dosis es obligatoria.", invalid_type_error: "La dosis debe ser un número." })
+  ),
+  unit: z.nativeEnum(ProductUnitType, { required_error: "La unidad es obligatoria." }),
+  administrationRoute: z.nativeEnum(AdministrationRoute, { required_error: "La vía de administración es obligatoria." }),
+});
+
+export type AddClinicalServiceProductRequest = z.infer<typeof addClinicalServiceProductRequestSchema>;
+
 export const addClinicalAttentionServiceItemSchema = z.object({
   clinicalServiceId: z
     .number({
@@ -153,6 +168,7 @@ export const addClinicalAttentionServiceItemSchema = z.object({
     })
   ),
   notes: nullableStr,
+  products: z.array(addClinicalServiceProductRequestSchema).optional().default([]),
 });
 
 export type AddClinicalAttentionServiceItemRequest = z.infer<typeof addClinicalAttentionServiceItemSchema>;

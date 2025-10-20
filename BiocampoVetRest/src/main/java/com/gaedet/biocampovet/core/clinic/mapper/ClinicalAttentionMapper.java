@@ -7,11 +7,13 @@ import com.gaedet.biocampovet.core.clinic.entity.*;
 import com.gaedet.biocampovet.core.clinic.enums.ClinicalAttentionStatus;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
 import com.gaedet.biocampovet.core.inventory.entity.Product;
+import com.gaedet.biocampovet.core.inventory.mapper.ProductMapper;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.Collections;
 
 public final class ClinicalAttentionMapper {
 
@@ -124,16 +126,34 @@ public final class ClinicalAttentionMapper {
     private static ClinicalServiceItemResponse toServiceItemResponse(ClinicalServiceItem entity) {
         var service = entity.getClinicalService();
 
-        return ClinicalServiceItemResponse.builder()
-                .id(entity.getId())
-                .clinicalServiceId(service.getId())
-                .clinicalServiceName(service.getName())
-                .clinicalServiceCategory(service.getClinicalServiceCategory())
-                .unitPrice(entity.getUnitPrice())
-                .quantity(entity.getQuantity())
-                .subtotal(entity.getSubtotal())
-                .notes(entity.getNotes())
-                .build();
+        List<ClinicalServiceProductResponse> products =
+                entity.getProducts() == null
+                        ? List.of()
+                        : entity.getProducts().stream()
+                        .map(ClinicalAttentionMapper::toServiceProductResponse)
+                        .toList();
+
+        return new ClinicalServiceItemResponse(
+                entity.getId(),
+                service != null ? service.getId() : null,
+                service != null ? service.getName() : null,
+                service != null ? service.getClinicalServiceCategory() : null,
+                products,
+                entity.getUnitPrice(),
+                entity.getQuantity(),
+                entity.getSubtotal(),
+                entity.getNotes()
+        );
+    }
+
+    private static ClinicalServiceProductResponse toServiceProductResponse(ClinicalServiceProduct entity) {
+        return new ClinicalServiceProductResponse(
+                entity.getId(),
+                ProductMapper.toProductSummaryResponse(entity.getProduct()),
+                entity.getDose(),
+                entity.getUnit(),
+                entity.getAdministrationRoute()
+        );
     }
 
     private static LaboratoryRequestResponse toLaboratoryRequestResponse(LaboratoryRequest entity) {

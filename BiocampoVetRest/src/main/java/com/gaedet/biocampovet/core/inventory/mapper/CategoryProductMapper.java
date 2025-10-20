@@ -15,7 +15,7 @@ public class CategoryProductMapper {
                 .build();
     }
 
-    public CategoryProductResponse toResponse(CategoryProduct categoryProduct) {
+    public  static CategoryProductResponse toResponse(CategoryProduct categoryProduct) {
         return CategoryProductResponse.builder()
                 .id(categoryProduct.getId())
                 .name(categoryProduct.getName())

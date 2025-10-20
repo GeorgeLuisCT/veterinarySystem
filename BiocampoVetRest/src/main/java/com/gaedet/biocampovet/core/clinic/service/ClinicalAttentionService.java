@@ -12,6 +12,7 @@ import com.gaedet.biocampovet.core.clinic.entity.Attentions;
 import com.gaedet.biocampovet.core.clinic.entity.ClinicalAttention;
 import com.gaedet.biocampovet.core.clinic.entity.ClinicalService;
 import com.gaedet.biocampovet.core.clinic.entity.ClinicalServiceItem;
+import com.gaedet.biocampovet.core.clinic.entity.ClinicalServiceProduct;
 import com.gaedet.biocampovet.core.clinic.entity.LaboratoryRequest;
 import com.gaedet.biocampovet.core.clinic.entity.LaboratoryRequestItem;
 import com.gaedet.biocampovet.core.clinic.entity.LaboratoryTest;
@@ -228,7 +229,26 @@ public class ClinicalAttentionService {
                 .notes(normalize(request.getNotes()))
                 .build();
 
+        if (request.getProducts() != null && !request.getProducts().isEmpty()) {
+            List<ClinicalServiceProduct> products = request.getProducts().stream().map(pr -> {
+                Product product = productRepository.findById(pr.getProductId())
+                        .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: id=" + pr.getProductId()));
+
+                return ClinicalServiceProduct.builder()
+                        .product(product)
+                        .dose(pr.getDose())
+                        .unit(pr.getUnit())
+                        .administrationRoute(pr.getAdministrationRoute())
+                        .build();
+            }).toList();
+
+            item.setProducts(new HashSet<>(products));
+        } else {
+            item.setProducts(Collections.emptySet());
+        }
+
         ClinicalServiceItem saved = clinicalServiceItemRepository.save(item);
+
         clinicalAttention.getServiceItems().add(saved);
 
         return ClinicalAttentionMapper.toDetail(clinicalAttention);

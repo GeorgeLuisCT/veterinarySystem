@@ -17,20 +17,17 @@ public class SaleMapperResponses {
     private final BranchMapper branchMapper;
     private final EmployeeMapper employeeMapper;
     private final CustomerMapper customerMapper;
-    private final ProductMapper productMapper;
     private final AnimalMapper animalMapper;
 
 
     SaleMapperResponses(BranchMapper branchMapper,
                         EmployeeMapper employeeMapper,
                         CustomerMapper customerMapper,
-                        ProductMapper productMapper,
                         AnimalMapper animalMapper
                         ) {
         this.branchMapper = branchMapper;
         this.employeeMapper = employeeMapper;
         this.customerMapper = customerMapper;
-        this.productMapper = productMapper;
         this.animalMapper = animalMapper;
 
     }
@@ -60,7 +57,7 @@ public class SaleMapperResponses {
 
         return new SaleProductResponse(
                 saleProduct.getId(),
-                productMapper.toResponse(saleProduct.getProduct()),
+                ProductMapper.toResponse(saleProduct.getProduct()),
                 saleProduct.getUnitType(),
                 saleProduct.getQuantityEquivalent(),
                 saleProduct.getPrice(),

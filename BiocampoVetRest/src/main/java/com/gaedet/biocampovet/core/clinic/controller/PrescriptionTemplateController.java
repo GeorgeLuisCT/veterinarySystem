@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/prescription-templates")
@@ -32,6 +33,14 @@ public class PrescriptionTemplateController {
     public ResponseEntity<PrescriptionTemplateResponse> getById(@RequestParam Long id) {
         return ResponseEntity.ok(prescriptionTemplateService.getById(id));
     }
+
+    @GetMapping("/quick-search")
+    public ResponseEntity<List<PrescriptionTemplateQuickSearchResponse>> quickSearch(
+            @RequestParam(required = false) String query
+    ) {
+        return ResponseEntity.ok(prescriptionTemplateService.quickSearch(query));
+    }
+
 
     @PostMapping
     public ResponseEntity<PrescriptionTemplateResponse> create(

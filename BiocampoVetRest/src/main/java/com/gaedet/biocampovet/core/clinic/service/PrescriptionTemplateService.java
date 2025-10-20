@@ -55,6 +55,15 @@ public class PrescriptionTemplateService {
         return PrescriptionTemplateMapper.toResponse(template);
     }
 
+    @Transactional(readOnly = true)
+    public List<PrescriptionTemplateQuickSearchResponse> quickSearch(String query) {
+        String searchQuery = (query == null || query.isBlank()) ? null : query.trim();
+        List<Object[]> raw = prescriptionTemplateRepository.quickTemplateSearch(searchQuery);
+        return raw.stream()
+                .map(PrescriptionTemplateQuickSearchResponse::fromNativeRow)
+                .toList();
+    }
+
     @Transactional
     public PrescriptionTemplateResponse create(CreatePrescriptionTemplateRequest request) {
         String normalizedName = request.getName().trim();

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Builder
@@ -24,4 +25,6 @@ public class AddClinicalAttentionServiceItemRequest {
     private BigDecimal quantity;
 
     private String notes;
+
+    private List<AddClinicalServiceProductRequest> products;
 }

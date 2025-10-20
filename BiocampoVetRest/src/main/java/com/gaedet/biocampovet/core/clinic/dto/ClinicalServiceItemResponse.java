@@ -1,21 +1,22 @@
 package com.gaedet.biocampovet.core.clinic.dto;
 
 import com.gaedet.biocampovet.core.clinic.enums.ClinicalServiceCategory;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
-@Getter
-@Builder
-public class ClinicalServiceItemResponse {
 
-    private final Long id;
-    private final Long clinicalServiceId;
-    private final String clinicalServiceName;
-    private final ClinicalServiceCategory clinicalServiceCategory;
-    private final BigDecimal unitPrice;
-    private final BigDecimal quantity;
-    private final BigDecimal subtotal;
-    private final String notes;
-}
+public record ClinicalServiceItemResponse(
+        Long id,
+        Long clinicalServiceId,
+        String clinicalServiceName,
+        ClinicalServiceCategory clinicalServiceCategory,
+        List<ClinicalServiceProductResponse> products,
+        BigDecimal unitPrice,
+        BigDecimal quantity,
+        BigDecimal subtotal,
+        String notes
+) {}
+
