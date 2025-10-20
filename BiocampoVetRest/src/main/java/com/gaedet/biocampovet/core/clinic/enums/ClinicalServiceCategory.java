@@ -6,5 +6,6 @@ public enum ClinicalServiceCategory {
     DEWORMING,
     SURGERY,
     LABORATORY,
-    GROOMING
+    GROOMING,
+    OTHER
 }

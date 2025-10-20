@@ -35,33 +35,34 @@ public interface ClinicalServiceRepository extends
     Optional<ClinicalService> findById(@NonNull Long id);
 
     @Query(value = """
-            SELECT
-                cs.id,
-                cs.name,
-                cs.clinical_service_category,
-                cs.price
-            FROM clinical_services cs
-            WHERE (:branchId IS NULL OR EXISTS (
-                    SELECT 1 FROM branch_clinical_services bcs
-                    WHERE bcs.clinical_service_id = cs.id
-                      AND bcs.branch_id = :branchId
+        SELECT
+            cs.id,
+            cs.name,
+            cs.clinical_service_category,
+            cs.price
+        FROM clinical_services cs
+        WHERE
+            (:branchId IS NULL OR EXISTS (
+                SELECT 1 FROM branch_clinical_services bcs
+                WHERE bcs.clinical_service_id = cs.id
+                  AND bcs.branch_id = :branchId
             ))
             AND (:isActive IS NULL OR EXISTS (
-                    SELECT 1 FROM branch_clinical_services bcs2
-                    WHERE bcs2.clinical_service_id = cs.id
-                      AND bcs2.is_active = :isActive
+                SELECT 1 FROM branch_clinical_services bcs2
+                WHERE bcs2.clinical_service_id = cs.id
+                  AND (:branchId IS NULL OR bcs2.branch_id = :branchId)
+                  AND bcs2.is_active = :isActive
             ))
-            AND (
-                :query IS NULL OR
-                LOWER(cs.name) LIKE LOWER(CONCAT('%', :query, '%'))
-            )
-            ORDER BY cs.name
-            LIMIT 10
-            """,
+            AND (:category IS NULL OR cs.clinical_service_category = :category)
+            AND (:query IS NULL OR LOWER(cs.name) LIKE LOWER(CONCAT('%', :query, '%')))
+        ORDER BY cs.name
+        LIMIT 10
+        """,
             nativeQuery = true)
     List<Object[]> quickClinicalServiceSearch(
             @Param("query") String query,
             @Param("branchId") Long branchId,
-            @Param("isActive") Boolean isActive
+            @Param("isActive") Boolean isActive,
+            @Param("category") String category
     );
 }

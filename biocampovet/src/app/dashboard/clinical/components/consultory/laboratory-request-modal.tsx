@@ -1,7 +1,10 @@
 "use client";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addClinicalAttentionLaboratorySchema, AddClinicalAttentionLaboratoryRequest } from "../../types/clinical-attention-request";
+import {
+    addClinicalAttentionLaboratorySchema,
+    AddClinicalAttentionLaboratoryRequest,
+} from "../../types/clinical-attention-request";
 import { LabRequestStatus } from "@/app/dashboard/clinical/enums/lab-request-status";
 import { ClinicalAttentionService } from "../../service/clinical-attention-service";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -9,89 +12,104 @@ import { Button } from "@/components/ui/button";
 import { FloatingLabelInput } from "@/components/floating-label-input";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useState, useCallback } from "react";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { useEffect, useMemo, useState } from "react";
+import { Form, FormControl, FormField, FormItem, FormMessage, FormLabel } from "@/components/ui/form";
 import { ClinicalAttentionDetailResponse } from "../../types/clinical-attention-response";
-import { LaboratoryTestQuickSearchResponse } from "../../types/laboratory-test-response";
 import LaboratoryTestService from "../../service/laboratory-test-service";
-import { debounce } from "lodash";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import { LaboratoryTestQuickSearchResponse } from "../../types/laboratory-test-response";
 import { LaboratoryResponse } from "../../../branche/types/laboratory-response";
 import LaboratoryService from "../../../branche/services/laboratory-service";
 import { useUser } from "@/context/user-context";
+import { PlusCircle, Trash2 } from "lucide-react";
 
 type CommonProps = { id: number; onClose: () => void; onAdded: (data: ClinicalAttentionDetailResponse) => void };
 
 export function LaboratoryRequestModal({ id, onClose, onAdded }: CommonProps) {
     const { userInfo } = useUser();
     const [laboratories, setLaboratories] = useState<LaboratoryResponse[]>([]);
+    const [submitting, setSubmitting] = useState(false);
+
+    // opciones por fila: rowIndex -> opciones para ese select
+    const [testOptionsMap, setTestOptionsMap] = useState<Record<number, { value: string; label: string }[]>>({});
+    const [testNameMap, setTestNameMap] = useState<Record<number, string>>({});
+
     const form = useForm<AddClinicalAttentionLaboratoryRequest>({
         resolver: zodResolver(addClinicalAttentionLaboratorySchema),
         defaultValues: {
             requestingEmployeeId: userInfo?.employeeId || null,
             status: LabRequestStatus.REQUESTED,
             createdAt: new Date().toISOString(),
+            laboratoryId: undefined,
             clinicalNotes: "",
             items: [],
         },
         mode: "onChange",
     });
 
-    const { fields, append, remove } = useFieldArray({ control: form.control, name: "items" });
-    const [submitting, setSubmitting] = useState(false);
-
-    // State for adding items
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchResults, setSearchResults] = useState<LaboratoryTestQuickSearchResponse[]>([]);
-    const [selectedTest, setSelectedTest] = useState<LaboratoryTestQuickSearchResponse | null>(null);
-    const [itemQty, setItemQty] = useState<string>("1");
-    const [itemNotes, setItemNotes] = useState("");
-    const [popoverOpen, setPopoverOpen] = useState(false);
+    const { fields, append, remove, replace } = useFieldArray({ control: form.control, name: "items" });
 
     const laboratoryId = form.watch("laboratoryId");
 
     useEffect(() => {
-        if (userInfo?.employeeId) {
-            form.setValue("requestingEmployeeId", userInfo.employeeId);
-        }
+        if (userInfo?.employeeId) form.setValue("requestingEmployeeId", userInfo.employeeId);
     }, [userInfo, form]);
 
     useEffect(() => {
         LaboratoryService.listAll().then(setLaboratories);
     }, []);
 
-    const debouncedSearch = useCallback(
-        debounce(async (query: string, labId?: number) => {
-            if (query.length < 2 || !labId) {
-                setSearchResults([]);
-                return;
-            }
-            const results = await LaboratoryTestService.quickSearch(query, labId);
-            setSearchResults(results);
-        }, 300),
-        []
-    );
-
-    useEffect(() => {
-        debouncedSearch(searchQuery, laboratoryId);
-    }, [searchQuery, laboratoryId, debouncedSearch]);
-
-    const addItem = () => {
-        if (!selectedTest) return;
-        const qty = itemQty.trim() === "" ? 1 : Number(itemQty);
-        append({
-            testId: selectedTest.id,
-            unitPrice: selectedTest.price,
-            quantity: qty,
-            notes: itemNotes || null,
-        });
-        setSelectedTest(null);
-        setSearchQuery("");
-        setItemQty("1");
-        setItemNotes("");
-        setSearchResults([]);
+    // buscar pruebas (SIN debounce)
+    const handleSearchTests = async (rowIndex: number, q: string) => {
+        const qq = q.trim();
+        if (!laboratoryId || qq.length < 2) {
+            setTestOptionsMap((prev) => ({ ...prev, [rowIndex]: [] }));
+            return;
+        }
+        try {
+            const res: LaboratoryTestQuickSearchResponse[] = await LaboratoryTestService.quickSearch(qq, laboratoryId);
+            const opts = res.map((t) => ({ value: String(t.id), label: `${t.name}` }));
+            setTestOptionsMap((prev) => ({ ...prev, [rowIndex]: opts }));
+        } catch {
+            setTestOptionsMap((prev) => ({ ...prev, [rowIndex]: [] }));
+        }
     };
+
+    // al elegir prueba: llena testId, unitPrice usando getById y guarda el nombre
+    const handleSelectTest = async (rowIndex: number, value?: string) => {
+        if (!value) {
+            form.setValue(`items.${rowIndex}.testId`, undefined as unknown as number, { shouldValidate: true });
+            return;
+        }
+        const id = Number(value);
+        try {
+            const detail = await LaboratoryTestService.getById(id);
+            form.setValue(`items.${rowIndex}.testId`, id, { shouldValidate: true });
+            form.setValue(`items.${rowIndex}.unitPrice`, detail.price ?? 0, { shouldValidate: true });
+            if (form.getValues(`items.${rowIndex}.quantity`) == null) {
+                form.setValue(`items.${rowIndex}.quantity`, 1, { shouldValidate: true });
+            }
+            setTestNameMap((prev) => ({ ...prev, [id]: detail.name }));
+        } catch {
+            // si falla, dejamos los campos como estaban
+        }
+    };
+
+    const addEmptyRow = () => {
+        append({
+            testId: undefined as unknown as number,
+            unitPrice: 0,
+            quantity: 1,
+            notes: null,
+        });
+    };
+
+    // Al cambiar laboratorio: limpiar y crear fila inicial
+    useEffect(() => {
+        replace([]);
+        setTestOptionsMap({});
+        setTestNameMap({});
+        if (laboratoryId) addEmptyRow();
+    }, [laboratoryId, replace]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const onSubmit = async (values: AddClinicalAttentionLaboratoryRequest) => {
         setSubmitting(true);
@@ -104,118 +122,204 @@ export function LaboratoryRequestModal({ id, onClose, onAdded }: CommonProps) {
         }
     };
 
-    const laboratoryOptions = laboratories.map(l => ({ value: String(l.id), label: l.name }));
+    const laboratoryOptions = useMemo(
+        () => laboratories.map((l) => ({ value: String(l.id), label: l.name })),
+        [laboratories]
+    );
+
+    // Total correcto en tiempo real
+    const items = form.watch("items");
+    const total = useMemo(() => {
+        return (items || []).reduce(
+            (sum: number, it: any) => sum + Number(it.unitPrice || 0) * Number(it.quantity || 0),
+            0
+        );
+    }, [items]);
+
+    const hasLab = !!laboratoryId;
 
     return (
         <Dialog open onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-2xl">
-                <DialogHeader>
+            <DialogContent className="w-[min(92vw,900px)] max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-2xl sm:max-w-3xl">
+                <DialogHeader className="space-y-1">
                     <DialogTitle>Registrar solicitud de laboratorio</DialogTitle>
+                    <p className="text-sm text-muted-foreground">
+                        Selecciona el laboratorio, agrega las pruebas requeridas y deja observaciones clínicas si es necesario.
+                    </p>
                 </DialogHeader>
+
                 <Form {...form}>
-                    <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+                    <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)} noValidate>
+                        {/* Laboratorio */}
                         <FormField
                             control={form.control}
                             name="laboratoryId"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormControl>
-                                        <FloatingLabelSelect
-                                            id="laboratoryId"
-                                            label="Laboratorio"
-                                            options={laboratoryOptions}
-                                            value={field.value ? String(field.value) : ""}
-                                            onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
+                                        <div className="w-full">
+                                            <FloatingLabelSelect
+                                                id="laboratoryId"
+                                                label="Laboratorio *"
+                                                options={laboratoryOptions}
+                                                value={field.value ? String(field.value) : ""}
+                                                onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
+                                            />
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Ítems / Pruebas */}
+                        <fieldset className="rounded-xl border p-4">
+                            <legend className="px-1 text-sm font-medium">Pruebas</legend>
+
+                            {!hasLab ? (
+                                <p className="text-sm text-muted-foreground">Primero selecciona un laboratorio para agregar pruebas.</p>
+                            ) : (
+                                <>
+                                    <div className="mb-3 flex items-center justify-between">
+                                        <p className="text-sm text-muted-foreground">Agrega una o más pruebas al pedido.</p>
+                                        <Button type="button" size="sm" variant="secondary" className="gap-2" onClick={addEmptyRow}>
+                                            <PlusCircle className="h-4 w-4" />
+                                            Añadir prueba
+                                        </Button>
+                                    </div>
+
+                                    {fields.length === 0 ? (
+                                        <p className="text-sm text-muted-foreground">No hay pruebas agregadas.</p>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {fields.map((row, index) => {
+                                                const testId = form.getValues(`items.${index}.testId`) as number | undefined;
+                                                const name = testId ? testNameMap[Number(testId)] ?? "Prueba" : "Prueba";
+                                                return (
+                                                    <div key={row.id} className="grid grid-cols-1 sm:grid-cols-12 gap-3 rounded-lg border p-3">
+                                                        {/* Prueba */}
+                                                        <div className="sm:col-span-5 min-w-0">
+                                                            <FormField
+                                                                control={form.control}
+                                                                name={`items.${index}.testId`}
+                                                                render={({ field: f }) => (
+                                                                    <FormItem>
+                                                                        <FormControl>
+                                                                            <div className="w-full">
+                                                                                <FloatingLabelSelect
+                                                                                    id={`test-${index}`}
+                                                                                    label="Prueba *"
+                                                                                    placeholder="Buscar prueba…"
+                                                                                    options={testOptionsMap[index] || []}
+                                                                                    onSearch={(q) => handleSearchTests(index, q)}
+                                                                                    value={f.value ? String(f.value) : ""}
+                                                                                    onValueChange={(v) => handleSelectTest(index, v)}
+                                                                                />
+                                                                            </div>
+                                                                        </FormControl>
+                                                                        <FormMessage />
+                                                                    </FormItem>
+                                                                )}
+                                                            />
+                                                        </div>
+
+                                                        {/* Precio */}
+                                                        <div className="sm:col-span-2 min-w-0">
+                                                            <FormField
+                                                                control={form.control}
+                                                                name={`items.${index}.unitPrice`}
+                                                                render={({ field: f }) => (
+                                                                    <FormItem>
+                                                                        <FormControl>
+                                                                            <div className="w-full">
+                                                                                <FloatingLabelInput
+                                                                                    id={`price-${index}`}
+                                                                                    label="Precio"
+                                                                                    type="number"
+                                                                                    step="0.01"
+                                                                                    value={String(f.value ?? "")}
+                                                                                    onChange={(v) => f.onChange(v === "" ? 0 : Number(v))}
+                                                                                />
+                                                                            </div>
+                                                                        </FormControl>
+                                                                        <FormMessage />
+                                                                    </FormItem>
+                                                                )}
+                                                            />
+                                                        </div>
+
+                                                        {/* Cantidad */}
+                                                        <div className="sm:col-span-2 min-w-0">
+                                                            <FormField
+                                                                control={form.control}
+                                                                name={`items.${index}.quantity`}
+                                                                render={({ field: f }) => (
+                                                                    <FormItem>
+                                                                        <FormControl>
+                                                                            <div className="w-full">
+                                                                                <FloatingLabelInput
+                                                                                    id={`qty-${index}`}
+                                                                                    label="Cantidad"
+                                                                                    type="number"
+                                                                                    step="1"
+                                                                                    value={String(f.value ?? "")}
+                                                                                    onChange={(v) => f.onChange(v === "" ? 1 : Number(v))}
+                                                                                />
+                                                                            </div>
+                                                                        </FormControl>
+                                                                        <FormMessage />
+                                                                    </FormItem>
+                                                                )}
+                                                            />
+                                                        </div>
+                                                        {/* Subtotal + quitar */}
+                                                        <div className="sm:col-span-1 flex items-center justify-between gap-2">
+                                                            <div className="text-sm font-semibold tabular-nums">
+                                                                {(
+                                                                    Number(form.getValues(`items.${index}.quantity`) || 0) *
+                                                                    Number(form.getValues(`items.${index}.unitPrice`) || 0)
+                                                                ).toFixed(2)}
+                                                            </div>
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 shrink-0"
+                                                                onClick={() => remove(index)}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                                Quitar
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </fieldset>
+
+                        {/* Notas clínicas */}
+                        <FormField
+                            control={form.control}
+                            name="clinicalNotes"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel htmlFor="clinicalNotes">Notas clínicas</FormLabel>
+                                    <FormControl>
+                                        <Textarea
+                                            id="clinicalNotes"
+                                            rows={3}
+                                            value={field.value ?? ""}
+                                            onChange={(e) => field.onChange(e.target.value === "" ? null : e.target.value)}
+                                            placeholder="Ej.: Observaciones: ayuno 8 h; control en 48 h."
                                         />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-
-                        <FormField
-                            control={form.control}
-                            name="clinicalNotes"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <Textarea id="clinicalNotes" rows={2} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? null : e.target.value)} placeholder="Notas clínicas" />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <div className="rounded-md border p-3">
-                            <div className="mb-2 text-sm font-medium">Añadir Pruebas</div>
-                            <div className="grid gap-2 sm:grid-cols-12">
-                                <div className="sm:col-span-5">
-                                    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-                                        <PopoverTrigger asChild>
-                                            <FormControl>
-                                                <Button variant="outline" role="combobox" className="w-full justify-between" disabled={!laboratoryId}>
-                                                    {selectedTest ? selectedTest.name : "Buscar prueba..."}
-                                                </Button>
-                                            </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="p-0 w-[--radix-popover-trigger-width]">
-                                            <Command>
-                                                <CommandInput placeholder="Buscar por nombre o código..." onValueChange={setSearchQuery} />
-                                                <CommandList>
-                                                    <CommandEmpty>No se encontraron pruebas.</CommandEmpty>
-                                                    <CommandGroup>
-                                                        {searchResults.map((test) => (
-                                                            <CommandItem
-                                                                key={test.id}
-                                                                value={test.name}
-                                                                onSelect={() => {
-                                                                    setSelectedTest(test);
-                                                                    setSearchQuery(test.name);
-                                                                    setPopoverOpen(false);
-                                                                }}
-                                                            >
-                                                                {test.name} ({test.code})
-                                                            </CommandItem>
-                                                        ))}
-                                                    </CommandGroup>
-                                                </CommandList>
-                                            </Command>
-                                        </PopoverContent>
-                                    </Popover>
-                                </div>
-                                <div className="sm:col-span-2">
-                                    <FloatingLabelInput id="unitPrice" label="Precio" type="number" value={selectedTest?.price.toFixed(2) ?? ""} disabled />
-                                </div>
-                                <div className="sm:col-span-2">
-                                    <FloatingLabelInput id="quantity" label="Cantidad" type="number" value={itemQty} onChange={setItemQty} />
-                                </div>
-                                <div className="sm:col-span-3">
-                                    <FloatingLabelInput id="notes" label="Notas" value={itemNotes} onChange={setItemNotes} />
-                                </div>
-                            </div>
-                            <div className="mt-2">
-                                <Button type="button" variant="outline" onClick={addItem} disabled={!selectedTest}>
-                                    Agregar prueba
-                                </Button>
-                            </div>
-                            <div className="mt-3 space-y-2">
-                                {fields.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground">Sin pruebas añadidas.</p>
-                                ) : (
-                                    fields.map((item, index) => (
-                                        <div key={item.id} className="rounded-md border p-2 text-sm">
-                                            <div className="flex items-center justify-between">
-                                                <span>Test ID: {item.testId}</span>
-                                                <span>{(Number(item.quantity) * Number(item.unitPrice)).toFixed(2)}</span>
-                                                <Button type="button" variant="ghost" size="sm" onClick={() => remove(index)}>Eliminar</Button>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-
-                        <DialogFooter>
+                        <DialogFooter className="gap-2">
                             <Button type="button" variant="outline" onClick={onClose}>
                                 Cancelar
                             </Button>

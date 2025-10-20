@@ -188,7 +188,7 @@ export const addClinicalAttentionSurgicalOrderSchema = z.object({
     })
     .int("La selección del solicitante no es válida.")
     .min(1, "Debes seleccionar un solicitante."),
-    operationRoomId: z
+    operatingRoomId: z
     .number({
       invalid_type_error: "La selección de la sala de operaciones no es válida.",
     })

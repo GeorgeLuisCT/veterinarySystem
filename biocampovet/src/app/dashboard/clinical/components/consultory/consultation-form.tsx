@@ -21,8 +21,12 @@ import { ServiceItemModal } from "./service-item-modal";
 import { SurgicalOrderModal } from "./surgical-order-modal";
 import { LaboratoryRequestModal } from "./laboratory-request-modal";
 import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
-import { AdministrationRouteAbbreviations } from "@/app/dashboard/inventory/products/enums/administration-route";
+import { AdministrationRouteAbbreviations, AdministrationRouteLabels } from "@/app/dashboard/inventory/products/enums/administration-route";
 import PrescriptionTemplateApplyModal from "./prescription-template-apply-modal";
+import { ClinicalServiceCategory, ClinicalServiceCategoryLabels } from "../../enums/clinical-service-category";
+import { LabRequestItemStatusLabels } from "../../enums/lab-request-item-status";
+import { FrequencyUnitLabels } from "../../enums/frequency-unit";
+import { SurgicalOrderStatusLabels } from "@/app/dashboard/schedule/enums/surgical-order-status";
 
 type FormShape = z.infer<typeof updateClinicalAttentionSchema>;
 
@@ -45,11 +49,11 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
   const [labRequests, setLabRequests] = useState<LaboratoryRequestResponse[]>(detail.laboratoryRequests || []);
 
   const [openMedication, setOpenMedication] = useState(false);
-  const [openServiceItem, setOpenServiceItem] = useState(false);
+  const [openServiceItemCategory, setOpenServiceItemCategory] = useState<ClinicalServiceCategory | null>(null);
   const [openSurgicalOrder, setOpenSurgicalOrder] = useState(false);
   const [openLab, setOpenLab] = useState(false);
   const [openTemplate, setOpenTemplate] = React.useState(false);
-  
+
 
   const form = useForm<FormShape>({
     resolver: zodResolver(updateClinicalAttentionSchema),
@@ -364,15 +368,24 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
         <CardHeader>
           <CardTitle>P - Plan</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
+          {/* Acciones rápidas */}
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => setOpenMedication(true)}>
               <Pill className="mr-2 h-4 w-4" />
               Medicación
             </Button>
-            <Button variant="outline" onClick={() => setOpenServiceItem(true)}>
+            <Button variant="outline" onClick={() => setOpenServiceItemCategory(ClinicalServiceCategory.VACCINATION)}>
               <Syringe className="mr-2 h-4 w-4" />
-              Servicio
+              Vacunación
+            </Button>
+            <Button variant="outline" onClick={() => setOpenServiceItemCategory(ClinicalServiceCategory.DEWORMING)}>
+              <Syringe className="mr-2 h-4 w-4" />
+              Desparasitación
+            </Button>
+            <Button variant="outline" onClick={() => setOpenServiceItemCategory(ClinicalServiceCategory.OTHER)}>
+              <Syringe className="mr-2 h-4 w-4" />
+              Otro
             </Button>
             <Button variant="outline" onClick={() => setOpenLab(true)}>
               <Beaker className="mr-2 h-4 w-4" />
@@ -382,7 +395,6 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
               <ClipboardPlus className="mr-2 h-4 w-4" />
               Orden quirúrgica
             </Button>
-
             <Button variant="outline" onClick={() => setOpenTemplate(true)}>
               <ClipboardPlus className="mr-2 h-4 w-4" />
               Desde plantilla
@@ -391,106 +403,268 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
 
           <Separator />
 
-          <div className="space-y-6">
-            <div>
-              <h4 className="mb-2 font-semibold">Medicaciones</h4>
-              <div className="space-y-2">
-                {medications.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Sin registros</p>
-                ) : (
-                  medications.map((m) => (
-                    <div key={m.id} className="rounded-md border p-2 text-sm">
-                      <div className="flex items-center justify-between">
-                        <span>{m.productName}</span>
-                        <span>{new Date(m.administeredAt).toLocaleString()}</span>
-                      </div>
-                      <div className="text-muted-foreground">
-                        {m.doseAmount ? `${m.doseAmount} ${m.doseUnit ?? ""}` : ""} {m.route ?? ""}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-            <div>
-              <h4 className="mb-2 font-semibold">Servicios</h4>
-              <div className="space-y-2">
-                {serviceItems.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Sin registros</p>
-                ) : (
-                  serviceItems.map((s) => (
-                    <div key={s.id} className="rounded-md border p-2 text-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{s.clinicalServiceName}</span>
-                        <span className="tabular-nums">{Number(s.subtotal ?? 0).toFixed(2)}</span>
-                      </div>
-                      <div className="text-muted-foreground">
-                        {Number(s.quantity ?? 0)} x {Number(s.unitPrice ?? 0).toFixed(2)}
-                      </div>
+          {/* Lista unificada y consistente */}
+          {(() => {
+            type Entry =
+              | {
+                id: string;
+                kind: "MEDICACION";
+                title: string;
+                metaLeft?: string;
+                metaRight?: string;
+                timestamp?: number | null;
+                details?: React.ReactNode;
+                tagLabel?: string; // NEW
+              }
+              | {
+                id: string;
+                kind: "SERVICIO";
+                title: string;
+                metaLeft?: string;
+                metaRight?: string;
+                timestamp?: number | null;
+                details?: React.ReactNode;
+                tagLabel?: string; // NEW
+              }
+              | {
+                id: string;
+                kind: "ORDEN";
+                title: string;
+                metaLeft?: string;
+                metaRight?: string;
+                timestamp?: number | null;
+                details?: React.ReactNode;
+                tagLabel?: string; // NEW
+              }
+              | {
+                id: string;
+                kind: "LAB";
+                title: string;
+                metaLeft?: string;
+                metaRight?: string;
+                timestamp?: number | null;
+                details?: React.ReactNode;
+                tagLabel?: string; // NEW
+              };
 
-                      {s.products && s.products.length > 0 && (
-                        <ul className="mt-2 space-y-1">
-                          {s.products.map((p) => (
-                            <li key={p.id} className="flex items-center justify-between text-xs">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="font-medium text-foreground">{p.product.name}</span>
-                                <span className="text-muted-foreground">
-                                  {Number(p.dose ?? 0)} {ProductUnitTypeLabels[p.unit]}
-                                </span>
-                                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] leading-none text-foreground">
-                                  {AdministrationRouteAbbreviations[p.administrationRoute]}
-                                </span>
+            const entries: Entry[] = [
+              // Medicaciones
+              ...medications.map((m) => {
+                const pluralizeEs = (label: string, value: number) => {
+                  if (!label) return "";
+                  const n = Number(value);
+                  if (Number.isNaN(n) || n === 1) return label;
+                  if (/[s]$/i.test(label)) return label;
+                  return `${label}s`;
+                };
+
+                const dose =
+                  m.doseAmount
+                    ? `${m.doseAmount} ${pluralizeEs(ProductUnitTypeLabels[m.doseUnit ?? ""], Number(m.doseAmount))}`.trim()
+                    : "";
+
+                const freq =
+                  m.frequencyValue && m.frequencyUnit
+                    ? `cada ${m.frequencyValue} ${pluralizeEs(FrequencyUnitLabels[m.frequencyUnit], Number(m.frequencyValue))}`
+                    : "";
+
+                const route = m.route ? `vía ${AdministrationRouteLabels[m.route].toLowerCase()}` : "";
+
+                const extras = [dose, freq, route].filter(Boolean).join(" ");
+
+                return {
+                  id: `med-${m.id}`,
+                  kind: "MEDICACION" as const,
+                  title: m.productName,
+                  metaLeft: extras || undefined,
+                  metaRight: m.administeredAt ? new Date(m.administeredAt).toLocaleString() : undefined,
+                  timestamp: m.administeredAt ? new Date(m.administeredAt).getTime() : null,
+                  details: m.notes ? <div className="text-muted-foreground text-xs">{m.notes}</div> : undefined,
+                  // tagLabel sin cambio -> mostrará "Medicación" por defecto
+                };
+              }),
+
+              // Servicios
+              ...serviceItems.map((s) => {
+                const products =
+                s.products && s.products.length > 0 ? (
+                  <ul className="mt-2 space-y-1">
+                    {s.products.map((p) => {
+                      const pluralizeEs = (label: string, value: number) => {
+                        if (!label) return "";
+                        const n = Number(value);
+                        if (Number.isNaN(n) || n === 1) return label;
+                        if (/[s]$/i.test(label)) return label; // ya en plural
+                        return `${label}s`;
+                      };
+              
+                      const dose =
+                        p.dose != null
+                          ? `${Number(p.dose)} ${pluralizeEs(ProductUnitTypeLabels[p.unit], Number(p.dose))}`.trim()
+                          : "";
+              
+                      const route = p.administrationRoute
+                        ? `vía ${AdministrationRouteLabels[p.administrationRoute].toLowerCase()}`
+                        : "";
+              
+                      const extras = [dose, route].filter(Boolean).join(" ");
+              
+                      return (
+                        <li key={p.id} className="flex items-center justify-between text-xs">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium text-foreground">{p.product.name}</span>
+                            {extras && <span className="text-muted-foreground">{extras}</span>}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : undefined;
+              
+
+                const categoryKey = s.clinicalServiceCategory ?? s.clinicalServiceCategory;
+                const categoryLabel = categoryKey ? ClinicalServiceCategoryLabels[categoryKey] : undefined;
+
+                return {
+                  id: `svc-${s.id}`,
+                  kind: "SERVICIO" as const,
+                  title: s.clinicalServiceName,
+                  metaLeft: `${Number(s.quantity ?? 0)} x ${Number(s.unitPrice ?? 0).toFixed(2)}`,
+                  metaRight: `${Number(s.subtotal ?? 0).toFixed(2)}`,
+                  timestamp: null,
+                  details: products,
+                  tagLabel: categoryLabel, // NEW: mostrará "Vacunación", "Desparasitación", etc.
+                };
+              }),
+
+              // Órdenes
+              ...surgicalOrders.map((o) => {
+                const right = o.status ? String(SurgicalOrderStatusLabels[o.status]) : undefined;
+                const left = [o.operationRoomName].filter(Boolean).join(" • ");
+                return {
+                  id: `ord-${o.id}`,
+                  kind: "ORDEN" as const,
+                  title: o.recommendedServiceName ?? "Orden quirúrgica",
+                  metaLeft: left || undefined,
+                  metaRight: right,
+                  timestamp: o.createdAt ? new Date(o.createdAt as any).getTime() : null,
+                  details: o.notes ? <div className="text-muted-foreground text-xs">{o.notes}</div> : undefined,
+                  // tagLabel sin cambio -> "Orden"
+                };
+              }),
+
+              // Laboratorio
+              ...labRequests.map((l) => {
+                const items =
+                  l.items && l.items.length > 0 ? (
+                    <ul className="mt-2 space-y-1">
+                      {l.items.map((i) => (
+                        <li key={i.id} className="flex items-center justify-between text-xs">
+                          <span className="font-medium text-foreground">{i.testName}</span>
+                          <span className="text-muted-foreground">
+                            {Number(i.quantity ?? 0)}
+                            {i.unitPrice ? ` x ${Number(i.unitPrice).toFixed(2)}` : ""}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : undefined;
+
+                return {
+                  id: `lab-${l.id}`,
+                  kind: "LAB" as const,
+                  title: l.laboratoryName,
+                  metaLeft: l.status ? String(LabRequestItemStatusLabels[l.status]) : undefined,
+                  metaRight: l.createdAt ? new Date(l.createdAt).toLocaleString() : undefined,
+                  timestamp: l.createdAt ? new Date(l.createdAt).getTime() : null,
+                  details: items,
+                  // tagLabel sin cambio -> "Laboratorio"
+                };
+              }),
+            ];
+
+            // Orden por timestamp
+            entries.sort((a, b) => {
+              const ta = a.timestamp ?? -Infinity;
+              const tb = b.timestamp ?? -Infinity;
+              return tb - ta;
+            });
+
+            const kindIcon = (kind: Entry["kind"]) => {
+              switch (kind) {
+                case "MEDICACION":
+                  return <Pill className="h-4 w-4" />;
+                case "SERVICIO":
+                  return <ClipboardPlus className="h-4 w-4" />;
+                case "ORDEN":
+                  return <ClipboardPlus className="h-4 w-4" />;
+                case "LAB":
+                  return <Beaker className="h-4 w-4" />;
+              }
+            };
+
+            const kindLabel = (kind: Entry["kind"]) => {
+              switch (kind) {
+                case "MEDICACION":
+                  return "Medicación";
+                case "SERVICIO":
+                  return "Servicio"; // fallback si no hay categoría
+                case "ORDEN":
+                  return "Orden quirúrgica";
+                case "LAB":
+                  return "Laboratorio";
+              }
+            };
+
+            return (
+              <div className="space-y-3">
+                {entries.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Sin registros</p>
+                ) : (
+                  entries.map((e) => (
+                    <div key={e.id} className="rounded-xl border p-3 hover:bg-muted/40 transition-colors">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <div className="grid h-8 w-8 place-items-center rounded-lg border">
+                            {kindIcon(e.kind)}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{e.title}</span>
+                              <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] leading-none">
+                                {e.tagLabel ?? kindLabel(e.kind)}
+                              </span>
+                            </div>
+                            {(e.metaLeft || e.details) && (
+                              <div className="mt-1 text-xs text-muted-foreground">
+                                {e.metaLeft}
                               </div>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+                            )}
+                          </div>
+                        </div>
 
-
-            <div>
-              <h4 className="mb-2 font-semibold">Órdenes quirúrgicas</h4>
-              <div className="space-y-2">
-                {surgicalOrders.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Sin registros</p>
-                ) : (
-                  surgicalOrders.map((o) => (
-                    <div key={o.id} className="rounded-md border p-2 text-sm">
-                      <div className="flex items-center justify-between">
-                        <span>#{o.id}</span>
-                        <span>{o.status}</span>
+                        {(e.metaRight || e.timestamp) && (
+                          <div className="text-right">
+                            {e.metaRight && <div className="text-sm tabular-nums">{e.metaRight}</div>}
+                            {e.timestamp && (
+                              <div className="text-xs text-muted-foreground">
+                                {new Date(e.timestamp).toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      <div className="text-muted-foreground">{o.notes ?? ""}</div>
+
+                      {e.details && <div className="mt-2">{e.details}</div>}
                     </div>
                   ))
                 )}
               </div>
-            </div>
+            );
+          })()}
 
-            <div>
-              <h4 className="mb-2 font-semibold">Solicitudes de laboratorio</h4>
-              <div className="space-y-2">
-                {labRequests.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Sin registros</p>
-                ) : (
-                  labRequests.map((l) => (
-                    <div key={l.id} className="rounded-md border p-2 text-sm">
-                      <div className="flex items-center justify-between">
-                        <span>{l.laboratoryName}</span>
-                        <span>{l.status}</span>
-                      </div>
-                      <div className="text-muted-foreground">{new Date(l.createdAt).toLocaleString()}</div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
 
+          {/* Indicaciones al propietario */}
           <Form {...form}>
             <FormField
               control={form.control}
@@ -514,8 +688,8 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
               )}
             />
           </Form>
-
         </CardContent>
+
       </Card>
 
       {openMedication && (
@@ -533,10 +707,11 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
         />
       )}
 
-      {openServiceItem && (
+      {openServiceItemCategory && (
         <ServiceItemModal
           id={detail.id}
-          onClose={() => setOpenServiceItem(false)}
+          category={openServiceItemCategory}
+          onClose={() => setOpenServiceItemCategory(null)}
           onAdded={(data) => {
             setServiceItems(data.serviceItems);
             updateVersion(data.version);
@@ -578,20 +753,20 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
         />
       )}
 
-{openTemplate && (
-  <PrescriptionTemplateApplyModal
-    id={detail.id}
-    onClose={() => setOpenTemplate(false)}
-    onAdded={(data) => {
-      setMedications(data.medicationAdministrations);
-      updateVersion(data.version);
-      syncDetail({
-        version: data.version,
-        medicationAdministrations: data.medicationAdministrations,
-      });
-    }}
-  />
-)}  
+      {openTemplate && (
+        <PrescriptionTemplateApplyModal
+          id={detail.id}
+          onClose={() => setOpenTemplate(false)}
+          onAdded={(data) => {
+            setMedications(data.medicationAdministrations);
+            updateVersion(data.version);
+            syncDetail({
+              version: data.version,
+              medicationAdministrations: data.medicationAdministrations,
+            });
+          }}
+        />
+      )}
 
     </div>
   );

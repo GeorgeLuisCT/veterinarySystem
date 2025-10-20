@@ -222,14 +222,16 @@ public class ClinicalServiceService {
     }
 
     @Transactional(readOnly = true)
-    public List<ClinicalServiceQuickSearchResponse> quickSearch(String name, Long branchId) {
+    public List<ClinicalServiceQuickSearchResponse> quickSearch(String name, Long branchId, ClinicalServiceCategory category) {
         String searchQuery = (name == null || name.isBlank()) ? null : name.trim();
         Long formattedBranchId = (branchId == null || branchId == 0) ? null : branchId;
+        String categoryParam = (category == null) ? null : category.name();
 
         List<Object[]> rawResults = clinicalServiceRepository.quickClinicalServiceSearch(
                 searchQuery,
                 formattedBranchId,
-                Boolean.TRUE
+                Boolean.TRUE,
+                categoryParam
         );
 
         return rawResults.stream()

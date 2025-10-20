@@ -5,6 +5,7 @@ export enum ClinicalServiceCategory {
   SURGERY = "SURGERY",
   LABORATORY = "LABORATORY",
   GROOMING = "GROOMING",
+  OTHER = "OTHER",
 }
 
 export const ClinicalServiceCategoryLabels: Record<ClinicalServiceCategory, string> = {
@@ -14,6 +15,7 @@ export const ClinicalServiceCategoryLabels: Record<ClinicalServiceCategory, stri
   [ClinicalServiceCategory.SURGERY]: "Cirugía",
   [ClinicalServiceCategory.LABORATORY]: "Laboratorio",
   [ClinicalServiceCategory.GROOMING]: "Peluquería",
+  [ClinicalServiceCategory.OTHER]: "Otro",
 };
 
 export const ClinicalServiceCategoryOptions = (

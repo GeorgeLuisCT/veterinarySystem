@@ -83,12 +83,22 @@ export interface LaboratoryRequestResponse {
 
 export interface SurgicalOrderResponse {
   id: number;
-  recommendedServiceId: number;
-  requestedByEmployeeId: number;
-  branchId: number | null;
+  animalId: number;
+  animalName: string;
+  operationRoomName: string | null;
+  operationRoomId: number | null;
+  recommendedServiceId: number | null;
+  recommendedServiceName: string | null;
+  requestedById: number;
+  requestedByFullName: string;
   status: SurgicalOrderStatus;
   notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  scheduledAppointmentId: number | null;
+  scheduledAppointmentStart: string | null;
 }
+
 
 export interface ClinicalAttentionDetailResponse {
   id: number;

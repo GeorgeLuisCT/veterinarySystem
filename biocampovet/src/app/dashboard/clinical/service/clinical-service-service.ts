@@ -6,11 +6,12 @@ import {
   ClinicalServiceListParams,
   ClinicalServiceQuickSearchResponse,
 } from "../types/clinical-service-response";
-import { 
-  CreateClinicalServiceRequest, 
+import {
+  CreateClinicalServiceRequest,
   UpdateClinicalServiceRequest
 } from "../types/clinical-service-request";
 import { BranchActivationInput } from "../../branche/types/branch-activation-input";
+import { ClinicalServiceCategory } from "../enums/clinical-service-category";
 
 export const ClinicalServiceService = {
   list: async ({
@@ -26,7 +27,7 @@ export const ClinicalServiceService = {
     if (category) params.append("category", category);
 
     const response = await api.get<PaginatedResponse<ClinicalServiceSummaryResponse>>(
-      `/clinical-services?${params.toString()}` 
+      `/clinical-services?${params.toString()}`
     );
     return response.data;
   },
@@ -56,11 +57,14 @@ export const ClinicalServiceService = {
     return response.data;
   },
 
-  quickSearch: async (name: string, branchId?: number): Promise<ClinicalServiceQuickSearchResponse[]> => {
+  quickSearch: async (
+    name: string,
+    branchId?: number,
+    category?: ClinicalServiceCategory
+  ): Promise<ClinicalServiceQuickSearchResponse[]> => {
     const params: Record<string, string> = { name };
-    if (branchId !== undefined) {
-      params.branchId = String(branchId);
-    }
+    if (branchId !== undefined) params.branchId = String(branchId);
+    if (category !== undefined) params.category = String(category);
 
     const response = await api.get<ClinicalServiceQuickSearchResponse[]>(
       "/clinical-services/quick-search",

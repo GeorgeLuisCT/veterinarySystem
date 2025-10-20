@@ -87,8 +87,9 @@ public class ClinicalServiceController {
     @GetMapping("/quick-search")
     public ResponseEntity<List<ClinicalServiceQuickSearchResponse>> quickSearch(
             @RequestParam String name,
-            @RequestParam(required = false) Long branchId
+            @RequestParam(required = false) Long branchId,
+            @RequestParam(required = false) ClinicalServiceCategory category
     ) {
-        return ResponseEntity.ok(clinicalServiceService.quickSearch(name, branchId));
+        return ResponseEntity.ok(clinicalServiceService.quickSearch(name, branchId, category));
     }
 }
