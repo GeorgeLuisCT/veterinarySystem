@@ -1,5 +1,6 @@
 package com.gaedet.biocampovet.core.clinic.dto;
 
+import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,8 +18,11 @@ public class AddSurgicalReportMaterialRequest {
     private Long productId;
     private String unregisteredProductName;
 
-    @NotNull
+    @NotNull(message = "La cantidad es obligatoria.")
     private Integer quantity;
+
+    @NotNull(message = "El tipo de unidad es obligatorio.")
+    private ProductUnitType unitType;
 
     @AssertTrue(message = "Debe especificarse un productId o un unregisteredProductName, pero no ambos.")
     public boolean isSourceValid() {

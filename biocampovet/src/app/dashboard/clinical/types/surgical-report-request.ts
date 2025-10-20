@@ -161,21 +161,28 @@ export const addSurgicalReportMaterialSchema = z
         .int("La cantidad debe ser un número entero.")
         .min(1, "La cantidad debe ser al menos 1.")
     ),
+    unitType: z.nativeEnum(ProductUnitType, {
+      required_error: "El tipo de unidad es obligatorio.",
+      invalid_type_error: "El tipo de unidad no es válido.",
+    }),
   })
   .superRefine((data, ctx) => {
     const hasProduct = data.productId !== null && data.productId !== undefined;
-    const hasName = !!(data.unregisteredProductName && data.unregisteredProductName.trim() !== "");
+    const hasName =
+      !!data.unregisteredProductName && data.unregisteredProductName.trim() !== "";
 
     if (hasProduct === hasName) {
       ctx.addIssue({
         path: ["productId"],
         code: z.ZodIssueCode.custom,
-        message: "Debes indicar un producto registrado o uno no registrado, pero no ambos.",
+        message:
+          "Debes indicar un producto registrado o uno no registrado, pero no ambos.",
       });
       ctx.addIssue({
         path: ["unregisteredProductName"],
         code: z.ZodIssueCode.custom,
-        message: "Debes indicar un producto registrado o uno no registrado, pero no ambos.",
+        message:
+          "Debes indicar un producto registrado o uno no registrado, pero no ambos.",
       });
     }
   });

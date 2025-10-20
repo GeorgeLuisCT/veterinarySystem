@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -9,14 +9,40 @@ import { Calendar } from "@/components/ui/calendar"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { Input } from "@/components/ui/input"
 
 interface FloatingLabelDateInputProps {
   label: string
   id: string
-  value?: string
-  onChange?: (value: string) => void
+  value?: string // 'YYYY-MM-DD' o 'YYYY-MM-DDTHH:mm:ss'
+  onChange?: (value: string) => void // devuelve 'YYYY-MM-DDTHH:mm:ss' (naive)
   disabled?: boolean
   className?: string
+}
+
+function parseValueToParts(v?: string) {
+  if (!v) return { date: undefined as Date | undefined, time: "" }
+  const s = v.trim()
+  const [datePart, timePartRaw] = s.split("T")
+  const [yyyy, mm, dd] = (datePart || "").split("-").map(Number)
+  let time = ""
+  if (timePartRaw) {
+    const [hh, mi] = timePartRaw.slice(0, 5).split(":")
+    if (hh && mi) time = `${hh}:${mi}`
+  }
+  if (!yyyy || !mm || !dd) return { date: undefined as Date | undefined, time }
+  return { date: new Date(yyyy, (mm - 1), dd, 0, 0, 0, 0), time }
+}
+
+function toNaiveIsoLocal(dateObj?: Date, timeStr?: string) {
+  if (!dateObj) return ""
+  const [hhStr = "00", miStr = "00"] = (timeStr || "00:00").split(":")
+  const yyyy = dateObj.getFullYear()
+  const mm = String(dateObj.getMonth() + 1).padStart(2, "0")
+  const dd = String(dateObj.getDate()).padStart(2, "0")
+  const hh = String(Number(hhStr) || 0).padStart(2, "0")
+  const mi = String(Number(miStr) || 0).padStart(2, "0")
+  return `${yyyy}-${mm}-${dd}T${hh}:${mi}:00`
 }
 
 export function FloatingLabelDateInput({
@@ -27,17 +53,66 @@ export function FloatingLabelDateInput({
   disabled = false,
   className,
 }: FloatingLabelDateInputProps) {
-  const [isFocused, setIsFocused] = useState(false)
+  const initial = useMemo(() => parseValueToParts(value), [value])
   const [open, setOpen] = useState(false)
+  const [isFocused, setIsFocused] = useState(false)
+
+  // Estado interno del popover (no escribe en el form hasta "Listo")
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(initial.date)
+  const [selectedTime, setSelectedTime] = useState<string>(initial.time)
+
+  // Si cambia el value externo, sincroniza el panel
+  useEffect(() => {
+    const p = parseValueToParts(value)
+    setSelectedDate(p.date)
+    setSelectedTime(p.time)
+  }, [value])
+
+  // Al abrir el popover: si no hay valor, preselecciona HOY y HORA actual (solo en el panel)
+  const handleOpenChange = (o: boolean) => {
+    if (o) {
+      const now = new Date()
+      if (!selectedDate) setSelectedDate(new Date(now.getFullYear(), now.getMonth(), now.getDate()))
+      if (!selectedTime) {
+        const hh = String(now.getHours()).padStart(2, "0")
+        const mi = String(now.getMinutes()).padStart(2, "0")
+        setSelectedTime(`${hh}:${mi}`)
+      }
+    }
+    setOpen(o)
+  }
 
   const hasValue = !!value
   const floating = hasValue || isFocused || open
 
-  const displayValue = value ? format(new Date(value), "PPP", { locale: es }) : ""
+  const displayValue = useMemo(() => {
+    if (!value) return ""
+    const { date, time } = parseValueToParts(value)
+    if (!date) return ""
+    try {
+      const niceDate = format(date, "PPP", { locale: es })
+      return time ? `${niceDate}, ${time}` : niceDate
+    } catch {
+      return value
+    }
+  }, [value])
+
+  const handleApply = () => {
+    const iso = toNaiveIsoLocal(selectedDate, selectedTime)
+    onChange?.(iso || "")
+    setOpen(false)
+  }
+
+  const handleClear = () => {
+    setSelectedDate(undefined)
+    setSelectedTime("")
+    onChange?.("")
+    setOpen(false)
+  }
 
   return (
     <div className="relative mb-1">
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button
             id={id}
@@ -49,24 +124,53 @@ export function FloatingLabelDateInput({
               "w-full rounded-md border text-left font-normal transition-all duration-200",
               floating ? "border-primary" : "border-muted-foreground",
               !displayValue && !disabled && "text-muted-foreground",
+              "flex items-center justify-between",
               className,
             )}
           >
-            {displayValue || ""}
-            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+            <span className="truncate">{displayValue || ""}</span>
+            <CalendarIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
+
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={value ? new Date(value) : undefined}
-            onSelect={(date) => {
-              onChange?.(date?.toISOString().split("T")[0] ?? "")
-              setOpen(false)
-            }}
-            locale={es}
-            initialFocus
-          />
+          <div className="p-2">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              locale={es}
+              // Muestra el mes actual por defecto cuando no hay valor
+              defaultMonth={selectedDate ?? new Date()}
+              initialFocus
+            />
+
+            <div className="mt-2 flex items-center gap-2 px-1">
+              <Label htmlFor={`${id}-time`} className="text-xs text-muted-foreground">Hora</Label>
+              <Input
+                id={`${id}-time`}
+                type="time"
+                step={60}
+                value={selectedTime || ""}
+                onChange={(e) => setSelectedTime(e.target.value)}
+                className="w-[130px] h-8"
+              />
+            </div>
+
+            <div className="mt-3 flex items-center justify-end gap-2 px-1 pb-2">
+              <Button type="button" variant="ghost" size="sm" onClick={handleClear}>
+                Limpiar
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleApply}
+                disabled={!selectedDate}
+              >
+                Listo
+              </Button>
+            </div>
+          </div>
         </PopoverContent>
       </Popover>
 

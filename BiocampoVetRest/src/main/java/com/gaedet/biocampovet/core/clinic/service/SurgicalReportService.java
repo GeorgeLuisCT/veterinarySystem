@@ -269,6 +269,7 @@ public class SurgicalReportService {
                 .product(product)
                 .unregisteredProductName(customName)
                 .quantity(request.getQuantity())
+                .unitType(request.getUnitType())
                 .build();
 
         SurgicalMaterial saved = surgicalMaterialRepository.save(material);

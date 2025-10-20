@@ -151,7 +151,7 @@ export default function ConsultoryPage() {
 
     const waitingRoomItems: KanbanCardData[] = waitingRoom.map(att => ({
         id: att.id,
-        patientName: att.animalName,
+        patientName: att.animalBasicResponse.animalName,
         ownerName: 'Dueño no disponible',
         reason: att.clinicalServiceName,
         vetName: att.attendingEmployeeFullName,

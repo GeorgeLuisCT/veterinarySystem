@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { FloatingLabelInput } from "@/components/floating-label-input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+
 import {
   AddSurgicalReportMaterialRequest,
   addSurgicalReportMaterialSchema,
@@ -17,11 +19,9 @@ import ProductService from "@/app/dashboard/inventory/products/service/product-s
 import SurgicalReportService from "../../service/surgical-report-service";
 import { SurgicalReportDetailResponse } from "../../types/surgical-report-response";
 import { useUser } from "@/context/user-context";
+import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
 
-type Option = {
-  value: string;
-  label: string;
-};
+type Option = { value: string; label: string };
 
 interface AddMaterialModalProps {
   reportId: number;
@@ -33,46 +33,53 @@ interface AddMaterialModalProps {
 export function AddMaterialModal({ reportId, open, onClose, onAdded }: AddMaterialModalProps) {
   const { toast } = useToast();
   const { userInfo } = useUser();
+
   const [productOptions, setProductOptions] = useState<Option[]>([]);
+  const [searching, setSearching] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [useCatalogProduct, setUseCatalogProduct] = useState(true);
+
+  // Opciones del enum (solo UI)
+  const unitTypeOptions: Option[] = Object.entries(ProductUnitTypeLabels).map(([value, label]) => ({
+    value,
+    label,
+  }));
 
   const form = useForm<AddSurgicalReportMaterialRequest>({
     resolver: zodResolver(addSurgicalReportMaterialSchema),
     defaultValues: {
       productId: undefined,
-      unregisteredProductName: null,
       quantity: 1,
+      unitType: undefined as unknown as any,
     },
     mode: "onChange",
   });
 
-  useEffect(() => {
-    // Reset mutually exclusive fields based on selection mode
-    if (useCatalogProduct) {
-      form.setValue("unregisteredProductName", null, { shouldValidate: true, shouldDirty: true });
-    } else {
-      form.setValue("productId", null, { shouldValidate: true, shouldDirty: true });
-    }
-  }, [useCatalogProduct, form]);
-
-  const handleSearchProducts = async (query: string) => {
-    if (query.length < 2) {
+  // Búsqueda con debounce para catálogo
+  const debounceRef = useRef<number | null>(null);
+  const handleSearchProducts = (query: string) => {
+    const q = query.trim();
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    if (q.length < 2) {
       setProductOptions([]);
       return;
     }
-    try {
-      const results = await ProductService.searchProducts(query, userInfo?.selectedBranch.id);
-      setProductOptions(
-        results.map((product) => ({
-          value: String(product.id),
-          label: product.name,
-        }))
-      );
-    } catch (error) {
-      console.error("Error searching products:", error);
-      setProductOptions([]);
-    }
+    setSearching(true);
+    debounceRef.current = window.setTimeout(async () => {
+      try {
+        const results = await ProductService.searchProducts(q, userInfo?.selectedBranch.id);
+        setProductOptions(results.map((p: any) => ({ value: String(p.id), label: p.name })));
+      } catch {
+        setProductOptions([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+  };
+
+  const closeAndReset = () => {
+    form.reset({ productId: undefined, quantity: 1, unitType: undefined as unknown as any });
+    setProductOptions([]);
+    onClose();
   };
 
   const onSubmit = async (values: AddSurgicalReportMaterialRequest) => {
@@ -80,118 +87,111 @@ export function AddMaterialModal({ reportId, open, onClose, onAdded }: AddMateri
     try {
       const response = await SurgicalReportService.addMaterial(reportId, values);
       onAdded(response);
-      toast({
-        title: "Material agregado",
-        description: "El material se registró correctamente en el reporte.",
-      });
-      onClose();
-    } catch (error) {
-      console.error("Error adding material:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo agregar el material. Intenta nuevamente.",
-      });
+      toast({ title: "Material agregado", description: "El material se registró correctamente en el reporte." });
+      closeAndReset();
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "No se pudo agregar el material. Intenta nuevamente." });
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={(value) => (!value ? onClose() : undefined)}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Agregar material quirúrgico</DialogTitle>
+    <Dialog open={open} onOpenChange={(v) => (!v ? closeAndReset() : undefined)}>
+      <DialogContent className="w-[min(92vw,840px)] max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-2xl">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="text-xl">Agregar material quirúrgico</DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            Busca el material en catálogo y registra cantidad y unidad.
+          </p>
         </DialogHeader>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant={useCatalogProduct ? "default" : "outline"}
-            size="sm"
-            onClick={() => setUseCatalogProduct(true)}
-          >
-            Catálogo
-          </Button>
-          <Button
-            type="button"
-            variant={!useCatalogProduct ? "default" : "outline"}
-            size="sm"
-            onClick={() => setUseCatalogProduct(false)}
-          >
-            No registrado
-          </Button>
-        </div>
+
         <Form {...form}>
-          <form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
-            {useCatalogProduct ? (
-              <FormField
-                control={form.control}
-                name="productId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <FloatingLabelSelect
-                        id="material-product"
-                        label="Producto"
-                        placeholder="Buscar producto..."
-                        options={productOptions}
-                        onSearch={handleSearchProducts}
-                        value={field.value ? String(field.value) : ""}
-                        onValueChange={(value) => field.onChange(value ? Number(value) : undefined)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : (
-              <FormField
-                control={form.control}
-                name="unregisteredProductName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <FloatingLabelInput
-                        id="custom-material-name"
-                        label="Nombre del material"
-                        value={field.value ?? ""}
-                        onChange={(value) => field.onChange(value === "" ? null : value)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+          <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)} noValidate autoComplete="off">
+            {/* Bloque único: Producto / Cantidad / Unidad */}
+            <fieldset className="rounded-xl border p-3">
+              <legend className="px-1 text-sm font-medium">Material</legend>
 
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <FloatingLabelInput
-                      id="material-quantity"
-                      label="Cantidad"
-                      type="number"
-                      min="1"
-                      value={field.value ?? ""}
-                      onChange={(value) =>
-                        field.onChange(value === "" ? undefined : Number(value))
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <div className="grid gap-3 sm:grid-cols-12">
+                {/* Producto */}
+                <div className="sm:col-span-6">
+                  <FormField
+                    control={form.control}
+                    name="productId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <FloatingLabelSelect
+                            id="material-product"
+                            label="Producto *"
+                            placeholder={searching ? "Buscando…" : "Buscar producto…"}
+                            options={productOptions}
+                            onSearch={handleSearchProducts}
+                            value={field.value ? String(field.value) : ""}
+                            onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
+                          />
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground">Escribe 2+ caracteres para buscar por nombre.</p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
+                {/* Cantidad */}
+                <div className="sm:col-span-3">
+                  <FormField
+                    control={form.control}
+                    name="quantity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <FloatingLabelInput
+                            id="material-quantity"
+                            label="Cantidad *"
+                            type="number"
+                            step="1"
+                            value={field.value ?? ""}
+                            onChange={(v) => field.onChange(v === "" ? 1 : Number(v))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Unidad (del enum) */}
+                <div className="sm:col-span-3">
+                  <FormField
+                    control={form.control}
+                    name="unitType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <FloatingLabelSelect
+                            id="material-unit-type"
+                            label="Unidad *"
+                            placeholder="Unidad…"
+                            options={unitTypeOptions}
+                            value={field.value ? String(field.value) : ""}
+                            onValueChange={(v) => field.onChange(v as any)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </fieldset>
+
+            <DialogFooter className="gap-2">
+              <Button type="button" variant="outline" onClick={closeAndReset}>
                 Cancelar
               </Button>
               <Button type="submit" disabled={submitting || !form.formState.isValid}>
-                {submitting ? "Guardando..." : "Agregar"}
+                {submitting ? "Guardando…" : "Agregar"}
               </Button>
             </DialogFooter>
           </form>

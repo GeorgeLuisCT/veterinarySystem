@@ -15,6 +15,9 @@ import { RoleName } from "@/enums/role-name";
 import { EmployeeSummaryResponse } from "@/app/dashboard/staff/employees/types/employee-summary-response";
 import { OperatingRoomService } from "@/app/dashboard/branche/services/operating-room-service";
 import SurgicalReportForm, { Option, SurgicalReportFormHandle } from "../../components/operating-room/surgical-report-form";
+import { AttentionResponse } from "@/app/dashboard/schedule/types/attention-response";
+import AttentionService from "@/app/dashboard/schedule/service/attention-service";
+import PatientDetails from "../../components/consultory/patient-details";
 
 
 const ensureOption = (options: Option[], attentionId: number | null, label: string | null) => {
@@ -40,22 +43,41 @@ export default function SurgicalReportDetailPage() {
   const [assistantOptions, setAssistantOptions] = useState<Option[]>([]);
   const [operatingRoomOptions, setOperatingRoomOptions] = useState<Option[]>([]);
 
+  // ⬇️ NUEVO: estado para la atención y mostrar el nombre del servicio
+  const [attention, setAttention] = useState<AttentionResponse | null>(null);
+
   const formRef = useRef<SurgicalReportFormHandle>(null);
+
+  const fetchAttention = useCallback(async (attentionId: number) => {
+    try {
+      const res = await AttentionService.getById(attentionId);
+      setAttention(res);
+    } catch (error) {
+      console.error("Error fetching attention by id:", error);
+      setAttention(null);
+      toast({
+        variant: "destructive",
+        title: "No se pudo cargar la atención",
+        description: "Ocurrió un problema al obtener los datos del servicio.",
+      });
+    }
+  }, [toast]);
 
   const fetchDetail = useCallback(async (attentionId: number) => {
     setLoading(true);
     try {
       const response = await SurgicalReportService.getOrCreateByAttention(attentionId);
-      console.log(response);
       setDetail(response);
       setReportId(response.id);
+      // ⬇️ NUEVO: traer también la atención para obtener el nombre del servicio
+      void fetchAttention(attentionId);
     } catch (error) {
       console.error("Error fetching surgical report:", error);
       toast({ variant: "destructive", title: "Error", description: "No se pudo cargar el reporte quirúrgico." });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [fetchAttention, toast]);
 
   useEffect(() => {
     if (!attentionIdParam) {
@@ -88,14 +110,14 @@ export default function SurgicalReportDetailPage() {
 
         const mapEmployees = (employees: EmployeeSummaryResponse[]) => employees.map<Option>((e) => ({
           value: String(e.id),
-          label: e.branchNames ? `${e.firstName} ${e.lastName} • ${e.branchNames}` : `${e.firstName} ${e.lastName}`,
+          label: `${e.firstName} ${e.lastName}`,
         }));
 
         setSurgeonOptions(ensureOption(mapEmployees(surgeonsRes ?? []), detail.surgeonId, detail.surgeonFullName));
         setAnesthetistOptions(ensureOption(mapEmployees(anesthetistsRes ?? []), detail.anesthesiologistId, detail.anesthesiologistFullName));
         setAssistantOptions(ensureOption(mapEmployees(assistantsRes ?? []), detail.assistantId, detail.assistantFullName));
         setOperatingRoomOptions(ensureOption(
-          (roomsRes ?? []).map<Option>((room: any) => ({ value: String(room.id), label: room.branchName ? `${room.branchName} • ${room.name}` : room.name })),
+          (roomsRes ?? []).map<Option>((room: any) => ({ value: String(room.id), label: room.name })),
           detail.operatingRoomId,
           detail.operatingRoomName
         ));
@@ -108,12 +130,13 @@ export default function SurgicalReportDetailPage() {
   }, [detail]);
 
   const handleSaveAll = async () => {
-    if (!formRef.current) return;
+    if (!formRef.current || !detail) return;
     setSaving(true);
     try {
       await formRef.current.triggerSaveAll();
       toast({ title: "Cambios guardados", description: "El reporte quirúrgico se actualizó correctamente." });
-      if (reportId) await fetchDetail(reportId);
+      // ⬇️ CORREGIDO: recargar por attentionId, no por reportId
+      await fetchDetail(detail.attentionId);
     } catch (e) {
       toast({ variant: "destructive", title: "Error", description: "No se pudieron guardar los cambios." });
     } finally {
@@ -137,27 +160,79 @@ export default function SurgicalReportDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-10 border-b bg-white p-4 shadow-sm">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Reporte quirúrgico #{detail.id}</h1>
-            <p className="text-sm text-muted-foreground">
-              Paciente: <span className="font-semibold text-blue-600">{detail.summary.animalName}</span> • Atención #{detail.attentionId}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary">{SurgicalReportStatusLabels[detail.status]}</Badge>
-            <Button variant="outline" onClick={() => reportId && fetchDetail(reportId)} disabled={loading}>
-              <Loader2 className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Actualizar
-            </Button>
-            <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={handleSaveAll} disabled={saving}>
-              {saving ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</>) : (<><Save className="mr-2 h-4 w-4" /> Guardar cambios</>)}
-            </Button>
+      <div className="sticky top-0 z-20 border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+        <div className="mx-auto max-w-5xl px-4 py-3 md:py-4">
+          <div className="flex items-start justify-between gap-3">
+            {/* IZQUIERDA */}
+            <div className="min-w-0">
+              {/* Servicio como título principal */}
+              <div className="flex items-center gap-2">
+                <h1 className="truncate text-lg font-bold leading-tight text-slate-900 md:text-xl">
+                  {attention?.clinicalServiceName ?? "Servicio no especificado"}
+                </h1>
+
+                <Badge variant="secondary" className="text-xs tracking-wide">
+                  {SurgicalReportStatusLabels[detail.status]}
+                </Badge>
+              </div>
+
+              {/* Subtítulo y metadatos */}
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+
+                <span className="inline-flex max-w-[20rem] items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-blue-700 ring-1 ring-blue-200">
+                  <span className="sr-only">Paciente</span>
+                  <span className="truncate font-normal">{detail.summary.animalName}</span>
+                </span>
+
+                <span className="hidden md:inline select-none">·</span>
+                <span className="rounded-full bg-slate-50 px-2 py-0.5 ring-1 ring-slate-200">
+                  Reporte quirúrgico
+                </span>
+
+              </div>
+            </div>
+
+            {/* DERECHA: Acciones */}
+            <div className="flex shrink-0 items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => detail && fetchDetail(detail.attentionId)}
+                disabled={loading}
+                aria-label="Actualizar"
+              >
+                <Loader2 className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                <span className="hidden sm:inline">Actualizar</span>
+              </Button>
+
+              <Button
+                className="bg-emerald-600 text-white hover:bg-emerald-700"
+                onClick={handleSaveAll}
+                disabled={saving}
+                aria-label="Guardar cambios"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Guardar cambios
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+
+      <div className="w-full flex flex-col gap-4 sm:flex-row pt-4 mx-2">
+
+        <PatientDetails
+          animalId={detail.summary.animalId}
+          className="sm:basis-[21%] sm:shrink-0 w-full"
+        />
+
         <SurgicalReportForm
           ref={formRef}
           reportId={reportId}
@@ -168,9 +243,9 @@ export default function SurgicalReportDetailPage() {
           anesthetistOptions={anesthetistOptions}
           assistantOptions={assistantOptions}
           operatingRoomOptions={operatingRoomOptions}
+          className="sm:basis-[79%] sm:min-w-0 w-full flex flex-col gap-4"
         />
       </div>
     </div>
   );
 }
-

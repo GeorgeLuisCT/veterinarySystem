@@ -78,6 +78,7 @@ public final class SurgicalReportMapper {
                 .id(entity.getId())
                 .version(entity.getVersion())
                 .attentionId(attention != null ? attention.getId() : null)
+                .surgicalOrderId(attention != null ? attention.getSurgicalOrder().getId() : null)
                 .status(entity.getStatus())
                 .surgeryStartAt(entity.getSurgeryStartAt())
                 .surgeryEndAt(entity.getSurgeryEndAt())
@@ -120,6 +121,7 @@ public final class SurgicalReportMapper {
                 .productName(product != null ? product.getName() : null)
                 .unregisteredProductName(entity.getUnregisteredProductName())
                 .quantity(entity.getQuantity())
+                .unitType(entity.getUnitType())
                 .build();
     }
 

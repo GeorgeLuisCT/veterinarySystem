@@ -41,6 +41,7 @@ export interface SurgicalMaterialResponse {
   productName: string | null;
   unregisteredProductName: string | null;
   quantity: number;
+  unitType: ProductUnitType;
 }
 
 export interface PostOperativeIndicationResponse {
@@ -59,6 +60,7 @@ export interface SurgicalReportDetailResponse {
   id: number;
   version: number;
   attentionId: number;
+  surgicalOrderId: number | null;
   status: SurgicalReportStatus;
   surgeryStartAt: string;
   surgeryEndAt: string;

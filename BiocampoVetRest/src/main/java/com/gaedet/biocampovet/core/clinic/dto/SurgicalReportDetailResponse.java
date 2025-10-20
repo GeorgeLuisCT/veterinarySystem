@@ -17,6 +17,7 @@ public class SurgicalReportDetailResponse {
     private final Long id;
     private final Long version;
     private final Long attentionId;
+    private final Long surgicalOrderId;
     private final SurgicalReportStatus status;
     private final LocalDateTime surgeryStartAt;
     private final LocalDateTime surgeryEndAt;
