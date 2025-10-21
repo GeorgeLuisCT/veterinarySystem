@@ -1,6 +1,7 @@
 package com.gaedet.biocampovet.core.clinic.dto;
 
 import com.gaedet.biocampovet.core.clinic.entity.LaboratoryTestParameter;
+import com.gaedet.biocampovet.core.clinic.enums.LabUnit;
 import com.gaedet.biocampovet.core.clinic.enums.LabValueType;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,7 +12,7 @@ public class LaboratoryTestParameterResponse {
     private Long id;
     private String name;
     private LabValueType valueType;
-    private String unit;
+    private LabUnit unit;
     private String allowedOptions;
     private Double refMin;
     private Double refMax;

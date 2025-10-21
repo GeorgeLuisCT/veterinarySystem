@@ -230,7 +230,7 @@ const WaitingSurgeryCard = ({ attention }: { attention: AttentionResponse }) => 
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-base font-semibold text-slate-900">{attention.animalName}</p>
+            <p className="text-base font-semibold text-slate-900">{attention.animalBasicResponse.animalName}</p>
             <p className="text-xs text-muted-foreground">Atención #{attention.id}</p>
           </div>
           <span className="text-xs text-slate-500 inline-flex items-center"><Clock className="h-3 w-3 mr-1" />{timeInStatus}</span>

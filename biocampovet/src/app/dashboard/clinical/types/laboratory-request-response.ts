@@ -1,17 +1,8 @@
 import { LabRequestItemStatus } from "../enums/lab-request-item-status";
-import { LabValueType } from "../enums/lab-value-type";
+import { LabRequestStatus } from "../enums/lab-request-status";
 
-export interface LaboratoryTestParameterResponse {
-    id: number;
-    name: string;
-    valueType: LabValueType;
-    unit: string | null;
-    allowedOptions: string | null;
-    refMin: number | null;
-    refMax: number | null;
-    refText: string | null;
-    decimals: number | null;
-}
+import { LaboratoryTestParameterResponse } from "./laboratory-test-response";
+
 
 export interface LaboratoryResultValueResponse {
     id: number;

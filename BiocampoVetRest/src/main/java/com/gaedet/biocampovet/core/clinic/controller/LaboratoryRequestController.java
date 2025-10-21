@@ -1,9 +1,6 @@
 package com.gaedet.biocampovet.core.clinic.controller;
 
-import com.gaedet.biocampovet.core.clinic.dto.AddResultValuesRequest;
-import com.gaedet.biocampovet.core.clinic.dto.CreateLaboratoryRequest;
-import com.gaedet.biocampovet.core.clinic.dto.LaboratoryRequestDetailResponse;
-import com.gaedet.biocampovet.core.clinic.dto.LaboratoryRequestSummaryResponse;
+import com.gaedet.biocampovet.core.clinic.dto.*;
 import com.gaedet.biocampovet.core.clinic.enums.LabRequestStatus;
 import com.gaedet.biocampovet.core.clinic.service.LaboratoryRequestService;
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
@@ -60,4 +57,15 @@ public class LaboratoryRequestController {
     ) {
         return ResponseEntity.ok(laboratoryRequestService.addResults(requestItemId, request));
     }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<LaboratoryRequestDetailResponse> updateRequestStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateLabRequestStatusRequest body
+    ) {
+        LaboratoryRequestDetailResponse resp =
+                laboratoryRequestService.updateRequestStatus(id, body.getStatus());
+        return ResponseEntity.ok(resp);
+    }
+
 }

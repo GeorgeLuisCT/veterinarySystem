@@ -12,6 +12,7 @@ import com.gaedet.biocampovet.core.clinic.entity.LaboratoryTest;
 import com.gaedet.biocampovet.core.clinic.entity.LaboratoryTestParameter;
 import com.gaedet.biocampovet.core.clinic.enums.LabRequestItemStatus;
 import com.gaedet.biocampovet.core.clinic.enums.LabRequestStatus;
+import com.gaedet.biocampovet.core.clinic.mapper.LaboratoryRequestMapper;
 import com.gaedet.biocampovet.core.clinic.repository.LaboratoryRequestItemRepository;
 import com.gaedet.biocampovet.core.clinic.repository.LaboratoryRequestRepository;
 import com.gaedet.biocampovet.core.clinic.repository.LaboratoryResultValueRepository;
@@ -31,8 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,8 +83,10 @@ public class LaboratoryRequestService {
     @Transactional(readOnly = true)
     public LaboratoryRequestDetailResponse getDetail(Long id) {
         LaboratoryRequest request = laboratoryRequestRepository.findWithDetailsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Solicitud de laboratorio no encontrada: id=" + id));
-        return LaboratoryRequestDetailResponse.fromEntity(request);
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Solicitud de laboratorio no encontrada: id=" + id
+                ));
+        return LaboratoryRequestMapper.fromEntity(request);
     }
 
     @Transactional
@@ -135,28 +137,156 @@ public class LaboratoryRequestService {
         LaboratoryRequestItem item = laboratoryRequestItemRepository.findById(requestItemId)
                 .orElseThrow(() -> new IllegalArgumentException("Item de solicitud de laboratorio no encontrado: id=" + requestItemId));
 
-        request.getResults().forEach(resultItem -> {
-            LaboratoryTestParameter parameter = laboratoryTestParameterRepository.findById(resultItem.getParameterId())
-                    .orElseThrow(() -> new IllegalArgumentException("Parámetro de prueba no encontrado: id=" + resultItem.getParameterId()));
+        // Asegura colección inicializada
+        if (item.getResults() == null) {
+            item.setResults(new HashSet<>());
+        }
 
-            LaboratoryResultValue resultValue = item.getResults().stream()
-                    .filter(r -> r.getParameter().getId().equals(resultItem.getParameterId()))
-                    .findFirst()
-                    .orElse(LaboratoryResultValue.builder().requestItem(item).parameter(parameter).build());
+        // Mapea parámetros válidos del test del item (para validar pertenencia)
+        Set<Long> validParameterIds = item.getTest().getParameters().stream()
+                .map(LaboratoryTestParameter::getId)
+                .collect(Collectors.toSet());
 
-            resultValue.setNumericValue(resultItem.getNumericValue());
-            resultValue.setTextValue(resultItem.getTextValue());
-            resultValue.setBooleanValue(resultItem.getBooleanValue());
-            resultValue.setComment(resultItem.getComment());
+        // Indexa resultados existentes por parameterId para reusar y no duplicar
+        Map<Long, LaboratoryResultValue> existingByParam = item.getResults().stream()
+                .collect(Collectors.toMap(rv -> rv.getParameter().getId(), rv -> rv));
 
-            item.getResults().add(resultValue);
-        });
-        
-        // Potentially update item status
-        item.setStatus(LabRequestItemStatus.WITH_RESULTS);
-        
+        for (AddResultValuesRequest.ResultValueItem r : request.getResults()) {
+            Long paramId = r.getParameterId();
+
+            if (!validParameterIds.contains(paramId)) {
+                throw new IllegalArgumentException("El parámetro no pertenece a la prueba del item: parameterId=" + paramId);
+            }
+
+            LaboratoryTestParameter parameter = laboratoryTestParameterRepository.findById(paramId)
+                    .orElseThrow(() -> new IllegalArgumentException("Parámetro de prueba no encontrado: id=" + paramId));
+
+            // Recupera o crea el contenedor del valor
+            LaboratoryResultValue value = existingByParam.get(paramId);
+            if (value == null) {
+                value = LaboratoryResultValue.builder()
+                        .requestItem(item)
+                        .parameter(parameter)
+                        .build();
+                item.getResults().add(value);
+                existingByParam.put(paramId, value);
+            }
+
+            // Normaliza valores: solo uno no-nulo según el tipo
+            value.setNumericValue(null);
+            value.setTextValue(null);
+            value.setBooleanValue(null);
+
+            switch (parameter.getValueType()) {
+                case NUMERIC -> {
+                    value.setNumericValue(r.getNumericValue());
+                    if (r.getNumericValue() == null) {
+                        // Permite vacío -> queda sin resultado; lo tratamos al final para el estado
+                        break;
+                    }
+                    // Cálculo outOfRange y flag (si tienes refMin/refMax)
+                    Double v = r.getNumericValue();
+                    Double refMin = parameter.getRefMin();
+                    Double refMax = parameter.getRefMax();
+                    Boolean out = null;
+                    String flag = null;
+                    if (refMin != null && v < refMin) { out = true; flag = "BAJO"; }
+                    else if (refMax != null && v > refMax) { out = true; flag = "ALTO"; }
+                    else if (refMin != null || refMax != null) { out = false; }
+
+                    value.setOutOfRange(out);
+                    value.setFlag(flag);
+                }
+                case TEXT -> {
+                    if (r.getTextValue() != null && !r.getTextValue().isBlank()) {
+                        value.setTextValue(r.getTextValue().trim());
+                    }
+                }
+                case SELECT -> {
+                    if (r.getTextValue() != null && !r.getTextValue().isBlank()) {
+                        String chosen = r.getTextValue().trim();
+                        // Validación de opción (si definiste allowedOptions)
+                        if (parameter.getAllowedOptions() != null && !parameter.getAllowedOptions().isBlank()) {
+                            Set<String> opts = Arrays.stream(parameter.getAllowedOptions().split(","))
+                                    .map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toSet());
+                            if (!opts.contains(chosen)) {
+                                throw new IllegalArgumentException("Opción inválida para SELECT: " + chosen);
+                            }
+                        }
+                        value.setTextValue(chosen);
+                    }
+                }
+                case BOOLEAN -> {
+                    if (r.getBooleanValue() != null) {
+                        value.setBooleanValue(r.getBooleanValue());
+                    }
+                }
+            }
+
+            // Unit override si llega en el request
+            value.setUnitOverride(
+                    (r.getUnitOverride() != null && !r.getUnitOverride().isBlank())
+                            ? r.getUnitOverride().trim()
+                            : null
+            );
+
+            // Comentario
+            value.setComment(r.getComment());
+
+            // Si tienes @AssertTrue en isValueMatchesType, asegúrate que parameter ya está seteado (lo está).
+            // Dejará invalida la entidad si el valor no coincide con el tipo (bueno).
+        }
+
+        // Estado del item: WITH_RESULTS si TODOS los parámetros tienen algún valor, IN_PROGRESS si parcial
+        boolean anyResult = false;
+        boolean allHaveResult = true;
+
+        for (LaboratoryTestParameter p : item.getTest().getParameters()) {
+            LaboratoryResultValue v = existingByParam.get(p.getId());
+            boolean hasValue = v != null && (
+                    v.getNumericValue() != null ||
+                            (v.getTextValue() != null && !v.getTextValue().isBlank()) ||
+                            v.getBooleanValue() != null
+            );
+            anyResult |= hasValue;
+            allHaveResult &= hasValue;
+        }
+
+        if (allHaveResult) {
+            item.setStatus(LabRequestItemStatus.WITH_RESULTS);
+        } else if (anyResult) {
+            item.setStatus(LabRequestItemStatus.IN_PROCESS);
+        } else {
+            item.setStatus(LabRequestItemStatus.REQUESTED);
+        }
+
+        // Persistencia: requiere cascade PERSIST/MERGE en LaboratoryRequestItem.results.
         LaboratoryRequestItem savedItem = laboratoryRequestItemRepository.save(item);
 
-        return getDetail(savedItem.getLaboratoryRequest().getId());
+        // (Opcional) actualiza estado de la solicitud completa si todos sus items ya están con resultados
+        LaboratoryRequest parent = savedItem.getLaboratoryRequest();
+        boolean allItemsWithResults = parent.getItems().stream()
+                .allMatch(i -> i.getStatus() == LabRequestItemStatus.WITH_RESULTS);
+        if (allItemsWithResults) {
+            parent.setStatus(LabRequestStatus.COMPLETED);
+            laboratoryRequestRepository.save(parent);
+        }
+
+        return getDetail(parent.getId());
     }
+
+    @Transactional
+    public LaboratoryRequestDetailResponse updateRequestStatus(Long requestId, LabRequestStatus newStatus) {
+        LaboratoryRequest req = laboratoryRequestRepository.findWithDetailsById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Solicitud de laboratorio no encontrada: id=" + requestId));
+
+        if (req.getStatus() == LabRequestStatus.CANCELED) {
+            throw new IllegalStateException("No se puede cambiar el estado de una solicitud cancelada.");
+        }
+
+        req.setStatus(newStatus);
+        laboratoryRequestRepository.save(req);
+        return LaboratoryRequestMapper.fromEntity(req);
+    }
+
 }

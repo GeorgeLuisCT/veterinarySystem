@@ -30,5 +30,6 @@ public class AddResultValuesRequest {
         private String textValue;
         private Boolean booleanValue;
         private String comment;
+        private String unitOverride;
     }
 }

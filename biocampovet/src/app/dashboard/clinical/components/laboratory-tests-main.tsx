@@ -141,7 +141,6 @@ export function LaboratoryTestsMain() {
     }, [testIdForDelete, fetchData, closeDeleteConfirm, pageData, pageIndex, toast]);
 
     const columns: ColumnDef<LaboratoryTestSummaryResponse>[] = useMemo(() => [
-        { accessorKey: "code", header: "Código" },
         { accessorKey: "name", header: "Nombre" },
         {
             accessorKey: "price",

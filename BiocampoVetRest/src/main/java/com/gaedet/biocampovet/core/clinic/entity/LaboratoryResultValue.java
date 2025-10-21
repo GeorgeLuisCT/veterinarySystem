@@ -2,6 +2,7 @@ package com.gaedet.biocampovet.core.clinic.entity;
 
 import lombok.*;
 import javax.persistence.*;
+import javax.validation.constraints.AssertTrue;
 
 @Entity
 @Table(name = "laboratory_result_values",
@@ -35,5 +36,25 @@ public class LaboratoryResultValue {
     @Column(length = 120)
     private String flag;              // p.ej. "ALTO", "BAJO", "CRÍTICO"
     @Column(columnDefinition = "TEXT")
-    private String comment;           // observaciones del analista
+    private String comment;
+
+    @AssertTrue(message = "El valor no coincide con el tipo del parámetro")
+    public boolean isValueMatchesType() {
+        if (parameter == null || parameter.getValueType() == null) return false;
+
+        boolean hasNumeric  = numericValue  != null;
+        boolean hasText     = (textValue != null && !textValue.isBlank());
+        boolean hasBoolean  = booleanValue != null;
+
+        int count = (hasNumeric ? 1 : 0) + (hasText ? 1 : 0) + (hasBoolean ? 1 : 0);
+        if (count != 1) return false;
+
+        return switch (parameter.getValueType()) {
+            case NUMERIC -> hasNumeric;
+            case TEXT    -> hasText;
+            case SELECT  -> hasText;    // SELECT va en textValue
+            case BOOLEAN -> hasBoolean;
+        };
+    }
+// observaciones del analista
 }

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LabRequestStatus } from "../enums/lab-request-status";
 
 const nullableStr = z.string().transform((v) => v.trim()).optional().nullable();
 
@@ -25,6 +26,7 @@ export const resultValueItemSchema = z.object({
     textValue: z.string().optional().nullable(),
     booleanValue: z.boolean().optional().nullable(),
     comment: nullableStr,
+    unitOverride: nullableStr,
 });
 
 export const addResultValuesSchema = z.object({
@@ -32,3 +34,11 @@ export const addResultValuesSchema = z.object({
 });
 
 export type AddResultValuesRequest = z.infer<typeof addResultValuesSchema>;
+
+
+export const updateLabRequestStatusSchema = z.object({
+  status: z.nativeEnum(LabRequestStatus),
+});
+
+export type UpdateLabRequestStatusRequest = z.infer<typeof updateLabRequestStatusSchema>;
+

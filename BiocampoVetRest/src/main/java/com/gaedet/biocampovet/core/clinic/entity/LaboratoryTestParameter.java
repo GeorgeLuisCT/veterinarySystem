@@ -1,6 +1,7 @@
 package com.gaedet.biocampovet.core.clinic.entity;
 import com.gaedet.biocampovet.core.animal.enums.AnimalSex;
 import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
+import com.gaedet.biocampovet.core.clinic.enums.LabUnit;
 import com.gaedet.biocampovet.core.clinic.enums.LabValueType;
 import lombok.*;
 
@@ -25,8 +26,9 @@ public class LaboratoryTestParameter {
     @Column(nullable = false, length = 16)
     private LabValueType valueType; // NUMERIC / TEXT / BOOLEAN / SELECT
 
-    @Column(length = 32)
-    private String unit;           // %, g/dL, x10^3/µL, U/L, mg/dL, etc.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "unit", length = 24, nullable = false) // permite NULL si el parámetro no tiene unidad
+    private LabUnit unit;
 
     // Para SELECT puedes guardar las opciones permitidas (separadas por coma)
     @Column(length = 400)

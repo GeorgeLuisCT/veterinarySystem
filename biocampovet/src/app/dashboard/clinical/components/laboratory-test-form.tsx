@@ -24,6 +24,7 @@ import LaboratoryService from "@/app/dashboard/branche/services/laboratory-servi
 import { LaboratoryResponse } from "@/app/dashboard/branche/types/laboratory-response";
 import { useToast } from "@/hooks/use-toast";
 import { LabValueType } from "../enums/lab-value-type";
+import { LabUnit, LabUnitLabels, LabUnitSymbols } from "../enums/lab-unit";
 
 interface LaboratoryTestFormProps {
   setOpen: (open: boolean) => void;
@@ -37,6 +38,23 @@ export default function LaboratoryTestForm({ setOpen, testId, onSuccess }: Labor
   const [laboratories, setLaboratories] = React.useState<LaboratoryResponse[]>([]);
 
   const schema = testId ? updateLaboratoryTestSchema : createLaboratoryTestSchema;
+
+  function normalize(str: string) {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+  
+  function generateCodeFromName(name: string) {
+    const base = normalize(name)
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  
+    const suffix = String(Math.floor(Math.random() * 90) + 10);
+  
+    const core = base.slice(0, 18);
+  
+    return core + suffix;
+  }
 
   const form = useForm<CreateLaboratoryTestRequest>({
     resolver: zodResolver(schema),
@@ -61,6 +79,12 @@ export default function LaboratoryTestForm({ setOpen, testId, onSuccess }: Labor
     name: "laboratories",
   });
 
+  const nameValue = form.watch("name");
+  React.useEffect(() => {
+    form.setValue("code", generateCodeFromName(nameValue || ""), { shouldValidate: true });
+  }, [nameValue, form]);
+
+
   React.useEffect(() => {
     async function fetchData() {
       setLoading(true);
@@ -84,26 +108,27 @@ export default function LaboratoryTestForm({ setOpen, testId, onSuccess }: Labor
               laboratoryId: lab.id,
               active: activeLabIds.has(lab.id),
             })),
-            parameters: testData.parameters?.map(p => ({
-              id: p.id,
-              name: p.name,
-              valueType: p.valueType,
-              unit: p.unit ?? undefined,
-              allowedOptions: p.allowedOptions ?? undefined,
-              refMin: p.refMin ?? undefined,
-              refMax: p.refMax ?? undefined,
-              refText: p.refText ?? undefined,
-              decimals: p.decimals ?? undefined,
-            })) || [],
+            parameters:
+              testData.parameters?.map(p => ({
+                id: p.id,
+                name: p.name,
+                valueType: p.valueType,
+                unit: p.unit, // ya viene como enum
+                allowedOptions: p.allowedOptions ?? undefined,
+                refMin: p.refMin ?? undefined,
+                refMax: p.refMax ?? undefined,
+                refText: p.refText ?? undefined,
+                decimals: p.decimals ?? undefined,
+              })) || [],
           });
         } else {
-            form.reset({
-                ...form.getValues(),
-                laboratories: labs.map(lab => ({
-                    laboratoryId: lab.id,
-                    active: true, // Default to active for new tests
-                })),
-            });
+          form.reset({
+            ...form.getValues(),
+            laboratories: labs.map(lab => ({
+              laboratoryId: lab.id,
+              active: true, // por defecto activos en nuevo registro
+            })),
+          });
         }
       } catch (error: unknown) {
         const message = getAaxiosErrorMessage(error) ?? "Error al cargar el formulario.";
@@ -136,6 +161,16 @@ export default function LaboratoryTestForm({ setOpen, testId, onSuccess }: Labor
     }
   };
 
+  // Opciones para el select de unidades (enum -> label + símbolo)
+  const labUnitOptions = React.useMemo(
+    () =>
+      Object.values(LabUnit).map(u => ({
+        value: u,
+        label: `${LabUnitLabels[u]}${LabUnitSymbols[u] ? ` (${LabUnitSymbols[u]})` : ""}`,
+      })),
+    []
+  );
+
   return (
     <div className="max-h-[80vh] overflow-auto p-4">
       {loading ? (
@@ -146,18 +181,6 @@ export default function LaboratoryTestForm({ setOpen, testId, onSuccess }: Labor
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem className="gap-0">
-                    <FormControl>
-                      <FloatingLabelInput {...field} id="code" label="Código" disabled={form.formState.isSubmitting} />
-                    </FormControl>
-                    <FormMessage className="ml-2" />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="name"
@@ -178,7 +201,12 @@ export default function LaboratoryTestForm({ setOpen, testId, onSuccess }: Labor
               render={({ field }) => (
                 <FormItem className="gap-0">
                   <FormControl>
-                    <FloatingLabelInput {...field} id="description" label="Descripción" disabled={form.formState.isSubmitting} />
+                    <FloatingLabelInput
+                      {...field}
+                      id="description"
+                      label="Descripción"
+                      disabled={form.formState.isSubmitting}
+                    />
                   </FormControl>
                   <FormMessage className="ml-2" />
                 </FormItem>
@@ -238,10 +266,7 @@ export default function LaboratoryTestForm({ setOpen, testId, onSuccess }: Labor
                       render={({ field: checkboxField }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                           <FormControl>
-                            <Checkbox
-                              checked={checkboxField.value}
-                              onCheckedChange={checkboxField.onChange}
-                            />
+                            <Checkbox checked={checkboxField.value} onCheckedChange={checkboxField.onChange} />
                           </FormControl>
                           <FormLabel className="font-normal">
                             {lab?.name ?? `Laboratorio ${field.laboratoryId}`}
@@ -257,78 +282,163 @@ export default function LaboratoryTestForm({ setOpen, testId, onSuccess }: Labor
             <div className="space-y-3 rounded-md border border-border p-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-medium text-muted-foreground">Parámetros</h4>
-                <Button type="button" size="sm" variant="ghost" onClick={() => append({ name: "", valueType: LabValueType.NUMERIC, unit: "", allowedOptions: "", refMin: null, refMax: null, refText: "", decimals: null })}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() =>
+                    append({
+                      name: "",
+                      valueType: LabValueType.NUMERIC,
+                      unit: LabUnit.PERCENT, // default obligatorio (puedes cambiarlo)
+                      allowedOptions: "",
+                      refMin: null,
+                      refMax: null,
+                      refText: "",
+                      decimals: null,
+                    })
+                  }
+                >
                   <PlusCircle className="h-4 w-4 mr-2" />
                   Añadir Parámetro
                 </Button>
               </div>
+
               <div className="space-y-2">
-                {fields.map((field, index) => (
-                  <div key={field.id} className="flex flex-col gap-2 p-2 border rounded-md">
-                    <div className="flex items-center gap-2">
+                {fields.map((field, index) => {
+                  const vt = form.watch(`parameters.${index}.valueType`);
+                  return (
+                    <div key={field.id} className="flex flex-col gap-2 p-2 border rounded-md">
+                      <div className="flex items-center gap-2">
                         <FormField
                           control={form.control}
                           name={`parameters.${index}.name`}
-                          render={({ field }) => <FloatingLabelInput {...field} id={`parameters-${index}-name`} label="Nombre" className="flex-1" />}
+                          render={({ field }) => (
+                            <FloatingLabelInput
+                              {...field}
+                              id={`parameters-${index}-name`}
+                              label="Nombre"
+                              className="flex-1"
+                              disabled={form.formState.isSubmitting}
+                            />
+                          )}
                         />
                         <FormField
-                            control={form.control}
-                            name={`parameters.${index}.valueType`}
-                            render={({ field }) => (
-                                <FloatingLabelSelect
-                                    id={`parameters.${index}-valueType`}
-                                    label="Tipo de Valor"
-                                    options={Object.values(LabValueType).map(v => ({ value: v, label: v }))}
-                                    value={field.value}
-                                    onValueChange={field.onChange}
-                                    disabled={form.formState.isSubmitting}
-                                />
-                            )}
+                          control={form.control}
+                          name={`parameters.${index}.valueType`}
+                          render={({ field }) => (
+                            <FloatingLabelSelect
+                              id={`parameters.${index}-valueType`}
+                              label="Tipo de Valor"
+                              options={Object.values(LabValueType).map(v => ({ value: v, label: v }))}
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              disabled={form.formState.isSubmitting}
+                            />
+                          )}
                         />
                         <Button type="button" size="icon" variant="ghost" onClick={() => remove(index)}>
-                            <X className="h-4 w-4" />
+                          <X className="h-4 w-4" />
                         </Button>
-                    </div>
-                    {form.watch(`parameters.${index}.valueType`) === LabValueType.NUMERIC && (
+                      </div>
+
+                      {vt === LabValueType.NUMERIC && (
                         <div className="grid grid-cols-2 gap-2">
-                            <FormField
-                                control={form.control}
-                                name={`parameters.${index}.unit`}
-                                render={({ field }) => <FloatingLabelInput {...field} id={`parameters-${index}-unit`} label="Unidad" />}
-                            />
-                            <FormField
-                                control={form.control}
-                                name={`parameters.${index}.refMin`}
-                                render={({ field }) => <FloatingLabelInput {...field} value={field.value ?? ''} onChange={v => field.onChange(v === '' ? null : parseFloat(v))} id={`parameters-${index}-refMin`} label="Ref. Mín" type="number" />}
-                            />
-                            <FormField
-                                control={form.control}
-                                name={`parameters.${index}.refMax`}
-                                render={({ field }) => <FloatingLabelInput {...field} value={field.value ?? ''} onChange={v => field.onChange(v === '' ? null : parseFloat(v))} id={`parameters-${index}-refMax`} label="Ref. Máx" type="number" />}
-                            />
-                            <FormField
-                                control={form.control}
-                                name={`parameters.${index}.decimals`}
-                                render={({ field }) => <FloatingLabelInput {...field} value={field.value ?? ''} onChange={v => field.onChange(v === '' ? null : parseInt(v, 10))} id={`parameters-${index}-decimals`} label="Decimales" type="number" />}
-                            />
+                          {/* UNIDAD como SELECT (enum) */}
+                          <FormField
+                            control={form.control}
+                            name={`parameters.${index}.unit`}
+                            render={({ field }) => (
+                              <FloatingLabelSelect
+                                id={`parameters-${index}-unit`}
+                                label="Unidad"
+                                options={labUnitOptions}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                disabled={form.formState.isSubmitting}
+                              />
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`parameters.${index}.refMin`}
+                            render={({ field }) => (
+                              <FloatingLabelInput
+                                {...field}
+                                value={field.value ?? ""}
+                                onChange={v => field.onChange(v === "" ? null : parseFloat(v))}
+                                id={`parameters-${index}-refMin`}
+                                label="Ref. Mín"
+                                type="number"
+                                disabled={form.formState.isSubmitting}
+                              />
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`parameters.${index}.refMax`}
+                            render={({ field }) => (
+                              <FloatingLabelInput
+                                {...field}
+                                value={field.value ?? ""}
+                                onChange={v => field.onChange(v === "" ? null : parseFloat(v))}
+                                id={`parameters-${index}-refMax`}
+                                label="Ref. Máx"
+                                type="number"
+                                disabled={form.formState.isSubmitting}
+                              />
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`parameters.${index}.decimals`}
+                            render={({ field }) => (
+                              <FloatingLabelInput
+                                {...field}
+                                value={field.value ?? ""}
+                                onChange={v => field.onChange(v === "" ? null : parseInt(v, 10))}
+                                id={`parameters-${index}-decimals`}
+                                label="Decimales"
+                                type="number"
+                                disabled={form.formState.isSubmitting}
+                              />
+                            )}
+                          />
                         </div>
-                    )}
-                    {form.watch(`parameters.${index}.valueType`) === LabValueType.TEXT && (
+                      )}
+
+                      {vt === LabValueType.TEXT && (
                         <FormField
-                            control={form.control}
-                            name={`parameters.${index}.refText`}
-                            render={({ field }) => <FloatingLabelInput {...field} id={`parameters-${index}-refText`} label="Texto de Referencia" />}
+                          control={form.control}
+                          name={`parameters.${index}.refText`}
+                          render={({ field }) => (
+                            <FloatingLabelInput
+                              {...field}
+                              id={`parameters-${index}-refText`}
+                              label="Texto de Referencia"
+                              disabled={form.formState.isSubmitting}
+                            />
+                          )}
                         />
-                    )}
-                    {form.watch(`parameters.${index}.valueType`) === LabValueType.SELECT && (
+                      )}
+
+                      {vt === LabValueType.SELECT && (
                         <FormField
-                            control={form.control}
-                            name={`parameters.${index}.allowedOptions`}
-                            render={({ field }) => <FloatingLabelInput {...field} id={`parameters-${index}-allowedOptions`} label="Opciones (separadas por coma)" />}
+                          control={form.control}
+                          name={`parameters.${index}.allowedOptions`}
+                          render={({ field }) => (
+                            <FloatingLabelInput
+                              {...field}
+                              id={`parameters-${index}-allowedOptions`}
+                              label="Opciones (separadas por coma)"
+                              disabled={form.formState.isSubmitting}
+                            />
+                          )}
                         />
-                    )}
-                  </div>
-                ))}
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

@@ -1,7 +1,8 @@
 import api from "@/services/api";
 import { PaginatedResponse } from "@/types/paginated-response";
-import { AddResultValuesRequest, CreateLaboratoryRequest } from "./laboratory-request-request";
-import { LaboratoryRequestDetailResponse, LaboratoryRequestListParams, LaboratoryRequestSummaryResponse } from "./laboratory-request-response";
+import { AddResultValuesRequest, CreateLaboratoryRequest, UpdateLabRequestStatusRequest } from "../types/laboratory-request-request";
+import { LaboratoryRequestDetailResponse, LaboratoryRequestListParams, LaboratoryRequestSummaryResponse } from "../types/laboratory-request-response";
+import { LabRequestStatus } from "../enums/lab-request-status";
 
 export const LaboratoryRequestService = {
     list: async (params: LaboratoryRequestListParams): Promise<PaginatedResponse<LaboratoryRequestSummaryResponse>> => {
@@ -33,4 +34,13 @@ export const LaboratoryRequestService = {
         const response = await api.post<LaboratoryRequestDetailResponse>(`/laboratory-requests/items/${requestItemId}/results`, data);
         return response.data;
     },
+
+    updateStatus: async (id: number, status: LabRequestStatus): Promise<LaboratoryRequestDetailResponse> => {
+        const payload: UpdateLabRequestStatusRequest = { status };
+        const response = await api.patch<LaboratoryRequestDetailResponse>(
+          `/laboratory-requests/${id}/status`,
+          payload
+        );
+        return response.data;
+      },
 };

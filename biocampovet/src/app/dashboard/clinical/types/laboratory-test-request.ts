@@ -1,17 +1,21 @@
 import * as z from "zod";
 import { LabValueType } from "../enums/lab-value-type";
+import { LabUnit } from "../enums/lab-unit";
 
 export const laboratoryTestParameterSchema = z.object({
     id: z.number().optional(),
-    name: z.string().min(1, "El nombre del parámetro es requerido.").max(80, "El nombre no puede exceder los 80 caracteres."),
+    name: z
+      .string()
+      .min(1, "El nombre del parámetro es requerido.")
+      .max(80, "El nombre no puede exceder los 80 caracteres."),
     valueType: z.nativeEnum(LabValueType, { required_error: "El tipo de valor es requerido." }),
-    unit: z.string().max(32, "La unidad no puede exceder los 32 caracteres.").optional(),
+    unit: z.nativeEnum(LabUnit, { required_error: "La unidad es obligatoria." }),
     allowedOptions: z.string().max(400, "Las opciones no pueden exceder los 400 caracteres.").optional(),
     refMin: z.number().optional().nullable(),
     refMax: z.number().optional().nullable(),
     refText: z.string().max(200, "El texto de referencia no puede exceder los 200 caracteres.").optional(),
     decimals: z.number().int("Debe ser un número entero.").optional().nullable(),
-});
+  });
 
 export const laboratoryActivationSchema = z.object({
     laboratoryId: z.number(),

@@ -1,5 +1,6 @@
 package com.gaedet.biocampovet.core.clinic.dto;
 
+import com.gaedet.biocampovet.core.clinic.enums.LabUnit;
 import com.gaedet.biocampovet.core.clinic.enums.LabValueType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,8 +21,8 @@ public class CreateLaboratoryTestParameterRequest {
     @NotNull
     private LabValueType valueType;
 
-    @Size(max = 32)
-    private String unit;
+    @NotNull(message = "La unidad es obligatoria")
+    private LabUnit unit;
 
     @Size(max = 400)
     private String allowedOptions;

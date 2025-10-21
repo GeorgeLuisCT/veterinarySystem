@@ -1,3 +1,4 @@
+import { LabUnit } from "../enums/lab-unit";
 import { LabValueType } from "../enums/lab-value-type";
 
 export interface LaboratoryStateResponse {
@@ -24,7 +25,7 @@ export interface LaboratoryTestParameterResponse {
     id: number;
     name: string;
     valueType: LabValueType;
-    unit?: string | null;
+    unit: LabUnit;
     allowedOptions?: string | null;
     refMin?: number | null;
     refMax?: number | null;
