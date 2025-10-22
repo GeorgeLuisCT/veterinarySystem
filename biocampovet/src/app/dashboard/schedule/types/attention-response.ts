@@ -13,6 +13,8 @@ export interface AttentionListParams {
   emergency?: boolean;
   appointmentId?: number;
   clinicalServiceId?: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface AttentionSummaryResponse {
@@ -22,14 +24,14 @@ export interface AttentionSummaryResponse {
   type: AttentionType;
   emergency: boolean;
 
-  animalId: number | null;
-  animalName: string | null;
+  animalId: number;
+  animalName: string;
 
-  branchId: number | null;
-  branchName: string | null;
+  branchId: number;
+  branchName: string;
 
-  attendingEmployeeId: number | null;
-  attendingEmployeeFullName: string | null;
+  attendingEmployeeId: number;
+  attendingEmployeeFullName: string;
 
   clinicalServiceId: number | null;
   clinicalServiceName: string | null;

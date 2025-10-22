@@ -11,6 +11,16 @@ import {
   UpdateAttentionStatusRequest,
 } from "../types/attention-request";
 
+const formatDateParam = (value: string | Date): string => {
+  if (value instanceof Date) {
+    const y = value.getFullYear();
+    const m = String(value.getMonth() + 1).padStart(2, "0");
+    const d = String(value.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  return value;
+};
+
 const buildQueryString = (params: AttentionListParams = {}): string => {
   const searchParams = new URLSearchParams();
 
@@ -24,6 +34,12 @@ const buildQueryString = (params: AttentionListParams = {}): string => {
   if (params.appointmentId !== undefined) searchParams.append("appointmentId", String(params.appointmentId));
   if (params.clinicalServiceId !== undefined) {
     searchParams.append("clinicalServiceId", String(params.clinicalServiceId));
+  }
+  if (params.startDate) {
+    searchParams.append("startDate", formatDateParam(params.startDate));
+  }
+  if (params.endDate) {
+    searchParams.append("endDate", formatDateParam(params.endDate));
   }
 
   const queryString = searchParams.toString();
@@ -82,4 +98,3 @@ export const AttentionService = {
 };
 
 export default AttentionService;
-

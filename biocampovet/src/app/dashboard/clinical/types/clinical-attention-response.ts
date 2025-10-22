@@ -2,6 +2,7 @@ import { BranchResponse } from "../../branche/types/branch-response";
 import { AdministrationRoute } from "../../inventory/products/enums/administration-route";
 import { ProductUnitType } from "../../inventory/products/enums/product-unit-type";
 import { ProductSummaryResponse } from "../../inventory/products/types/product-summary-response";
+import { AnimalBasicResponse } from "../../patients/animals/types/animal-basic-response";
 import { SurgicalOrderStatus } from "../../schedule/enums/surgical-order-status";
 import { AttentionSummaryResponse } from "../../schedule/types/attention-response";
 import { ClinicalAttentionStatus } from "../enums/clinical-attention-status";
@@ -16,8 +17,8 @@ export interface ClinicalAttentionSummaryResponse {
   attentionId: number;
   status: ClinicalAttentionStatus;
   visitDate: string;
-  animalId: number;
-  animalName: string;
+  animalBasicResponse: AnimalBasicResponse;
+  clinicalServiceName: string;
   branch: BranchResponse;
   attendingEmployeeId: number | null;
   attendingEmployeeFullName: string | null;

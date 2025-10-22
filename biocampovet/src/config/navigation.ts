@@ -2,13 +2,10 @@ import {
   ShoppingCart,
   Boxes,
   Users,
-  HeartPulse,
   Stethoscope,
   CalendarDays,
   MapPin,
-  Building,
   PiggyBank,
-  ShieldCheck,
   UserCog,
   BarChart3,
   Wallet,
@@ -43,7 +40,7 @@ export const navigationConfig = {
       rolesAllowed: ["ROLE_ADMIN", "ROLE_RECEPTIONIST", "ROLE_MANAGER", "ROLE_VETERINARIAN"],
       items: [
         { title: "Calendario", url: "/dashboard/schedule/calendar", rolesAllowed: ["ROLE_RECEPTIONIST", "ROLE_VETERINARIAN"] },
-        { title: "Atenciones", url: "/dashboard/schedule/attentions", rolesAllowed: ["ROLE_RECEPTIONIST"] },
+        { title: "Recepción", url: "/dashboard/schedule/attentions", rolesAllowed: ["ROLE_RECEPTIONIST"] },
         { title: "Recordatorios", url: "/dashboard/schedule/reminders", rolesAllowed: ["ROLE_RECEPTIONIST", "ROLE_ADMIN"] },
       ],
     },
@@ -127,10 +124,7 @@ export const navigationConfig = {
       url: "/dashboard/grooming",
       icon: Scissors,
       rolesAllowed: ["ROLE_ADMIN", "ROLE_GROOMER", "ROLE_MANAGER"],
-      items: [
-        { title: "Historial de Servicios", url: "/dashboard/grooming/history", rolesAllowed: ["ROLE_GROOMER", "ROLE_ADMIN"] },
-        { title: "Mesa de trabajo", url: "/dashboard/grooming/board", rolesAllowed: ["ROLE_GROOMER"] }
-      ]
+      items: []
     }
   ],
 

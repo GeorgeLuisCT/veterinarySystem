@@ -11,10 +11,10 @@ import Link from "next/link";
 import EmployeeService from "@/app/dashboard/staff/employees/service/employee-service";
 import { RoleName } from "@/enums/role-name";
 import { EmployeeSummaryResponse } from "@/app/dashboard/staff/employees/types/employee-summary-response";
-import { GroomingSessionDetailResponse } from "../../types/grooming-session-response";
-import GroomingSessionForm, {Option, GroomingSessionFormHandle } from "../../components/grooming-session-form";
-import GroomingSessionService from "../../service/grooming-session-service";
-import { GroomingStatusLabels } from "../../enums/grooming-status";
+import { GroomingSessionDetailResponse } from "../types/grooming-session-response";
+import GroomingSessionForm, {Option, GroomingSessionFormHandle } from "../components/grooming-session-form";
+import GroomingSessionService from "../service/grooming-session-service";
+import { GroomingStatusLabels } from "../enums/grooming-status";
 
 const ensureOption = (options: Option[], id: number | null, label: string | null) => {
   if (!id || !label) return options;

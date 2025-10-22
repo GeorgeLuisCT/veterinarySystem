@@ -1,29 +1,26 @@
+// app/dashboard/clinical/attentions/page.tsx
 "use client";
 
 import * as React from "react";
-import { PlusCircle, BriefcaseMedical, PawPrint, HelpingHand, TimerIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PlusCircle } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import PaginatedCardList from "@/components/paginated-card-list";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/context/user-context";
+import DashboardLayoutSection from "../../dashboard-layout-section";
 import { PaginatedResponse } from "@/types/paginated-response";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 
 import AttentionService from "../service/attention-service";
 import type { AttentionResponse } from "../types/attention-response";
-import { AttentionType, AttentionTypeLabels, AttentionTypeOptions } from "../enums/attention-type";
-import { AttentionTypeDetails } from "../enums/attention-type";
-import { AttentionStatusDetails } from "../enums/attention-status";
-import { NewAttentionModal } from "../components/new-attention-modal";
-import { Card, CardContent } from "@/components/ui/card";
-import DashboardLayoutSection from "../../dashboard-layout-section";
-import { AnimalSpeciesDetails } from "../../patients/animals/enums/animal-species";
-import { formatCheckInTime } from "@/utils/farmated-dates";
-import { FaUserMd } from "react-icons/fa";
+import { AttentionType } from "../enums/attention-type";
+import AttentionFilters from "../components/attentions/attention-filters";
+import AttentionCard from "../components/attentions/attention-card";
+import NewAttentionModal from "../components/new-attention-modal";
+import { AttentionStatus } from "../enums/attention-status";
 
-const CARD_EMERGENCY_CLASS = "ring-2 ring-red-400/70 bg-red-50/70";
+const CARD_EMERGENCY_CLASS = "bg-red-100/70";
 
 const attendUrlByType: Record<AttentionType, (id: number) => string> = {
   [AttentionType.CLINIC]: (id) => `/dashboard/clinical/consultory/${id}`,
@@ -31,24 +28,101 @@ const attendUrlByType: Record<AttentionType, (id: number) => string> = {
   [AttentionType.SURGERY]: (id) => `/dashboard/clinical/operating-room/${id}`,
 };
 
+const formatLocalDate = (d: Date): string => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+const toDateParam = (v?: string | Date | null): string | undefined => {
+  if (!v) return undefined;
+  return v instanceof Date ? formatLocalDate(v) : v;
+};
+
+const parseLocalDate = (v?: string | null): Date | null => {
+  if (!v) return null;
+  const [yStr, mStr, dStr] = v.split("-");
+  const y = Number(yStr);
+  const m = Number(mStr);
+  const d = Number(dStr);
+  if (!y || !m || !d) return null;
+  const dt = new Date();
+  dt.setFullYear(y, m - 1, d);
+  dt.setHours(0, 0, 0, 0);
+  return dt;
+};
+
 export default function AttentionsPage() {
   const { toast } = useToast();
   const { userInfo } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const selectedBranchId = userInfo?.selectedBranch?.id ?? null;
+  const selectedBranchId = userInfo?.selectedBranch?.id || undefined
   const branchFilter = selectedBranchId && selectedBranchId > 0 ? selectedBranchId : undefined;
 
-  const [activeType, setActiveType] = React.useState<AttentionType>(AttentionType.CLINIC);
+  const today = React.useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
+  const emergencyParam = searchParams.get("emergency");
+  const emergencyInit: boolean | "ALL" =
+    emergencyParam === null ? "ALL" : emergencyParam === "true";
+
+  const [filters, setFilters] = React.useState<{
+    type: AttentionType | "ALL";
+    status: string | "ALL";
+    emergency: boolean | "ALL";
+    startDate?: string | Date | null;
+    endDate?: string | Date | null;
+  }>(() => ({
+    type: ((searchParams.get("type") as AttentionType | "ALL") ?? "ALL"),
+    status: ((searchParams.get("status") as string | "ALL") ?? "ALL"),
+    emergency: emergencyInit,
+    startDate: parseLocalDate(searchParams.get("startDate")) ?? today,
+    endDate: parseLocalDate(searchParams.get("endDate")) ?? today,
+  }));
+
   const [pageData, setPageData] = React.useState<PaginatedResponse<AttentionResponse> | null>(null);
-  const [pageIndex, setPageIndex] = React.useState(0);
-  const [pageSize, setPageSize] = React.useState(10);
+  const [pageIndex, setPageIndex] = React.useState<number>(Number(searchParams.get("page") ?? 0));
+  const [pageSize, setPageSize] = React.useState<number>(Number(searchParams.get("size") ?? 10));
   const [loading, setLoading] = React.useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
 
+  const syncUrl = React.useCallback(
+    (nextFilters = filters, nextPageIndex = pageIndex, nextPageSize = pageSize) => {
+      const params = new URLSearchParams(searchParams?.toString() ?? "");
+      params.set("page", String(nextPageIndex));
+      params.set("size", String(nextPageSize));
+
+      if (nextFilters.type === "ALL") params.delete("type");
+      else params.set("type", String(nextFilters.type));
+
+      if (nextFilters.status === "ALL") params.delete("status");
+      else params.set("status", String(nextFilters.status));
+
+      if (nextFilters.emergency === "ALL") params.delete("emergency");
+      else params.set("emergency", String(nextFilters.emergency));
+
+      const s = toDateParam(nextFilters.startDate);
+      const e = toDateParam(nextFilters.endDate);
+      if (s) params.set("startDate", s);
+      else params.delete("startDate");
+      if (e) params.set("endDate", e);
+      else params.delete("endDate");
+
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [filters, pageIndex, pageSize, pathname, router, searchParams]
+  );
+
   const handleAttend = React.useCallback(
     (attention: AttentionResponse) => {
-      const getUrl = attendUrlByType[attention.type];
+      const getUrl = attendUrlByType[attention.type as AttentionType];
       const url = getUrl(attention.id);
       router.push(url);
     },
@@ -61,7 +135,11 @@ export default function AttentionsPage() {
       const response = await AttentionService.list({
         page: pageIndex,
         size: pageSize,
-        type: activeType,
+        type: filters.type === "ALL" ? undefined : (filters.type as AttentionType),
+        status: filters.status === "ALL" ? undefined : (filters.status as AttentionStatus),
+        emergency: filters.emergency === "ALL" ? undefined : (filters.emergency as boolean),
+        startDate: toDateParam(filters.startDate),
+        endDate: toDateParam(filters.endDate),
         branchId: branchFilter,
       });
       setPageData(response);
@@ -74,16 +152,15 @@ export default function AttentionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeType, branchFilter, pageIndex, pageSize, toast]);
+  }, [pageIndex, pageSize, filters, branchFilter, toast]);
 
   React.useEffect(() => {
     fetchAttentions();
   }, [fetchAttentions]);
 
-  const handleTypeChange = React.useCallback((value: string) => {
-    setActiveType(value as AttentionType);
-    setPageIndex(0);
-  }, []);
+  React.useEffect(() => {
+    syncUrl();
+  }, [filters, pageIndex, pageSize, syncUrl]);
 
   const handlePageSizeChange = React.useCallback((size: number) => {
     setPageSize(size);
@@ -92,120 +169,17 @@ export default function AttentionsPage() {
 
   const handleAttentionCreated = React.useCallback(
     (attention: AttentionResponse) => {
-      const isDifferentType = attention.type !== activeType;
-      if (isDifferentType) {
-        setActiveType(attention.type);
-        setPageIndex(0);
-        return;
-      }
-      if (pageIndex !== 0) {
-        setPageIndex(0);
-        return;
-      }
-      void fetchAttentions();
+      setFilters((prev) => ({
+        ...prev,
+        type: prev.type === "ALL" ? "ALL" : attention.type,
+      }));
+      setPageIndex(0);
+      fetchAttentions();
     },
-    [activeType, fetchAttentions, pageIndex]
+    [fetchAttentions]
   );
 
   const openCreateModal = React.useCallback(() => setIsCreateModalOpen(true), []);
-
-  const renderCard = React.useCallback(
-    (attention: AttentionResponse) => {
-      const statusDetails = AttentionStatusDetails[attention.status];
-      const speciesDetails = AnimalSpeciesDetails[attention.animalBasicResponse.animalSpecies];
-      const StatusIcon = statusDetails.icon;
-      const SpeciesIcon = speciesDetails?.icon;
-
-      const statusColor = statusDetails?.colorClass;
-      const speciesColor = speciesDetails?.colorClass;
-
-      const borderCardClass = statusColor ? statusColor.replace("bg-", "border-") : "border-gray-200";
-      const borderIconClass = speciesColor ? speciesColor.replace("bg-", "border-") : "border-gray-200";
-      const iconSpeciesClass = speciesColor ? speciesColor.replace("bg-", "text-") : "text-gray-400";
-
-      return (
-        <Card className={`flex flex-col overflow-hidden shadow-md bg-white rounded-lg pt-0 border-2 border-l-8 ${borderCardClass}`}>
-          <CardContent className="p-4 flex flex-col gap-4 pb-0">
-            <div className="flex items-start gap-4">
-              {attention.animalBasicResponse.animalPhotoUrl ? (
-                <img
-                  src={attention.animalBasicResponse.animalPhotoUrl}
-                  alt={attention.animalBasicResponse.animalName}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-                  loading="lazy"
-                />
-              ) : (
-                <div className={`w-16 h-16 rounded-full border-2 bg-white flex items-center justify-center ${borderIconClass}`}>
-                  {SpeciesIcon ? (
-                    <SpeciesIcon className={`h-8 w-8 ${iconSpeciesClass}`} />
-                  ) : (
-                    <PawPrint className={`h-8 w-8 ${iconSpeciesClass}`} />
-                  )}
-                </div>
-              )}
-
-              <div className="flex-grow">
-                <h4 className="text-xl font-bold text-gray-800">{attention.animalBasicResponse.animalName}</h4>
-
-                <div className="flex items-center gap-2 text-gray-600 mt-1 text-sm">
-                  {SpeciesIcon && <SpeciesIcon className="h-5 w-5 text-gray-500" />}
-                  <span>
-                    {speciesDetails ? speciesDetails.label : attention.animalBasicResponse.animalSpecies} -{" "}
-                    {attention.animalBasicResponse.animalBreed || "Mestizo"}
-                  </span>
-                </div>
-
-                {attention.clinicalServiceName ? (
-                  <div className="flex items-center gap-2 text-gray-600 mt-1 text-sm h-5">
-                    <BriefcaseMedical className="h-5 w-5 text-gray-500" />
-                    <span className="truncate">{attention.clinicalServiceName}</span>
-                  </div>
-                ) : (
-                  <div className="mt-1 h-5" />
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2 ml-2">
-              <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${statusDetails.colorClass} text-white`}>
-                <StatusIcon className="mr-2 h-4 w-4" />
-                {statusDetails.label}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <TimerIcon className={`h-5 w-5 text-gray-500`} />
-                <p className="text-sm font-semibold text-gray-600">
-                  Llegada hace :
-                  <span className="text-sm font-normal text-gray-500"> {formatCheckInTime(attention.checkInTime)}</span>
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <FaUserMd className={`h-5 w-5 text-gray-500`} />
-                <p className="text-sm font-semibold text-gray-600">
-                  Asignado a :
-                  <span className="text-sm font-normal text-gray-500"> {attention.attendingEmployeeFullName}</span>
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-auto pt-4 border-t border-gray-100">
-              <Button variant="outline" onClick={() => handleAttend(attention)} className="w-full text-gray-700 font-semibold">
-                <HelpingHand className="mr-2 h-4 w-4" />
-                Atender
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    },
-    [handleAttend]
-  );
-
-  const emptyStateMessage = React.useMemo(
-    () => `No hay atenciones registradas para ${AttentionTypeLabels[activeType].toLowerCase()}.`,
-    [activeType]
-  );
 
   return (
     <DashboardLayoutSection>
@@ -213,54 +187,50 @@ export default function AttentionsPage() {
         <div className="max-w-7xl mx-auto h-full flex flex-col">
           <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Atenciones</h1>
-              <p className="text-gray-600 mt-1">Gestiona las atenciones en curso y revisa el flujo de pacientes por tipo.</p>
+              <h1 className="text-3xl font-bold text-slate-900">Recepción</h1>
+              <p className="text-gray-600 mt-1">Gestiona las recepciones en curso y revisa el flujo de pacientes.</p>
             </div>
             <Button onClick={() => openCreateModal()}>
-              <PlusCircle className="mr-2 h-4 w-4" /> Nueva Atención
+              <PlusCircle className="mr-2 h-4 w-4" /> Nueva Recepción
             </Button>
           </div>
 
-          <Tabs value={activeType} onValueChange={handleTypeChange} className="space-y-4 flex-1">
-            <TabsList className="grid grid-cols-3 w-full sm:w-auto">
-              {AttentionTypeOptions.map((option) => {
-                const details = AttentionTypeDetails[option.value as AttentionType];
-                const Icon = details.icon;
-                return (
-                  <TabsTrigger
-                    key={option.value}
-                    value={option.value}
-                    className="gap-2 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-slate-300"
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{option.label}</span>
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
+          <PaginatedCardList
+            pageData={pageData}
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+            onPageIndexChange={(p) => {
+              setPageIndex(p);
+            }}
+            onPageSizeChange={handlePageSizeChange}
+            loading={loading}
+            headerSlotLeft={
+              <AttentionFilters
+                value={filters}
+                onChange={(next) => {
+                  setFilters(next);
+                  setPageIndex(0);
+                }}
+              />
+            }
+            renderCard={(attention) => (
+              <AttentionCard
+                attention={attention}
+                onAttend={handleAttend}
+                highlightClassName={attention.emergency ? CARD_EMERGENCY_CLASS : undefined}
+              />
+            )}
+            cardHighlightBy={(attention) => attention.emergency}
+            cardHighlightClassName={CARD_EMERGENCY_CLASS}
+            getItemKey={(attention) => attention.id}
+            emptyState={"No hay atenciones para los filtros seleccionados."}
+          />
 
-            {AttentionTypeOptions.map((option) => (
-              <TabsContent key={option.value} value={option.value} className="focus-visible:outline-none">
-                {option.value === activeType && (
-                  <PaginatedCardList
-                    pageData={pageData}
-                    pageIndex={pageIndex}
-                    pageSize={pageSize}
-                    onPageIndexChange={setPageIndex}
-                    onPageSizeChange={handlePageSizeChange}
-                    loading={loading}
-                    renderCard={renderCard}
-                    cardHighlightBy={(attention) => attention.emergency}
-                    cardHighlightClassName={CARD_EMERGENCY_CLASS}
-                    getItemKey={(attention) => attention.id}
-                    emptyState={emptyStateMessage}
-                  />
-                )}
-              </TabsContent>
-            ))}
-          </Tabs>
-
-          <NewAttentionModal open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} onCreated={handleAttentionCreated} />
+          <NewAttentionModal
+            open={isCreateModalOpen}
+            onOpenChange={setIsCreateModalOpen}
+            onCreated={handleAttentionCreated}
+          />
         </div>
       </div>
     </DashboardLayoutSection>

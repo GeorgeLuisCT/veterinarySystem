@@ -117,7 +117,7 @@ export default function ConsultationPage() {
                     <div>
                         <h1 className="text-xl font-bold">Pantalla de Atención</h1>
                         <p className="text-sm text-gray-600">
-                            Atendiendo a: <span className="font-semibold text-blue-600">{clinicalAttention.summary.animalName}</span>
+                            Atendiendo a: <span className="font-semibold text-blue-600">{clinicalAttention.attention.animalName}</span>
                         </p>
                     </div>
                     <div className="flex gap-2">
@@ -145,7 +145,7 @@ export default function ConsultationPage() {
 
             <div className="w-full flex flex-col gap-4 sm:flex-row pt-4 mx-2">
                 <PatientDetails
-                    animalId={clinicalAttention.summary.animalId}
+                    animalId={clinicalAttention.attention.animalId}
                     className="sm:basis-[18%] sm:shrink-0 w-full"
                 />
                 <ConsultationForm
@@ -155,7 +155,7 @@ export default function ConsultationPage() {
                     className="sm:basis-[72%] sm:min-w-0 w-full flex flex-col gap-4"
                 />
                 <QuickHistory
-                    animalId={clinicalAttention.summary.animalId}
+                    animalId={clinicalAttention?.attention.animalId}
                     className="sm:basis-[10%] sm:shrink-0 w-full"
                 />
             </div>

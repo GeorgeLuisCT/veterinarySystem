@@ -4,6 +4,7 @@ import { AdministrationRoute } from "../../inventory/products/enums/administrati
 import { FrequencyUnit } from "../enums/frequency-unit";
 import { SurgicalReportStatus } from "../enums/surgical-report-status";
 import { AnestheticPhase } from "../enums/anesthetic-phase";
+import { AnimalBasicResponse } from "../../patients/animals/types/animal-basic-response";
 
 export interface SurgicalReportSummaryResponse {
   id: number;
@@ -12,11 +13,11 @@ export interface SurgicalReportSummaryResponse {
   surgeryStartAt: string;
   surgeryEndAt: string;
   status: SurgicalReportStatus;
-  animalId: number;
-  animalName: string;
+  animalBasicResponse: AnimalBasicResponse;
   branch: BranchResponse;
   surgeonId: number | null;
   surgeonFullName: string | null;
+  clinicalServiceName: string | null;
   anesthesiologistId: number | null;
   anesthesiologistFullName: string | null;
   assistantId: number | null;

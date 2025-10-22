@@ -1,225 +1,227 @@
+// app/dashboard/clinical/consultory/page.tsx
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Users, Clock, Stethoscope, Beaker, FileCheck2, MoveRight } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { PlusCircle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { AttentionResponse } from '../../schedule/types/attention-response';
-import { ClinicalAttentionSummaryResponse } from '../types/clinical-attention-response';
-import AttentionService from '../../schedule/service/attention-service';
-import { AttentionStatus } from '../../schedule/enums/attention-status';
-import { AttentionType } from '../../schedule/enums/attention-type';
-import ClinicalAttentionService from '../service/clinical-attention-service';
-import { ClinicalAttentionStatus } from '../enums/clinical-attention-status';
-import { useRouter } from "next/navigation";
+import AttentionService from "@/app/dashboard/schedule/service/attention-service";
+import ClinicalAttentionService from "../service/clinical-attention-service";
+import { AttentionStatus } from "@/app/dashboard/schedule/enums/attention-status";
+import { AttentionType } from "@/app/dashboard/schedule/enums/attention-type";
+import { ClinicalAttentionStatus } from "../enums/clinical-attention-status";
+import type { AttentionResponse } from "@/app/dashboard/schedule/types/attention-response";
+import type { ClinicalAttentionSummaryResponse } from "../types/clinical-attention-response";
+import ConsultationCard from "../components/consultory/consultation-card";
+import ConsultoryFilters, { type ConsultoryFilters as Filters } from "../components/consultory/consultation-filters";
+import NewAttentionModal from "@/app/dashboard/schedule/components/new-attention-modal";
+import { AnimalBasicResponse } from "../../patients/animals/types/animal-basic-response";
+import { useUser } from "@/context/user-context";
 
+function formatLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
+function toDateParam(v?: string | Date | null): string | undefined {
+  if (!v) return undefined;
+  return v instanceof Date ? formatLocalDate(v) : v;
+}
 
-type KanbanColumnKey = 'Sala de Espera' | 'En Consulta' | 'Esperando Exámenes' | 'Listo para Facturar';
+type SourceType = "RECEPCION" | "CLINICA";
 
-type KanbanCardData = {
-    id: number;
-    patientName: string;
-    ownerName?: string; 
-    reason: string;
-    vetName: string | null;
-    startTime: string;
-    attentionId: number; 
-};
-
-const statusConfig: Record<KanbanColumnKey, { icon: React.ReactNode; title: string; color: string }> = {
-    'Sala de Espera': { icon: <Users className="h-5 w-5"/>, title: "Sala de Espera", color: "border-t-gray-400" },
-    'En Consulta': { icon: <Stethoscope className="h-5 w-5"/>, title: "En Consulta", color: "border-t-blue-500" },
-    'Esperando Exámenes': { icon: <Beaker className="h-5 w-5"/>, title: "Esperando Exámenes", color: "border-t-amber-500" },
-    'Listo para Facturar': { icon: <FileCheck2 className="h-5 w-5"/>, title: "Listo para Facturar", color: "border-t-green-500" },
-};
-
-const calculateTimeInStatus = (startTime: string, now: Date) => {
-    const diff = now.getTime() - new Date(startTime).getTime();
-    if (diff < 0) return '0 min';
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    if (days > 0) return `${days}d ${hours % 24}h`;
-    if (hours > 0) return `${hours}h ${minutes % 60}m`;
-    return `${minutes} min`;
-};
-
-const ConsultationCard = ({ data }: { data: KanbanCardData }) => {
-    const [currentTime, setCurrentTime] = useState(new Date());
-
-    const router = useRouter();
-    
-    useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date()), 15000);
-        return () => clearInterval(timer);
-    }, []);
-
-    const timeInStatus = calculateTimeInStatus(data.startTime, currentTime);
-    
-    const handleContinue = () => {
-      const url = `/dashboard/clinical/consultory/${data.attentionId}`;
-      router.push(url);
-    };
-    
-    return (
-        <Card className="mb-3 shadow-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-3">
-                <div className="flex justify-between items-start">
-                    <p className="font-bold text-slate-800">{data.patientName}</p>
-                    <span className="text-xs text-gray-500 flex items-center">
-                        <Clock className="h-3 w-3 mr-1"/>{timeInStatus}
-                    </span>
-                </div>
-                {data.ownerName && <p className="text-xs text-gray-500 mb-2">{data.ownerName}</p>}
-                <p className="text-sm my-2 p-2 bg-gray-50 rounded-md truncate" title={data.reason}>{data.reason}</p>
-                <div className="flex justify-between items-center mt-2">
-                    <span className="text-xs text-gray-600 flex items-center">
-                        <Stethoscope className="h-3 w-3 mr-1"/>{data.vetName || 'No asignado'}
-                    </span>
-                    <Button variant="outline" size="sm" className="h-8" onClick={handleContinue}>
-                        Ver/Continuar <MoveRight className="h-3 w-3 ml-1"/>
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
-    );
-};
-
-const KanbanColumn = ({ title, items }: { title: KanbanColumnKey; items: KanbanCardData[] }) => {
-    const config = statusConfig[title];
-    return (
-        <div className={`bg-gray-100 rounded-lg p-3 border-t-4 ${config.color}`}>
-            <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                    {config.icon}
-                    <h3 className="font-semibold text-gray-800">{config.title}</h3>
-                </div>
-                <span className="text-sm font-bold bg-gray-200 text-gray-700 rounded-full h-6 w-6 flex items-center justify-center">
-                    {items.length}
-                </span>
-            </div>
-            <div className="space-y-3 h-[calc(100vh-200px)] overflow-y-auto pr-1">
-                {items.map(item => <ConsultationCard key={`${item.attentionId}-${item.id}`} data={item} />)}
-            </div>
-        </div>
-    );
+type UnifiedCardData = {
+  id: number;
+  source: SourceType;
+  animalBasicResponse: AnimalBasicResponse;
+  ownerName?: string;
+  reason: string;
+  vetName: string | null;
+  startTime: string;
+  attentionId: number;
+  statusLabel: string;
 };
 
 export default function ConsultoryPage() {
-    const [waitingRoom, setWaitingRoom] = useState<AttentionResponse[]>([]);
-    const [clinicalAttentions, setClinicalAttentions] = useState<ClinicalAttentionSummaryResponse[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
-    const fetchData = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const [waitingRoomResponse, clinicalAttentionsResponse] = await Promise.all([
-                AttentionService.list({ 
-                    status: AttentionStatus.WAITING, 
-                    type: AttentionType.CLINIC, 
-                    size: 100
-                }),
-                ClinicalAttentionService.list({
-                    statuses: [
-                        ClinicalAttentionStatus.OPEN,
-                        ClinicalAttentionStatus.IN_PROGRESS,
-                        ClinicalAttentionStatus.WAITING_LAB,
-                        ClinicalAttentionStatus.READY_TO_BILL,
-                    ],
-                    size: 100
-                })
-            ]);
-            setWaitingRoom(waitingRoomResponse.content);
-            setClinicalAttentions(clinicalAttentionsResponse.content);
-        } catch (err) {
-            console.error("Error fetching data:", err);
-            setError("No se pudo cargar la información de las consultas. Intente de nuevo más tarde.");
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const [filters, setFilters] = useState<Filters>({
+    status: "ALL",
+    startDate: today,
+    endDate: today,
+  });
 
-    useEffect(() => {
-        fetchData();
-        const interval = setInterval(fetchData, 60000);
-        return () => clearInterval(interval);
-    }, [fetchData]);
+  const [waitingRoom, setWaitingRoom] = useState<AttentionResponse[]>([]);
+  const [clinicalAttentions, setClinicalAttentions] = useState<ClinicalAttentionSummaryResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-    const waitingRoomItems: KanbanCardData[] = waitingRoom.map(att => ({
-        id: att.id,
-        patientName: att.animalBasicResponse.animalName,
-        ownerName: 'Dueño no disponible',
-        reason: att.clinicalServiceName,
-        vetName: att.attendingEmployeeFullName,
-        startTime: att.checkInTime,
-        attentionId: att.id
+  const {userInfo} = useUser();
+  const selectedBranchId = userInfo?.selectedBranch?.id || undefined
+
+  const fetchData = useCallback(async () => { 
+
+    console.log(userInfo?.selectedBranch?.id);
+    setLoading(true);
+    setError(null);
+    try {
+      const startDateParam = toDateParam(filters.startDate);
+      const endDateParam = toDateParam(filters.endDate);
+
+      const [waitingRoomResponse, clinicalAttentionsResponse] = await Promise.all([
+        AttentionService.list({
+          status: AttentionStatus.WAITING,
+          type: AttentionType.CLINIC,
+          startDate: startDateParam,
+          endDate: endDateParam,
+          size: 200,
+          branchId: selectedBranchId
+        }),
+        ClinicalAttentionService.list({
+          statuses: [
+            ClinicalAttentionStatus.OPEN,
+            ClinicalAttentionStatus.IN_PROGRESS,
+            ClinicalAttentionStatus.WAITING_LAB,
+            ClinicalAttentionStatus.READY_TO_BILL,
+          ],
+          startDate: startDateParam,
+          endDate: endDateParam,
+          size: 200,
+          branchId: selectedBranchId
+        }),
+      ]);
+      setWaitingRoom(waitingRoomResponse.content);
+      setClinicalAttentions(clinicalAttentionsResponse.content);
+    } catch (err) {
+      console.error(err);
+      setError("No se pudo cargar la información de las consultas.");
+    } finally {
+      setLoading(false);
+    }
+  }, [filters.startDate, filters.endDate,userInfo?.selectedBranch?.id]);
+
+  useEffect(() => {
+    fetchData();
+    const i = setInterval(fetchData, 60000);
+    return () => clearInterval(i);
+  }, [fetchData]);
+
+  const allItems: UnifiedCardData[] = useMemo(() => {
+    const wr: UnifiedCardData[] = waitingRoom.map((att) => ({
+      id: att.id,
+      source: "RECEPCION",
+      animalBasicResponse: att.animalBasicResponse,
+      ownerName: "Dueño no disponible",
+      reason: att.clinicalServiceName ?? "Recepción clínica",
+      vetName: att.attendingEmployeeFullName,
+      startTime: att.checkInTime,
+      attentionId: att.id,
+      statusLabel: "Sala de Espera",
     }));
 
-    const inConsultationItems: KanbanCardData[] = clinicalAttentions
-        .filter(ca => ca.status === ClinicalAttentionStatus.OPEN || ca.status === ClinicalAttentionStatus.IN_PROGRESS)
-        .map(ca => ({
-            id: ca.id,
-            patientName: ca.animalName,
-            reason: 'Consulta Clínica',
-            vetName: ca.attendingEmployeeFullName,
-            startTime: ca.visitDate,
-            attentionId: ca.attentionId
-        }));
+    const ca: UnifiedCardData[] = clinicalAttentions.map((c) => ({
+      id: c.id,
+      source: "CLINICA",
+      animalBasicResponse: c.animalBasicResponse,
+      ownerName: undefined,
+      reason: c.clinicalServiceName ?? "Consulta clínica",
+      vetName: c.attendingEmployeeFullName,
+      startTime: c.visitDate,
+      attentionId: c.attentionId,
+      statusLabel:
+        c.status === ClinicalAttentionStatus.OPEN
+          ? "En Consulta (Abierta)"
+          : c.status === ClinicalAttentionStatus.IN_PROGRESS
+          ? "En Consulta (En progreso)"
+          : c.status === ClinicalAttentionStatus.WAITING_LAB
+          ? "Esperando Exámenes"
+          : "Listo para Facturar",
+    }));
+
+    return [...wr, ...ca].sort((a, b) => {
+      const prioA = a.source === "RECEPCION" ? 0 : 1;
+      const prioB = b.source === "RECEPCION" ? 0 : 1;
+      if (prioA !== prioB) return prioA - prioB;
+      const tA = new Date(a.startTime).getTime();
+      const tB = new Date(b.startTime).getTime();
+      if (tA !== tB) return tB - tA;
+      return (b.attentionId - a.attentionId) || (b.id - a.id);
+    });
     
-    const waitingExamsItems: KanbanCardData[] = clinicalAttentions
-        .filter(ca => ca.status === ClinicalAttentionStatus.WAITING_LAB)
-        .map(ca => ({
-            id: ca.id,
-            patientName: ca.animalName,
-            reason: 'Esperando Laboratorio',
-            vetName: ca.attendingEmployeeFullName,
-            startTime: ca.visitDate,
-            attentionId: ca.attentionId
-        }));
-        
-    const readyToBillItems: KanbanCardData[] = clinicalAttentions
-        .filter(ca => ca.status === ClinicalAttentionStatus.READY_TO_BILL)
-        .map(ca => ({
-            id: ca.id,
-            patientName: ca.animalName,
-            reason: 'Listo para Facturación',
-            vetName: ca.attendingEmployeeFullName,
-            startTime: ca.visitDate,
-            attentionId: ca.attentionId
-        }));
+  }, [waitingRoom, clinicalAttentions]);
 
-    if (loading) {
-        return <div className="flex justify-center items-center h-screen">Cargando consultas...</div>;
-    }
-
-    if (error) {
-        return <div className="flex justify-center items-center h-screen text-red-500">{error}</div>;
-    }
-
-    return (
-        <div className="h-full bg-gray-50 p-4 sm:p-6">
-            <div className="max-w-screen-2xl mx-auto">
-                <div className="mb-6 flex justify-between items-center">
-                    <div>
-                        <h1 className="text-3xl font-bold text-slate-900">Consultas del Día</h1>
-                        <p className="text-gray-600 mt-1">Flujo en tiempo real de los pacientes en el área clínica.</p>
-                    </div>
-                    <Button onClick={fetchData} disabled={loading}>
-                        {loading ? 'Actualizando...' : 'Actualizar'}
-                    </Button>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                    <KanbanColumn title="Sala de Espera" items={waitingRoomItems} />
-                    <KanbanColumn title="En Consulta" items={inConsultationItems} />
-                    <KanbanColumn title="Esperando Exámenes" items={waitingExamsItems} />
-                    <KanbanColumn title="Listo para Facturar" items={readyToBillItems} />
-                </div>
-            </div>
-        </div>
+  const filteredItems = useMemo(() => {
+    if (filters.status === "ALL") return allItems;
+    if (filters.status === "WAITING") return allItems.filter((i) => i.source === "RECEPCION");
+    return allItems.filter((i) =>
+      i.source === "CLINICA" &&
+      (
+        (filters.status === ClinicalAttentionStatus.OPEN && i.statusLabel.includes("Abierta")) ||
+        (filters.status === ClinicalAttentionStatus.IN_PROGRESS && i.statusLabel.includes("En progreso")) ||
+        (filters.status === ClinicalAttentionStatus.WAITING_LAB && i.statusLabel.includes("Esperando")) ||
+        (filters.status === ClinicalAttentionStatus.READY_TO_BILL && i.statusLabel.includes("Facturar"))
+      )
     );
+  }, [allItems, filters.status]);
+
+  const handleCreated = useCallback(
+    (_attention: AttentionResponse) => {
+      setIsCreateModalOpen(false);
+      fetchData();
+    },
+    [fetchData]
+  );
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-[60vh]">Cargando consultas...</div>;
+  }
+
+  if (error) {
+    return <div className="flex justify-center items-center h-[60vh] text-red-500">{error}</div>;
+  }
+
+  return (
+    <div className="h-full bg-gray-50 p-4 sm:p-6">
+      <div className="max-w-screen-2xl mx-auto">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Consultas del Día</h1>
+            <p className="text-gray-600 mt-1">Todas las atenciones clínicas en una sola vista.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={fetchData} className="gap-2">
+              <RefreshCcw className="h-4 w-4" />
+              Actualizar
+            </Button>
+            <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+              <PlusCircle className="h-4 w-4" />
+              Nueva Recepción
+            </Button>
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <ConsultoryFilters value={filters} onChange={setFilters} />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+          {filteredItems.map((item) => (
+            <ConsultationCard key={`${item.source}-${item.attentionId}-${item.id}`} data={item} />
+          ))}
+        </div>
+
+        {filteredItems.length === 0 && (
+          <div className="text-center text-gray-500 mt-10">No hay registros para los filtros seleccionados.</div>
+        )}
+
+        <NewAttentionModal open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} onCreated={handleCreated} />
+      </div>
+    </div>
+  );
 }

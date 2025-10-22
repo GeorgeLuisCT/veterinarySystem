@@ -37,75 +37,103 @@ export function NavMain({
   useEffect(() => {
     if (wasNavigated) {
       setLoadingUrl(null);
-      if (isMobile) {
-        setOpenMobile(false);
-      }
+      if (isMobile) setOpenMobile(false);
       setWasNavigated(false);
     }
-  }, [pathname]);
+  }, [pathname, wasNavigated, isMobile, setOpenMobile]);
 
   const userRoles = userInfo?.roles || [];
 
   const filteredItems = items
     .filter((section) => section.rolesAllowed.some((role) => userRoles.includes(role as RoleName)))
-    .map((section) => ({
-      ...section,
-      isActive: pathname.startsWith(section.url),
-      items: section.items?.filter((subItem) =>
-        subItem.rolesAllowed.some((role) => userRoles.includes(role as RoleName))
-      ),
-    }));
+    .map((section) => {
+      const childItems =
+        section.items?.filter((subItem) =>
+          subItem.rolesAllowed.some((role) => userRoles.includes(role as RoleName))
+        ) ?? [];
+      return {
+        ...section,
+        items: childItems,
+        hasChildren: childItems.length > 0,
+        isActive: pathname.startsWith(section.url),
+      };
+    });
 
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{mainTitle}</SidebarGroupLabel>
       <SidebarMenu>
-        {filteredItems.map((item) => (
-          <Collapsible
-            key={item.title}
-            asChild
-            defaultOpen={item.isActive}
-            className="group/collapsible"
-          >
-            <SidebarMenuItem>
-              <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title}>
+        {filteredItems.map((item) =>
+          item.hasChildren ? (
+            <Collapsible
+              key={item.title}
+              asChild
+              defaultOpen={item.isActive}
+              className="group/collapsible"
+            >
+              <SidebarMenuItem>
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton tooltip={item.title}>
+                    {loadingUrl === item.url ? (
+                      <Loader2 className="animate-spin mr-2" />
+                    ) : (
+                      item.icon && <item.icon />
+                    )}
+                    <span>{item.title}</span>
+                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    {item.items.map((subItem) => (
+                      <SidebarMenuSubItem key={subItem.title}>
+                        <SidebarMenuSubButton asChild>
+                          <Link
+                            href={subItem.url}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setLoadingUrl(subItem.url);
+                              setWasNavigated(true);
+                              router.push(subItem.url);
+                            }}
+                          >
+                            {loadingUrl === subItem.url ? (
+                              <Loader2 className="animate-spin mr-2" />
+                            ) : null}
+                            {subItem.title}
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </SidebarMenuItem>
+            </Collapsible>
+          ) : (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton asChild tooltip={item.title}>
+                <Link
+                  href={item.url}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setLoadingUrl(item.url);
+                    setWasNavigated(true);
+                    router.push(item.url);
+                  }}
+                  className="flex items-center"
+                >
                   {loadingUrl === item.url ? (
                     <Loader2 className="animate-spin mr-2" />
                   ) : (
                     item.icon && <item.icon />
                   )}
                   <span>{item.title}</span>
-                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                </SidebarMenuButton>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <SidebarMenuSub>
-                  {item.items?.map((subItem) => (
-                    <SidebarMenuSubItem key={subItem.title}>
-                      <SidebarMenuSubButton asChild>
-                        <Link
-                          href={subItem.url}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setLoadingUrl(subItem.url);
-                            setWasNavigated(true);
-                            router.push(subItem.url);
-                          }}
-                        >
-                          {loadingUrl === subItem.url ? (
-                            <Loader2 className="animate-spin mr-2" />
-                          ) : null}
-                          {subItem.title}
-                        </Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  ))}
-                </SidebarMenuSub>
-              </CollapsibleContent>
+                  <ChevronRight className="ml-auto opacity-70 group-hover:opacity-100 transition-opacity duration-150" />
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
-          </Collapsible>
-        ))}
+          )
+        )}
       </SidebarMenu>
     </SidebarGroup>
   );

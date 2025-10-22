@@ -1,530 +1,318 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-  ClipboardList,
-  Activity,
-  CheckCircle2,
-  Ban,
-  CalendarClock,
-  Plus,
-  RefreshCw,
-  Loader2,
-  Stethoscope,
-  Building,
-  Users,
-  FileCheck2,
-  Clock,
-} from "lucide-react";
+import { PlusCircle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TableCaption,
-} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import SurgicalReportService from "../service/surgical-report-service";
-import { SurgicalReportSummaryResponse } from "../types/surgical-report-response";
-import {
-  SurgicalReportStatus,
-  SurgicalReportStatusLabels,
-} from "../enums/surgical-report-status";
-import { CreateSurgicalOrderModal } from "../components/operating-room/create-surgical-order-modal";
-import SurgicalOrderService from "../../schedule/service/surgical-order-service";
-import { SurgicalOrderResponse } from "../../schedule/types/surgical-order-response";
-import { SurgicalOrderStatus } from "../../schedule/enums/surgical-order-status";
-import { SurgicalOrderStatusLabels } from "../../schedule/enums/surgical-order-status";
 import { useUser } from "@/context/user-context";
 
-// NEW: Attentions (WAITING/SURGERY)
+import SurgicalReportService from "../service/surgical-report-service";
+import type { SurgicalReportSummaryResponse } from "../types/surgical-report-response";
+import { SurgicalReportStatus } from "../enums/surgical-report-status";
+
+import { SurgicalOrderStatus } from "../../schedule/enums/surgical-order-status";
+import SurgicalOrderService from "../../schedule/service/surgical-order-service";
+import type { SurgicalOrderResponse } from "../../schedule/types/surgical-order-response";
+
 import AttentionService from "@/app/dashboard/schedule/service/attention-service";
-import { AttentionResponse } from "@/app/dashboard/schedule/types/attention-response";
+import type { AttentionResponse } from "@/app/dashboard/schedule/types/attention-response";
 import { AttentionStatus } from "@/app/dashboard/schedule/enums/attention-status";
 import { AttentionType } from "@/app/dashboard/schedule/enums/attention-type";
 
-type KanbanColumnConfig = {
-  status: SurgicalReportStatus;
-  title: string;
-  icon: React.ReactNode;
-  accentClass: string;
-};
+import SurgeryFilters, { type SurgeryFilters as Filters } from "../components/operating-room/surgery-filters";
+import SurgeryCard, { type SurgeryCardData } from "../components/operating-room/surgery-card";
+import SurgicalOrderCard from "../components/operating-room/surgical-order-card";
+import { CreateSurgicalOrderModal } from "../components/operating-room/create-surgical-order-modal";
 
-// UPDATED: Quitamos COMPLETED y CANCELLED; añadimos READY_TO_BILL
-const columnsConfig: KanbanColumnConfig[] = [
-  {
-    status: SurgicalReportStatus.DRAFT,
-    title: "Borradores",
-    icon: <ClipboardList className="h-4 w-4 text-slate-500" />,
-    accentClass: "border-t-slate-400",
-  },
-  {
-    status: SurgicalReportStatus.IN_PROGRESS,
-    title: "En curso",
-    icon: <Activity className="h-4 w-4 text-blue-500" />,
-    accentClass: "border-t-blue-500",
-  },
-  {
-    status: SurgicalReportStatus.READY_TO_BILL,
-    title: "Listos para facturar",
-    icon: <FileCheck2 className="h-4 w-4 text-emerald-600" />,
-    accentClass: "border-t-emerald-600",
-  },
-];
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const dateFormatter = new Intl.DateTimeFormat("es-PE", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
+function formatLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
-const timeFormatter = new Intl.DateTimeFormat("es-PE", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
-const formatDate = (value?: string | null) => {
-  if (!value) return "Sin fecha";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value as string;
-  return dateFormatter.format(date);
-};
-
-const formatDateTime = (value?: string | null) => {
-  if (!value) return "Sin programación";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value as string;
-  return `${dateFormatter.format(date)} • ${timeFormatter.format(date)}`;
-};
-
-const filterReports = (reports: SurgicalReportSummaryResponse[], term: string) => {
-  if (!term) return reports;
-  const normalized = term.trim().toLowerCase();
-  return reports.filter((report) => {
-    const haystack = [
-      report.animalName,
-      report.surgeonFullName,
-      report.anesthesiologistFullName,
-      report.operatingRoomName,
-      report.branch?.name,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-    return haystack.includes(normalized) || String(report.attentionId).includes(normalized);
-  });
-};
-
-// UPDATED: Seed inicial solo para los estados que renderizamos
-const groupByStatus = (reports: SurgicalReportSummaryResponse[]) =>
-  columnsConfig.reduce<Record<SurgicalReportStatus, SurgicalReportSummaryResponse[]>>(
-    (acc, column) => {
-      acc[column.status] = reports.filter((report) => report.status === column.status);
-      return acc;
-    },
-    {
-      [SurgicalReportStatus.DRAFT]: [],
-      [SurgicalReportStatus.IN_PROGRESS]: [],
-      [SurgicalReportStatus.READY_TO_BILL]: [],
-      // Los demás estados se omiten del tablero
-      [SurgicalReportStatus.COMPLETED]: [],
-      [SurgicalReportStatus.CANCELLED]: [],
-    }
-  );
-
-const KpiCard = ({
-  title,
-  value,
-  icon,
-}: {
-  title: string;
-  value: string;
-  icon: React.ReactNode;
-}) => (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between pb-2">
-      <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-      {icon}
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-semibold">{value}</div>
-    </CardContent>
-  </Card>
-);
-
-const SurgicalReportCard = ({
-  report,
-  onView,
-}: {
-  report: SurgicalReportSummaryResponse;
-  onView: (reportId: number) => void;
-}) => (
-  <Card className="shadow-sm">
-    <CardContent className="p-4 space-y-3">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-base font-semibold text-slate-900">{report.animalName}</p>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <ClipboardList className="h-3 w-3" />
-            <span>Atención #{report.attentionId}</span>
-          </div>
-        </div>
-        <Badge variant="outline">{SurgicalReportStatusLabels[report.status]}</Badge>
-      </div>
-      <div className="space-y-2 text-sm text-slate-600">
-        <div className="flex items-center gap-2">
-          <CalendarClock className="h-4 w-4 text-blue-500" />
-          <span>{formatDate(report.surgeryStartAt)}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <CalendarClock className="h-4 w-4 text-blue-500" />
-          <span>{formatDate(report.surgeryEndAt)}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Stethoscope className="h-4 w-4 text-emerald-500" />
-          <span>{report.surgeonFullName ?? "Cirujano no asignado"}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-sky-500" />
-          <span>{report.anesthesiologistFullName ?? "Anestesista no asignado"}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Building className="h-4 w-4 text-purple-500" />
-          <span>{report.operatingRoomName ?? "Quirófano sin asignar"}</span>
-        </div>
-      </div>
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={() => onView(report.id)}
-      >
-        Ver detalles
-      </Button>
-    </CardContent>
-  </Card>
-);
-
-// NEW: Card para "por atención" (WAITING/SURGERY)
-const WaitingSurgeryCard = ({ attention }: { attention: AttentionResponse }) => {
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 15000);
-    return () => clearInterval(t);
-  }, []);
-
-  const diff = now.getTime() - new Date(attention.checkInTime ?? Date.now()).getTime();
-  const minutes = Math.max(0, Math.floor(diff / 60000));
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  const timeInStatus = days > 0 ? `${days}d ${hours % 24}h` : hours > 0 ? `${hours}h ${minutes % 60}m` : `${minutes} min`;
-
-  return (
-    <Card className="shadow-sm">
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-base font-semibold text-slate-900">{attention.animalBasicResponse.animalName}</p>
-            <p className="text-xs text-muted-foreground">Atención #{attention.id}</p>
-          </div>
-          <span className="text-xs text-slate-500 inline-flex items-center"><Clock className="h-3 w-3 mr-1" />{timeInStatus}</span>
-        </div>
-        <div className="space-y-2 text-sm text-slate-600">
-          <div className="flex items-center gap-2">
-            <Stethoscope className="h-4 w-4" />
-            <span>{attention.attendingEmployeeFullName ?? "Profesional no asignado"}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <ClipboardList className="h-4 w-4" />
-            <span>{attention.clinicalServiceName ?? "Procedimiento quirúrgico"}</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+function toDateParam(v?: string | Date | null): string | undefined {
+  if (!v) return undefined;
+  return v instanceof Date ? formatLocalDate(v) : v;
+}
 
 export default function OperatingRoomPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const { userInfo } = useUser();
-  const branchId = userInfo?.selectedBranch.id;
+  const selectedBranchId = userInfo?.selectedBranch?.id || undefined;
+
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
+  const [filters, setFilters] = useState<Filters>({
+    status: "ALL",
+    startDate: today,
+    endDate: today,
+  });
+
+  const [search, setSearch] = useState("");
+  const [activeTab, setActiveTab] = useState<"board" | "orders">("board");
 
   const [reports, setReports] = useState<SurgicalReportSummaryResponse[]>([]);
-  const [reportsLoading, setReportsLoading] = useState(true);
-  const [reportsRefreshing, setReportsRefreshing] = useState(false);
   const [orders, setOrders] = useState<SurgicalOrderResponse[]>([]);
-  const [ordersLoading, setOrdersLoading] = useState(true);
-
-  // NEW: Attentions en espera para cirugía
   const [waitingSurgery, setWaitingSurgery] = useState<AttentionResponse[]>([]);
-  const [waitingLoading, setWaitingLoading] = useState(true);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const loadReports = useCallback(
-    async (silent = false) => {
-      if (!silent) setReportsLoading(true);
-      try {
-        const response = await SurgicalReportService.list({
-          page: 0,
-          size: 150,
-          branchId: branchId ?? undefined,
-        });
-        setReports(response.content);
-      } catch (error) {
-        console.error("Error loading surgical reports:", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "No se pudieron cargar los reportes quirúrgicos.",
-        });
-      } finally {
-        if (!silent) setReportsLoading(false);
-      }
-    },
-    [toast, branchId]
-  );
+  const loadReports = useCallback(async () => {
+    const startDate = toDateParam(filters.startDate);
+    const endDate = toDateParam(filters.endDate);
+
+    const statuses =
+      filters.status === "ALL" || filters.status === "WAITING"
+        ? [SurgicalReportStatus.DRAFT, SurgicalReportStatus.IN_PROGRESS, SurgicalReportStatus.READY_TO_BILL]
+        : [filters.status];
+
+    const resp = await SurgicalReportService.list({
+      page: 0,
+      size: 200,
+      statuses,
+      branchId: selectedBranchId,
+      startDate,
+      endDate,
+    });
+    setReports(resp.content);
+  }, [filters.status, filters.startDate, filters.endDate, selectedBranchId]);
 
   const loadOrders = useCallback(async () => {
-    setOrdersLoading(true);
-    try {
-      const response = await SurgicalOrderService.list({
-        page: 0,
-        size: 25,
-        branchId: branchId ?? undefined,
-        status: SurgicalOrderStatus.PENDING,
-      });
+    const resp = await SurgicalOrderService.list({
+      page: 0,
+      size: 200,
+      branchId: selectedBranchId,
+      status: SurgicalOrderStatus.PENDING,
+    });
+    setOrders(resp.content);
+  }, [selectedBranchId]);
 
-      console.log(response);
-      setOrders(response.content);
+  const loadWaiting = useCallback(async () => {
+    const startDate = toDateParam(filters.startDate);
+    const endDate = toDateParam(filters.endDate);
+
+    const resp = await AttentionService.list({
+      status: AttentionStatus.WAITING,
+      type: AttentionType.SURGERY,
+      size: 200,
+      branchId: selectedBranchId,
+      startDate,
+      endDate,
+    });
+    setWaitingSurgery(resp.content);
+  }, [filters.startDate, filters.endDate, selectedBranchId]);
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    try {
+      await Promise.all([loadReports(), loadOrders(), loadWaiting()]);
     } catch (error) {
-      console.error("Error loading surgical orders:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "No se pudieron cargar las órdenes quirúrgicas.",
+        description: "No se pudo cargar la información de quirófano.",
       });
+      console.error(error);
     } finally {
-      setOrdersLoading(false);
+      setLoading(false);
     }
-  }, [toast, branchId]);
-
-  // NEW: cargar atenciones en espera (quirúrgicas)
-  const loadWaitingSurgery = useCallback(async () => {
-    setWaitingLoading(true);
-    try {
-      const resp = await AttentionService.list({
-        status: AttentionStatus.WAITING,
-        type: AttentionType.SURGERY,
-        size: 100,
-        branchId: branchId ?? undefined,
-      });
-      setWaitingSurgery(resp.content);
-    } catch (error) {
-      console.error("Error loading waiting surgical attentions:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudieron cargar las atenciones quirúrgicas en espera.",
-      });
-    } finally {
-      setWaitingLoading(false);
-    }
-  }, [toast, branchId]);
+  }, [loadReports, loadOrders, loadWaiting, toast]);
 
   useEffect(() => {
-    void loadReports();
-    void loadOrders();
-    void loadWaitingSurgery();
-  }, [loadReports, loadOrders, loadWaitingSurgery]);
+    if (showCreateModal) return;
+  
+    void fetchAll();
+    const i = setInterval(fetchAll, 60000);
+    return () => clearInterval(i);
+  }, [fetchAll, showCreateModal]);
+  
 
-  const handleRefresh = async () => {
-    setReportsRefreshing(true);
-    await Promise.all([loadReports(true), loadOrders(), loadWaitingSurgery()]);
-    setReportsRefreshing(false);
-  };
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([loadReports(), loadOrders(), loadWaiting()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [loadReports, loadOrders, loadWaiting]);
 
-  const filteredReports = useMemo(
-    () => filterReports(reports, searchTerm),
-    [reports, searchTerm]
-  );
+  const unifiedItems: SurgeryCardData[] = useMemo(() => {
+    const waitingItems: SurgeryCardData[] = waitingSurgery.map((att) => ({
+      kind: "WAITING",
+      id: att.id,
+      attentionId: att.id,
+      animalName: att.animalBasicResponse?.animalName ?? "Paciente",
+      species: att.animalBasicResponse?.animalSpecies,
+      breed: att.animalBasicResponse?.animalBreed,
+      vetName: att.attendingEmployeeFullName ?? null,
+      reason: att.clinicalServiceName ?? "Procedimiento quirúrgico",
+      startTime: att.checkInTime ?? new Date().toISOString(),
+      badgeLabel: "Sala de Espera",
+    }));
 
-  const groupedReports = useMemo(
-    () => groupByStatus(filteredReports),
-    [filteredReports]
-  );
+    const reportItems: SurgeryCardData[] = reports.map((r) => ({
+      kind: "REPORT",
+      id: r.id,
+      attentionId: r.attentionId,
+      animalName: r.animalBasicResponse?.animalName ?? "Paciente",
+      species: r.animalBasicResponse?.animalSpecies,
+      breed: r.animalBasicResponse?.animalBreed,
+      vetName: r.surgeonFullName ?? null,
+      reason: r.clinicalServiceName ?? "Reporte quirúrgico",
+      startTime: r.surgeryStartAt ?? new Date().toISOString(),
+      badgeLabel:
+        r.status === SurgicalReportStatus.IN_PROGRESS
+          ? "En curso"
+          : r.status === SurgicalReportStatus.READY_TO_BILL
+          ? "Listo para Facturar"
+          : "Borrador",
+      reportStatus: r.status,
+      operatingRoomName: r.operatingRoomName ?? undefined,
+    }));
 
-  const draftCount = groupedReports[SurgicalReportStatus.DRAFT]?.length ?? 0;
-  const inProgressCount = groupedReports[SurgicalReportStatus.IN_PROGRESS]?.length ?? 0;
-  const readyToBillCount = groupedReports[SurgicalReportStatus.READY_TO_BILL]?.length ?? 0;
+    const list = [...waitingItems, ...reportItems];
 
-  const handleViewReport = (reportId: number) => {
-    router.push(`/dashboard/clinical/operating-room/${reportId}`);
-  };
+    const prio = (it: SurgeryCardData) => {
+      if (it.kind === "WAITING") return 0;
+      if (it.reportStatus === SurgicalReportStatus.IN_PROGRESS) return 1;
+      if (it.reportStatus === SurgicalReportStatus.READY_TO_BILL) return 2;
+      return 3;
+    };
+
+    return list
+      .filter((it) => {
+        if (filters.status === "ALL") return true;
+        if (filters.status === "WAITING") return it.kind === "WAITING";
+        return it.kind === "REPORT" && it.reportStatus === filters.status;
+      })
+      .filter((it) => {
+        if (!search.trim()) return true;
+        const haystack = [
+          it.animalName,
+          it.vetName ?? "",
+          it.reason ?? "",
+          it.operatingRoomName ?? "",
+          String(it.attentionId ?? ""),
+          String(it.id ?? ""),
+        ]
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(search.trim().toLowerCase());
+      })
+      .sort((a, b) => {
+        const pa = prio(a);
+        const pb = prio(b);
+        if (pa !== pb) return pa - pb;
+        const ta = new Date(a.startTime).getTime();
+        const tb = new Date(b.startTime).getTime();
+        if (ta !== tb) return tb - ta;
+        return (b.attentionId ?? 0) - (a.attentionId ?? 0) || b.id - a.id;
+      });
+  }, [waitingSurgery, reports, filters.status, search]);
+
+  const filteredOrders = useMemo(() => {
+    const inRange = (d?: string | null) => {
+      if (!filters.startDate || !filters.endDate) return true;
+      if (!d) return false;
+      const dt = new Date(d);
+      const start = new Date(filters.startDate instanceof Date ? filters.startDate : new Date(filters.startDate));
+      const end = new Date(filters.endDate instanceof Date ? filters.endDate : new Date(filters.endDate));
+      start.setHours(0,0,0,0);
+      end.setHours(23,59,59,999);
+      return dt.getTime() >= start.getTime() && dt.getTime() <= end.getTime();
+    };
+
+    return orders
+      .filter((o) => inRange(o.scheduledAppointmentStart))
+      .filter((o) => {
+        if (!search.trim()) return true;
+        const haystack = [
+          o.recommendedServiceName ?? "",
+          o.animalName ?? "",
+          o.requestedByFullName ?? "",
+          String(o.id),
+        ].join(" ").toLowerCase();
+        return haystack.includes(search.trim().toLowerCase());
+      })
+      .sort((a, b) => {
+        const ta = timeNum(a.scheduledAppointmentStart);
+        const tb = timeNum(b.scheduledAppointmentStart);
+        if (ta !== tb) return ta - tb;
+        return a.id - b.id;
+      });
+
+    function timeNum(s?: string | null) {
+      return s ? new Date(s).getTime() : Number.MAX_SAFE_INTEGER;
+    }
+  }, [orders, filters.startDate, filters.endDate, search]);
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-[60vh]">Cargando quirófano...</div>;
+  }
 
   return (
     <div className="h-full bg-gray-50 p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <div className="max-w-screen-2xl mx-auto">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Sala de operaciones</h1>
-            <p className="text-sm text-muted-foreground">
-              Seguimiento de reportes quirúrgicos, atenciones en espera y coordinación de órdenes.
-            </p>
+            <h1 className="text-3xl font-bold text-slate-900">Sala de Operaciones</h1>
+            <p className="text-gray-600 mt-1">Reportes quirúrgicos, atenciones y órdenes en una sola vista.</p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={handleRefresh} disabled={reportsRefreshing}>
-              {reportsRefreshing ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Actualizando...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Actualizar
-                </>
-              )}
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleRefresh} className="gap-2" disabled={refreshing}>
+              <RefreshCcw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+              {refreshing ? "Actualizando..." : "Actualizar"}
             </Button>
-            <Button onClick={() => setShowCreateModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nueva orden
+            <Button onClick={() => setShowCreateModal(true)} className="gap-2">
+              <PlusCircle className="h-4 w-4" />
+              Nueva Orden
             </Button>
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <KpiCard title="Borradores activos" value={String(draftCount)} icon={<ClipboardList className="h-5 w-5 text-slate-500" />} />
-          <KpiCard title="Cirugías en curso" value={String(inProgressCount)} icon={<Activity className="h-5 w-5 text-blue-500" />} />
-          <KpiCard title="Listos para facturar" value={String(readyToBillCount)} icon={<FileCheck2 className="h-5 w-5 text-emerald-600" />} />
+        <div className="mb-4 flex flex-col gap-3">
+          <SurgeryFilters value={filters} onChange={setFilters} />
         </div>
 
-        <Card>
-          <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <CardTitle className="text-xl">Tablero quirúrgico</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Organiza los reportes por estado y accede rápidamente al detalle.
-              </p>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="board">Tablero</TabsTrigger>
+            <TabsTrigger value="orders">Órdenes</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="board">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+              {unifiedItems.map((item) => (
+                <SurgeryCard key={`${item.kind}-${item.attentionId ?? "na"}-${item.id}`} data={item} />
+              ))}
             </div>
-            <Input
-              placeholder="Buscar por paciente, cirujano, quirófano o atención..."
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              className="w-full lg:w-80"
-            />
-          </CardHeader>
-          <CardContent>
-            {reportsLoading ? (
-              <div className="flex items-center justify-center h-64 text-muted-foreground">
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                Cargando reportes quirúrgicos...
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                {columnsConfig.map((column) => (
-                  <div
-                    key={column.status}
-                    className={`bg-gray-100 rounded-lg p-3 border-t-4 ${column.accentClass}`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                        {column.icon}
-                        <span>{column.title}</span>
-                      </div>
-                      <span className="inline-flex h-6 min-w-[2rem] items-center justify-center rounded-full bg-white px-2 text-xs font-semibold text-slate-600 shadow-sm">
-                        {groupedReports[column.status]?.length ?? 0}
-                      </span>
-                    </div>
-                    <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
-                      {(groupedReports[column.status] ?? []).length === 0 ? (
-                        <p className="text-xs text-muted-foreground">
-                          No hay reportes en este estado.
-                        </p>
-                      ) : (
-                        groupedReports[column.status]!.map((report) => (
-                          <SurgicalReportCard
-                            key={report.id}
-                            report={report}
-                            onView={handleViewReport}
-                          />
-                        ))
-                      )}
-                    </div>
-                  </div>
-                ))}
-
-                {/* NEW: Columna "Por atención (quirúrgica)" - WAITING + SURGERY */}
-                <div className={`bg-gray-100 rounded-lg p-3 border-t-4 border-t-amber-500`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                      <Users className="h-4 w-4 text-amber-600" />
-                      <span>Por atención (quirúrgica)</span>
-                    </div>
-                    <span className="inline-flex h-6 min-w-[2rem] items-center justify-center rounded-full bg-white px-2 text-xs font-semibold text-slate-600 shadow-sm">
-                      {waitingSurgery.length}
-                    </span>
-                  </div>
-                  <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
-                    {waitingLoading ? (
-                      <p className="text-xs text-muted-foreground flex items-center"><Loader2 className="h-4 w-4 mr-2 animate-spin" />Cargando atenciones...</p>
-                    ) : waitingSurgery.length === 0 ? (
-                      <p className="text-xs text-muted-foreground">No hay atenciones quirúrgicas en espera.</p>
-                    ) : (
-                      waitingSurgery.map((att) => (
-                        <WaitingSurgeryCard key={att.id} attention={att} />
-                      ))
-                    )}
-                  </div>
-                </div>
-                {/* FIN columna nueva */}
-              </div>
+            {unifiedItems.length === 0 && (
+              <div className="text-center text-gray-500 mt-10">No hay registros para los filtros seleccionados.</div>
             )}
-          </CardContent>
-        </Card>
+          </TabsContent>
 
-        <Table className="[caption-side:bottom]">
-          <TableCaption>
-            Mostrando {orders.length} órdenes con estado pendiente
-            {branchId ? ` en ${userInfo?.selectedBranch.name}` : ""}.
-          </TableCaption>
-
-          <TableHeader>
-            <TableRow>
-              <TableHead>#</TableHead>
-              <TableHead>Servicio recomendado</TableHead>
-              <TableHead>Paciente</TableHead>
-              <TableHead>Solicitante</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Programación</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {orders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell>{order.id}</TableCell>
-                <TableCell>{order.recommendedServiceName}</TableCell>
-                <TableCell>{order.animalName}</TableCell>
-                <TableCell>{order.requestedByFullName ?? "Sin asignar"}</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">
-                    {SurgicalOrderStatusLabels[order.status]}
-                  </Badge>
-                </TableCell>
-                <TableCell>{formatDateTime(order.scheduledAppointmentStart)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+          <TabsContent value="orders">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+              {filteredOrders.map((o) => (
+                <SurgicalOrderCard key={o.id} order={o} />
+              ))}
+            </div>
+            {filteredOrders.length === 0 && (
+              <div className="text-center text-gray-500 mt-10">No hay órdenes pendientes para los filtros seleccionados.</div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       {showCreateModal && (
@@ -532,10 +320,12 @@ export default function OperatingRoomPage() {
           open={showCreateModal}
           onClose={() => setShowCreateModal(false)}
           onCreated={() => {
-            void loadReports(true);
-            toast({
-              title: "Tablero actualizado",
-              description: "El nuevo reporte ya está disponible en el tablero.",
+            setShowCreateModal(false);
+            Promise.all([loadReports(), loadOrders(), loadWaiting()]).then(() => {
+              toast({
+                title: "Tablero actualizado",
+                description: "La nueva orden/reporte está disponible.",
+              });
             });
           }}
         />

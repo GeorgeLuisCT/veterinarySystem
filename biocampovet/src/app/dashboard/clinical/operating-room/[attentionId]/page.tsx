@@ -181,7 +181,7 @@ export default function SurgicalReportDetailPage() {
 
                 <span className="inline-flex max-w-[20rem] items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-blue-700 ring-1 ring-blue-200">
                   <span className="sr-only">Paciente</span>
-                  <span className="truncate font-normal">{detail.summary.animalName}</span>
+                  <span className="truncate font-normal">{detail.summary.animalBasicResponse.animalName}</span>
                 </span>
 
                 <span className="hidden md:inline select-none">·</span>
@@ -229,7 +229,7 @@ export default function SurgicalReportDetailPage() {
       <div className="w-full flex flex-col gap-4 sm:flex-row pt-4 mx-2">
 
         <PatientDetails
-          animalId={detail.summary.animalId}
+          animalId={detail.summary.animalBasicResponse.animalId}
           className="sm:basis-[21%] sm:shrink-0 w-full"
         />
 

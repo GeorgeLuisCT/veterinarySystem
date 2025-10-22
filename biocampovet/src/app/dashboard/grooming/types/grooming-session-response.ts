@@ -1,6 +1,7 @@
 import { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
 import { ProductUnitType } from "@/app/dashboard/inventory/products/enums/product-unit-type";
 import { GroomingStatus } from "../enums/grooming-status";
+import { AnimalBasicResponse } from "../../patients/animals/types/animal-basic-response";
 
 export interface GroomingMaterialResponse {
   id: number;
@@ -20,8 +21,8 @@ export interface GroomingSessionSummaryResponse {
   startedAt: string | null;
   finishedAt: string | null;
   status: GroomingStatus;
-  animalId: number | null;
-  animalName: string | null;
+  animalBasicResponse: AnimalBasicResponse;
+  serviceName: string | null;
   branch: BranchResponse | null;
   assignedProfessionalId: number | null;
   assignedProfessionalFullName: string | null;
