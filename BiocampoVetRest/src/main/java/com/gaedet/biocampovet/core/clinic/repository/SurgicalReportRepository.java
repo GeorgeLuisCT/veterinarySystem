@@ -18,6 +18,7 @@ public interface SurgicalReportRepository extends JpaRepository<SurgicalReport, 
     @Override
     @EntityGraph(attributePaths = {
             "attention",
+            "attention.service",
             "attention.animal",
             "attention.branch",
             "surgeon",

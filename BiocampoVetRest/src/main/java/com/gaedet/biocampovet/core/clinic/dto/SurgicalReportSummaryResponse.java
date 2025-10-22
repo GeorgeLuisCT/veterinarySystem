@@ -1,5 +1,6 @@
 package com.gaedet.biocampovet.core.clinic.dto;
 
+import com.gaedet.biocampovet.core.animal.dto.AnimalBasicResponse;
 import com.gaedet.biocampovet.core.branches.dto.BranchResponse;
 import com.gaedet.biocampovet.core.clinic.enums.SurgicalReportStatus;
 import lombok.Builder;
@@ -18,8 +19,8 @@ public class SurgicalReportSummaryResponse {
     private final LocalDateTime surgeryStartAt;
     private final LocalDateTime surgeryEndAt;
     private final SurgicalReportStatus status;
-    private final Long animalId;
-    private final String animalName;
+    private final AnimalBasicResponse animalBasicResponse;
+    private final String clinicalServiceName;
     private final BranchResponse branch;
     private final Long surgeonId;
     private final String surgeonFullName;

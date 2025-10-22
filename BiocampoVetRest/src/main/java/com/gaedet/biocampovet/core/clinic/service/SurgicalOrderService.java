@@ -52,8 +52,6 @@ public class SurgicalOrderService {
             int size
     ) {
 
-        System.out.println("status: " + status + " animalId: " + animalId + " branchId: " + branchId + " recommendedServiceId: " + recommendedServiceId +  " page: " + page + " size: " + size);
-
         Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by("createdAt").descending());
         Page<SurgicalOrder> result = surgicalOrderRepository.findAll(
                 SurgicalOrderSpecs.byFilters(status, animalId, branchId, recommendedServiceId),
@@ -63,8 +61,6 @@ public class SurgicalOrderService {
         List<SurgicalOrderResponse> content = result.getContent().stream()
                 .map(SurgicalOrderMapper::toResponse)
                 .collect(Collectors.toList());
-
-        System.out.println("content: " + content.size());
 
         return PaginatedResponse.<SurgicalOrderResponse>builder()
                 .content(content)

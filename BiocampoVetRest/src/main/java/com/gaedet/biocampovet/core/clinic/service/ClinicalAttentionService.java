@@ -109,19 +109,22 @@ public class ClinicalAttentionService {
 
     @Transactional
     public ClinicalAttentionDetailResponse getOrCreateByAttentionId(Long attentionId) {
+
+        Attentions attention = attentionRepository.findById(attentionId)
+                .orElseThrow(() -> new IllegalArgumentException("Atención no encontrada: id=" + attentionId));
+
+        if (attention.getType() != AttentionType.CLINIC) {
+            throw new IllegalStateException(
+                    "Solo se puede crear una atención clínica para atenciones de tipo CLINIC. "
+                            + "Atención " + attentionId + " es de tipo " + attention.getType()
+            );
+        }
+
+        attentionRepository.promoteWaitingToInConsultation(attentionId);
+
         return clinicalAttentionRepository.findWithDetailsByAttentionId(attentionId)
                 .map(ClinicalAttentionMapper::toDetail)
                 .orElseGet(() -> {
-                    Attentions attention = attentionRepository.findById(attentionId)
-                            .orElseThrow(() -> new IllegalArgumentException("Atención no encontrada: id=" + attentionId));
-
-                    if (attention.getType() != AttentionType.CLINIC) {
-                        throw new IllegalStateException(
-                                "Solo se puede crear una atención clínica para atenciones de tipo CLINIC. "
-                                        + "Atención " + attentionId + " es de tipo " + attention.getType()
-                        );
-                    }
-
                     ClinicalAttention ca = ClinicalAttention.builder()
                             .attention(attention)
                             .visitDate(LocalDateTime.now())

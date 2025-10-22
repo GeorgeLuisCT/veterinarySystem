@@ -1,5 +1,6 @@
 package com.gaedet.biocampovet.core.clinic.mapper;
 
+import com.gaedet.biocampovet.core.animal.mapper.AnimalMapper;
 import com.gaedet.biocampovet.core.branches.dto.BranchResponse;
 import com.gaedet.biocampovet.core.branches.entity.Branch;
 import com.gaedet.biocampovet.core.clinic.dto.*;
@@ -31,8 +32,8 @@ public final class ClinicalAttentionMapper {
                 .attentionId(attention != null ? attention.getId() : null)
                 .status(entity.getStatus())
                 .visitDate(entity.getVisitDate())
-                .animalId(animal != null ? animal.getId() : null)
-                .animalName(animal != null ? animal.getName() : null)
+                .animalBasicResponse(animal != null ? AnimalMapper.toBasicResponse(animal) : null)
+                .clinicalServiceName(attention != null ? attention.getService().getName()  : null)
                 .branch(mapBranch(branch))
                 .attendingEmployeeId(employee != null ? employee.getId() : null)
                 .attendingEmployeeFullName(buildFullName(employee))

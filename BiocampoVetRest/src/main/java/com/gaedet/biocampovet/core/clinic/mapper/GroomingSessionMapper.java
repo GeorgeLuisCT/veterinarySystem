@@ -1,5 +1,6 @@
 package com.gaedet.biocampovet.core.clinic.mapper;
 
+import com.gaedet.biocampovet.core.animal.mapper.AnimalMapper;
 import com.gaedet.biocampovet.core.branches.dto.BranchResponse;
 import com.gaedet.biocampovet.core.branches.entity.Branch;
 import com.gaedet.biocampovet.core.clinic.dto.GroomingMaterialResponse;
@@ -33,8 +34,8 @@ public final class GroomingSessionMapper {
                 .startedAt(entity.getStartedAt())
                 .finishedAt(entity.getFinishedAt())
                 .status(entity.getStatus())
-                .animalId(animal != null ? animal.getId() : null)
-                .animalName(animal != null ? animal.getName() : null)
+                .animalBasicResponse(animal != null ? AnimalMapper.toBasicResponse(animal) : null)
+                .serviceName(attention != null ? attention.getService().getName() : null)
                 .branch(mapBranch(branch))
                 .assignedProfessionalId(professional != null ? professional.getId() : null)
                 .assignedProfessionalFullName(buildFullName(professional))

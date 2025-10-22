@@ -30,6 +30,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,18 +55,24 @@ public class AttentionService {
             Boolean emergency,
             Long appointmentId,
             Long clinicalServiceId,
+            LocalDate startDate,
+            LocalDate endDate,
             int page,
             int size
     ) {
         Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by("checkInTime").descending());
+
+        LocalDateTime from = (startDate != null) ? startDate.atStartOfDay() : null;
+        LocalDateTime to = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : null;
+
         Page<Attentions> result = attentionRepository.findAll(
-                AttentionSpecs.byFilters(type, status, branchId, animalId, emergency, appointmentId, clinicalServiceId),
+                AttentionSpecs.byFilters(type, status, branchId, animalId, emergency, appointmentId, clinicalServiceId, from, to),
                 pageable
         );
 
         List<AttentionResponse> responses = result.getContent().stream()
                 .map(AttentionMapper::toResponse)
-                .collect(Collectors.toList());
+                .toList();
 
         return PaginatedResponse.<AttentionResponse>builder()
                 .content(responses)

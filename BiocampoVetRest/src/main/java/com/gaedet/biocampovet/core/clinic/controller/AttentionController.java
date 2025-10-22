@@ -6,11 +6,13 @@ import com.gaedet.biocampovet.core.clinic.enums.AttentionsStatus;
 import com.gaedet.biocampovet.core.clinic.service.AttentionService;
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/attentions")
@@ -30,7 +32,9 @@ public class AttentionController {
             @RequestParam(required = false) Long animalId,
             @RequestParam(required = false) Boolean emergency,
             @RequestParam(required = false) Long appointmentId,
-            @RequestParam(required = false) Long clinicalServiceId
+            @RequestParam(required = false) Long clinicalServiceId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
         PaginatedResponse<AttentionResponse> response = attentionService.list(
                 type,
@@ -40,6 +44,8 @@ public class AttentionController {
                 emergency,
                 appointmentId,
                 clinicalServiceId,
+                startDate,
+                endDate,
                 page,
                 size
         );

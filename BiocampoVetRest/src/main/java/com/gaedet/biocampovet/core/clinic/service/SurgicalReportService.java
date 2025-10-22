@@ -73,19 +73,22 @@ public class SurgicalReportService {
 
     @Transactional
     public SurgicalReportDetailResponse getOrCreateByAttentionId(Long attentionId) {
+
+        Attentions attention = attentionRepository.findById(attentionId)
+                .orElseThrow(() -> new IllegalArgumentException("Atención no encontrada: id=" + attentionId));
+
+        if (attention.getType() != AttentionType.SURGERY) {
+            throw new IllegalStateException(
+                    "Solo se puede crear un reporte quirúrgico para atenciones de tipo SURGERY. "
+                            + "Atención " + attentionId + " es de tipo " + attention.getType()
+            );
+        }
+
+        attentionRepository.promoteWaitingToInProgress(attentionId);
+
         return surgicalReportRepository.findWithDetailsByAttention_Id(attentionId)
                 .map(SurgicalReportMapper::toDetail)
                 .orElseGet(() -> {
-                    Attentions attention = attentionRepository.findWithDetailsById(attentionId)
-                            .orElseThrow(() -> new IllegalArgumentException("Atención no encontrada: id=" + attentionId));
-
-                    if (attention.getType() != AttentionType.SURGERY) {
-                        throw new IllegalStateException(
-                                "Solo se puede crear un reporte quirúrgico para atenciones de tipo SURGERY. "
-                                        + "Atención " + attentionId + " es de tipo " + attention.getType()
-                        );
-                    }
-
                     SurgicalReport report = SurgicalReport.builder()
                             .attention(attention)
                             .status(SurgicalReportStatus.DRAFT)

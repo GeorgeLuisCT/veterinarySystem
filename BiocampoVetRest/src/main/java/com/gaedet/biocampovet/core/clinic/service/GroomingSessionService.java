@@ -56,19 +56,22 @@ public class GroomingSessionService {
 
     @Transactional
     public GroomingSessionDetailResponse getOrCreateByAttentionId(Long attentionId) {
+
+        Attentions attention = attentionRepository.findById(attentionId)
+                .orElseThrow(() -> new IllegalArgumentException("Atención no encontrada: id=" + attentionId));
+
+        if (attention.getType() != AttentionType.GROOMING) {
+            throw new IllegalStateException(
+                    "Solo se puede crear una sesión de grooming para atenciones de tipo GROOMING. "
+                            + "Atención " + attentionId + " es de tipo " + attention.getType()
+            );
+        }
+
+        attentionRepository.promoteWaitingToInProgress(attentionId);
+
         return groomingSessionRepository.findWithDetailsByAttention_Id(attentionId)
                 .map(GroomingSessionMapper::toDetail)
                 .orElseGet(() -> {
-                    Attentions attention = attentionRepository.findWithDetailsById(attentionId)
-                            .orElseThrow(() -> new IllegalArgumentException("Atención no encontrada: id=" + attentionId));
-
-                    if (attention.getType() != AttentionType.GROOMING) {
-                        throw new IllegalStateException(
-                                "Solo se puede crear una sesión de grooming para atenciones de tipo GROOMING. "
-                                        + "Atención " + attentionId + " es de tipo " + attention.getType()
-                        );
-                    }
-
                     GroomingSession entity = GroomingSession.builder()
                             .attention(attention)
                             .status(GroomingStatus.DRAFT)
