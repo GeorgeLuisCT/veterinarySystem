@@ -1,126 +1,203 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Map, MapPin, ClipboardList, Clock, Truck, PlayCircle, CheckCircle, RefreshCw } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ColumnDef } from "@tanstack/react-table";
+import DataTable from "@/components/data-table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { getAaxiosErrorMessage } from "@/helpers/error";
+import { FieldVisitStatus } from "../enums/field-visit-status";
+import VisitService from "../services/visit-service";
+import type { FieldVisitResponse, FieldVisitSummaryResponse } from "../types/visit-response";
+import { UpdateVisitRequest } from "../types/visit-request";
+import { FloatingLabelInput } from "@/components/floating-label-input";
 
-// --- Tipos de Datos (TypeScript) ---
-type FarmVisitStatus = 'Planificada' | 'En Progreso' | 'Completada';
-type FarmVisit = {
-    id: number;
-    clientId: number;
-    clientName: string;
-    farmName: string;
-    timeSlot: 'Mañana' | 'Tarde';
-    address: string;
-    objective: string;
-    status: FarmVisitStatus;
+type Filters = {
+  status?: FieldVisitStatus;
+  vetId?: number;
+  vehicleId?: number;
 };
 
+export default function FieldworkVisitsPage() {
+  const { toast } = useToast();
+  const [pageData, setPageData] = useState<import("@/types/paginated-response").PaginatedResponse<FieldVisitSummaryResponse> | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState<Filters>({});
 
-// --- DATOS SIMULADOS PARA LA RUTA DEL DÍA ---
-const todaysVisits: FarmVisit[] = [
-    { id: 101, clientId: 20, clientName: 'Hacienda San José', farmName: 'Finca Principal', timeSlot: 'Mañana', address: 'Carretera a Jaén Km 15', objective: 'Programa de vacunación anual del rebaño', status: 'En Progreso' },
-    { id: 102, clientId: 21, clientName: 'Ganadería El Roble', farmName: 'Establo 3', timeSlot: 'Mañana', address: 'Sector El Reposo, Cajaruro', objective: 'Diagnóstico reproductivo lote 3', status: 'Planificada' },
-    { id: 104, clientId: 22, clientName: 'Finca La Pradera', farmName: 'Corral de engorde', timeSlot: 'Tarde', address: 'Cruce a Bagua Grande', objective: 'Revisión de terneros y desparasitación', status: 'Planificada' },
-];
+  const columns = useMemo<ColumnDef<FieldVisitSummaryResponse>[]>(() => [
+    {
+      accessorKey: "scheduledDateTime",
+      header: "Fecha/Hora",
+      cell: ({ row }) => new Date(row.original.scheduledDateTime).toLocaleString(),
+    },
+    {
+      id: "target",
+      header: "Destino",
+      cell: ({ row }) => row.original.farmName ?? row.original.zoneName ?? "—",
+    },
+    {
+      accessorKey: "fieldVetName",
+      header: "Veterinario",
+    },
+    {
+      accessorKey: "vehicleName",
+      header: "Vehículo",
+    },
+    {
+      accessorKey: "status",
+      header: "Estado",
+    },
+  ], []);
 
-const statusConfig = {
-    'Planificada': { text: 'Planificada', icon: <Clock className="h-4 w-4 mr-2" />, color: 'text-blue-600' },
-    'En Progreso': { text: 'En Progreso', icon: <RefreshCw className="h-4 w-4 mr-2 animate-spin" />, color: 'text-amber-600' },
-    'Completada': { text: 'Completada', icon: <CheckCircle className="h-4 w-4 mr-2" />, color: 'text-green-600' },
-};
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const resp = await VisitService.list({
+        page: pageIndex,
+        size: pageSize,
+        q: searchQuery || undefined,
+        status: filters.status,
+        vetId: filters.vetId,
+        vehicleId: filters.vehicleId,
+      });
+      setPageData(resp);
+    } catch (e) {
+      toast({ variant: "destructive", title: "Error", description: getAaxiosErrorMessage(e) ?? "No se pudieron cargar las visitas." });
+    } finally {
+      setLoading(false);
+    }
+  }, [pageIndex, pageSize, searchQuery, filters, toast]);
 
+  useEffect(() => { fetchData(); }, [fetchData]);
 
-// --- COMPONENTE PRINCIPAL ---
-export default function FieldRoutePage() {
+  const onSearch = (q: string) => { setSearchQuery(q); setPageIndex(0); };
 
-    const RouteMap = () => (
-        <Card className="h-64 flex flex-col">
-            <CardHeader className="flex-row items-center gap-2">
-                <Map className="h-6 w-6 text-gray-500" />
-                <CardTitle>Ruta del Día</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-grow bg-gray-100 rounded-b-xl flex items-center justify-center">
-                <p className="text-gray-500">[ Simulación de Mapa con las ubicaciones de hoy ]</p>
-            </CardContent>
-        </Card>
-    );
+  const navigateToDetail = useCallback((visit: FieldVisitSummaryResponse) => {
+    window.location.href = `/dashboard/fieldwork/visits/${visit.id}`;
+  }, []);
 
-    const VisitCard = ({ visit }: { visit: FarmVisit }) => {
-        const status = statusConfig[visit.status];
-        return (
-            <Card className="overflow-hidden">
-                <div className={`p-4 border-l-8 ${visit.status === 'En Progreso' ? 'border-amber-500' : 'border-blue-500'}`}>
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <p className="text-xs text-gray-500">{visit.timeSlot}</p>
-                            <h3 className="text-xl font-bold">{visit.clientName}</h3>
-                            <p className="text-sm text-gray-600">{visit.farmName}</p>
-                        </div>
-                        <div className={`flex items-center font-semibold text-sm ${status.color}`}>
-                            {status.icon} {status.text}
-                        </div>
-                    </div>
-                    <div className="mt-4 p-3 bg-gray-50 rounded-md">
-                        <p className="text-sm font-semibold text-gray-800">Objetivo:</p>
-                        <p className="text-sm text-gray-600">{visit.objective}</p>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between text-sm">
-                        <div className="flex items-center text-gray-500">
-                            <MapPin className="h-4 w-4 mr-2" /> {visit.address}
-                        </div>
-                        <Button variant="ghost" className="text-blue-600 hover:text-blue-800">Ver en Mapa</Button>
-                    </div>
-                </div>
-                <div className="bg-gray-50 px-4 py-3 flex justify-end">
-                    {visit.status === 'Planificada' && (
-                        <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
-                            <PlayCircle className="mr-2 h-4 w-4" /> Iniciar Visita
-                        </Button>
-                    )}
-                    {visit.status === 'En Progreso' && (
-                        <Button className="bg-amber-500 hover:bg-amber-600 text-white shadow-sm">
-                            <ClipboardList className="mr-2 h-4 w-4" /> Continuar Reporte
-                        </Button>
-                    )}
-                </div>
-            </Card>
-        );
-    };
+  const updateVisitStatus = useCallback(async (visitId: number, nextStatus: FieldVisitStatus) => {
+    try {
+      const detail = await VisitService.get(visitId);
+      const payload: UpdateVisitRequest = mapVisitDetailToUpdate(detail, nextStatus);
+      await VisitService.update(visitId, payload);
+      toast({ title: "Visita actualizada", description: `La visita cambió a estado ${nextStatus}.` });
+      fetchData();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: getAaxiosErrorMessage(error) ?? "No se pudo actualizar la visita." });
+    }
+  }, [fetchData, toast]);
 
-    return (
-        <div className="h-full bg-gray-50 p-4 sm:p-6">
-            <div className="max-w-4xl mx-auto">
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-slate-900">Hoja de Ruta del Día</h1>
-                    <p className="text-gray-600 mt-1">
-                        Visitas planificadas para hoy, {new Date().toLocaleDateString('es-ES', { dateStyle: 'long' })}.
-                    </p>
-                </div>
+  const actions = useMemo(() => [
+    {
+      label: "Iniciar visita",
+      type: "direct" as const,
+      onClick: (row: FieldVisitSummaryResponse) => updateVisitStatus(row.id, FieldVisitStatus.IN_PROGRESS),
+      visible: (row: FieldVisitSummaryResponse) => row.status === FieldVisitStatus.PLANNED,
+    },
+    {
+      label: "Finalizar visita",
+      onClick: (row: FieldVisitSummaryResponse) => updateVisitStatus(row.id, FieldVisitStatus.COMPLETED),
+      visible: (row: FieldVisitSummaryResponse) => row.status === FieldVisitStatus.IN_PROGRESS,
+    },
+    {
+      label: "Ver detalle",
+      onClick: (row: FieldVisitSummaryResponse) => navigateToDetail(row),
+      visible: () => true,
+    },
+  ], [updateVisitStatus, navigateToDetail]);
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <Card>
-                        <CardHeader className="flex-row justify-between items-center">
-                            <CardTitle>Resumen</CardTitle>
-                            <Truck className="h-6 w-6 text-gray-400" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold">{todaysVisits.length}</div>
-                            <p className="text-sm text-gray-500">Visitas totales planificadas.</p>
-                        </CardContent>
-                    </Card>
-                    <RouteMap />
-                </div>
+  const headerRight = (
+    <div className="flex flex-wrap items-center gap-3">
+      <select
+        className="rounded-md border bg-background p-2 text-sm"
+        value={filters.status ?? ""}
+        onChange={(event) => { setFilters((prev) => ({ ...prev, status: (event.target.value || undefined) as FieldVisitStatus | undefined })); setPageIndex(0); }}
+      >
+        <option value="">Todos</option>
+        {Object.values(FieldVisitStatus).map((status) => (
+          <option key={status} value={status}>
+            {status}
+          </option>
+        ))}
+      </select>
+      <FloatingLabelInput
+        id="filterVet"
+        label="ID Veterinario"
+        value={filters.vetId ? String(filters.vetId) : ""}
+        onChange={(value) => {
+          const parsed = value ? Number(value) : undefined;
+          setFilters((prev) => ({ ...prev, vetId: Number.isFinite(parsed) ? parsed : undefined }));
+          setPageIndex(0);
+        }}
+      />
+      <FloatingLabelInput
+        id="filterVehicle"
+        label="ID Vehículo"
+        value={filters.vehicleId ? String(filters.vehicleId) : ""}
+        onChange={(value) => {
+          const parsed = value ? Number(value) : undefined;
+          setFilters((prev) => ({ ...prev, vehicleId: Number.isFinite(parsed) ? parsed : undefined }));
+          setPageIndex(0);
+        }}
+      />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          setFilters({});
+          setSearchQuery("");
+          setPageIndex(0);
+        }}
+      >
+        Limpiar filtros
+      </Button>
+    </div>
+  );
 
-                <div className="space-y-6">
-                    {todaysVisits.map(visit => (
-                        <VisitCard key={visit.id} visit={visit} />
-                    ))}
-                </div>
-            </div>
+  return (
+    <Card>
+      <CardHeader className="flex items-center justify-between">
+        <div>
+          <CardTitle>Visitas de campo</CardTitle>
+          <CardDescription>Visualiza las visitas programadas y su progreso.</CardDescription>
         </div>
-    );
+      </CardHeader>
+      <CardContent>
+        <DataTable<FieldVisitSummaryResponse>
+          pageData={pageData}
+          columns={columns}
+          actions={actions}
+          loading={loading}
+          onSearch={onSearch}
+          pageIndex={pageIndex}
+          pageSize={pageSize}
+          onPageIndexChange={setPageIndex}
+          onPageSizeChange={setPageSize}
+          getRowKey={(row) => row.id}
+          headerSlotRight={headerRight}
+          searchPlaceholder="Buscar por finca, zona u objetivo…"
+          onRowClick={navigateToDetail}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+function mapVisitDetailToUpdate(detail: FieldVisitResponse, status: FieldVisitStatus): UpdateVisitRequest {
+  return {
+    farmId: detail.farmId ?? undefined,
+    zoneId: detail.zoneId ?? undefined,
+    fieldVetId: detail.fieldVetId ?? 0,
+    vehicleId: detail.vehicleId ?? undefined,
+    companionIds: detail.companions?.map((c) => c.employeeId) ?? [],
+    scheduledDateTime: detail.scheduledDateTime,
+    objective: detail.objective ?? undefined,
+    status,
+    routeOrder: undefined,
+  };
 }

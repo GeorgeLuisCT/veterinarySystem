@@ -41,4 +41,11 @@ public class Employee {
 
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<EmployeeBranch> employeeBranches = new HashSet<>();
+
+    @Transient
+    public String getFullName() {
+        String f = firstName == null ? "" : firstName.trim();
+        String l = lastName == null ? "" : lastName.trim();
+        return (f + " " + l).trim();
+    }
 }

@@ -116,7 +116,8 @@ export const navigationConfig = {
         { title: "Calendario", url: "/dashboard/fieldwork/calendar", rolesAllowed: ["ROLE_VETERINARIAN"] },
         { title: "Visitas a Granjas", url: "/dashboard/fieldwork/visits", rolesAllowed: ["ROLE_VETERINARIAN"] },
         { title: "Gestión de Insumos", url: "/dashboard/fieldwork/supplies", rolesAllowed: ["ROLE_ADMIN", "ROLE_VETERINARIAN"] },
-        { title: "Centro de Control", url: "/dashboard/fieldwork/control-center", rolesAllowed: ["ROLE_VETERINARIAN"] }
+        { title: "Centro de Control", url: "/dashboard/fieldwork/control-center", rolesAllowed: ["ROLE_VETERINARIAN"] },
+        { title: "Gestión de Granjas", url: "/dashboard/fieldwork/farms", rolesAllowed: ["ROLE_ADMIN", "ROLE_VETERINARIAN"] },
       ],
     },
     {
