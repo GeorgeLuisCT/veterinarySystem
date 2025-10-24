@@ -63,6 +63,16 @@ public class FieldVisit {
     @OneToOne(mappedBy="fieldVisit", cascade=CascadeType.ALL, orphanRemoval=true)
     private FieldVisitBiosecurity biosecurity;
 
+    @OneToOne(mappedBy = "fieldVisit", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private FieldVisitReport report;
+
     @OneToMany(mappedBy="fieldVisit", cascade=CascadeType.ALL, orphanRemoval=true)
     @Builder.Default private Set<FieldVisitAttachment> attachments = new HashSet<>();
+
+    public void setReport(FieldVisitReport report) {
+        this.report = report;
+        if (report != null) {
+            report.setFieldVisit(this);
+        }
+    }
 }

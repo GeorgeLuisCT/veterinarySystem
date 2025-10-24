@@ -1,5 +1,7 @@
 package com.gaedet.biocampovet.core.fieltd.service;
 
+import com.gaedet.biocampovet.core.animal.entity.Animal;
+import com.gaedet.biocampovet.core.animal.repository.AnimalRepository;
 import com.gaedet.biocampovet.core.clinic.entity.ClinicalService;
 import com.gaedet.biocampovet.core.clinic.repository.ClinicalServiceRepository;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
@@ -13,6 +15,7 @@ import com.gaedet.biocampovet.core.fieltd.repository.*;
 import com.gaedet.biocampovet.core.fieltd.specs.FieldVisitSpecs;
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
 import com.gaedet.biocampovet.core.inventory.entity.Product;
+import com.gaedet.biocampovet.core.inventory.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,9 +42,12 @@ public class FieldVisitService {
     private final FieldVisitProductUsageRepository productUsageRepository;
     private final FieldVisitAttachmentRepository attachmentRepository;
     private final FieldVisitBiosecurityRepository bioRepository;
+    private final FieldVisitReportRepository fieldVisitReportRepository;
     private final EmployeeRepository employeeRepository;
     private final VehicleRepository vehicleRepository;
+    private final AnimalRepository animalRepository;
     private final ClinicalServiceRepository clinicalServiceRepository;
+    private final ProductRepository productRepository;
     private final ProductVehicleStockRepository productVehicleStockRepository;
     private final ProductStockMovementRepository productStockMovementRepository;
     private final EntityManager em;
@@ -60,9 +68,10 @@ public class FieldVisitService {
                 .build();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public FieldVisitResponse getById(Long id) {
         FieldVisit e = fieldVisitRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("FieldVisit no encontrado: id=" + id));
+        ensureReport(e);
         return FieldVisitMapper.toResponse(e);
     }
 
@@ -112,18 +121,108 @@ public class FieldVisitService {
 
     @Transactional
     public FieldVisitServiceItemResponse addServiceItem(Long visitId, AddServiceItemRequest r) {
-        FieldVisit visit = em.getReference(FieldVisit.class, visitId);
-        ClinicalService cs = em.getReference(ClinicalService.class, r.getClinicalServiceId());
+        FieldVisit visit = fieldVisitRepository.findById(visitId)
+                .orElseThrow(() -> new IllegalArgumentException("Visita no encontrada: id=" + visitId));
+        ClinicalService cs = clinicalServiceRepository.findById(r.getClinicalServiceId())
+                .orElseThrow(() -> new IllegalArgumentException("Servicio clínico no encontrado: id=" + r.getClinicalServiceId()));
         FieldVisitServiceItem item = FieldVisitServiceItem.builder()
                 .fieldVisit(visit)
                 .clinicalService(cs)
                 .quantity(r.getQuantity())
                 .unitPrice(r.getUnitPrice())
-                .performedBy(r.getPerformedById() != null ? em.getReference(Employee.class, r.getPerformedById()) : null)
-                .notes(r.getNotes())
+                .performedBy(r.getPerformedById() != null
+                        ? employeeRepository.findById(r.getPerformedById())
+                        .orElseThrow(() -> new IllegalArgumentException("Empleado no encontrado: id=" + r.getPerformedById()))
+                        : null)
+                .notes(normalize(r.getNotes()))
                 .build();
+
+        if (r.getAnimalIds() != null && !r.getAnimalIds().isEmpty()) {
+            Set<FieldVisitServiceAnimal> animals = r.getAnimalIds().stream()
+                    .map(animalId -> {
+                        Animal animal = animalRepository.findById(animalId)
+                                .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado: id=" + animalId));
+                        return FieldVisitServiceAnimal.builder()
+                                .serviceItem(item)
+                                .animal(animal)
+                                .build();
+                    })
+                    .collect(Collectors.toCollection(HashSet::new));
+            item.setAnimals(animals);
+        }
+
+        if (r.getGroups() != null && !r.getGroups().isEmpty()) {
+            Set<FieldVisitServiceGroup> groups = r.getGroups().stream()
+                    .filter(group -> group != null && group.getQuantity() != null && group.getQuantity() > 0)
+                    .map(group -> FieldVisitServiceGroup.builder()
+                            .serviceItem(item)
+                            .species(group.getSpecies())
+                            .breed(normalize(group.getBreed()))
+                            .quantity(group.getQuantity())
+                            .description(normalize(group.getDescription()))
+                            .build())
+                    .collect(Collectors.toCollection(HashSet::new));
+            item.setGroups(groups);
+        }
+
+        if (r.getProducts() != null && !r.getProducts().isEmpty()) {
+            Set<FieldVisitServiceProduct> products = r.getProducts().stream()
+                    .filter(productInput -> productInput != null && productInput.getProductId() != null)
+                    .map(productInput -> {
+                        Product product = productRepository.findById(productInput.getProductId())
+                                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: id=" + productInput.getProductId()));
+                        return FieldVisitServiceProduct.builder()
+                                .serviceItem(item)
+                                .product(product)
+                                .dose(productInput.getDose())
+                                .unit(productInput.getUnit())
+                                .administrationRoute(productInput.getAdministrationRoute())
+                                .build();
+                    })
+                    .collect(Collectors.toCollection(HashSet::new));
+            item.setProducts(products);
+        } else {
+            item.setProducts(Collections.emptySet());
+        }
+
         serviceItemRepository.save(item);
+        visit.getServiceItems().add(item);
         return FieldVisitMapper.toServiceItem(item);
+    }
+
+    @Transactional
+    public FieldVisitReportResponse updateReport(Long visitId, UpdateFieldVisitReportRequest request) {
+        FieldVisit visit = fieldVisitRepository.findById(visitId)
+                .orElseThrow(() -> new IllegalArgumentException("Visita no encontrada: id=" + visitId));
+        FieldVisitReport report = ensureReport(visit);
+
+        if (report.getVersion() != null && !report.getVersion().equals(request.getVersion())) {
+            throw new IllegalStateException("El reporte fue actualizado por otro usuario. Recarga la página e inténtalo nuevamente.");
+        }
+
+        if (request.getFindings() != null && request.getFindings().isPresent()) {
+            report.setFindings(normalize(request.getFindings().orElse(null)));
+        }
+        if (request.getDiagnoses() != null && request.getDiagnoses().isPresent()) {
+            report.setDiagnoses(normalize(request.getDiagnoses().orElse(null)));
+        }
+        if (request.getRecommendations() != null && request.getRecommendations().isPresent()) {
+            report.setRecommendations(normalize(request.getRecommendations().orElse(null)));
+        }
+
+        FieldVisitReport saved = fieldVisitReportRepository.saveAndFlush(report);
+        visit.setReport(saved);
+        return FieldVisitMapper.toReport(saved);
+    }
+
+    @Transactional
+    public FieldVisitResponse updateStatus(Long visitId, UpdateFieldVisitStatusRequest request) {
+        FieldVisit visit = fieldVisitRepository.findById(visitId)
+                .orElseThrow(() -> new IllegalArgumentException("Visita no encontrada: id=" + visitId));
+        visit.setStatus(request.getStatus());
+        FieldVisit saved = fieldVisitRepository.save(visit);
+        ensureReport(saved);
+        return FieldVisitMapper.toResponse(saved);
     }
 
     @Transactional
@@ -169,13 +268,20 @@ public class FieldVisitService {
                 .build();
         productStockMovementRepository.save(move);
 
+        BigDecimal unitPrice = r.getUnitPrice();
+        BigDecimal subtotal = unitPrice != null
+                ? unitPrice.multiply(BigDecimal.valueOf(r.getQuantityUsed()))
+                : null;
+
         FieldVisitProductUsage usage = FieldVisitProductUsage.builder()
                 .fieldVisit(visit)
                 .product(product)
                 .unit(pvs.getUnit())
                 .quantityUsed(r.getQuantityUsed())
                 .sourceVehicle(vehicle)
-                .notes(r.getNotes())
+                .notes(normalize(r.getNotes()))
+                .unitPrice(unitPrice)
+                .subtotal(subtotal)
                 .build();
         productUsageRepository.save(usage);
         return FieldVisitMapper.toProductUsage(usage);
@@ -210,6 +316,14 @@ public class FieldVisitService {
         return FieldVisitMapper.toBiosecurity(b);
     }
 
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
     private void syncCompanions(FieldVisit visit, List<Long> companionIds) {
         Set<Long> desired = companionIds == null ? Set.of() : companionIds.stream()
                 .filter(id -> id != null && !id.equals(visit.getFieldVet().getId()))
@@ -237,5 +351,29 @@ public class FieldVisitService {
                 visit.getCompanions().add(companion);
             }
         }
+    }
+
+    private FieldVisitReport ensureReport(FieldVisit visit) {
+        FieldVisitReport report = visit.getReport();
+        if (report != null) {
+            return report;
+        }
+
+        return fieldVisitReportRepository.findByFieldVisit_Id(visit.getId())
+                .map(found -> {
+                    visit.setReport(found);
+                    return found;
+                })
+                .orElseGet(() -> {
+                    FieldVisitReport created = FieldVisitReport.builder()
+                            .fieldVisit(visit)
+                            .findings(null)
+                            .diagnoses(null)
+                            .recommendations(null)
+                            .build();
+                    fieldVisitReportRepository.save(created);
+                    visit.setReport(created);
+                    return created;
+                });
     }
 }

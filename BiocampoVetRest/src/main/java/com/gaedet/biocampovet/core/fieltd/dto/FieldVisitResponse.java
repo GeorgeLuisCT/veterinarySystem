@@ -18,4 +18,5 @@ public class FieldVisitResponse extends FieldVisitSummaryResponse {
     private List<FieldVisitProductUsageResponse> productUsages;
     private FieldVisitBiosecurityResponse biosecurity;
     private List<FieldVisitAttachmentResponse> attachments;
+    private FieldVisitReportResponse report;
 }

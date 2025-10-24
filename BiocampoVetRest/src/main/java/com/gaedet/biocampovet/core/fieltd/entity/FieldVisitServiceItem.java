@@ -4,9 +4,11 @@ import javax.persistence.*;
 
 import com.gaedet.biocampovet.core.clinic.entity.ClinicalService;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
-import lombok.*;
-
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
+
+import lombok.*;
 
 /**
  * Servicios realizados en la visita (reutiliza tu catálogo ClinicalService).
@@ -31,4 +33,37 @@ public class FieldVisitServiceItem {
     private Employee performedBy;
 
     @Column(columnDefinition="TEXT") private String notes;
+
+    @OneToMany(mappedBy = "serviceItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<FieldVisitServiceAnimal> animals = new HashSet<>();
+
+    @OneToMany(mappedBy = "serviceItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<FieldVisitServiceGroup> groups = new HashSet<>();
+
+    @OneToMany(mappedBy = "serviceItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<FieldVisitServiceProduct> products = new HashSet<>();
+
+    public void setAnimals(Set<FieldVisitServiceAnimal> animals) {
+        this.animals = animals;
+        if (animals != null) {
+            animals.forEach(animal -> animal.setServiceItem(this));
+        }
+    }
+
+    public void setGroups(Set<FieldVisitServiceGroup> groups) {
+        this.groups = groups;
+        if (groups != null) {
+            groups.forEach(group -> group.setServiceItem(this));
+        }
+    }
+
+    public void setProducts(Set<FieldVisitServiceProduct> products) {
+        this.products = products;
+        if (products != null) {
+            products.forEach(product -> product.setServiceItem(this));
+        }
+    }
 }

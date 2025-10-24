@@ -6,7 +6,12 @@ import com.gaedet.biocampovet.core.fieltd.entity.FieldVisitAttachment;
 import com.gaedet.biocampovet.core.fieltd.entity.FieldVisitBiosecurity;
 import com.gaedet.biocampovet.core.fieltd.entity.FieldVisitCompanion;
 import com.gaedet.biocampovet.core.fieltd.entity.FieldVisitProductUsage;
+import com.gaedet.biocampovet.core.fieltd.entity.FieldVisitReport;
+import com.gaedet.biocampovet.core.fieltd.entity.FieldVisitServiceAnimal;
+import com.gaedet.biocampovet.core.fieltd.entity.FieldVisitServiceGroup;
 import com.gaedet.biocampovet.core.fieltd.entity.FieldVisitServiceItem;
+import com.gaedet.biocampovet.core.fieltd.entity.FieldVisitServiceProduct;
+import com.gaedet.biocampovet.core.inventory.mapper.ProductMapper;
 
 import java.util.Comparator;
 import java.util.List;
@@ -56,6 +61,7 @@ public class FieldVisitMapper {
                 .productUsages(e.getProductUsages() == null ? List.of() : e.getProductUsages().stream().map(FieldVisitMapper::toProductUsage).collect(Collectors.toList()))
                 .attachments(e.getAttachments() == null ? List.of() : e.getAttachments().stream().map(FieldVisitMapper::toAttachment).collect(Collectors.toList()))
                 .biosecurity(e.getBiosecurity() == null ? null : toBiosecurity(e.getBiosecurity()))
+                .report(e.getReport() == null ? null : toReport(e.getReport()))
                 .build();
     }
 
@@ -69,6 +75,9 @@ public class FieldVisitMapper {
                 .performedById(it.getPerformedBy() != null ? it.getPerformedBy().getId() : null)
                 .performedByName(it.getPerformedBy() != null ? it.getPerformedBy().getFullName() : null)
                 .notes(it.getNotes())
+                .animals(it.getAnimals() == null ? List.of() : it.getAnimals().stream().map(FieldVisitMapper::toServiceAnimal).collect(Collectors.toList()))
+                .groups(it.getGroups() == null ? List.of() : it.getGroups().stream().map(FieldVisitMapper::toServiceGroup).collect(Collectors.toList()))
+                .products(it.getProducts() == null ? List.of() : it.getProducts().stream().map(FieldVisitMapper::toServiceProduct).collect(Collectors.toList()))
                 .build();
     }
 
@@ -79,6 +88,8 @@ public class FieldVisitMapper {
                 .productName(it.getProduct().getName())
                 .unit(it.getUnit())
                 .quantityUsed(it.getQuantityUsed())
+                .unitPrice(it.getUnitPrice())
+                .subtotal(it.getSubtotal())
                 .vehicleId(it.getSourceVehicle() != null ? it.getSourceVehicle().getId() : null)
                 .vehicleName(it.getSourceVehicle() != null ? it.getSourceVehicle().getName() : null)
                 .notes(it.getNotes())
@@ -103,10 +114,52 @@ public class FieldVisitMapper {
                 .build();
     }
 
+    public static FieldVisitReportResponse toReport(FieldVisitReport report) {
+        return FieldVisitReportResponse.builder()
+                .id(report.getId())
+                .version(report.getVersion())
+                .findings(report.getFindings())
+                .diagnoses(report.getDiagnoses())
+                .recommendations(report.getRecommendations())
+                .updatedAt(report.getUpdatedAt())
+                .build();
+    }
+
     private static FieldVisitCompanionResponse toCompanion(FieldVisitCompanion c) {
         return FieldVisitCompanionResponse.builder()
                 .employeeId(c.getEmployee().getId())
                 .employeeName(c.getEmployee().getFullName())
+                .build();
+    }
+
+    private static FieldVisitServiceAnimalResponse toServiceAnimal(FieldVisitServiceAnimal entity) {
+        var animal = entity.getAnimal();
+        return FieldVisitServiceAnimalResponse.builder()
+                .id(entity.getId())
+                .animalId(animal != null ? animal.getId() : null)
+                .animalName(animal != null ? animal.getName() : null)
+                .species(animal != null ? animal.getSpecies() : null)
+                .breed(animal != null ? animal.getBreed() : null)
+                .build();
+    }
+
+    private static FieldVisitServiceGroupResponse toServiceGroup(FieldVisitServiceGroup entity) {
+        return FieldVisitServiceGroupResponse.builder()
+                .id(entity.getId())
+                .species(entity.getSpecies())
+                .breed(entity.getBreed())
+                .quantity(entity.getQuantity())
+                .description(entity.getDescription())
+                .build();
+    }
+
+    private static FieldVisitServiceProductResponse toServiceProduct(FieldVisitServiceProduct entity) {
+        return FieldVisitServiceProductResponse.builder()
+                .id(entity.getId())
+                .product(ProductMapper.toProductSummaryResponse(entity.getProduct()))
+                .dose(entity.getDose())
+                .unit(entity.getUnit())
+                .administrationRoute(entity.getAdministrationRoute())
                 .build();
     }
 

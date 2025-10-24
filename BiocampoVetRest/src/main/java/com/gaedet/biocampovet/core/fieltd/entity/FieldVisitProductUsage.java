@@ -6,6 +6,7 @@ import com.gaedet.biocampovet.core.inventory.entity.Product;
 import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
 import lombok.*;
 
+import java.math.BigDecimal;
 
 /**
  * Consumo de insumos (descuenta del inventario móvil).
@@ -31,4 +32,10 @@ public class FieldVisitProductUsage {
     private Vehicle sourceVehicle; // desde dónde salió el insumo
 
     @Column(columnDefinition="TEXT") private String notes;
+
+    @Column(name = "unit_price", precision = 12, scale = 2)
+    private BigDecimal unitPrice;
+
+    @Column(name = "subtotal", precision = 14, scale = 2)
+    private BigDecimal subtotal;
 }

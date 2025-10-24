@@ -1,11 +1,13 @@
 package com.gaedet.biocampovet.core.fieltd.dto;
 
-import lombok.*;
-
+import javax.validation.Valid;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.List;
+
+import lombok.*;
 
 @Getter
 @Setter
@@ -23,4 +25,9 @@ public class AddServiceItemRequest {
     private BigDecimal unitPrice;
     private Long performedById;
     private String notes;
+    private List<Long> animalIds;
+    @Valid
+    private List<FieldVisitServiceGroupInput> groups;
+    @Valid
+    private List<FieldVisitServiceProductInput> products;
 }

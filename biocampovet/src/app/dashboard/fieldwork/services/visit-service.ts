@@ -1,7 +1,25 @@
 import api from '@/services/api';
 import { PaginatedResponse } from '@/types/paginated-response';
-import { FieldVisitListParams, FieldVisitResponse, FieldVisitSummaryResponse } from '../types/visit-response';
-import { AddAttachmentRequest, AddProductUsageRequest, AddServiceItemRequest, CreateVisitRequest, SetBiosecurityRequest, UpdateVisitRequest } from '../types/visit-request';
+import {
+  FieldVisitAttachmentResponse,
+  FieldVisitBiosecurityResponse,
+  FieldVisitListParams,
+  FieldVisitProductUsageResponse,
+  FieldVisitReportResponse,
+  FieldVisitResponse,
+  FieldVisitServiceItemResponse,
+  FieldVisitSummaryResponse,
+} from '../types/visit-response';
+import {
+  AddAttachmentRequest,
+  AddProductUsageRequest,
+  AddServiceItemRequest,
+  CreateVisitRequest,
+  SetBiosecurityRequest,
+  UpdateFieldVisitReportRequest,
+  UpdateFieldVisitStatusRequest,
+  UpdateVisitRequest,
+} from '../types/visit-request';
 
 export const VisitService = {
   list: async (params: FieldVisitListParams): Promise<PaginatedResponse<FieldVisitSummaryResponse>> => {
@@ -24,23 +42,30 @@ export const VisitService = {
     const response = await api.delete<FieldVisitSummaryResponse>('/fieldwork/visits', { params: { id } });
     return response.data;
   },
-  addServiceItem: async (visitId: number, data: AddServiceItemRequest) => {
-    const response = await api.post('/fieldwork/visits/service-item', data, { params: { visitId } });
+  addServiceItem: async (visitId: number, data: AddServiceItemRequest): Promise<FieldVisitServiceItemResponse> => {
+    const response = await api.post<FieldVisitServiceItemResponse>('/fieldwork/visits/service-item', data, { params: { visitId } });
     return response.data;
   },
-  addProductUsage: async (visitId: number, data: AddProductUsageRequest, performedById?: number) => {
-    const response = await api.post('/fieldwork/visits/product-usage', data, { params: { visitId, performedById } });
+  updateReport: async (visitId: number, data: UpdateFieldVisitReportRequest): Promise<FieldVisitReportResponse> => {
+    const response = await api.patch<FieldVisitReportResponse>('/fieldwork/visits/report', data, { params: { visitId } });
     return response.data;
   },
-  addAttachment: async (visitId: number, data: AddAttachmentRequest) => {
-    const response = await api.post('/fieldwork/visits/attachment', data, { params: { visitId } });
+  addProductUsage: async (visitId: number, data: AddProductUsageRequest, performedById?: number): Promise<FieldVisitProductUsageResponse> => {
+    const response = await api.post<FieldVisitProductUsageResponse>('/fieldwork/visits/product-usage', data, { params: { visitId, performedById } });
     return response.data;
   },
-  setBiosecurity: async (visitId: number, data: SetBiosecurityRequest) => {
-    const response = await api.put('/fieldwork/visits/biosecurity', data, { params: { visitId } });
+  addAttachment: async (visitId: number, data: AddAttachmentRequest): Promise<FieldVisitAttachmentResponse> => {
+    const response = await api.post<FieldVisitAttachmentResponse>('/fieldwork/visits/attachment', data, { params: { visitId } });
+    return response.data;
+  },
+  setBiosecurity: async (visitId: number, data: SetBiosecurityRequest): Promise<FieldVisitBiosecurityResponse> => {
+    const response = await api.put<FieldVisitBiosecurityResponse>('/fieldwork/visits/biosecurity', data, { params: { visitId } });
+    return response.data;
+  },
+  updateStatus: async (visitId: number, data: UpdateFieldVisitStatusRequest): Promise<FieldVisitResponse> => {
+    const response = await api.patch<FieldVisitResponse>('/fieldwork/visits/status', data, { params: { visitId } });
     return response.data;
   },
 };
 
 export default VisitService;
-

@@ -1,8 +1,9 @@
 package com.gaedet.biocampovet.core.fieltd.dto;
 
-import lombok.*;
-
 import java.math.BigDecimal;
+import java.util.List;
+
+import lombok.*;
 
 @Getter
 @Setter
@@ -18,4 +19,10 @@ public class FieldVisitServiceItemResponse {
     private Long performedById;
     private String performedByName;
     private String notes;
+    @Builder.Default
+    private List<FieldVisitServiceAnimalResponse> animals = List.of();
+    @Builder.Default
+    private List<FieldVisitServiceGroupResponse> groups = List.of();
+    @Builder.Default
+    private List<FieldVisitServiceProductResponse> products = List.of();
 }

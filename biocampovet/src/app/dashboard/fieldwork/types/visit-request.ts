@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { FieldVisitStatus } from '../enums/field-visit-status';
 import { ProductUnitType } from '@/app/dashboard/inventory/products/enums/product-unit-type';
+import { AdministrationRoute } from '@/app/dashboard/inventory/products/enums/administration-route';
+import { AnimalSpecies } from '@/app/dashboard/patients/animals/enums/animal-species';
 
 const baseVisitCore = z.object({
   farmId: z.number().int().positive().optional(),
@@ -33,12 +35,32 @@ export const updateVisitSchema = baseVisitCore
 export type CreateVisitRequest = z.infer<typeof createVisitSchema>;
 export type UpdateVisitRequest = z.infer<typeof updateVisitSchema>;
 
+const serviceGroupSchema = z.object({
+  species: z.nativeEnum(AnimalSpecies, { required_error: "Selecciona una especie." }),
+  breed: z.string().max(255).optional(),
+  quantity: z.number().int().min(1, "La cantidad debe ser al menos 1."),
+  description: z.string().max(1000).optional(),
+});
+
+const serviceProductSchema = z.object({
+  productId: z.number().int().positive(),
+  dose: z.preprocess(
+    (val) => (val === "" || val === undefined || val === null ? undefined : Number(val)),
+    z.number({ required_error: "Ingresa la dosis." }).positive("La dosis debe ser mayor a 0.")
+  ),
+  unit: z.nativeEnum(ProductUnitType, { required_error: "Selecciona una unidad." }),
+  administrationRoute: z.nativeEnum(AdministrationRoute, { required_error: "Selecciona una vía." }),
+});
+
 export const addServiceItemSchema = z.object({
   clinicalServiceId: z.number().int().positive(),
   quantity: z.number().int().min(1),
   unitPrice: z.number().min(0),
   performedById: z.number().int().positive().optional(),
   notes: z.string().max(1000).optional(),
+  animalIds: z.array(z.number().int().positive()).optional().default([]),
+  groups: z.array(serviceGroupSchema).optional().default([]),
+  products: z.array(serviceProductSchema).optional().default([]),
 });
 export type AddServiceItemRequest = z.infer<typeof addServiceItemSchema>;
 
@@ -46,6 +68,10 @@ export const addProductUsageSchema = z.object({
   productId: z.number().int().positive(),
   unit: z.nativeEnum(ProductUnitType),
   quantityUsed: z.number().int().min(1),
+  unitPrice: z.preprocess(
+    (val) => (val === "" || val === undefined || val === null ? undefined : Number(val)),
+    z.number().positive().optional()
+  ),
   vehicleId: z.number().int().positive().optional(),
   notes: z.string().max(1000).optional(),
 });
@@ -65,3 +91,16 @@ export const addAttachmentSchema = z.object({
   mimeType: z.string().optional(),
 });
 export type AddAttachmentRequest = z.infer<typeof addAttachmentSchema>;
+
+export const updateFieldVisitReportSchema = z.object({
+  version: z.number().int().nonnegative(),
+  findings: z.string().max(5000).nullable().optional(),
+  diagnoses: z.string().max(5000).nullable().optional(),
+  recommendations: z.string().max(5000).nullable().optional(),
+});
+export type UpdateFieldVisitReportRequest = z.infer<typeof updateFieldVisitReportSchema>;
+
+export const updateFieldVisitStatusSchema = z.object({
+  status: z.nativeEnum(FieldVisitStatus),
+});
+export type UpdateFieldVisitStatusRequest = z.infer<typeof updateFieldVisitStatusSchema>;

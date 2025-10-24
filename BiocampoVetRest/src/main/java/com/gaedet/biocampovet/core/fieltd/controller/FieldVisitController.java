@@ -62,6 +62,12 @@ public class FieldVisitController {
         return ResponseEntity.ok(fieldVisitService.addServiceItem(visitId, r));
     }
 
+    @PatchMapping("/report")
+    public ResponseEntity<FieldVisitReportResponse> updateReport(@RequestParam Long visitId,
+                                                                 @Valid @RequestBody UpdateFieldVisitReportRequest request) {
+        return ResponseEntity.ok(fieldVisitService.updateReport(visitId, request));
+    }
+
     @PostMapping("/product-usage")
     public ResponseEntity<FieldVisitProductUsageResponse> addProductUsage(@RequestParam Long visitId,
                                                                           @Valid @RequestBody AddProductUsageRequest r,
@@ -77,5 +83,11 @@ public class FieldVisitController {
     @PutMapping("/biosecurity")
     public ResponseEntity<FieldVisitBiosecurityResponse> setBiosecurity(@RequestParam Long visitId, @Valid @RequestBody SetBiosecurityRequest r) {
         return ResponseEntity.ok(fieldVisitService.setBiosecurity(visitId, r));
+    }
+
+    @PatchMapping("/status")
+    public ResponseEntity<FieldVisitResponse> updateStatus(@RequestParam Long visitId,
+                                                           @Valid @RequestBody UpdateFieldVisitStatusRequest request) {
+        return ResponseEntity.ok(fieldVisitService.updateStatus(visitId, request));
     }
 }

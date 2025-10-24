@@ -23,7 +23,27 @@ public interface FieldVisitRepository extends JpaRepository<FieldVisit, Long>, J
     Page<FieldVisit> findAll(@Nullable Specification<FieldVisit> spec, @NonNull Pageable pageable);
 
     @Override
-    @EntityGraph(attributePaths = {"farm", "farm.zone", "zone", "fieldVet", "vehicle", "companions", "companions.employee", "serviceItems", "serviceItems.clinicalService", "productUsages", "productUsages.product", "attachments", "biosecurity"}, type = EntityGraph.EntityGraphType.LOAD)
+    @EntityGraph(attributePaths = {
+            "farm",
+            "farm.zone",
+            "zone",
+            "fieldVet",
+            "vehicle",
+            "companions",
+            "companions.employee",
+            "serviceItems",
+            "serviceItems.clinicalService",
+            "serviceItems.animals",
+            "serviceItems.animals.animal",
+            "serviceItems.groups",
+            "serviceItems.products",
+            "serviceItems.products.product",
+            "productUsages",
+            "productUsages.product",
+            "attachments",
+            "biosecurity",
+            "report"
+    }, type = EntityGraph.EntityGraphType.LOAD)
     @NonNull
     Optional<FieldVisit> findById(@NonNull Long id);
 

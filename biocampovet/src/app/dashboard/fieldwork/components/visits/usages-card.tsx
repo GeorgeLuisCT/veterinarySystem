@@ -12,10 +12,16 @@ export default function UsagesCard({ visit, loading }: { visit: FieldVisitRespon
       <CardContent>
         <div className="space-y-2">
           {visit?.productUsages?.map((pu) => (
-            <div key={pu.id} className="flex justify-between rounded-md border p-2">
-              <div>
+            <div key={pu.id} className="flex flex-col gap-1 rounded-md border p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
                 <div className="font-medium">{pu.productName}</div>
-                <div className="text-sm text-muted-foreground">-{pu.quantityUsed} {ProductUnitTypeLabels[pu.unit] ?? pu.unit}</div>
+                <div className="text-sm text-muted-foreground">
+                  -{pu.quantityUsed} {ProductUnitTypeLabels[pu.unit] ?? pu.unit}
+                  {pu.subtotal != null ? ` • S/ ${Number(pu.subtotal).toFixed(2)}` : ""}
+                </div>
+                {pu.unitPrice != null ? (
+                  <div className="text-xs text-muted-foreground">Precio unitario: S/ {Number(pu.unitPrice).toFixed(2)}</div>
+                ) : null}
               </div>
               <div className="text-sm text-muted-foreground">{pu.vehicleName ?? "—"}</div>
             </div>
