@@ -4,53 +4,187 @@ import * as React from "react";
 import VisitService from "../../services/visit-service";
 import { FieldVisitStatus } from "../../enums/field-visit-status";
 import type { FieldVisitSummaryResponse, FieldVisitListParams } from "../../types/visit-response";
+import type { PaginatedResponse } from "@/types/paginated-response";
 import { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/data-table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { CalendarClock, Home, Truck, Filter, MapPin, Users } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const statusClass = (status: FieldVisitStatus) =>
+const FieldVisitStatusLabels: Record<FieldVisitStatus, string> = {
+  PLANNED: "Planificada",
+  IN_PROGRESS: "En progreso",
+  COMPLETED: "Completada",
+  CANCELED: "Cancelada",
+};
+
+const statusBadgeClass = (status: FieldVisitStatus) =>
   cn(
     "rounded-full px-2 py-1 text-xs",
-    status === FieldVisitStatus.IN_PROGRESS && "bg-yellow-100 text-yellow-800",
-    status === FieldVisitStatus.PLANNED && "bg-blue-100 text-blue-700",
-    status === FieldVisitStatus.COMPLETED && "bg-green-100 text-green-700",
-    status === FieldVisitStatus.CANCELED && "bg-red-100 text-red-700"
+    status === FieldVisitStatus.IN_PROGRESS && "bg-amber-100 text-amber-800 ring-1 ring-amber-200",
+    status === FieldVisitStatus.PLANNED && "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
+    status === FieldVisitStatus.COMPLETED && "bg-green-100 text-green-700 ring-1 ring-green-200",
+    status === FieldVisitStatus.CANCELED && "bg-red-100 text-red-700 ring-1 ring-red-200"
   );
+
+const fmtDate = (iso: string) =>
+  new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
+
+function initials(name?: string | null) {
+  if (!name) return "?";
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s) => s[0]!.toUpperCase())
+    .join("");
+}
 
 export default function PlannedVisitsTable() {
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
-  const [pageData, setPageData] = React.useState<import("@/types/paginated-response").PaginatedResponse<FieldVisitSummaryResponse> | null>(null);
+  const [pageData, setPageData] = React.useState<PaginatedResponse<FieldVisitSummaryResponse> | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [status, setStatus] = React.useState<FieldVisitStatus | undefined>(undefined);
 
   const columns = React.useMemo<ColumnDef<FieldVisitSummaryResponse>[]>(
     () => [
       {
-        header: "Fecha",
-        accessorKey: "scheduledDateTime",
-        cell: ({ row }) => new Date(row.original.scheduledDateTime).toLocaleString(),
+        id: "visit",
+        header: "Visita",
+        cell: ({ row }) => {
+          const v = row.original;
+          const dest = v.farmName ?? v.zoneName ?? "—";
+          return (
+            <div className="flex items-start gap-3 p-2">
+              <div className="mt-0.5 rounded-md bg-muted p-1">
+                <Home className="size-4 text-muted-foreground" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold leading-none truncate max-w-[30ch]" title={dest}>
+                    {dest}
+                  </span>
+                  {v.zoneName && (
+                    <Badge variant="secondary" className="rounded-full text-xs">
+                      <MapPin className="mr-1 size-3" /> {v.zoneName}
+                    </Badge>
+                  )}
+                </div>
+                <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                  <CalendarClock className="size-4 shrink-0" />
+                  <span className="truncate" title={fmtDate(v.scheduledDateTime)}>
+                    {fmtDate(v.scheduledDateTime)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        },
       },
       {
-        header: "Destino",
-        accessorKey: "farmName",
-        cell: ({ row }) => row.original.farmName ?? row.original.zoneName ?? "—",
+        header: "Estado",
+        id: "status",
+        accessorFn: (row) => row.status,
+        cell: ({ row }) => {
+          const s = row.original.status;
+          return <span className={statusBadgeClass(s)}>{FieldVisitStatusLabels[s]}</span>;
+        },
       },
       {
         header: "Veterinario",
         accessorKey: "fieldVetName",
-        cell: ({ row }) => row.original.fieldVetName ?? "—",
+        cell: ({ row }) => {
+          const name = row.original.fieldVetName ?? "—";
+          return (
+            <div className="flex items-center gap-2 min-w-0">
+              <Avatar className="size-6">
+                <AvatarFallback className="text-[10px]">{initials(name)}</AvatarFallback>
+              </Avatar>
+              <span className="truncate">{name}</span>
+            </div>
+          );
+        },
       },
       {
         header: "Vehículo",
         accessorKey: "vehicleName",
-        cell: ({ row }) => row.original.vehicleName ?? "—",
+        cell: ({ row }) => (
+          <Badge variant="outline" className="rounded-full text-xs">
+            <Truck className="mr-1 size-3" /> {row.original.vehicleName ?? "—"}
+          </Badge>
+        ),
       },
       {
-        id: "estado",
-        header: "Estado",
-        cell: ({ row }) => <span className={statusClass(row.original.status)}>{row.original.status}</span>,
+        id: "companions",
+        header: "Compañía",
+        cell: ({ row }) => {
+          const companions = row.original.companions ?? [];
+          const count = companions.length;
+          const toShow = companions.slice(0, 3);
+          return (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    <div className="-space-x-2 flex">
+                      {toShow.map((c) => (
+                        <Avatar key={c.employeeId} className="size-6 ring-2 ring-background">
+                          <AvatarFallback className="text-[10px]">
+                            {initials(c.employeeName)}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                    </div>
+                    <Badge variant="secondary" className="rounded-full text-xs">
+                      <Users className="mr-1 size-3" /> {count}
+                    </Badge>
+                  </div>
+                </TooltipTrigger>
+                {count > 0 && (
+                  <TooltipContent>
+                    <p className="max-w-[36ch] text-xs">
+                      {companions.map((c) => c.employeeName ?? "—").join(", ")}
+                    </p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          );
+        },
+      },
+      {
+        header: "Objetivo",
+        accessorKey: "objective",
+        cell: ({ row }) => {
+          const text = row.original.objective ?? "—";
+          return (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="line-clamp-1 max-w-[34ch] text-muted-foreground" title={text}>
+                    {text}
+                  </span>
+                </TooltipTrigger>
+                {text !== "—" && (
+                  <TooltipContent>
+                    <p className="max-w-[44ch] text-xs">{text}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          );
+        },
       },
     ],
     []
@@ -72,50 +206,41 @@ export default function PlannedVisitsTable() {
   }, [fetchPage]);
 
   const headerLeft = (
-    <div className="flex flex-wrap items-center gap-2">
-      <select
-        className="rounded-md border bg-background p-2 text-sm"
-        value={status ?? ""}
-        onChange={(e) => {
-          const val = (e.target.value || undefined) as FieldVisitStatus | undefined;
-          setStatus(val);
-          setPageIndex(0);
-        }}
-      >
-        <option value="">Todos los estados</option>
-        {Object.values(FieldVisitStatus).map((s) => (
-          <option key={s} value={s}>
-            {s}
-          </option>
-        ))}
-      </select>
+    <div className="mb-0">
+      <h3 className="text-base font-semibold leading-tight">Visitas planificadas</h3>
+      <p className="text-sm text-muted-foreground">Revisa las visitas, zonas y su estado.</p>
     </div>
   );
 
   const headerRight = (
     <div className="flex items-center gap-2">
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={() => {
-          setStatus(undefined);
-          setPageIndex(0);
-        }}
-        disabled={loading}
-      >
-        Limpiar filtros
-      </Button>
+      <div className="flex items-center gap-2">
+        <Filter className="size-4 text-muted-foreground" />
+        <Select
+          value={status ?? "ALL"}
+          onValueChange={(val) => {
+            const next = val === "ALL" ? undefined : (val as FieldVisitStatus);
+            setStatus(next);
+            setPageIndex(0);
+          }}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">Todos los estados</SelectItem>
+            <SelectItem value={FieldVisitStatus.PLANNED}>{FieldVisitStatusLabels.PLANNED}</SelectItem>
+            <SelectItem value={FieldVisitStatus.IN_PROGRESS}>{FieldVisitStatusLabels.IN_PROGRESS}</SelectItem>
+            <SelectItem value={FieldVisitStatus.COMPLETED}>{FieldVisitStatusLabels.COMPLETED}</SelectItem>
+            <SelectItem value={FieldVisitStatus.CANCELED}>{FieldVisitStatusLabels.CANCELED}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 
   return (
-    <div className="h-full rounded-xl border bg-card p-4 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h3 className="text-base font-semibold leading-tight">Visitas planificadas</h3>
-          <p className="text-sm text-muted-foreground">Revisa las visitas y su estado.</p>
-        </div>
-      </div>
+    <div className="h-full rounded-xl border bg-card p-4 shadow-sm overflow-auto">
       <DataTable<FieldVisitSummaryResponse>
         pageData={pageData}
         columns={columns}
@@ -127,7 +252,7 @@ export default function PlannedVisitsTable() {
         headerSlotLeft={headerLeft}
         headerSlotRight={headerRight}
         getRowKey={(row) => row.id}
-        searchPlaceholder="Buscar por destino…"
+        searchPlaceholder="Buscar por destino o zona…"
       />
     </div>
   );

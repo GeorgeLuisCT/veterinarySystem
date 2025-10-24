@@ -4,63 +4,80 @@ import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import VehicleService from "../../services/vehicle-service";
 import type { VehicleStockResponse } from "../../types/vehicle-response";
+import type { PaginatedResponse } from "@/types/paginated-response";
+import DataTable from "@/components/data-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
 
-export default function VehicleInventoryCard({ vehicleId, refreshKey }: { vehicleId: number | null; refreshKey?: number }) {
-  const [stock, setStock] = React.useState<VehicleStockResponse[]>([]);
+export default function VehicleInventoryCard({
+  vehicleId,
+  refreshKey,
+}: {
+  vehicleId: number | null;
+  refreshKey?: number;
+}) {
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [pageData, setPageData] = React.useState<PaginatedResponse<VehicleStockResponse> | null>(null);
   const [loading, setLoading] = React.useState(false);
 
-  const load = React.useCallback(async () => {
-    if (vehicleId == null) { setStock([]); return; }
+  const fetchPage = React.useCallback(async () => {
+    if (vehicleId == null) {
+      setPageData(null);
+      return;
+    }
     setLoading(true);
     try {
-      const res = await VehicleService.getStock(vehicleId);
-      setStock(res);
+      const res = await VehicleService.getStock(vehicleId, pageIndex, pageSize);
+      setPageData(res);
     } finally {
       setLoading(false);
     }
-  }, [vehicleId]);
+  }, [vehicleId, pageIndex, pageSize]);
 
-  React.useEffect(() => { load(); }, [load, refreshKey]);
+  React.useEffect(() => {
+    fetchPage();
+  }, [fetchPage, refreshKey]);
+
+  const columns = React.useMemo<ColumnDef<VehicleStockResponse>[]>(() => [
+    { header: "Producto", accessorKey: "productName" },
+    { header: "SKU", accessorKey: "sku" },
+    {
+      header: "Unidad",
+      accessorKey: "unit",
+      cell: ({ row }) => ProductUnitTypeLabels[row.original.unit] ?? row.original.unit,
+    },
+    {
+      header: "Cantidad",
+      accessorKey: "quantity",
+      cell: ({ getValue }) => <div className="text-right">{getValue<number>()}</div>,
+    },
+  ], []);
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>Inventario del vehículo</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          {vehicleId == null ? "Selecciona un vehículo para ver su inventario" : "Productos en el vehículo seleccionado"}
+        </p>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-muted-foreground">
-                <th className="p-2">Producto</th>
-                <th className="p-2">SKU</th>
-                <th className="p-2">Unidad</th>
-                <th className="p-2 text-right">Cantidad</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stock.map((item) => (
-                <tr key={item.id} className="border-b last:border-0">
-                  <td className="p-2">{item.productName}</td>
-                  <td className="p-2">{item.sku ?? "—"}</td>
-                  <td className="p-2">{ProductUnitTypeLabels[item.unit] ?? item.unit}</td>
-                  <td className="p-2 text-right">{item.quantity}</td>
-                </tr>
-              ))}
-              {!loading && stock.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="p-4 text-center text-muted-foreground">{vehicleId == null ? "Selecciona un vehículo para ver su inventario." : "Sin productos."}</td>
-                </tr>
-              )}
-              {loading && (
-                <tr>
-                  <td colSpan={4} className="p-4 text-center text-muted-foreground">Cargando stock…</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable<VehicleStockResponse>
+          pageData={pageData}
+          columns={columns}
+          pageIndex={pageIndex}
+          pageSize={pageSize}
+          onPageIndexChange={setPageIndex}
+          onPageSizeChange={(s) => { setPageSize(s); setPageIndex(0); }}
+          loading={loading}
+          getRowKey={(row) => row.id}
+          emptyState={
+            <div className="text-muted-foreground">
+              {loading ? "Cargando stock…" : vehicleId == null ? "Selecciona un vehículo para ver su inventario." : "Sin productos."}
+            </div>
+          }
+        />
       </CardContent>
     </Card>
   );

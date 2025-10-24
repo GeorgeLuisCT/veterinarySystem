@@ -16,7 +16,7 @@ export default function RecentReportsCard() {
   }, []);
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>Reportes recientes</CardTitle>
       </CardHeader>

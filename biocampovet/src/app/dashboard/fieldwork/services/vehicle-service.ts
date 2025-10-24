@@ -25,10 +25,20 @@ export const VehicleService = {
     const response = await api.delete<VehicleResponse>('/fieldwork/vehicles', { params: { id } });
     return response.data;
   },
-  getStock: async (vehicleId: number): Promise<VehicleStockResponse[]> => {
-    const response = await api.get<VehicleStockResponse[]>('/fieldwork/vehicles/stock', { params: { vehicleId } });
+
+  // Actualizado: stock paginado
+  getStock: async (
+    vehicleId: number,
+    page = 0,
+    size = 10
+  ): Promise<PaginatedResponse<VehicleStockResponse>> => {
+    const response = await api.get<PaginatedResponse<VehicleStockResponse>>(
+      '/fieldwork/vehicles/stock',
+      { params: { vehicleId, page, size } }
+    );
     return response.data;
   },
+
   adjustStock: async (data: AdjustVehicleStockRequest, employeeId?: number): Promise<VehicleStockResponse> => {
     const response = await api.post<VehicleStockResponse>('/fieldwork/vehicles/stock/adjust', data, { params: { employeeId } });
     return response.data;

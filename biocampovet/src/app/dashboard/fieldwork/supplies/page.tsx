@@ -29,16 +29,18 @@ export default function FieldSuppliesPage() {
     <div className="space-y-6 p-4">
       <VehicleSelectorCard value={selectedVehicleId} onChange={setSelectedVehicleId} onRefresh={refreshVehiclePanels} />
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-4">
+        <div className="lg:col-span-2 space-y-6">
+          <BranchInventoryCard
+            branchId={selectedBranchId}
+            onAddToVehicle={(product) => setOpenTransferFor(product)}
+            vehicleSelected={selectedVehicleId != null}
+            refreshKey={branchRefreshKey}
+          />
+        </div>
         <div className="lg:col-span-2 space-y-6">
           <VehicleInventoryCard vehicleId={selectedVehicleId} refreshKey={stockRefreshKey} />
         </div>
-        <BranchInventoryCard
-          branchId={selectedBranchId}
-          onAddToVehicle={(product) => setOpenTransferFor(product)}
-          vehicleSelected={selectedVehicleId != null}
-          refreshKey={branchRefreshKey}
-        />
       </div>
 
       <TransferDialog

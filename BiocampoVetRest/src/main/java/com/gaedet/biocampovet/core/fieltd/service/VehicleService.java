@@ -88,8 +88,27 @@ public class VehicleService {
     }
 
     @Transactional(readOnly = true)
-    public List<VehicleStockResponse> getVehicleStock(Long vehicleId) {
-        return productVehicleStockRepository.findByVehicle_Id(vehicleId).stream().map(StockMapper::toVehicleStock).collect(Collectors.toList());
+    public PaginatedResponse<VehicleStockResponse> getVehicleStock(Long vehicleId, int page, int size) {
+        Pageable pageable = PageRequest.of(
+                Math.max(page, 0),
+                Math.max(size, 1),
+                Sort.by(Sort.Direction.ASC, "product.name")
+        );
+
+        Page<ProductVehicleStock> result = productVehicleStockRepository.findByVehicle_Id(vehicleId, pageable);
+
+        List<VehicleStockResponse> content = result.getContent()
+                .stream()
+                .map(StockMapper::toVehicleStock)
+                .collect(Collectors.toList());
+
+        return PaginatedResponse.<VehicleStockResponse>builder()
+                .content(content)
+                .totalPages(result.getTotalPages())
+                .totalElements(result.getTotalElements())
+                .currentPage(result.getNumber())
+                .pageSize(result.getSize())
+                .build();
     }
 
     @Transactional

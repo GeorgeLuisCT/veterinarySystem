@@ -33,6 +33,7 @@ interface PaginatedCardListProps<T> {
   cardClassName?: string;
   emptyState?: React.ReactNode;
   onCardClick?: (item: T) => void;
+  gridClassName?: string; // <- NUEVO
 }
 
 export function PaginatedCardList<T>({
@@ -54,6 +55,7 @@ export function PaginatedCardList<T>({
   cardClassName,
   emptyState,
   onCardClick,
+  gridClassName,
 }: PaginatedCardListProps<T>) {
   const data = pageData?.content ?? [];
   const totalPages = Math.max(pageData?.totalPages ?? 1, 1);
@@ -93,6 +95,9 @@ export function PaginatedCardList<T>({
     if (isFromInteractive(event.target as HTMLElement, event.currentTarget)) return;
     onCardClick(item);
   };
+
+  const defaultGrid = "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3";
+  const gridClasses = gridClassName ?? defaultGrid;
 
   return (
     <div className="w-full h-full rounded-lg text-foreground flex flex-col">
@@ -137,13 +142,13 @@ export function PaginatedCardList<T>({
             {emptyState ?? "No hay elementos para mostrar."}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className={gridClasses}>
             {data.map((item, index) => {
               const key = getItemKey ? getItemKey(item) : index;
               const highlighted = cardHighlightBy?.(item) ?? false;
               const clickable = !!onCardClick;
               const baseClass =
-                "relative rounded-lg border border-border bg-background p-4 shadow-sm transition hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70";
+                "";
               const highlightClass = highlighted
                 ? cardHighlightClassName ?? highlightClassDefault
                 : "";
@@ -158,6 +163,7 @@ export function PaginatedCardList<T>({
               return (
                 <div
                   key={key}
+                  className={classes}
                   role={clickable ? "button" : undefined}
                   tabIndex={clickable ? 0 : -1}
                   onClick={(event) => handleCardClick(item, event)}

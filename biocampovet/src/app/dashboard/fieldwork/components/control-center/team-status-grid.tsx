@@ -24,7 +24,7 @@ export default function TeamStatusGrid() {
   }, [load]);
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Equipo de campo</CardTitle>
