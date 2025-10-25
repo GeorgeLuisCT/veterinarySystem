@@ -7,7 +7,7 @@ import type { VehicleStockResponse } from "../../types/vehicle-response";
 import type { PaginatedResponse } from "@/types/paginated-response";
 import DataTable from "@/components/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 
 export default function VehicleInventoryCard({
   vehicleId,

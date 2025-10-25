@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import PrescriptionTemplateService from "../service/prescription-template-service";
 import { PrescriptionTemplateResponse } from "../types/prescription-template-response";
 import { getAaxiosErrorMessage } from "@/helpers/error";
-import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { FrequencyUnitLabels } from "../enums/frequency-unit";
 import { TimeUnit } from "@/enums/time-unit";
 

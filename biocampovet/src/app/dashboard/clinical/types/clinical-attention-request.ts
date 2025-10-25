@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { ProductUnitType } from "../../inventory/products/enums/product-unit-type";
+import { ProductUnitType } from "../../inventory/_enums/product-unit-type";
 import { SurgicalOrderStatus } from "../../schedule/enums/surgical-order-status";
 import { ClinicalAttentionStatus } from "../enums/clinical-attention-status";
-import { AdministrationRoute } from "../../inventory/products/enums/administration-route";
+import { AdministrationRoute } from "../../inventory/_enums/administration-route";
 import { LabRequestStatus } from "../enums/lab-request-status";
 import { FrequencyUnit } from "../enums/frequency-unit";
 

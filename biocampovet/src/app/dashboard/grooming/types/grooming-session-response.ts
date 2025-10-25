@@ -1,5 +1,5 @@
 import { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
-import { ProductUnitType } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { ProductUnitType } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { GroomingStatus } from "../enums/grooming-status";
 import { AnimalBasicResponse } from "../../patients/animals/types/animal-basic-response";
 

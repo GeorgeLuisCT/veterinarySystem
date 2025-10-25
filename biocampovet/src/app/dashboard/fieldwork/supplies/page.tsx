@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { ProductResponse } from "@/app/dashboard/inventory/products/types/product-response";
+import type { ProductResponse } from "@/app/dashboard/inventory/_types/product-response";
 import { useUser } from "@/context/user-context";
 import VehicleSelectorCard from "../components/suplies/vehicle-selector-card";
 import VehicleInventoryCard from "../components/suplies/vehicle-inventory-card";

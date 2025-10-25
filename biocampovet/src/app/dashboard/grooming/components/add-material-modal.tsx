@@ -15,9 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/context/user-context";
-import ProductService from "@/app/dashboard/inventory/products/service/product-service";
+import ProductService from "@/app/dashboard/inventory/_service/product-service";
 import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/products/types/product-quick-search-response";
-import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { AddGroomingMaterialRequest } from "../types/grooming-session-request";
 
 type Props = {

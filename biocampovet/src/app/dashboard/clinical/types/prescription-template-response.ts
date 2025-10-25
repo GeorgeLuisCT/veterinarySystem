@@ -1,4 +1,4 @@
-import { ProductUnitType } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { ProductUnitType } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { FrequencyUnit } from "../enums/frequency-unit";
 import { TimeUnit } from "@/enums/time-unit";
 

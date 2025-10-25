@@ -28,8 +28,8 @@ import {
 import PrescriptionTemplateService from "../service/prescription-template-service";
 import { FrequencyUnit, FrequencyUnitLabels } from "../enums/frequency-unit";
 import { TimeUnit } from "@/enums/time-unit";
-import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
-import ProductService from "@/app/dashboard/inventory/products/service/product-service";
+import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
+import ProductService from "@/app/dashboard/inventory/_service/product-service";
 import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/products/types/product-quick-search-response";
 
 const timeUnitLabels: Record<TimeUnit, string> = {

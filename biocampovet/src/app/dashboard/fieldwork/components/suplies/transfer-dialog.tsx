@@ -8,11 +8,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { FloatingLabelInput } from "@/components/floating-label-input";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
-import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { adjustVehicleStockSchema, type AdjustVehicleStockRequest } from "../../types/vehicle-request";
 import VehicleService from "../../services/vehicle-service";
-import ProductService from "@/app/dashboard/inventory/products/service/product-service";
-import type { ProductResponse } from "@/app/dashboard/inventory/products/types/product-response";
+import ProductService from "@/app/dashboard/inventory/_service/product-service";
+import type { ProductResponse } from "@/app/dashboard/inventory/_types/product-response";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 

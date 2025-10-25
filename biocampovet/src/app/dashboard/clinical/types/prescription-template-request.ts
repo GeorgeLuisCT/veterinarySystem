@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TimeUnit } from "@/enums/time-unit";
 import { FrequencyUnit } from "../enums/frequency-unit";
-import { ProductUnitType } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { ProductUnitType } from "@/app/dashboard/inventory/_enums/product-unit-type";
 
 /**
  * Helper: convierte string/number/vacío → number requerido

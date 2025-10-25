@@ -12,7 +12,7 @@ import { useSales } from "../context/sales-context-type";
 import { ItemType, getItemTypeLabel } from "../types/item-type";
 import { EmployeeSummaryResponse } from "@/app/dashboard/staff/employees/types/employee-summary-response";
 import { SaleStatus, SaleStatusLabels } from "../enums/sale-status";
-import { getProductUnitTypeLabelByQuantity, ProductUnitType } from "../../inventory/products/enums/product-unit-type";
+import { getProductUnitTypeLabelByQuantity, ProductUnitType } from "../../inventory/_enums/product-unit-type";
 
 type BaseItem = {
   uid: string;

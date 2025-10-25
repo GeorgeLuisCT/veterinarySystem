@@ -1,4 +1,4 @@
-import { ProductUnitType } from "../../inventory/products/enums/product-unit-type";
+import { ProductUnitType } from "../../inventory/_enums/product-unit-type";
 
 export interface SaleProductSummaryResponse {
     id: number;

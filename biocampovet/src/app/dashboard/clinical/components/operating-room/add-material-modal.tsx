@@ -15,11 +15,11 @@ import {
   AddSurgicalReportMaterialRequest,
   addSurgicalReportMaterialSchema,
 } from "../../types/surgical-report-request";
-import ProductService from "@/app/dashboard/inventory/products/service/product-service";
+import ProductService from "@/app/dashboard/inventory/_service/product-service";
 import SurgicalReportService from "../../service/surgical-report-service";
 import { SurgicalReportDetailResponse } from "../../types/surgical-report-response";
 import { useUser } from "@/context/user-context";
-import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 
 type Option = { value: string; label: string };
 

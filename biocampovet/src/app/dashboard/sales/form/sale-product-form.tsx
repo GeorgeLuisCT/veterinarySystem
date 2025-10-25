@@ -14,14 +14,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { SaleProductRequest, saleProductRequestSchema } from "../types/sale-product-request";
 import { AnimalQuickSearchResponse } from "@/app/dashboard/patients/animals/types/animal-quick-search-response";
 import { toLocalSaleProduct } from "../helpers/sale-vet-product-mapper";
-import { ProductResponse } from "../../inventory/products/types/product-response";
+import { ProductResponse } from "../../inventory/_types/product-response";
 import { useSales } from "../context/sales-context-type";
-import ProductService from "../../inventory/products/service/product-service";
-import { getMainUnitLabelText, getSaleLabelText } from "../../inventory/products/utils/product-sale-labels";
-import { getProductPresentationTypeLabelPlural } from "../../inventory/products/enums/product-presentation-type";
-import { getProductUnitTypeLabel } from "../../inventory/products/enums/product-unit-type";
+import ProductService from "../../inventory/_service/product-service";
+import { getMainUnitLabelText, getSaleLabelText } from "../../inventory/_utils/product-sale-labels";
+import { getProductPresentationTypeLabelPlural } from "../../inventory/_enums/product-presentation-type";
+import { getProductUnitTypeLabel } from "../../inventory/_enums/product-unit-type";
 import { calculateSubtotalAndPrice } from "../util/calculate-subtotal-and-price";
-import { ProductSaleModeResponse } from "../../inventory/products/types/product-sale-mode-response";
+import { ProductSaleModeResponse } from "../../inventory/_types/product-sale-mode-response";
 
 interface SaleProductFormProps {
   open: boolean;

@@ -10,10 +10,10 @@ import { FloatingLabelInput } from "@/components/floating-label-input";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
 import VisitService from "../../services/visit-service";
 import { addProductUsageSchema, type AddProductUsageRequest } from "../../types/visit-request";
-import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
-import ProductService from "@/app/dashboard/inventory/products/service/product-service";
+import ProductService from "@/app/dashboard/inventory/_service/product-service";
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/context/user-context";
 

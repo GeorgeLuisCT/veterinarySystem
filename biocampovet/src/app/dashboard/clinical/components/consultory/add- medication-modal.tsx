@@ -10,14 +10,14 @@ import { FloatingLabelInput } from "@/components/floating-label-input";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { Textarea } from "@/components/ui/textarea";
 import { ClinicalAttentionService } from "../../service/clinical-attention-service";
-import ProductService from "@/app/dashboard/inventory/products/service/product-service";
+import ProductService from "@/app/dashboard/inventory/_service/product-service";
 import {
   addClinicalAttentionMedicationSchema,
   AddClinicalAttentionMedicationRequest,
 } from "../../types/clinical-attention-request";
 import { ClinicalAttentionDetailResponse } from "../../types/clinical-attention-response";
-import { AdministrationRouteLabels } from "@/app/dashboard/inventory/products/enums/administration-route";
-import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
+import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { FrequencyUnitLabels } from "../../enums/frequency-unit";
 import { useUser } from "@/context/user-context";
 

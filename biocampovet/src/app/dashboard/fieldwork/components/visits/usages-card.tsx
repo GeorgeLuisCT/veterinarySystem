@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { FieldVisitResponse } from "../../types/visit-response";
 
 export default function UsagesCard({ visit, loading }: { visit: FieldVisitResponse | null; loading: boolean; }) {

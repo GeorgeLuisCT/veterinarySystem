@@ -20,11 +20,11 @@ import { EmployeeService } from "@/app/dashboard/staff/employees/service/employe
 import { EmployeeQuickSearchResponse } from "@/app/dashboard/staff/employees/types/employee-quick-search-response";
 import AnimalService from "@/app/dashboard/patients/animals/service/animal-service";
 import { AnimalQuickSearchResponse } from "@/app/dashboard/patients/animals/types/animal-quick-search-response";
-import ProductService from "@/app/dashboard/inventory/products/service/product-service";
+import ProductService from "@/app/dashboard/inventory/_service/product-service";
 import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/products/types/product-quick-search-response";
 import { AnimalSpecies, AnimalSpeciesLabels } from "@/app/dashboard/patients/animals/enums/animal-species";
-import { AdministrationRoute, AdministrationRouteLabels } from "@/app/dashboard/inventory/products/enums/administration-route";
-import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { AdministrationRoute, AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
+import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { PlusCircle, Trash2 } from "lucide-react";
 import { useUser } from "@/context/user-context";
 

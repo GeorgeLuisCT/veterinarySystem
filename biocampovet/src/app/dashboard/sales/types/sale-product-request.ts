@@ -1,6 +1,6 @@
 import { AnimalQuickSearchResponse } from "@/app/dashboard/patients/animals/types/animal-quick-search-response";
 import { z } from "zod";
-import { ProductResponse } from "../../inventory/products/types/product-response";
+import { ProductResponse } from "../../inventory/_types/product-response";
 
 export const saleProductRequestSchema = z.object({
   productId: z.number({ required_error: "El producto es obligatorio" }),

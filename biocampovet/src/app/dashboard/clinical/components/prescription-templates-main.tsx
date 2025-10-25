@@ -25,7 +25,7 @@ import {
   PrescriptionTemplateResponse,
 } from "../types/prescription-template-response";
 import PrescriptionTemplateForm from "./prescription-template-form";
-import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { FrequencyUnitLabels } from "../enums/frequency-unit";
 import { TimeUnit } from "@/enums/time-unit";
 

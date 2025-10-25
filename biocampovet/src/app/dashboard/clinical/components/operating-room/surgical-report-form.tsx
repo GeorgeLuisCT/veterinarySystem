@@ -17,8 +17,8 @@ import { SurgicalReportDetailResponse } from "../../types/surgical-report-respon
 import { updateSurgicalReportSchema, UpdateSurgicalReportRequest } from "../../types/surgical-report-request";
 import { SurgicalReportStatus, SurgicalReportStatusLabels } from "../../enums/surgical-report-status";
 import { AnestheticPhase, AnestheticPhaseLabels } from "../../enums/anesthetic-phase";
-import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
-import { AdministrationRouteLabels } from "@/app/dashboard/inventory/products/enums/administration-route";
+import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
+import { AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
 import { FrequencyUnitLabels } from "../../enums/frequency-unit";
 
 import { AddAnestheticDrugModal } from "../../components/operating-room/add-anesthetic-drug-modal";

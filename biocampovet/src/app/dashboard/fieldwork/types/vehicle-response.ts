@@ -1,4 +1,4 @@
-import { ProductUnitType } from '@/app/dashboard/inventory/products/enums/product-unit-type';
+import { ProductUnitType } from '@/app/dashboard/inventory/_enums/product-unit-type';
 
 export interface VehicleResponse {
   id: number;

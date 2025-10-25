@@ -9,7 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { ItemType } from "../types/item-type";
-import ProductService from "../../inventory/products/service/product-service";
+import ProductService from "../../inventory/_service/product-service";
 
 export interface SearchResultItem {
   id: number;

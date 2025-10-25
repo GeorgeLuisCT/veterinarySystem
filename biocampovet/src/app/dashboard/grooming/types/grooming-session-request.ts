@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ProductUnitType } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { ProductUnitType } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { GroomingStatus } from "../enums/grooming-status";
 
 export interface GroomingSessionListParams {

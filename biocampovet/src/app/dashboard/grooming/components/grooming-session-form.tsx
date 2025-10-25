@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { CircleDollarSign, Package, User2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AddGroomingMaterialModal } from "./add-material-modal";
-import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
+import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { GroomingSessionDetailResponse } from "../types/grooming-session-response";
 import { AddGroomingMaterialRequest, UpdateGroomingSessionRequest, updateGroomingSessionSchema } from "../types/grooming-session-request";
 import GroomingSessionService from "../service/grooming-session-service";

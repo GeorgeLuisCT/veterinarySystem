@@ -30,9 +30,9 @@ import {
   ClinicalServiceCategory,
 } from "../enums/clinical-service-category";
 import { TimeUnit } from "@/enums/time-unit";
-import ProductService from "@/app/dashboard/inventory/products/service/product-service";
-import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/products/types/product-quick-search-response";
+import ProductService from "@/app/dashboard/inventory/_service/product-service";
 import { useToast } from "@/hooks/use-toast";
+import { ProductQuickSearchResponse } from "../../inventory/_types/product-response";
 
 type BranchState = BranchResponse & { active: boolean };
 
@@ -58,6 +58,7 @@ const categoryFieldConfig: Record<ClinicalServiceCategory, CategoryFieldConfig> 
   [ClinicalServiceCategory.SURGERY]: { showReminder: false },
   [ClinicalServiceCategory.LABORATORY]: { showReminder: false },
   [ClinicalServiceCategory.GROOMING]: { showReminder: false },
+  [ClinicalServiceCategory.OTHER]: { showReminder: false },
 };
 
 interface ClinicalServiceFormProps {

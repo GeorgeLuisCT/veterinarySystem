@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ProductUnitType } from '@/app/dashboard/inventory/products/enums/product-unit-type';
+import { ProductUnitType } from '@/app/dashboard/inventory/_enums/product-unit-type';
 
 const base = z.object({
   name: z.string().min(1),

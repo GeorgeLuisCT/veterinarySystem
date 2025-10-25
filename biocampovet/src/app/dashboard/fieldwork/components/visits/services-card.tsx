@@ -4,8 +4,8 @@ import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FieldVisitResponse } from "../../types/visit-response";
 import { AnimalSpeciesLabels } from "@/app/dashboard/patients/animals/enums/animal-species";
-import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/products/enums/product-unit-type";
-import { AdministrationRouteLabels } from "@/app/dashboard/inventory/products/enums/administration-route";
+import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
+import { AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
 
 export default function ServicesCard({ visit, loading }: { visit: FieldVisitResponse | null; loading: boolean; }) {
   return (

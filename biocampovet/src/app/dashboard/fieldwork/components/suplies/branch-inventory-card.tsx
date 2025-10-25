@@ -5,14 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
-import ProductService from "@/app/dashboard/inventory/products/service/product-service";
+import ProductService from "@/app/dashboard/inventory/_service/product-service";
 import type { ProductSummaryResponse } from "@/app/dashboard/inventory/products/types/product-summary-response";
 import type { PaginatedResponse } from "@/types/paginated-response";
 import { FloatingLabelInput } from "@/components/floating-label-input";
 import DataTable, { type Action } from "@/components/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
-import type { ProductResponse } from "@/app/dashboard/inventory/products/types/product-response";
+import type { ProductResponse } from "@/app/dashboard/inventory/_types/product-response";
 
 export default function BranchInventoryCard({ branchId, onAddToVehicle, vehicleSelected, refreshKey }: { branchId: number | null; onAddToVehicle: (product: ProductResponse) => void; vehicleSelected: boolean; refreshKey?: number; }) {
   const { toast } = useToast();
