@@ -4,14 +4,11 @@ import com.gaedet.biocampovet.core.branches.entity.Branch;
 import com.gaedet.biocampovet.core.inventory.dto.*;
 import com.gaedet.biocampovet.core.inventory.entity.CategoryProduct;
 import com.gaedet.biocampovet.core.inventory.entity.Product;
-import com.gaedet.biocampovet.core.inventory.entity.ProductBranchStock;
+import com.gaedet.biocampovet.core.inventory.entity.ProductBranch;
 import com.gaedet.biocampovet.core.inventory.entity.ProductSaleMode;
-import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
-import com.gaedet.biocampovet.core.inventory.util.ProductUnitConverterUtil;
-import org.springframework.stereotype.Component;
+import com.gaedet.biocampovet.core.inventory.enums.AdministrationRoute;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public final class ProductMapper {
 
@@ -26,49 +23,52 @@ public final class ProductMapper {
                 .unitType(request.getUnitType())
                 .standardPrice(request.getStandardPrice())
                 .contentTotal(request.getContentTotal())
+                .administrationRoutes(
+                        request.getAdministrationRoutes() == null
+                                ? new java.util.HashSet<>()
+                                : new java.util.HashSet<>(request.getAdministrationRoutes())
+                )
                 .build();
 
-        Set<Long> activeBranchIds = new HashSet<>(request.getBranchIds());
+        Set<Long> activeBranchIds = request.getBranchIds() == null
+                ? java.util.Collections.emptySet()
+                : new java.util.HashSet<>(request.getBranchIds());
 
-        Set<ProductBranchStock> branchStocks = allBranches.stream()
-                .map(branch -> ProductBranchStock.builder()
+        Set<ProductBranch> branchStocks = allBranches.stream()
+                .map(branch -> ProductBranch.builder()
                         .branch(branch)
                         .product(product)
                         .isActive(activeBranchIds.contains(branch.getId()))
-                        .stockUnits(0)
-                        .stockFractional(0.0)
                         .build())
-                .collect(Collectors.toSet());
-
+                .collect(java.util.stream.Collectors.toSet());
         product.setBranchStocks(branchStocks);
 
-        Set<ProductSaleMode> saleModes = request.getSaleModes().stream()
+        Set<ProductSaleMode> saleModes = (request.getSaleModes() == null
+                ? java.util.Collections.<ProductSaleModeRequest>emptySet()
+                : request.getSaleModes())
+                .stream()
                 .map(modeReq -> ProductSaleMode.builder()
                         .product(product)
                         .unitType(modeReq.getUnitType())
                         .quantityEquivalent(modeReq.getQuantityEquivalent())
                         .price(modeReq.getPrice())
                         .build())
-                .collect(Collectors.toSet());
-
+                .collect(java.util.stream.Collectors.toSet());
         product.setSaleModes(saleModes);
 
         return product;
     }
 
     public static ProductResponse toResponse(Product product) {
-
-        List<ProductBranchStockResponse> branchStocks = product.getBranchStocks().stream()
+        java.util.List<ProductBranchStockResponse> branchStocks = product.getBranchStocks().stream()
                 .map(pbs -> ProductBranchStockResponse.builder()
                         .id(pbs.getId())
                         .branchId(pbs.getBranch().getId())
                         .branchName(pbs.getBranch().getName())
-                        .stockUnits(pbs.getStockUnits())
-                        .stockFractional(pbs.getStockFractional())
                         .build())
                 .toList();
 
-        List<ProductSaleModeResponse> saleModes = product.getSaleModes().stream()
+        java.util.List<ProductSaleModeResponse> saleModes = product.getSaleModes().stream()
                 .map(psm -> ProductSaleModeResponse.builder()
                         .id(psm.getId())
                         .unitType(psm.getUnitType())
@@ -76,6 +76,10 @@ public final class ProductMapper {
                         .quantityEquivalent(psm.getQuantityEquivalent())
                         .build())
                 .toList();
+
+        java.util.List<AdministrationRoute> routes = product.getAdministrationRoutes() == null
+                ? java.util.Collections.emptyList()
+                : new java.util.ArrayList<>(product.getAdministrationRoutes());
 
         return ProductResponse.builder()
                 .id(product.getId())
@@ -88,38 +92,55 @@ public final class ProductMapper {
                 .unitType(product.getUnitType())
                 .standardPrice(product.getStandardPrice())
                 .contentTotal(product.getContentTotal())
+                .administrationRoutes(routes)
                 .branchStocks(branchStocks)
                 .saleModes(saleModes)
                 .build();
     }
 
-    public static ProductSummaryResponse toProductSummaryResponse(Product product) {
-        ProductUnitType unitType = product.getUnitType();
+    public static ProductSummaryResponse toSummary(Product p) {
+        List<SaleModeSummary> saleModes = p.getSaleModes() == null ? List.of() :
+                p.getSaleModes().stream()
+                        .sorted(Comparator.comparing(ProductSaleMode::getUnitType))
+                        .map(sm -> SaleModeSummary.builder()
+                                .unitType(sm.getUnitType())
+                                .quantityEquivalent(sm.getQuantityEquivalent())
+                                .price(sm.getPrice())
+                                .build())
+                        .toList();
 
-        int totalUnits = product.getBranchStocks().stream()
-                .mapToInt(ProductBranchStock::getStockUnits)
-                .sum();
+        List<BranchStockSummary> stocks = p.getBranchStocks() == null ? List.of() :
+                p.getBranchStocks().stream()
+                        .sorted(Comparator.comparing(x -> x.getBranch().getName(), String.CASE_INSENSITIVE_ORDER))
+                        .map(s -> BranchStockSummary.builder()
+                                .branchId(s.getBranch().getId())
+                                .branchName(s.getBranch().getName())
+                                .active(s.isActive())
+                                .build())
+                        .toList();
 
-        double totalFractional = product.getBranchStocks().stream()
-                .mapToDouble(ProductBranchStock::getStockFractional)
-                .sum();
+        int totalUnits = stocks.stream().mapToInt(bs -> nvl(bs.getStockUnits(), 0)).sum();
+        double totalFrac = stocks.stream().mapToDouble(bs -> nvl(bs.getStockFractional(), 0.0)).sum();
+        boolean belowMin = (totalUnits + totalFrac) < nvl(p.getMinStock(), 0);
 
-        String formattedStock = ProductUnitConverterUtil.formatStock(unitType, totalUnits, totalFractional);
-
-        String branchNames = product.getBranchStocks().stream()
-                .map(stock -> stock.getBranch().getName())
-                .distinct()
-                .collect(Collectors.joining(", "));
-
-        return new ProductSummaryResponse(
-                product.getId(),
-                product.getName(),
-                product.getSku(),
-                product.getCategory().getName(),
-                product.getStandardPrice(),
-                formattedStock,
-                branchNames
-        );
+        return ProductSummaryResponse.builder()
+                .id(p.getId())
+                .name(p.getName())
+                .categoryName(p.getCategory() != null ? p.getCategory().getName() : null)
+                .description(p.getDescription())
+                .minStock(p.getMinStock())
+                .sku(p.getSku())
+                .presentation(p.getPresentation())
+                .unitType(p.getUnitType())
+                .contentTotal(p.getContentTotal())
+                .standardPrice(p.getStandardPrice())
+                .administrationRoutes(p.getAdministrationRoutes() != null ? p.getAdministrationRoutes() : Set.of())
+                .saleModes(saleModes)
+                .branchStocks(stocks)
+                .totalStockUnits(totalUnits)
+                .totalStockFractional(totalFrac)
+                .belowMinStock(belowMin)
+                .build();
     }
 
     public static void updateEntity(Product product, ProductUpdateRequest request, CategoryProduct category) {
@@ -132,6 +153,13 @@ public final class ProductMapper {
         product.setCategory(category);
         product.setStandardPrice(request.getStandardPrice());
         product.setContentTotal(request.getContentTotal());
-    }
-}
 
+        java.util.Set<AdministrationRoute> routes = request.getAdministrationRoutes() == null
+                ? new java.util.HashSet<>()
+                : new java.util.HashSet<>(request.getAdministrationRoutes());
+        product.setAdministrationRoutes(routes);
+    }
+
+    private static Integer nvl(Integer v, Integer d) { return v == null ? d : v; }
+    private static Double nvl(Double v, Double d) { return v == null ? d : v; }
+}

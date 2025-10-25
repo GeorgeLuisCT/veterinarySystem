@@ -5,10 +5,9 @@ import com.gaedet.biocampovet.core.inventory.dto.CategoryProductResponse;
 import com.gaedet.biocampovet.core.inventory.entity.CategoryProduct;
 import org.springframework.stereotype.Component;
 
-@Component
-public class CategoryProductMapper {
+public final class CategoryProductMapper {
 
-    public CategoryProduct toEntity(CategoryProductRequest request) {
+    public static CategoryProduct toEntity(CategoryProductRequest request) {
         return CategoryProduct.builder()
                 .name(request.getName())
                 .isActive(true)

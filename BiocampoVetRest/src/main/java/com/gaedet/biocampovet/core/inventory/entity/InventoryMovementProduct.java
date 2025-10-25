@@ -43,4 +43,3 @@ public class InventoryMovementProduct {
     @JoinColumn(name = "product_batch_id")
     private ProductBatch productBatch;
 }
-

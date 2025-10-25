@@ -11,21 +11,7 @@ import java.util.Optional;
 @Repository
 public interface ProductBatchRepository extends JpaRepository<ProductBatch, Long> {
 
-    Optional<ProductBatch> findByProductIdAndBranchIdAndBatchNumber(
-            Long productId,
-            Long branchId,
-            String batchNumber
-    );
 
-    @Query("""
-        SELECT b FROM ProductBatch b
-        WHERE b.product.id = :productId
-        AND b.branch.id = :branchId
-        AND (b.stockUnits > 0 OR b.stockFractional > 0)
-        ORDER BY b.expirationDate ASC NULLS LAST, b.id ASC
-    """)
-    Optional<ProductBatch> findFirstAvailableBatchByProductIdAndBranchIdOrderByExpirationDateAsc(
-            @Param("productId") Long productId,
-            @Param("branchId") Long branchId
-    );
+    Optional<ProductBatch> findByProduct_IdAndBatchNumber(Long productId, String batchNumber);
+
 }

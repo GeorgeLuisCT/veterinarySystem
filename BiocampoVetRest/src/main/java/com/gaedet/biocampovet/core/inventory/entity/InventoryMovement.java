@@ -53,4 +53,3 @@ public class InventoryMovement {
     @OneToMany(mappedBy = "movement", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InventoryMovementProduct> products = new ArrayList<>();
 }
-

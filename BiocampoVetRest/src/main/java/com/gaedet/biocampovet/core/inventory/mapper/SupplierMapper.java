@@ -7,10 +7,9 @@ import com.gaedet.biocampovet.core.inventory.dto.SupplierUpdateRequest;
 import com.gaedet.biocampovet.core.inventory.entity.*;
 import org.springframework.stereotype.Component;
 
-@Component
-public class SupplierMapper {
+public final class SupplierMapper {
 
-    public Supplier toEntity(SupplierCreateRequest request) {
+    public static Supplier toEntity(SupplierCreateRequest request) {
         return Supplier.builder()
                 .name(request.getName())
                 .ruc(request.getRuc())
@@ -25,7 +24,7 @@ public class SupplierMapper {
                 .build();
     }
 
-    public void updateEntity(Supplier supplier, SupplierUpdateRequest request) {
+    public static void updateEntity(Supplier supplier, SupplierUpdateRequest request) {
         supplier.setName(request.getName());
         supplier.setRuc(request.getRuc());
         supplier.setAddress(request.getAddress());
@@ -37,7 +36,7 @@ public class SupplierMapper {
         supplier.setBankName(request.getBankName());
     }
 
-    public SupplierResponse toResponse(Supplier supplier) {
+    public static SupplierResponse toResponse(Supplier supplier) {
         return SupplierResponse.builder()
                 .id(supplier.getId())
                 .name(supplier.getName())
@@ -53,15 +52,23 @@ public class SupplierMapper {
                 .build();
     }
 
-    public SupplierSummaryResponse toSummaryResponse(Supplier supplier) {
-        return new SupplierSummaryResponse(
-                supplier.getId(),
-                supplier.getName(),
-                supplier.getRuc(),
-                supplier.getPhone(),
-                supplier.getEmail(),
-                supplier.getSupplierType(),
-                supplier.getActive()
-        );
+    public static SupplierSummaryResponse toSummary(Supplier supplier) {
+        if (supplier == null) {
+            return null;
+        }
+
+        return SupplierSummaryResponse.builder()
+                .id(supplier.getId())
+                .name(supplier.getName())
+                .ruc(supplier.getRuc())
+                .address(supplier.getAddress())
+                .website(supplier.getWebsite())
+                .phone(supplier.getPhone())
+                .email(supplier.getEmail())
+                .supplierType(supplier.getSupplierType())
+                .bankName(supplier.getBankName())
+                .bankAccountNumber(supplier.getBankAccountNumber())
+                .active(supplier.getActive())
+                .build();
     }
 }

@@ -12,7 +12,7 @@ import type {
 } from "../_types/supplier-request";
 
 interface SupplierSearchParams {
-  name: string;
+  query: string;
 }
 
 const buildQueryParams = (params: Record<string, unknown>) => {
@@ -71,9 +71,9 @@ export const SupplierService = {
   },
 
   searchSuppliers: async (
-    name: string
+    query: string
   ): Promise<SupplierQuickSearchResponse[]> => {
-    const params: SupplierSearchParams = { name };
+    const params: SupplierSearchParams = { query };
 
     const response = await api.get<SupplierQuickSearchResponse[]>("/suppliers/quick-search", {
       params,

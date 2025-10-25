@@ -1,40 +1,64 @@
 import api from "@/services/api";
 import { PaginatedResponse } from "@/types/paginated-response";
-import { InventoryMovementResponse } from "../_types/inventory-movement-response";
+import {
+  AdjustmentCreateRequest,
+  InventoryMovementListParams,
+  PurchaseCreateRequest,
+  TransferCreateRequest,
+} from "../_types/inventory-movement-request";
 import { InventoryMovementSummaryResponse } from "../_types/inventory-movement-summary-response";
-import { InventoryMovementRequest } from "../_types/inventory-movement-request";
-import { InventoryMovementType } from "../../enums/inventory-movement-type";
+import { InventoryMovementResponse } from "../_types/inventory-movement-response";
+import { KardexMovementResponse } from "../_types/kardex-movement-response";
+
+export interface KardexHistoryParams {
+  page?: number;
+  size?: number;
+  productId: number;
+  branchId: number;
+  batchId?: number;
+}
+
+const buildQueryParams = (params: Record<string, unknown>) =>
+  Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== "")
+  );
 
 export const InventoryMovementService = {
-  createMovement: async (data: InventoryMovementRequest): Promise<number> => {
-    const response = await api.post<number>("/inventory-movements", data);
-    return response.data;
-  },
-
-  getMovement: async (id: number): Promise<InventoryMovementResponse> => {
-    const response = await api.get<InventoryMovementResponse>("/inventory-movements", {
-      params: { id },
+  listMovements: async (
+    params: InventoryMovementListParams = {}
+  ): Promise<PaginatedResponse<InventoryMovementSummaryResponse>> => {
+    const response = await api.get<PaginatedResponse<InventoryMovementSummaryResponse>>("/inventory-movements", {
+      params: buildQueryParams(params),
     });
     return response.data;
   },
 
-  getMovementsByTypes: async (params: {
-    page?: number;
-    size?: number;
-    startDate?: string;
-    endDate?: string;
-    types: InventoryMovementType[];
-  }): Promise<PaginatedResponse<InventoryMovementSummaryResponse>> => {
-    const queryParams = new URLSearchParams();
+  createPurchase: async (data: PurchaseCreateRequest): Promise<InventoryMovementResponse> => {
+    const response = await api.post<InventoryMovementResponse>("/inventory-movements/purchase", data);
+    return response.data;
+  },
 
-    if (params.page !== undefined) queryParams.append("page", params.page.toString());
-    if (params.size !== undefined) queryParams.append("size", params.size.toString());
-    if (params.startDate) queryParams.append("startDate", params.startDate);
-    if (params.endDate) queryParams.append("endDate", params.endDate);
-    params.types.forEach(type => queryParams.append("types", type));
+  createTransfer: async (data: TransferCreateRequest): Promise<InventoryMovementResponse> => {
+    const response = await api.post<InventoryMovementResponse>("/inventory-movements/transfer", data);
+    return response.data;
+  },
 
-    const response = await api.get<PaginatedResponse<InventoryMovementSummaryResponse>>(
-      `/inventory-movements/list-filter?${queryParams.toString()}`
+  createAdjustment: async (data: AdjustmentCreateRequest): Promise<InventoryMovementResponse> => {
+    const response = await api.post<InventoryMovementResponse>("/inventory-movements/adjustment", data);
+    return response.data;
+  },
+
+  getMovement: async (id: number): Promise<InventoryMovementResponse> => {
+    const response = await api.get<InventoryMovementResponse>(`/inventory-movements/${id}`);
+    return response.data;
+  },
+
+  getKardexHistory: async (
+    params: KardexHistoryParams
+  ): Promise<PaginatedResponse<KardexMovementResponse>> => {
+    const response = await api.get<PaginatedResponse<KardexMovementResponse>>(
+      "/inventory-movements/kardex-history",
+      { params: buildQueryParams(params) }
     );
     return response.data;
   },

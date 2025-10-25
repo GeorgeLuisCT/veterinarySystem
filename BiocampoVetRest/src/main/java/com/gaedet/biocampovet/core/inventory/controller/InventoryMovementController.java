@@ -1,20 +1,21 @@
 package com.gaedet.biocampovet.core.inventory.controller;
 
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
-import com.gaedet.biocampovet.core.inventory.dto.InventoryMovementRequest;
-import com.gaedet.biocampovet.core.inventory.dto.InventoryMovementResponse;
-import com.gaedet.biocampovet.core.inventory.dto.InventoryMovementSummaryResponse;
+import com.gaedet.biocampovet.core.inventory.dto.*;
 import com.gaedet.biocampovet.core.inventory.enums.InventoryMovementType;
 import com.gaedet.biocampovet.core.inventory.service.InventoryMovementService;
 import com.gaedet.biocampovet.security.annotations.BranchAccessRequired;
 import com.gaedet.biocampovet.security.provider.JwtTokenProvider;
+import com.gaedet.biocampovet.security.util.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,37 +24,57 @@ import java.util.List;
 @RequiredArgsConstructor
 public class InventoryMovementController {
 
-    private final InventoryMovementService inventoryMovementService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final InventoryMovementService movementService;
 
-    @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DEPOSIT')")
+    @PostMapping("/purchase")
+    public ResponseEntity<InventoryMovementResponse> createPurchase(
+            @Valid @RequestBody PurchaseCreateRequest request,
+            @AuthenticationPrincipal UserPrincipal principal) {
+
+        return ResponseEntity.ok(movementService.createPurchase(request, principal.getEmployeeId()));
+    }
+
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Long> createMovement(@RequestBody @Valid InventoryMovementRequest request) {
-        Long sourceBranchId = jwtTokenProvider.getBranchId();
-        Long employeeId = jwtTokenProvider.getUserId();
-        Long response = inventoryMovementService.createMovement(request, sourceBranchId, employeeId);
-        return ResponseEntity.ok(response);
+    @PostMapping("/transfer")
+    public ResponseEntity<InventoryMovementResponse> createTransfer(
+            @Valid @RequestBody TransferCreateRequest request,
+            @AuthenticationPrincipal UserPrincipal principal) {
+
+        return ResponseEntity.ok(movementService.createTransfer(request, principal.getEmployeeId()));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PostMapping("/adjustment")
+    public ResponseEntity<InventoryMovementResponse> createAdjustment(
+            @Valid @RequestBody AdjustmentCreateRequest request,
+            @AuthenticationPrincipal UserPrincipal principal) {
+
+        return ResponseEntity.ok(movementService.createAdjustment(request, principal.getEmployeeId()));
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<InventoryMovementResponse> getMovement(@RequestParam("id") Long id) {
-        InventoryMovementResponse response = inventoryMovementService.getMovementById(id);
-        return ResponseEntity.ok(response);
-    }
-
-    @BranchAccessRequired
-    @GetMapping("/list-filter")
-    public ResponseEntity<PaginatedResponse<InventoryMovementSummaryResponse>> getMovementsByTypes(
+    public ResponseEntity<PaginatedResponse<InventoryMovementSummaryResponse>> listMovements(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-            @RequestParam(name = "types") List<InventoryMovementType> types
+            @RequestParam(required = false) Long branchId,
+            @RequestParam(required = false) InventoryMovementType type,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
-        Long branchId = jwtTokenProvider.getBranchId();
-        PaginatedResponse<InventoryMovementSummaryResponse> response =
-                inventoryMovementService.getMovementSummariesByTypes(page, size, branchId, types, startDate, endDate);
-        return ResponseEntity.ok(response);
+        var resp = movementService.listMovements(page, size, branchId, type, startDate, endDate);
+        return ResponseEntity.ok(resp);
+    }
+
+    @GetMapping("/kardex-history")
+    public ResponseEntity<PaginatedResponse<KardexMovementResponse>> getKardexHistory(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam Long productId,
+            @RequestParam Long branchId,
+            @RequestParam(required = false) Long batchId
+    ) {
+        var resp = movementService.getKardexHistory(page, size, productId, branchId, batchId);
+        return ResponseEntity.ok(resp);
     }
 }

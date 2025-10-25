@@ -10,15 +10,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class InventoryMovementProductResponse {
     private Long id;
-    private ProductResponse product;
+    private ProductSummaryResponse product;
+    private ProductBatchSummaryResponse batch;
     private Double quantity;
-    private ProductUnitType productUnitType;
+    private ProductUnitType unitType;
     private BigDecimal unitCost;
-    private String batchNumber;
-    private LocalDate expirationDate;
 }

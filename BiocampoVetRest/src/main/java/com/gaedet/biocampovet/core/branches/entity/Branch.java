@@ -3,7 +3,7 @@ package com.gaedet.biocampovet.core.branches.entity;
 import com.gaedet.biocampovet.core.clinic.entity.BranchClinicalService;
 import com.gaedet.biocampovet.core.clinic.entity.Cage;
 import com.gaedet.biocampovet.core.employees.entity.EmployeeBranch;
-import com.gaedet.biocampovet.core.inventory.entity.ProductBranchStock;
+import com.gaedet.biocampovet.core.inventory.entity.ProductBranch;
 
 import lombok.*;
 
@@ -35,7 +35,7 @@ public class Branch {
     private Company company;
 
     @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<ProductBranchStock> productBranchStock;
+    private Set<ProductBranch> productBranchStock;
 
     @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<EmployeeBranch> employeeBranches = new HashSet<>();

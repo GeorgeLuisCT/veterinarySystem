@@ -1,5 +1,6 @@
 package com.gaedet.biocampovet.core.inventory.dto;
 
+import com.gaedet.biocampovet.core.inventory.enums.AdministrationRoute;
 import com.gaedet.biocampovet.core.inventory.enums.ProductPresentationType;
 import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
 import com.gaedet.biocampovet.core.inventory.util.ValidProductRequest;
@@ -47,6 +48,8 @@ public class BaseProductRequest {
     @NotNull(message = "El contenido total es obligatorio")
     @DecimalMin(value = "0.1", message = "El contenido total debe ser mayor a 0")
     private Double contentTotal;
+
+    private Set<AdministrationRoute> administrationRoutes;
 
     private Set<ProductSaleModeRequest> saleModes;
 }

@@ -149,7 +149,7 @@ public final class ClinicalAttentionMapper {
     private static ClinicalServiceProductResponse toServiceProductResponse(ClinicalServiceProduct entity) {
         return new ClinicalServiceProductResponse(
                 entity.getId(),
-                ProductMapper.toProductSummaryResponse(entity.getProduct()),
+                ProductMapper.toSummary(entity.getProduct()),
                 entity.getDose(),
                 entity.getUnit(),
                 entity.getAdministrationRoute()

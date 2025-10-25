@@ -5,18 +5,25 @@ import com.gaedet.biocampovet.core.global.PaginatedResponse;
 import com.gaedet.biocampovet.core.inventory.dto.*;
 import com.gaedet.biocampovet.core.inventory.entity.CategoryProduct;
 import com.gaedet.biocampovet.core.inventory.entity.Product;
-import com.gaedet.biocampovet.core.inventory.entity.ProductBranchStock;
+import com.gaedet.biocampovet.core.inventory.entity.ProductBranch;
+import com.gaedet.biocampovet.core.inventory.enums.AdministrationRoute;
+import com.gaedet.biocampovet.core.inventory.enums.ProductPresentationType;
+import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
 import com.gaedet.biocampovet.core.inventory.repository.CategoryProductRepository;
 import com.gaedet.biocampovet.core.inventory.repository.ProductRepository;
 import com.gaedet.biocampovet.core.inventory.mapper.ProductMapper;
+import com.gaedet.biocampovet.core.inventory.specs.ProductSpecs;
 import com.gaedet.biocampovet.exeption.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,13 +33,15 @@ public class ProductService {
     private final CategoryProductRepository categoryRepository;
     private final EntityManager entityManager;
     private final SaleModeService saleModeService;
+    private final KardexService kardexService;
 
     ProductService(ProductRepository productRepository, CategoryProductRepository categoryRepository,
-                   EntityManager entityManager, SaleModeService saleModeService) {
+                   EntityManager entityManager, SaleModeService saleModeService, KardexService kardexService) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.entityManager = entityManager;
         this.saleModeService = saleModeService;
+        this.kardexService = kardexService;
     }
 
     @Transactional
@@ -49,7 +58,7 @@ public class ProductService {
 
         Product product = productRepository.save(ProductMapper.toEntity(request, category, allBranches));
 
-        return ProductMapper.toProductSummaryResponse(product);
+        return ProductMapper.toSummary(product);
     }
 
     public ProductResponse getProduct(Long id) {
@@ -70,21 +79,37 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
-    public PaginatedResponse<ProductSummaryResponse> getProducts( int page, int size, Boolean isActive, Long branchId, String query) {
+    public PaginatedResponse<ProductSummaryResponse> list(
+            int page, int size,
+            String q,
+            Long categoryId,
+            Long branchId,
+            Boolean active,
+            ProductPresentationType presentation,
+            ProductUnitType unitType,
+            AdministrationRoute route,
+            Boolean hasSaleModes,
+            Boolean availableOnly,
+            Boolean minStockAlertOnly
+    ) {
+        Specification<Product> spec = ProductSpecs.byFilters(
+                q, categoryId, branchId, active, presentation, unitType, route, hasSaleModes, availableOnly, minStockAlertOnly
+        );
 
-        Pageable pageable = PageRequest.of(page, size);
-        String searchQuery = (query == null || query.isBlank()) ? null : query.trim();
-        Long formattedBranchId = (branchId == null || branchId == 0) ? null : branchId;
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by("name").ascending());
 
-        Page<Object[]> rawPage = productRepository.findProductSummary(searchQuery, formattedBranchId, isActive, pageable);
-        Page<ProductSummaryResponse> productPage = rawPage.map(ProductSummaryResponse::fromNativeRow);
+        Page<Product> result = productRepository.findAll(spec, pageable);
+
+        List<ProductSummaryResponse> content = result.getContent().stream()
+                .map(ProductMapper::toSummary)
+                .toList();
 
         return PaginatedResponse.<ProductSummaryResponse>builder()
-                .content(productPage.getContent())
-                .totalPages(productPage.getTotalPages())
-                .totalElements(productPage.getTotalElements())
-                .currentPage(productPage.getNumber())
-                .pageSize(productPage.getSize())
+                .content(content)
+                .totalPages(result.getTotalPages())
+                .totalElements(result.getTotalElements())
+                .currentPage(result.getNumber())
+                .pageSize(result.getSize())
                 .build();
     }
 
@@ -118,7 +143,7 @@ public class ProductService {
         saleModeService.updateOrAddSaleModes(product, request);
 
         productRepository.save(product);
-        return ProductMapper.toProductSummaryResponse(product);
+        return ProductMapper.toSummary(product);
     }
 
     @Transactional
@@ -127,28 +152,28 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
         if (branchId == null || branchId == 0) {
-            boolean hasStock = product.getBranchStocks().stream()
-                    .anyMatch(stock -> stock.getStockUnits() > 0 || stock.getStockFractional() > 0);
 
-            if (hasStock) {
-                throw new RuntimeException("No se puede desactivar el producto porque tiene stock disponible.");
+            for (ProductBranch stock : product.getBranchStocks()) {
+                BigDecimal currentStock = kardexService.getCurrentStock(productId, stock.getBranch().getId());
+                if (currentStock.compareTo(BigDecimal.ZERO) > 0) {
+                    throw new RuntimeException("No se puede desactivar el producto. Tiene stock en la sucursal: " + stock.getBranch().getName());
+                }
+                stock.setActive(false);
             }
 
-            product.getBranchStocks().forEach(stock -> stock.setActive(false));
         } else {
-            ProductBranchStock branchStock = product.getBranchStocks().stream()
+            ProductBranch branchStock = product.getBranchStocks().stream()
                     .filter(stock -> stock.getBranch().getId().equals(branchId))
                     .findFirst()
                     .orElseThrow(() -> new RuntimeException("Sucursal no encontrada para este producto."));
 
-            if (branchStock.getStockUnits() > 0 || branchStock.getStockFractional() > 0) {
+            BigDecimal currentStock = kardexService.getCurrentStock(productId, branchId);
+            if (currentStock.compareTo(BigDecimal.ZERO) > 0) {
                 throw new RuntimeException("No se puede desactivar el producto porque tiene stock disponible en la sucursal.");
             }
 
             branchStock.setActive(false);
         }
-
-        productRepository.save(product);
     }
 
     @Transactional
@@ -156,11 +181,11 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
-        boolean hasStock = product.getBranchStocks().stream()
-                .anyMatch(stock -> stock.getStockUnits() > 0 || stock.getStockFractional() > 0);
-
-        if (hasStock) {
-            throw new RuntimeException("No se puede eliminar el producto porque tiene stock disponible en alguna sucursal.");
+        for (ProductBranch stock : product.getBranchStocks()) {
+            BigDecimal currentStock = kardexService.getCurrentStock(productId, stock.getBranch().getId());
+            if (currentStock.compareTo(BigDecimal.ZERO) > 0) {
+                throw new RuntimeException("No se puede eliminar el producto. Tiene stock en la sucursal: " + stock.getBranch().getName());
+            }
         }
 
         productRepository.deleteById(productId);
@@ -174,7 +199,7 @@ public class ProductService {
         if (branchId == null || branchId == 0) {
             product.getBranchStocks().forEach(stock -> stock.setActive(true));
         } else {
-            ProductBranchStock branchStock = product.getBranchStocks().stream()
+            ProductBranch branchStock = product.getBranchStocks().stream()
                     .filter(stock -> stock.getBranch().getId().equals(branchId))
                     .findFirst()
                     .orElseThrow(() -> new RuntimeException("Sucursal no encontrada para este producto."));
@@ -183,6 +208,6 @@ public class ProductService {
         }
 
         productRepository.save(product);
-        return ProductMapper.toProductSummaryResponse(product);
+        return ProductMapper.toSummary(product);
     }
 }

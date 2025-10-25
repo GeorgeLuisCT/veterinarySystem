@@ -1,97 +1,108 @@
 package com.gaedet.biocampovet.core.inventory.mapper;
 
+import com.gaedet.biocampovet.core.branches.dto.BranchSummaryResponse;
 import com.gaedet.biocampovet.core.branches.entity.Branch;
-import com.gaedet.biocampovet.core.branches.mapper.BranchMapper;
+import com.gaedet.biocampovet.core.employees.dto.EmployeeSummaryResponse;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
-import com.gaedet.biocampovet.core.employees.mapper.EmployeeMapper;
-import com.gaedet.biocampovet.core.inventory.dto.InventoryMovementProductResponse;
-import com.gaedet.biocampovet.core.inventory.dto.InventoryMovementRequest;
-import com.gaedet.biocampovet.core.inventory.dto.InventoryMovementResponse;
+import com.gaedet.biocampovet.core.inventory.dto.*;
 import com.gaedet.biocampovet.core.inventory.entity.*;
-import com.gaedet.biocampovet.core.inventory.util.InventoryStockHelper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import java.util.stream.Collectors;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+public final class InventoryMovementMapper {
 
-@Component
-@RequiredArgsConstructor
-public class InventoryMovementMapper {
-
-    private final BranchMapper branchMapper;
-    private final SupplierMapper supplierMapper;
-    private final EmployeeMapper employeeMapper;
-    private final InventoryStockHelper inventoryStockHelper;
-
-    public InventoryMovement toEntity(
-            InventoryMovementRequest request,
-            Branch sourceBranch,
-            Branch targetBranch,
-            Supplier supplier,
-            Employee employee
-    ) {
-        InventoryMovement movement = new InventoryMovement();
-        movement.setType(request.getType());
-        movement.setDate(LocalDateTime.now());
-        movement.setDescription(request.getDescription());
-        movement.setSourceBranch(sourceBranch);
-        movement.setTargetBranch(targetBranch);
-        movement.setSupplier(supplier);
-        movement.setEmployee(employee);
-
-        List<InventoryMovementProduct> products = new ArrayList<>();
-
-        for (var p : request.getProducts()) {
-            Product productRef = new Product();
-            productRef.setId(p.getProductId());
-
-            ProductBatch batch = inventoryStockHelper.getOrCreateBatch(
-                    p.getProductId(),
-                    sourceBranch.getId(),
-                    p.getBatchNumber(),
-                    p.getExpirationDate()
-            );
-
-            InventoryMovementProduct item = new InventoryMovementProduct();
-            item.setProduct(productRef);
-            item.setQuantity(p.getQuantity());
-            item.setUnitType(p.getProductUnitType());
-            item.setUnitCost(p.getUnitCost());
-            item.setProductBatch(batch);
-            item.setMovement(movement);
-
-            products.add(item);
-        }
-
-        movement.setProducts(products);
-        return movement;
+    public static InventoryMovementResponse toResponse(InventoryMovement entity) {
+        if (entity == null) return null;
+        return InventoryMovementResponse.builder()
+                .id(entity.getId())
+                .type(entity.getType())
+                .date(entity.getDate())
+                .description(entity.getDescription())
+                .sourceBranch(toBranchSummary(entity.getSourceBranch()))
+                .targetBranch(toBranchSummary(entity.getTargetBranch()))
+                .supplier(toSupplierSummary(entity.getSupplier()))
+                .employee(toEmployeeSummary(entity.getEmployee()))
+                .products(entity.getProducts().stream()
+                        .map(InventoryMovementMapper::toProductResponse)
+                        .collect(Collectors.toList()))
+                .build();
     }
 
-    public InventoryMovementResponse toResponse(InventoryMovement movement) {
-        return InventoryMovementResponse.builder()
-                .id(movement.getId())
-                .type(movement.getType())
-                .sourceBranch(branchMapper.toResponse(movement.getSourceBranch()))
-                .targetBranch(movement.getTargetBranch() != null ? branchMapper.toResponse(movement.getTargetBranch()) : null)
-                .supplier(movement.getSupplier() != null ? supplierMapper.toResponse(movement.getSupplier()) : null)
-                .employee(employeeMapper.toResponse(movement.getEmployee()))
-                .date(movement.getDate())
-                .description(movement.getDescription())
-                .products(
-                        movement.getProducts().stream()
-                                .map(p -> InventoryMovementProductResponse.builder()
-                                        .id(p.getId())
-                                        .product(ProductMapper.toResponse(p.getProduct()))
-                                        .quantity(p.getQuantity())
-                                        .productUnitType(p.getUnitType())
-                                        .unitCost(p.getUnitCost())
-                                        .batchNumber(p.getProductBatch().getBatchNumber())
-                                        .expirationDate(p.getProductBatch().getExpirationDate())
-                                        .build()
-                                ).toList()
-                )
+    public static InventoryMovementSummaryResponse toSummary(InventoryMovement entity) {
+        if (entity == null) return null;
+        return InventoryMovementSummaryResponse.builder()
+                .id(entity.getId())
+                .type(entity.getType())
+                .date(entity.getDate())
+                .description(entity.getDescription())
+                .sourceBranchName(entity.getSourceBranch() != null ? entity.getSourceBranch().getName() : null)
+                .targetBranchName(entity.getTargetBranch() != null ? entity.getTargetBranch().getName() : null)
+                .supplierName(entity.getSupplier() != null ? entity.getSupplier().getName() : null)
+                .employeeName(entity.getEmployee() != null ? (entity.getEmployee().getFirstName() + " " + entity.getEmployee().getLastName()) : null)
+                .build();
+    }
+
+    public static InventoryMovementProductResponse toProductResponse(InventoryMovementProduct entity) {
+        if (entity == null) return null;
+        return InventoryMovementProductResponse.builder()
+                .id(entity.getId())
+                .quantity(entity.getQuantity())
+                .unitType(entity.getUnitType())
+                .unitCost(entity.getUnitCost())
+                .product(toProductSummary(entity.getProduct()))
+                .batch(toBatchSummary(entity.getProductBatch()))
+                .build();
+    }
+
+    public static KardexMovementResponse toKardexResponse(KardexMovement entity) {
+        if (entity == null) return null;
+        return KardexMovementResponse.builder()
+                .id(entity.getId())
+                .date(entity.getDate())
+                .type(entity.getType())
+                .quantity(entity.getQuantity())
+                .resultingStock(entity.getResultingStock())
+                .originId(entity.getOriginId())
+                .originType(entity.getOriginType())
+                .productName(entity.getProduct() != null ? entity.getProduct().getName() : null)
+                .batchNumber(entity.getBatch() != null ? entity.getBatch().getBatchNumber() : null)
+                .expirationDate(entity.getBatch() != null ? entity.getBatch().getExpirationDate() : null)
+                .build();
+    }
+
+
+    private static BranchSummaryResponse toBranchSummary(Branch entity) {
+        if (entity == null) return null;
+        return BranchSummaryResponse.builder().id(entity.getId()).name(entity.getName()).build();
+    }
+
+    private static SupplierSummaryResponse toSupplierSummary(Supplier entity) {
+        if (entity == null) return null;
+        return SupplierSummaryResponse.builder().id(entity.getId()).name(entity.getName()).build();
+    }
+
+    private static EmployeeSummaryResponse toEmployeeSummary(Employee entity) {
+        if (entity == null) return null;
+        return EmployeeSummaryResponse.builder()
+                .id(entity.getId())
+                .firstName(entity.getFirstName() + " " + entity.getLastName())
+                .build();
+    }
+
+    private static ProductSummaryResponse toProductSummary(Product entity) {
+        if (entity == null) return null;
+        return ProductSummaryResponse.builder()
+                .id(entity.getId())
+                .name(entity.getName())
+                .sku(entity.getSku())
+                .build();
+    }
+
+    private static ProductBatchSummaryResponse toBatchSummary(ProductBatch entity) {
+        if (entity == null) return null;
+        return ProductBatchSummaryResponse.builder()
+                .id(entity.getId())
+                .batchNumber(entity.getBatchNumber())
+                .expirationDate(entity.getExpirationDate())
                 .build();
     }
 }

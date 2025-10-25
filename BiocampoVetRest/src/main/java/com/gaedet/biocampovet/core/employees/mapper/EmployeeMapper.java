@@ -11,14 +11,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Component
-public class EmployeeMapper {
+public final class EmployeeMapper {
 
 
-    public EmployeeMapper() {
-    }
-
-    public Employee toEntity(EmployeeCreateRequest request, List<Branch> allBranches) {
+    public static Employee toEntity(EmployeeCreateRequest request, List<Branch> allBranches) {
         Employee employee = new Employee();
         employee.setFirstName(request.getFirstName());
         employee.setLastName(request.getLastName());
@@ -43,7 +39,7 @@ public class EmployeeMapper {
         return employee;
     }
 
-    public EmployeeResponse toResponse(Employee employee) {
+    public static EmployeeResponse toResponse(Employee employee) {
         List<EmployeeBranchResponse> branchResponses = employee.getEmployeeBranches().stream()
                 .map(eb -> EmployeeBranchResponse.builder()
                         .id(eb.getBranch().getId())
@@ -64,7 +60,7 @@ public class EmployeeMapper {
                 .build();
     }
 
-    public EmployeeSummaryResponse toEmployeeSummaryResponse(Employee employee) {
+    public static EmployeeSummaryResponse toSummary(Employee employee) {
         String branchNames = employee.getEmployeeBranches().stream()
                 .map(eb -> eb.getBranch().getName())
                 .distinct()
@@ -85,7 +81,7 @@ public class EmployeeMapper {
         );
     }
 
-    public void updateEntity(Employee employee, EmployeeUpdateRequest request) {
+    public static void updateEntity(Employee employee, EmployeeUpdateRequest request) {
         employee.setFirstName(request.getFirstName());
         employee.setLastName(request.getLastName());
         employee.setEmail(request.getEmail());

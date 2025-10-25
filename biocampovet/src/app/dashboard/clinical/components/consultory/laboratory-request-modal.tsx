@@ -109,7 +109,7 @@ export function LaboratoryRequestModal({ id, onClose, onAdded }: CommonProps) {
         setTestOptionsMap({});
         setTestNameMap({});
         if (laboratoryId) addEmptyRow();
-    }, [laboratoryId, replace]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [laboratoryId, replace]); 
 
     const onSubmit = async (values: AddClinicalAttentionLaboratoryRequest) => {
         setSubmitting(true);

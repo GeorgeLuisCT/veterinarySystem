@@ -1,4 +1,46 @@
 package com.gaedet.biocampovet.core.inventory.specs;
 
+import com.gaedet.biocampovet.core.inventory.entity.InventoryMovement;
+import com.gaedet.biocampovet.core.inventory.enums.InventoryMovementType;
+
+import javax.persistence.criteria.Predicate;
+import org.springframework.data.jpa.domain.Specification;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+
 public class InventoryMovementSpecs {
+
+    public static Specification<InventoryMovement> byFilters(
+            Long branchId,
+            InventoryMovementType type,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (branchId != null) {
+                predicates.add(cb.or(
+                        cb.equal(root.get("sourceBranch").get("id"), branchId),
+                        cb.equal(root.get("targetBranch").get("id"), branchId)
+                ));
+            }
+
+            if (type != null) {
+                predicates.add(cb.equal(root.get("type"), type));
+            }
+
+            if (startDate != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("date"), startDate.atStartOfDay()));
+            }
+
+            if (endDate != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("date"), endDate.atTime(LocalTime.MAX)));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
 }

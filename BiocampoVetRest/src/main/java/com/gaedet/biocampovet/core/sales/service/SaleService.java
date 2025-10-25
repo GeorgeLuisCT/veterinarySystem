@@ -44,9 +44,6 @@ public class SaleService {
 
             Sale savedSale = saleRepository.save(sale);
 
-            if (request.getSaleProducts() != null && !request.getSaleProducts().isEmpty()) {
-                inventoryMovementService.registerSaleMovement(request, branchId, employeeId);
-            }
             return savedSale.getId();
         } catch (Exception e) {
             throw new RuntimeException("Error al crear la venta: " + e.getMessage(), e);

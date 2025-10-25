@@ -11,7 +11,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "product_batch", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"product_id", "branch_id", "batch_number"})
+        @UniqueConstraint(columnNames = {"product_id", "batch_number"})
 })
 @Getter
 @Setter
@@ -27,19 +27,9 @@ public class ProductBatch {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "branch_id")
-    private Branch branch;
-
     @Column(name = "batch_number", nullable = false)
     private String batchNumber;
 
     @Column(name = "expiration_date")
     private LocalDate expirationDate;
-
-    @Column(nullable = false)
-    private Integer stockUnits;
-
-    @Column(nullable = false)
-    private Double stockFractional;
 }

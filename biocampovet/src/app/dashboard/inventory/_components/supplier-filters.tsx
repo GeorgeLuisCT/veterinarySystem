@@ -52,7 +52,6 @@ export default function SupplierFilters({ value, onChange, onReset }: Props) {
   React.useEffect(() => {
     const t = setTimeout(() => apply({ ...state, q: qLocal || undefined }), 400);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qLocal]);
 
   const toSelectValue = (v?: string) => v ?? ALL;

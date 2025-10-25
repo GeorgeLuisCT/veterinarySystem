@@ -35,16 +35,16 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.getEmployee(id));
     }
 
-    @BranchAccessRequired
-    @GetMapping("/list")
-    public ResponseEntity<PaginatedResponse<EmployeeSummaryResponse>> getEmployees(
+    @GetMapping
+    public ResponseEntity<PaginatedResponse<EmployeeSummaryResponse>> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam boolean active,
+            @RequestParam(required = false) String q,
             @RequestParam(required = false) Long branchId,
-            @RequestParam(required = false) String query
+            @RequestParam(required = false) Boolean active
     ) {
-        return ResponseEntity.ok(employeeService.getEmployees(page, size, active, branchId, query));
+        var resp = employeeService.list(page, size, q, branchId, active);
+        return ResponseEntity.ok(resp);
     }
 
     @GetMapping("/quick-search")

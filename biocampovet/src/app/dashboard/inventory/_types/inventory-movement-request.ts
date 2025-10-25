@@ -1,86 +1,163 @@
 import { z } from "zod";
-import { InventoryMovementType } from "../../enums/inventory-movement-type";
-import {
-  InventoryMovementProductLocal,
-} from "./inventory-movement-product-request";
+import { ProductUnitType } from "../_enums/product-unit-type";
+import { AdjustmentType } from "../_enums/adjustment-type";
+import { InventoryMovementType } from "../_enums/inventory-movement-type";
 
-export const InventoryMovementSchema = z
+const numericField = (minMessage: string) =>
+  z.preprocess(
+    (value) => {
+      if (typeof value === "string") {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : value;
+      }
+      return value;
+    },
+    z
+      .number({ required_error: minMessage })
+      .positive(minMessage)
+  );
+
+const positiveQuantity = numericField("La cantidad debe ser mayor a 0");
+
+const unitCostSchema = z.preprocess(
+  (value) => {
+    if (value === "" || value === null || value === undefined) return undefined;
+    if (value instanceof Number) return Number(value);
+    if (typeof value === "string") {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : undefined;
+    }
+    return value;
+  },
+  z
+    .number({
+      required_error: "El costo unitario es obligatorio",
+      invalid_type_error: "El costo unitario debe ser un número",
+    })
+    .min(0, "El costo unitario no puede ser negativo")
+);
+
+const optionalString = z
+  .string()
+  .trim()
+  .min(1, "Este campo no puede estar vacío")
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+
+export const purchaseProductSchema = z.object({
+  productId: z
+    .number({ required_error: "Selecciona un producto" })
+    .min(1, "Selecciona un producto"),
+  batchNumber: z
+    .string({ required_error: "El número de lote es obligatorio" })
+    .trim()
+    .min(1, "El número de lote no puede estar vacío"),
+  expirationDate: z
+    .string()
+    .trim()
+    .min(1, "La fecha de vencimiento es obligatoria")
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  quantity: positiveQuantity,
+  unitType: z.nativeEnum(ProductUnitType, {
+    required_error: "La unidad es obligatoria",
+  }),
+  unitCost: unitCostSchema,
+});
+
+export const purchaseCreateSchema = z.object({
+  branchId: z
+    .number({ required_error: "Selecciona una sucursal" })
+    .min(1, "Selecciona una sucursal"),
+  supplierId: z
+    .number({ required_error: "Selecciona un proveedor" })
+    .min(1, "Selecciona un proveedor"),
+  date: z
+    .string({ required_error: "La fecha de compra es obligatoria" })
+    .min(1, "La fecha de compra es obligatoria"),
+  description: optionalString,
+  products: z
+    .array(purchaseProductSchema)
+    .min(1, "Agrega al menos un producto"),
+});
+
+export const transferProductSchema = z.object({
+  productId: z
+    .number({ required_error: "Selecciona un producto" })
+    .min(1, "Selecciona un producto"),
+  batchId: z
+    .number({ required_error: "Selecciona un lote" })
+    .min(1, "Selecciona un lote válido"),
+  quantity: positiveQuantity,
+  unitType: z.nativeEnum(ProductUnitType, {
+    required_error: "La unidad es obligatoria",
+  }),
+});
+
+export const transferCreateSchema = z
   .object({
-    type: z.nativeEnum(InventoryMovementType, {
-      required_error: "El tipo de movimiento es obligatorio",
-    }),
-    sourceBranchId: z.number().optional(),
-    targetBranchId: z.number().optional(),
-    supplierId: z.number().optional(),
-    description: z.string().optional(),
-    products: z.array(z.any()).min(1, "Debe registrar al menos un producto")
-
+    sourceBranchId: z
+      .number({ required_error: "Selecciona la sucursal de origen" })
+      .min(1, "Selecciona la sucursal de origen"),
+    targetBranchId: z
+      .number({ required_error: "Selecciona la sucursal de destino" })
+      .min(1, "Selecciona la sucursal de destino"),
+    description: optionalString,
+    products: z
+      .array(transferProductSchema)
+      .min(1, "Agrega al menos un producto"),
   })
   .superRefine((data, ctx) => {
-    if (
-      data.type === InventoryMovementType.TRANSFER_SENT ||
-      data.type === InventoryMovementType.NEGATIVE_ADJUSTMENT ||
-      data.type === InventoryMovementType.SUPPLIER_RETURN ||
-      data.type === InventoryMovementType.TRANSFER_RECEIVED
-    ) {
-      if (!data.sourceBranchId) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "La sucursal origen es obligatoria para este tipo de movimiento",
-          path: ["sourceBranchId"],
-        });
-      }
-    }
-
-    if (
-      (data.type === InventoryMovementType.PURCHASE ||
-        data.type === InventoryMovementType.SUPPLIER_RETURN) &&
-      !data.supplierId
-    ) {
+    if (data.sourceBranchId === data.targetBranchId) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "El proveedor es obligatorio para este tipo de movimiento",
-        path: ["supplierId"],
-      });
-    }
-
-    if (
-      (data.type === InventoryMovementType.TRANSFER_SENT ||
-        data.type === InventoryMovementType.TRANSFER_RECEIVED ||
-        data.type === InventoryMovementType.PURCHASE ||
-        data.type === InventoryMovementType.POSITIVE_ADJUSTMENT) &&
-      !data.targetBranchId
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "La sucursal destino es obligatoria para este tipo de movimiento",
+        message: "La sucursal de origen y destino no pueden ser la misma",
         path: ["targetBranchId"],
       });
     }
-
-    data.products.forEach((product, index) => {
-      if (data.type === InventoryMovementType.PURCHASE) {
-        if (product.unitCost === undefined || isNaN(product.unitCost)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "El costo unitario es obligatorio",
-            path: ["products", index, "unitCost"],
-          });
-        }
-
-        if (!product.expirationDate || product.expirationDate.trim() === "") {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "La fecha de vencimiento es obligatoria",
-            path: ["products", index, "expirationDate"],
-          });
-        }
-      }
-    });
   });
 
-export type InventoryMovementRequest = z.infer<typeof InventoryMovementSchema>;
+export const adjustmentProductSchema = z.object({
+  productId: z
+    .number({ required_error: "Selecciona un producto" })
+    .min(1, "Selecciona un producto"),
+  batchId: z
+    .number({ required_error: "Selecciona un lote" })
+    .min(1, "Selecciona un lote válido"),
+  quantity: positiveQuantity,
+  unitType: z.nativeEnum(ProductUnitType, {
+    required_error: "La unidad es obligatoria",
+  }),
+  adjustmentType: z.nativeEnum(AdjustmentType, {
+    required_error: "Selecciona el tipo de ajuste",
+  }),
+  reason: optionalString,
+});
 
-export type InventoryMovementLocal = Omit<InventoryMovementRequest, "products"> & {
-  products: InventoryMovementProductLocal[];
-};
+export const adjustmentCreateSchema = z.object({
+  branchId: z
+    .number({ required_error: "Selecciona una sucursal" })
+    .min(1, "Selecciona una sucursal"),
+  description: optionalString,
+  products: z
+    .array(adjustmentProductSchema)
+    .min(1, "Agrega al menos un producto"),
+});
+
+export type PurchaseProductRequest = z.infer<typeof purchaseProductSchema>;
+export type PurchaseCreateRequest = z.infer<typeof purchaseCreateSchema>;
+
+export type TransferProductRequest = z.infer<typeof transferProductSchema>;
+export type TransferCreateRequest = z.infer<typeof transferCreateSchema>;
+
+export type AdjustmentProductRequest = z.infer<typeof adjustmentProductSchema>;
+export type AdjustmentCreateRequest = z.infer<typeof adjustmentCreateSchema>;
+
+export interface InventoryMovementListParams {
+  page?: number;
+  size?: number;
+  branchId?: number;
+  type?: InventoryMovementType;
+  startDate?: string;
+  endDate?: string;
+}

@@ -17,7 +17,7 @@ import javax.persistence.*;
 @Setter
 @AllArgsConstructor
 @Builder
-public class ProductBranchStock {
+public class ProductBranch {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

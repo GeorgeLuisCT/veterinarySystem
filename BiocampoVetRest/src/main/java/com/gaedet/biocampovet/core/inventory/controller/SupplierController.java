@@ -30,15 +30,15 @@ public class SupplierController {
         return ResponseEntity.ok(supplierService.getSupplier(id));
     }
 
-    @GetMapping("/list")
+    @GetMapping
     public ResponseEntity<PaginatedResponse<SupplierSummaryResponse>> getSuppliers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam boolean active,
+            @RequestParam(required = false) Boolean active,
             @RequestParam(required = false) String supplierType,
-            @RequestParam(required = false) String query
+            @RequestParam(required = false) String q
     ) {
-        return ResponseEntity.ok(supplierService.getSuppliers(page, size, active, supplierType, query));
+        return ResponseEntity.ok(supplierService.getSuppliers(page, size, active, supplierType, q));
     }
 
     @GetMapping("/quick-search")

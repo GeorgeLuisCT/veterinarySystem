@@ -47,7 +47,6 @@ export default function ConsultoryFilters({ value, onChange }: ConsultoryFilters
   React.useEffect(() => {
     const hasDates = value.startDate != null && value.endDate != null;
     if (!hasDates) onChange({ ...value, startDate: today, endDate: today });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const hasAnyFilter = value.status !== "ALL" || !!value.startDate || !!value.endDate;

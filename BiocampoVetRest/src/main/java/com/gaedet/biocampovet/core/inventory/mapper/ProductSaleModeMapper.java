@@ -6,9 +6,9 @@ import com.gaedet.biocampovet.core.inventory.entity.ProductSaleMode;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ProductSaleModeMapper {
+public final class ProductSaleModeMapper {
 
-    public ProductSaleMode mapNewSaleMode(Product product, ProductSaleModeRequest request) {
+    public static ProductSaleMode mapNewSaleMode(Product product, ProductSaleModeRequest request) {
         return ProductSaleMode.builder()
                 .product(product)
                 .unitType(request.getUnitType())

@@ -1,35 +1,41 @@
 package com.gaedet.biocampovet.core.inventory.dto;
 
+import com.gaedet.biocampovet.core.inventory.enums.AdministrationRoute;
+import com.gaedet.biocampovet.core.inventory.enums.ProductPresentationType;
 import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
-import com.gaedet.biocampovet.core.inventory.util.ProductUnitConverterUtil;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Set;
 
-public record ProductSummaryResponse(
-        Long id,
-        String name,
-        String sku,
-        String categoryName,
-        BigDecimal standardPrice,
-        String formattedStock,
-        String branchNames
-) {
-    public static ProductSummaryResponse fromNativeRow(Object[] row) {
-        ProductUnitType unitType = ProductUnitType.valueOf((String) row[4]);
-        int stockUnits = ((Number) row[6]).intValue();
-        double stockFractional = ((Number) row[7]).doubleValue();
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ProductSummaryResponse {
+    private Long id;
+    private String name;
+    private String categoryName;
+    private String description;
+    private Integer minStock;
+    private String sku;
+    private ProductPresentationType presentation;
+    private ProductUnitType unitType;
+    private Double contentTotal;
+    private BigDecimal standardPrice;
 
-        String formattedStock = ProductUnitConverterUtil.formatStock(unitType, stockUnits, stockFractional);
+    private Set<AdministrationRoute> administrationRoutes;
 
-        return new ProductSummaryResponse(
-                ((Number) row[0]).longValue(),       // id
-                (String) row[1],                     // name
-                (String) row[2],                     // sku
-                (String) row[3],                     // category name
-                new BigDecimal(row[5].toString()),   // standardPrice
-                formattedStock,                      // formattedStock
-                (String) row[9]                      // branchNames
-        );
-    }
+    private List<SaleModeSummary> saleModes;
+
+    private List<BranchStockSummary> branchStocks;
+
+    private Integer totalStockUnits;
+    private Double totalStockFractional;
+    private Boolean belowMinStock;
 }
 

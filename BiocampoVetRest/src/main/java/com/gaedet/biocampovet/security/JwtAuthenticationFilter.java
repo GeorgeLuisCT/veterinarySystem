@@ -2,16 +2,13 @@ package com.gaedet.biocampovet.security;
 
 
 import com.gaedet.biocampovet.security.util.JwtUtils;
+import com.gaedet.biocampovet.security.util.UserPrincipal;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,14 +17,18 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+
+
+
+import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
+
     @Autowired
     public JwtAuthenticationFilter(JwtUtils jwtUtils) {
         this.jwtUtils = jwtUtils;
@@ -39,17 +40,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = jwtUtils.extractToken(request);
         if (token != null && jwtUtils.validateToken(token)) {
-            String username = jwtUtils.extractUsername(token);
-            List<String> roles = jwtUtils.extractRoles(token); // Extraer roles desde el token
+
+            Claims claims = jwtUtils.extractAllClaims(token);
+            String username = claims.getSubject();
+            Long userId = claims.get("userId", Long.class);
+            Long employeeId = claims.get("employeeId", Long.class);
+            Long branchId = claims.get("branchId", Long.class);
+            List<String> roles = claims.get("roles", List.class);
 
             List<GrantedAuthority> authorities = roles.stream()
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
 
-            UserDetails userDetails = new org.springframework.security.core.userdetails.User(username, "", authorities);
+            UserPrincipal principal = new UserPrincipal(
+                    userId,
+                    employeeId,
+                    branchId,
+                    username,
+                    authorities
+            );
 
             UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+                    new UsernamePasswordAuthenticationToken(principal, null, authorities);
+
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 

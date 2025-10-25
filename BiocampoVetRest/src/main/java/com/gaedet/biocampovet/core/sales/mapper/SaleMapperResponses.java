@@ -15,18 +15,15 @@ import java.util.stream.Collectors;
 public class SaleMapperResponses {
 
     private final BranchMapper branchMapper;
-    private final EmployeeMapper employeeMapper;
     private final CustomerMapper customerMapper;
     private final AnimalMapper animalMapper;
 
 
     SaleMapperResponses(BranchMapper branchMapper,
-                        EmployeeMapper employeeMapper,
                         CustomerMapper customerMapper,
                         AnimalMapper animalMapper
                         ) {
         this.branchMapper = branchMapper;
-        this.employeeMapper = employeeMapper;
         this.customerMapper = customerMapper;
         this.animalMapper = animalMapper;
 
@@ -38,7 +35,7 @@ public class SaleMapperResponses {
         return new SaleResponse(
                 sale.getId(),
                 branchMapper.toResponse(sale.getBranch()),
-                employeeMapper.toResponse(sale.getEmployee()),
+                EmployeeMapper.toResponse(sale.getEmployee()),
                 customerMapper.toResponse(sale.getCustomer()),
                 sale.getSaleDate(),
                 sale.getSaleProducts().stream()

@@ -202,15 +202,35 @@ SET name = EXCLUDED.name,
     standard_price = EXCLUDED.standard_price,
     content_total = EXCLUDED.content_total;
 
--- Seed initial stock per branch
-INSERT INTO product_branch_stock (branch_id, product_id, is_active, stock_units, stock_fractional)
-SELECT b.id, p.id, true, 0, 0.0
+-- Activación por sucursal (sin columnas de stock)
+INSERT INTO product_branch_stock (branch_id, product_id, is_active)
+SELECT b.id, p.id, true
 FROM branches b
-JOIN products p ON p.sku IN ('ANTIP-001', 'GROOM-001')
+         JOIN products p ON p.sku IN ('ANTIP-001', 'GROOM-001')
 WHERE b.name IN ('Primera sucursal', 'Segunda sucursal')
   AND NOT EXISTS (
-      SELECT 1 FROM product_branch_stock s WHERE s.branch_id = b.id AND s.product_id = p.id
-  );
+    SELECT 1 FROM product_branch_stock s
+    WHERE s.branch_id = b.id AND s.product_id = p.id
+);
+
+-- Lotes iniciales para productos
+INSERT INTO product_batch (product_id, batch_number, expiration_date)
+SELECT p.id, 'ANTIP-001-L1', DATE '2026-06-30'
+FROM products p
+WHERE p.sku = 'ANTIP-001'
+  AND NOT EXISTS (
+    SELECT 1 FROM product_batch pb
+    WHERE pb.product_id = p.id AND pb.batch_number = 'ANTIP-001-L1'
+);
+
+INSERT INTO product_batch (product_id, batch_number, expiration_date)
+SELECT p.id, 'GROOM-001-L1', DATE '2026-12-31'
+FROM products p
+WHERE p.sku = 'GROOM-001'
+  AND NOT EXISTS (
+    SELECT 1 FROM product_batch pb
+    WHERE pb.product_id = p.id AND pb.batch_number = 'GROOM-001-L1'
+);
 
 -- Seed clinical services
 INSERT INTO clinical_services (name, clinical_service_category, description, price, reminder_period, reminder_period_unit)

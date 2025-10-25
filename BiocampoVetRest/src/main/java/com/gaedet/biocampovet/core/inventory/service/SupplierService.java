@@ -5,10 +5,13 @@ import com.gaedet.biocampovet.core.inventory.dto.*;
 import com.gaedet.biocampovet.core.inventory.entity.*;
 import com.gaedet.biocampovet.core.inventory.mapper.SupplierMapper;
 import com.gaedet.biocampovet.core.inventory.repository.SupplierRepository;
+import com.gaedet.biocampovet.core.inventory.specs.SupplierSpecs;
 import com.gaedet.biocampovet.exeption.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -18,12 +21,8 @@ import java.util.List;
 public class SupplierService {
 
     private final SupplierRepository supplierRepository;
-    private final SupplierMapper supplierMapper;
-
-    public SupplierService(SupplierRepository supplierRepository,
-                           SupplierMapper supplierMapper) {
+    public SupplierService(SupplierRepository supplierRepository) {
         this.supplierRepository = supplierRepository;
-        this.supplierMapper = supplierMapper;
     }
 
     @Transactional
@@ -32,32 +31,36 @@ public class SupplierService {
             throw new BadRequestException("El correo electrónico ya está en uso");
         }
 
-        Supplier supplier = supplierMapper.toEntity(request);
+        Supplier supplier = SupplierMapper.toEntity(request);
         supplierRepository.save(supplier);
 
-        return supplierMapper.toSummaryResponse(supplier);
+        return SupplierMapper.toSummary(supplier);
     }
 
     public SupplierResponse getSupplier(Long id) {
         Supplier supplier = supplierRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
-        return supplierMapper.toResponse(supplier);
+        return SupplierMapper.toResponse(supplier);
     }
 
     public PaginatedResponse<SupplierSummaryResponse> getSuppliers(int page, int size, Boolean isActive, String supplierType, String query) {
-        Pageable pageable = PageRequest.of(page, size);
-        String searchQuery = (query == null || query.isBlank()) ? null : query.trim();
-        String type = (supplierType == null || supplierType.isBlank()) ? null : supplierType.trim().toUpperCase();
 
-        Page<Object[]> rawPage = supplierRepository.findSupplierSummary(searchQuery, type, isActive, pageable);
-        Page<SupplierSummaryResponse> summaryPage = rawPage.map(SupplierSummaryResponse::fromNativeRow);
+        Specification<Supplier> spec = SupplierSpecs.byFilters(query, supplierType, isActive);
+
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by("name").ascending());
+
+        Page<Supplier> result = supplierRepository.findAll(spec, pageable);
+
+        List<SupplierSummaryResponse> content = result.getContent().stream()
+                .map(SupplierMapper::toSummary)
+                .toList();
 
         return PaginatedResponse.<SupplierSummaryResponse>builder()
-                .content(summaryPage.getContent())
-                .totalPages(summaryPage.getTotalPages())
-                .totalElements(summaryPage.getTotalElements())
-                .currentPage(summaryPage.getNumber())
-                .pageSize(summaryPage.getSize())
+                .content(content)
+                .totalPages(result.getTotalPages())
+                .totalElements(result.getTotalElements())
+                .currentPage(result.getNumber())
+                .pageSize(result.getSize())
                 .build();
     }
 
@@ -78,10 +81,10 @@ public class SupplierService {
             throw new BadRequestException("El correo electrónico ya está en uso por otro proveedor");
         }
 
-        supplierMapper.updateEntity(supplier, request);
+        SupplierMapper.updateEntity(supplier, request);
         supplierRepository.save(supplier);
 
-        return supplierMapper.toSummaryResponse(supplier);
+        return SupplierMapper.toSummary(supplier);
     }
 
     @Transactional
@@ -101,7 +104,7 @@ public class SupplierService {
         supplier.setActive(true);
         supplierRepository.save(supplier);
 
-        return supplierMapper.toSummaryResponse(supplier);
+        return SupplierMapper.toSummary(supplier);
     }
 
     @Transactional

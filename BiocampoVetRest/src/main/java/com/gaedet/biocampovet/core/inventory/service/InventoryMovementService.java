@@ -1,196 +1,274 @@
 package com.gaedet.biocampovet.core.inventory.service;
 
 import com.gaedet.biocampovet.core.branches.entity.Branch;
-import com.gaedet.biocampovet.core.branches.repository.BranchRepository;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
-import com.gaedet.biocampovet.core.employees.repository.EmployeeRepository;
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
-import com.gaedet.biocampovet.core.inventory.dto.InventoryMovementProductRequest;
-import com.gaedet.biocampovet.core.inventory.dto.InventoryMovementRequest;
-import com.gaedet.biocampovet.core.inventory.dto.InventoryMovementResponse;
-import com.gaedet.biocampovet.core.inventory.dto.InventoryMovementSummaryResponse;
+import com.gaedet.biocampovet.core.inventory.dto.*;
 import com.gaedet.biocampovet.core.inventory.entity.*;
+import com.gaedet.biocampovet.core.inventory.enums.AdjustmentType;
 import com.gaedet.biocampovet.core.inventory.enums.InventoryMovementType;
+import com.gaedet.biocampovet.core.inventory.enums.KardexMovementType;
 import com.gaedet.biocampovet.core.inventory.mapper.InventoryMovementMapper;
 import com.gaedet.biocampovet.core.inventory.repository.*;
-import com.gaedet.biocampovet.core.inventory.util.InventoryStockHelper;
-import com.gaedet.biocampovet.core.sales.dto.SaleProductRequest;
-import com.gaedet.biocampovet.core.sales.dto.SaleRequest;
+import com.gaedet.biocampovet.core.inventory.specs.InventoryMovementSpecs;
+import com.gaedet.biocampovet.exeption.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class InventoryMovementService {
 
-    private final InventoryMovementRepository inventoryMovementRepository;
-    private final InventoryMovementMapper mapper;
-    private final BranchRepository branchRepository;
-    private final SupplierRepository supplierRepository;
-    private final ProductRepository productRepository;
-    private final EmployeeRepository employeeRepository;
-    private final ProductBranchStockRepository branchStockRepository;
-    private final InventoryStockHelper stockHelper;
+    private final InventoryMovementRepository movementRepository;
+    private final KardexMovementRepository kardexMovementRepository;
     private final ProductBatchRepository productBatchRepository;
-    private final InventoryStockHelper inventoryStockHelper;
+    private final KardexService kardexService;
+    private final EntityManager entityManager;
 
     @Transactional
-    public Long createMovement(InventoryMovementRequest request, Long sourceBranchId, Long employeeId) {
-        Branch source = branchRepository.findById(sourceBranchId)
-                .orElseThrow(() -> new RuntimeException("Sucursal origen no encontrada"));
-
-        Branch target = request.getTargetBranchId() != null
-                ? branchRepository.findById(request.getTargetBranchId()).orElse(null)
-                : null;
-
-        Supplier supplier = request.getSupplierId() != null
-                ? supplierRepository.findById(request.getSupplierId()).orElse(null)
-                : null;
-
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
-
-        List<Long> productIds = request.getProducts().stream()
-                .map(InventoryMovementProductRequest::getProductId)
-                .toList();
-
-        List<Product> products = productRepository.findAllById(productIds);
-        Map<Long, Product> productMap = products.stream()
-                .collect(Collectors.toMap(Product::getId, p -> p));
-
-        List<Long> foundIds = products.stream().map(Product::getId).toList();
-        List<Long> missing = productIds.stream()
-                .filter(id -> !foundIds.contains(id))
-                .toList();
-
-        if (!missing.isEmpty()) {
-            throw new RuntimeException("Los siguientes productos no existen: " + missing);
-        }
-
-        InventoryMovement movement = mapper.toEntity(request, source, target, supplier, employee);
-        inventoryMovementRepository.save(movement);
-
-        boolean isIngreso = movement.getType().isIngreso();
-        boolean isTransfer = movement.getType().isTransfer();
-
-        for (InventoryMovementProduct p : movement.getProducts()) {
-            Product product = productMap.get(p.getProduct().getId());
-            ProductBatch batch = p.getProductBatch();
-
-            if (isTransfer && movement.getTargetBranch() != null) {
-
-                stockHelper.applyQuantityToBatch(product, batch, p.getQuantity(), p.getUnitType(), false);
-                ProductBranchStock originStock = stockHelper.getOrCreateBranchStock(product, source, branchStockRepository);
-                stockHelper.applyQuantityToBranchStock(product, originStock, p.getQuantity(), p.getUnitType(), false);
-
-                ProductBatch destBatch = stockHelper.getOrCreateBatch(
-                        product.getId(),
-                        movement.getTargetBranch().getId(),
-                        batch.getBatchNumber(),
-                        batch.getExpirationDate()
-                );
-                ProductBranchStock destStock = stockHelper.getOrCreateBranchStock(product, movement.getTargetBranch(), branchStockRepository);
-                stockHelper.applyQuantityToBatch(product, destBatch, p.getQuantity(), p.getUnitType(), true);
-                stockHelper.applyQuantityToBranchStock(product, destStock, p.getQuantity(), p.getUnitType(), true);
-            } else {
-                stockHelper.applyQuantityToBatch(product, batch, p.getQuantity(), p.getUnitType(), isIngreso);
-                ProductBranchStock branchStock = stockHelper.getOrCreateBranchStock(product, source, branchStockRepository);
-                stockHelper.applyQuantityToBranchStock(product, branchStock, p.getQuantity(), p.getUnitType(), isIngreso);
-            }
-        }
-
-        return movement.getId();
-    }
-
-    @Transactional
-    public void registerSaleMovement(SaleRequest request, Long branchId, Long employeeId) {
-        Branch branch = branchRepository.findById(branchId)
-                .orElseThrow(() -> new RuntimeException("Sucursal no encontrada"));
-
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+    public InventoryMovementResponse createPurchase(PurchaseCreateRequest request, Long employeeId) {
 
         InventoryMovement movement = new InventoryMovement();
-        movement.setType(InventoryMovementType.SALE);
-        movement.setDate(LocalDateTime.now());
-        movement.setSourceBranch(branch);
-        movement.setEmployee(employee);
-        movement.setDescription("Movimiento generado desde venta");
+        movement.setType(InventoryMovementType.PURCHASE);
+        movement.setDate(request.getDate());
+        movement.setSourceBranch(entityManager.getReference(Branch.class, request.getBranchId()));
+        movement.setSupplier(entityManager.getReference(Supplier.class, request.getSupplierId()));
+        movement.setEmployee(entityManager.getReference(Employee.class, employeeId)); // CORREGIDO
+        movement.setDescription(request.getDescription());
 
-        List<InventoryMovementProduct> products = new ArrayList<>();
+        List<InventoryMovementProduct> products = request.getProducts().stream()
+                .map(p -> {
+                    Product product = entityManager.getReference(Product.class, p.getProductId());
 
-        for (SaleProductRequest sp : request.getSaleProducts()) {
-            Product product = productRepository.findById(sp.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                    ProductBatch batch = findOrCreateBatch(
+                            product,
+                            p.getBatchNumber(),
+                            p.getExpirationDate()
+                    );
 
-            ProductBatch batch = productBatchRepository
-                    .findFirstAvailableBatchByProductIdAndBranchIdOrderByExpirationDateAsc(product.getId(), branchId)
-                    .orElseThrow(() -> new RuntimeException("No hay stock disponible para el producto: " + product.getName()));
-
-            InventoryMovementProduct imp = new InventoryMovementProduct();
-            imp.setProduct(product);
-            imp.setProductBatch(batch);
-            imp.setQuantity(sp.getQuantityEquivalent());
-            imp.setUnitType(sp.getUnitType());
-            imp.setMovement(movement);
-
-            products.add(imp);
-
-            inventoryStockHelper.applyQuantityToBatch(product, batch, sp.getQuantityEquivalent(), sp.getUnitType(), false);
-
-            ProductBranchStock stock = inventoryStockHelper.getOrCreateBranchStock(product, branch, branchStockRepository);
-            inventoryStockHelper.applyQuantityToBranchStock(product, stock, sp.getQuantityEquivalent(), sp.getUnitType(), false);
-        }
+                    InventoryMovementProduct detail = new InventoryMovementProduct();
+                    detail.setMovement(movement);
+                    detail.setProduct(product);
+                    detail.setProductBatch(batch);
+                    detail.setQuantity(p.getQuantity());
+                    detail.setUnitType(p.getUnitType());
+                    detail.setUnitCost(p.getUnitCost());
+                    return detail;
+                }).collect(Collectors.toList());
 
         movement.setProducts(products);
-        inventoryMovementRepository.save(movement);
+        InventoryMovement savedMovement = movementRepository.save(movement);
+
+        for (InventoryMovementProduct p : savedMovement.getProducts()) {
+            kardexService.registerMovement(KardexRegistrationRequest.builder()
+                    .productId(p.getProduct().getId())
+                    .branchId(savedMovement.getSourceBranch().getId())
+                    .batchId(p.getProductBatch().getId())
+                    .quantity(BigDecimal.valueOf(p.getQuantity()))
+                    .unitType(p.getUnitType())
+                    .type(KardexMovementType.PURCHASE_ENTRY)
+                    .originId(savedMovement.getId())
+                    .originType("InventoryMovement")
+                    .build());
+        }
+
+        return InventoryMovementMapper.toResponse(savedMovement);
     }
 
+    @Transactional
+    public InventoryMovementResponse createTransfer(TransferCreateRequest request, Long employeeId) {
 
-    public InventoryMovementResponse getMovementById(Long id) {
-        InventoryMovement movement = inventoryMovementRepository.findDetailedById(id)
-                .orElseThrow(() -> new NoSuchElementException("Movimiento no encontrado con ID: " + id));
-        return mapper.toResponse(movement);
+        if (request.getSourceBranchId().equals(request.getTargetBranchId())) {
+            throw new BadRequestException("La sucursal de origen y destino no pueden ser la misma.");
+        }
+
+        InventoryMovement movement = new InventoryMovement();
+        movement.setType(InventoryMovementType.TRANSFER);
+        movement.setDate(LocalDateTime.now());
+        movement.setSourceBranch(entityManager.getReference(Branch.class, request.getSourceBranchId()));
+        movement.setTargetBranch(entityManager.getReference(Branch.class, request.getTargetBranchId()));
+        movement.setEmployee(entityManager.getReference(Employee.class, employeeId)); // CORREGIDO
+        movement.setDescription(request.getDescription());
+
+        List<InventoryMovementProduct> products = request.getProducts().stream()
+                .map(p -> {
+                    InventoryMovementProduct detail = new InventoryMovementProduct();
+                    detail.setMovement(movement);
+                    detail.setProduct(entityManager.getReference(Product.class, p.getProductId()));
+                    detail.setProductBatch(entityManager.getReference(ProductBatch.class, p.getBatchId()));
+                    detail.setQuantity(p.getQuantity());
+                    detail.setUnitType(p.getUnitType());
+                    return detail;
+                }).collect(Collectors.toList());
+
+        movement.setProducts(products);
+        InventoryMovement savedMovement = movementRepository.save(movement);
+
+        for (InventoryMovementProduct p : savedMovement.getProducts()) {
+            BigDecimal quantity = BigDecimal.valueOf(p.getQuantity());
+
+            // 1. Salida de la sucursal origen
+            kardexService.registerMovement(KardexRegistrationRequest.builder()
+                    .productId(p.getProduct().getId())
+                    .branchId(savedMovement.getSourceBranch().getId())
+                    .batchId(p.getProductBatch().getId())
+                    .quantity(quantity)
+                    .unitType(p.getUnitType())
+                    .type(KardexMovementType.TRANSFER_EXIT)
+                    .originId(savedMovement.getId())
+                    .originType("InventoryMovement")
+                    .build());
+
+            // 2. Entrada en la sucursal destino
+            kardexService.registerMovement(KardexRegistrationRequest.builder()
+                    .productId(p.getProduct().getId())
+                    .branchId(savedMovement.getTargetBranch().getId())
+                    .batchId(p.getProductBatch().getId())
+                    .quantity(quantity)
+                    .unitType(p.getUnitType())
+                    .type(KardexMovementType.TRANSFER_ENTRY)
+                    .originId(savedMovement.getId())
+                    .originType("InventoryMovement")
+                    .build());
+        }
+
+        return InventoryMovementMapper.toResponse(savedMovement);
     }
 
-    public PaginatedResponse<InventoryMovementSummaryResponse> getMovementSummariesByTypes(
-            int page,
-            int size,
-            Long branchId,
-            List<InventoryMovementType> types,
-            LocalDateTime startDate,
-            LocalDateTime endDate
-    ) {
-        List<String> typesStr = types.stream()
-                .map(Enum::name)
+    @Transactional
+    public InventoryMovementResponse createAdjustment(AdjustmentCreateRequest request, Long employeeId) {
+
+        InventoryMovement movement = new InventoryMovement();
+        movement.setType(InventoryMovementType.ADJUSTMENT);
+        movement.setDate(LocalDateTime.now());
+        movement.setSourceBranch(entityManager.getReference(Branch.class, request.getBranchId()));
+        movement.setEmployee(entityManager.getReference(Employee.class, employeeId));
+        movement.setDescription(request.getDescription());
+
+        List<InventoryMovementProduct> products = request.getProducts().stream()
+                .map(p -> {
+                    InventoryMovementProduct detail = new InventoryMovementProduct();
+                    detail.setMovement(movement);
+                    detail.setProduct(entityManager.getReference(Product.class, p.getProductId()));
+                    detail.setProductBatch(entityManager.getReference(ProductBatch.class, p.getBatchId()));
+                    detail.setQuantity(p.getQuantity());
+                    detail.setUnitType(p.getUnitType());
+                    return detail;
+                }).collect(Collectors.toList());
+
+        movement.setProducts(products);
+        InventoryMovement savedMovement = movementRepository.save(movement);
+
+        for (int i = 0; i < savedMovement.getProducts().size(); i++) {
+            InventoryMovementProduct p = savedMovement.getProducts().get(i);
+            AdjustmentProductRequest reqProduct = request.getProducts().get(i);
+
+            KardexMovementType kardexType = reqProduct.getAdjustmentType() == AdjustmentType.ENTRY ?
+                    KardexMovementType.ADJUSTMENT_ENTRY :
+                    KardexMovementType.ADJUSTMENT_EXIT;
+
+            kardexService.registerMovement(KardexRegistrationRequest.builder()
+                    .productId(p.getProduct().getId())
+                    .branchId(savedMovement.getSourceBranch().getId())
+                    .batchId(p.getProductBatch().getId())
+                    .quantity(BigDecimal.valueOf(p.getQuantity()))
+                    .unitType(p.getUnitType())
+                    .type(kardexType)
+                    .originId(savedMovement.getId())
+                    .originType("InventoryMovement")
+                    .build());
+        }
+
+        return InventoryMovementMapper.toResponse(savedMovement);
+    }
+
+    @Transactional(readOnly = true)
+    public PaginatedResponse<InventoryMovementSummaryResponse> listMovements(
+            int page, int size, Long branchId, InventoryMovementType type, LocalDate startDate, LocalDate endDate) {
+
+        Specification<InventoryMovement> spec = InventoryMovementSpecs.byFilters(branchId, type, startDate, endDate);
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by("date").descending());
+
+        Page<InventoryMovement> result = movementRepository.findAll(spec, pageable);
+
+        List<InventoryMovementSummaryResponse> content = result.getContent().stream()
+                .map(InventoryMovementMapper::toSummary)
                 .toList();
 
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Object[]> rawPage = inventoryMovementRepository.findMovementSummariesByTypes(
-                branchId, typesStr, startDate, endDate, pageable
+        return PaginatedResponse.<InventoryMovementSummaryResponse>builder()
+                .content(content)
+                .totalPages(result.getTotalPages())
+                .totalElements(result.getTotalElements())
+                .currentPage(result.getNumber())
+                .pageSize(result.getSize())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public PaginatedResponse<KardexMovementResponse> getKardexHistory(
+            int page, int size, Long productId, Long branchId, Long batchId) {
+
+        Specification<KardexMovement> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("product").get("id"), productId));
+            predicates.add(cb.equal(root.get("branch").get("id"), branchId));
+            if (batchId != null) {
+                predicates.add(cb.equal(root.get("batch").get("id"), batchId));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by("date").descending());
+
+        Page<KardexMovement> result = kardexMovementRepository.findAll(spec, pageable);
+
+        List<KardexMovementResponse> content = result.getContent().stream()
+                .map(InventoryMovementMapper::toKardexResponse)
+                .toList();
+
+        return PaginatedResponse.<KardexMovementResponse>builder()
+                .content(content)
+                .totalPages(result.getTotalPages())
+                .totalElements(result.getTotalElements())
+                .currentPage(result.getNumber())
+                .pageSize(result.getSize())
+                .build();
+    }
+
+
+    private ProductBatch findOrCreateBatch(Product product, String batchNumber, LocalDate expirationDate) {
+        Optional<ProductBatch> existingBatch = productBatchRepository.findByProduct_IdAndBatchNumber(
+                product.getId(),
+                batchNumber
         );
 
-        Page<InventoryMovementSummaryResponse> responsePage =
-                rawPage.map(InventoryMovementSummaryResponse::fromNativeRow);
+        if (existingBatch.isPresent()) {
+            return existingBatch.get();
+        }
 
-        return PaginatedResponse.<InventoryMovementSummaryResponse>builder()
-                .content(responsePage.getContent())
-                .totalPages(responsePage.getTotalPages())
-                .totalElements(responsePage.getTotalElements())
-                .currentPage(responsePage.getNumber())
-                .pageSize(responsePage.getSize())
-                .build();
+        ProductBatch newBatch = new ProductBatch();
+        newBatch.setProduct(product);
+        newBatch.setBatchNumber(batchNumber);
+        newBatch.setExpirationDate(expirationDate);
+        return productBatchRepository.save(newBatch);
     }
 }
 

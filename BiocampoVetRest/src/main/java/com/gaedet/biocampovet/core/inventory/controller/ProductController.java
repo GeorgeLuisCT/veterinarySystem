@@ -3,6 +3,9 @@ package com.gaedet.biocampovet.core.inventory.controller;
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
 import com.gaedet.biocampovet.core.inventory.dto.*;
 
+import com.gaedet.biocampovet.core.inventory.enums.AdministrationRoute;
+import com.gaedet.biocampovet.core.inventory.enums.ProductPresentationType;
+import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
 import com.gaedet.biocampovet.core.inventory.service.ProductService;
 import com.gaedet.biocampovet.security.annotations.BranchAccessRequired;
 import com.gaedet.biocampovet.security.provider.JwtTokenProvider;
@@ -39,16 +42,25 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProducts(ids));
     }
 
-    @BranchAccessRequired
-    @GetMapping("/list")
-    public ResponseEntity<PaginatedResponse<ProductSummaryResponse>> getProducts(
+    @GetMapping
+    public ResponseEntity<PaginatedResponse<ProductSummaryResponse>> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam boolean active,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Long branchId,
-            @RequestParam(required = false) String query
+            @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false) ProductPresentationType presentation,
+            @RequestParam(required = false) ProductUnitType unitType,
+            @RequestParam(required = false) AdministrationRoute route,
+            @RequestParam(required = false) Boolean hasSaleModes,
+            @RequestParam(required = false) Boolean availableOnly,
+            @RequestParam(required = false) Boolean minStockAlertOnly
     ) {
-        return ResponseEntity.ok(productService.getProducts( page, size, active, branchId, query));
+        var resp = productService.list(
+                page, size, q, categoryId, branchId, active, presentation, unitType, route, hasSaleModes, availableOnly, minStockAlertOnly
+        );
+        return ResponseEntity.ok(resp);
     }
 
     @GetMapping("/quick-search")

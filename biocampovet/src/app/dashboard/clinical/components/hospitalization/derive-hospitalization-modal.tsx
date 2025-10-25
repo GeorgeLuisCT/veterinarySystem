@@ -208,7 +208,6 @@ const allowedCauseOptions = useMemo(() => {
         shouldDirty: true,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allowedCauseOptions, open]);
 
   const submitting = form.formState.isSubmitting;

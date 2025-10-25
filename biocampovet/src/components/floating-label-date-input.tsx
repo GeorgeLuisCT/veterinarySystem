@@ -11,13 +11,16 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { Input } from "@/components/ui/input"
 
+type DateInputMode = "auto" | "date" | "datetime"
+
 interface FloatingLabelDateInputProps {
   label: string
   id: string
   value?: string // 'YYYY-MM-DD' o 'YYYY-MM-DDTHH:mm:ss'
-  onChange?: (value: string) => void // devuelve 'YYYY-MM-DDTHH:mm:ss' (naive)
+  onChange?: (value: string) => void
   disabled?: boolean
   className?: string
+  mode?: DateInputMode // controla si se muestra hora: "date" | "datetime" | "auto" (por defecto)
 }
 
 function parseValueToParts(v?: string) {
@@ -45,6 +48,14 @@ function toNaiveIsoLocal(dateObj?: Date, timeStr?: string) {
   return `${yyyy}-${mm}-${dd}T${hh}:${mi}:00`
 }
 
+function toDateOnly(dateObj?: Date) {
+  if (!dateObj) return ""
+  const yyyy = dateObj.getFullYear()
+  const mm = String(dateObj.getMonth() + 1).padStart(2, "0")
+  const dd = String(dateObj.getDate()).padStart(2, "0")
+  return `${yyyy}-${mm}-${dd}`
+}
+
 export function FloatingLabelDateInput({
   label,
   id,
@@ -52,28 +63,32 @@ export function FloatingLabelDateInput({
   onChange,
   disabled = false,
   className,
+  mode = "auto",
 }: FloatingLabelDateInputProps) {
   const initial = useMemo(() => parseValueToParts(value), [value])
   const [open, setOpen] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
 
-  // Estado interno del popover (no escribe en el form hasta "Listo")
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(initial.date)
   const [selectedTime, setSelectedTime] = useState<string>(initial.time)
 
-  // Si cambia el value externo, sincroniza el panel
+  const showTime = useMemo<boolean>(() => {
+    if (mode === "datetime") return true
+    if (mode === "date") return false
+    return !!value && value.includes("T")
+  }, [mode, value])
+
   useEffect(() => {
     const p = parseValueToParts(value)
     setSelectedDate(p.date)
     setSelectedTime(p.time)
   }, [value])
 
-  // Al abrir el popover: si no hay valor, preselecciona HOY y HORA actual (solo en el panel)
   const handleOpenChange = (o: boolean) => {
     if (o) {
       const now = new Date()
       if (!selectedDate) setSelectedDate(new Date(now.getFullYear(), now.getMonth(), now.getDate()))
-      if (!selectedTime) {
+      if (showTime && !selectedTime) {
         const hh = String(now.getHours()).padStart(2, "0")
         const mi = String(now.getMinutes()).padStart(2, "0")
         setSelectedTime(`${hh}:${mi}`)
@@ -91,15 +106,17 @@ export function FloatingLabelDateInput({
     if (!date) return ""
     try {
       const niceDate = format(date, "PPP", { locale: es })
-      return time ? `${niceDate}, ${time}` : niceDate
+      return showTime && time ? `${niceDate}, ${time}` : niceDate
     } catch {
       return value
     }
-  }, [value])
+  }, [value, showTime])
 
   const handleApply = () => {
-    const iso = toNaiveIsoLocal(selectedDate, selectedTime)
-    onChange?.(iso || "")
+    const out = showTime
+      ? toNaiveIsoLocal(selectedDate, selectedTime)
+      : toDateOnly(selectedDate)
+    onChange?.(out || "")
     setOpen(false)
   }
 
@@ -140,22 +157,23 @@ export function FloatingLabelDateInput({
               selected={selectedDate}
               onSelect={setSelectedDate}
               locale={es}
-              // Muestra el mes actual por defecto cuando no hay valor
               defaultMonth={selectedDate ?? new Date()}
               initialFocus
             />
 
-            <div className="mt-2 flex items-center gap-2 px-1">
-              <Label htmlFor={`${id}-time`} className="text-xs text-muted-foreground">Hora</Label>
-              <Input
-                id={`${id}-time`}
-                type="time"
-                step={60}
-                value={selectedTime || ""}
-                onChange={(e) => setSelectedTime(e.target.value)}
-                className="w-[130px] h-8"
-              />
-            </div>
+            {showTime && (
+              <div className="mt-2 flex items-center gap-2 px-1">
+                <Label htmlFor={`${id}-time`} className="text-xs text-muted-foreground">Hora</Label>
+                <Input
+                  id={`${id}-time`}
+                  type="time"
+                  step={60}
+                  value={selectedTime || ""}
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                  className="w-[130px] h-8"
+                />
+              </div>
+            )}
 
             <div className="mt-3 flex items-center justify-end gap-2 px-1 pb-2">
               <Button type="button" variant="ghost" size="sm" onClick={handleClear}>

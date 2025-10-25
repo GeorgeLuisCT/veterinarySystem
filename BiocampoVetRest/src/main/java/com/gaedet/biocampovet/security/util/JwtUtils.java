@@ -66,6 +66,10 @@ public class JwtUtils {
         return (header != null && header.startsWith("Bearer ")) ? header.substring(7) : null;
     }
 
+    public Long extractEmployeeId(String token) {
+        return extractAllClaims(token).get("employeeId", Long.class);
+    }
+
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()

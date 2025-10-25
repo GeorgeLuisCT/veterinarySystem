@@ -1,10 +1,12 @@
+import { InventoryMovementType } from "../_enums/inventory-movement-type";
+
 export interface InventoryMovementSummaryResponse {
   id: number;
-  type: string;
-  sourceBranch: string;
-  targetBranch: string;
-  supplierName: string;
+  type: InventoryMovementType;
   date: string;
-  productCount: number;
-  totalCost: string;
+  description?: string | null;
+  sourceBranchName?: string | null;
+  targetBranchName?: string | null;
+  supplierName?: string | null;
+  employeeName?: string | null;
 }

@@ -1,12 +1,12 @@
-import { ProductUnitType } from "../../products/enums/product-unit-type";
-import { ProductResponse } from "../../products/types/product-response";
+import { ProductUnitType } from "../_enums/product-unit-type";
+import { InventoryProductSummary } from "./inventory-product-summary";
+import { ProductBatchSummaryResponse } from "./product-batch-summary-response";
 
 export interface InventoryMovementProductResponse {
   id: number;
-  product: ProductResponse;
+  product: InventoryProductSummary;
+  batch?: ProductBatchSummaryResponse | null;
   quantity: number;
-  productUnitType: ProductUnitType;
-  unitCost?: string;
-  batchNumber?: string;
-  expirationDate?: string;
+  unitType: ProductUnitType;
+  unitCost?: number | null;
 }

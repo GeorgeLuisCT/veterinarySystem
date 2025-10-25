@@ -7,8 +7,6 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
-
-// Garantiza que no existan dos precios para un mismo producto y modo de venta
 @Table(
         name = "product_sale_mode",
         uniqueConstraints = {

@@ -55,7 +55,6 @@ export default function VisitFilters({ value, onChange }: VisitFiltersProps) {
     if (!hasDates) {
       onChange({ ...value, startDate: today, endDate: today });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const hasAnyFilter =

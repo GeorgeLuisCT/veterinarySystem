@@ -1,5 +1,6 @@
 package com.gaedet.biocampovet.core.inventory.entity;
 
+import com.gaedet.biocampovet.core.inventory.enums.AdministrationRoute;
 import com.gaedet.biocampovet.core.inventory.enums.ProductPresentationType;
 import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
 import lombok.*;
@@ -52,16 +53,16 @@ public class Product {
     @Column(nullable = false)
     private Double contentTotal;
 
-    //agregar via de aplicacion pueder varias vias de aplicacion
-
-    //agregar tipo de venta
-
-    /*public enum ProductType {
-    VENTA,       // Productos que se venden
-    USO_INTERNO, // Materiales usados en procedimientos
-    SERVICIO     // Procedimientos o atenciones clínicas
-}
-    * */
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "product_administration_routes",
+            joinColumns = @JoinColumn(name = "product_id",
+                    foreignKey = @ForeignKey(name = "fk_prod_adminroute_product"))
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "route", nullable = false, length = 20)
+    @Builder.Default
+    private Set<AdministrationRoute> administrationRoutes = new HashSet<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
@@ -69,7 +70,7 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
-    private Set<ProductBranchStock> branchStocks = new HashSet<>();
+    private Set<ProductBranch> branchStocks = new HashSet<>();
 }
 
 

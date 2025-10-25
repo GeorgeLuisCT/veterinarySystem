@@ -7,12 +7,15 @@ import com.gaedet.biocampovet.core.employees.entity.Employee;
 import com.gaedet.biocampovet.core.employees.entity.EmployeeBranch;
 import com.gaedet.biocampovet.core.employees.mapper.EmployeeMapper;
 import com.gaedet.biocampovet.core.employees.repository.EmployeeRepository;
+import com.gaedet.biocampovet.core.employees.specs.EmployeeSpecs;
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
 import com.gaedet.biocampovet.core.users.enums.RoleName;
 import com.gaedet.biocampovet.exeption.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -23,14 +26,11 @@ import java.util.List;
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
-    private final EmployeeMapper employeeMapper;
     private final EntityManager entityManager;
 
     public EmployeeService(EmployeeRepository employeeRepository,
-                           EmployeeMapper employeeMapper,
                            EntityManager entityManager) {
         this.employeeRepository = employeeRepository;
-        this.employeeMapper = employeeMapper;
         this.entityManager = entityManager;
     }
 
@@ -43,32 +43,41 @@ public class EmployeeService {
         List<Branch> allBranches = entityManager.createQuery("SELECT b FROM Branch b", Branch.class)
                 .getResultList();
 
-        Employee employee = employeeMapper.toEntity(request, allBranches);
+        Employee employee = EmployeeMapper.toEntity(request, allBranches);
         employeeRepository.save(employee);
 
-        return employeeMapper.toEmployeeSummaryResponse(employee);
+        return EmployeeMapper.toSummary(employee);
     }
 
     public EmployeeResponse getEmployee(Long id) {
         Employee employee = employeeRepository.findWithDetailsById(id)
                 .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
-        return employeeMapper.toResponse(employee);
+        return EmployeeMapper.toResponse(employee);
     }
 
-    public PaginatedResponse<EmployeeSummaryResponse> getEmployees(int page, int size, Boolean isActive, Long branchId, String query) {
-        Pageable pageable = PageRequest.of(page, size);
-        String searchQuery = (query == null || query.isBlank()) ? null : query.trim();
-        Long formattedBranchId = (branchId == null || branchId == 0) ? null : branchId;
+    public PaginatedResponse<EmployeeSummaryResponse> list(
+            int page, int size,
+            String q,
+            Long branchId,
+            Boolean active
+    ) {
+        Specification<Employee> spec = EmployeeSpecs.byFilters(q, branchId, active);
 
-        Page<Object[]> rawPage = employeeRepository.findEmployeeSummary(searchQuery, formattedBranchId, isActive, pageable);
-        Page<EmployeeSummaryResponse> employeePage = rawPage.map(EmployeeSummaryResponse::fromNativeRow);
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1),
+                Sort.by("lastName").ascending().and(Sort.by("firstName").ascending()));
+
+        Page<Employee> result = employeeRepository.findAll(spec, pageable);
+
+        List<EmployeeSummaryResponse> content = result.getContent().stream()
+                .map(EmployeeMapper::toSummary)
+                .toList();
 
         return PaginatedResponse.<EmployeeSummaryResponse>builder()
-                .content(employeePage.getContent())
-                .totalPages(employeePage.getTotalPages())
-                .totalElements(employeePage.getTotalElements())
-                .currentPage(employeePage.getNumber())
-                .pageSize(employeePage.getSize())
+                .content(content)
+                .totalPages(result.getTotalPages())
+                .totalElements(result.getTotalElements())
+                .currentPage(result.getNumber())
+                .pageSize(result.getSize())
                 .build();
     }
 
@@ -92,10 +101,10 @@ public class EmployeeService {
             throw new BadRequestException("El correo electrónico ya está en uso por otro empleado");
         }
 
-        employeeMapper.updateEntity(employee, request);
+        EmployeeMapper.updateEntity(employee, request);
 
         employeeRepository.save(employee);
-        return employeeMapper.toEmployeeSummaryResponse(employee);
+        return EmployeeMapper.toSummary(employee);
     }
 
     @Transactional
@@ -140,13 +149,13 @@ public class EmployeeService {
         }
 
         employeeRepository.save(employee);
-        return employeeMapper.toEmployeeSummaryResponse(employee);
+        return EmployeeMapper.toSummary(employee);
     }
 
     public List<EmployeeSummaryResponse> getEmployeesByUserRolesAndBranch(List<RoleName> roleNames, Long branchId) {
         List<Employee> employees = employeeRepository.findByUserRolesAndBranch(roleNames, branchId);
         return employees.stream()
-                .map(employeeMapper::toEmployeeSummaryResponse)
+                .map(EmployeeMapper::toSummary)
                 .toList();
     }
 }
