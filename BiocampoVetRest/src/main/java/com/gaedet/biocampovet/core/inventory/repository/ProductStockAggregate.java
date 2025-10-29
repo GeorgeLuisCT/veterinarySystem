@@ -1,4 +1,8 @@
 package com.gaedet.biocampovet.core.inventory.repository;
 
-public class ProductStockAggregate {
+import java.math.BigDecimal;
+
+public interface ProductStockAggregate {
+    Long getProductId();
+    BigDecimal getTotalStock();
 }

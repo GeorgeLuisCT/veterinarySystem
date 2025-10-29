@@ -6,7 +6,6 @@ import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
 import lombok.*;
 
 import javax.persistence.*;
-import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,7 +31,7 @@ public class Product {
     @Column(nullable = false)
     private Integer minStock;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private CategoryProduct category;
 
@@ -46,9 +45,6 @@ public class Product {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ProductUnitType unitType;
-
-    @Column(nullable = false)
-    private BigDecimal standardPrice;
 
     @Column(nullable = false)
     private Double contentTotal;

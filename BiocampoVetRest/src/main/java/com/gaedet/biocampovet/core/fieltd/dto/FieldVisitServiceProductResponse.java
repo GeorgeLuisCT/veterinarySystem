@@ -1,5 +1,6 @@
 package com.gaedet.biocampovet.core.fieltd.dto;
 
+import com.gaedet.biocampovet.core.inventory.dto.ProductBasicResponse;
 import com.gaedet.biocampovet.core.inventory.enums.AdministrationRoute;
 import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
 import com.gaedet.biocampovet.core.inventory.dto.ProductSummaryResponse;
@@ -18,7 +19,7 @@ import java.math.BigDecimal;
 @Builder
 public class FieldVisitServiceProductResponse {
     private Long id;
-    private ProductSummaryResponse product;
+    private ProductBasicResponse product;
     private BigDecimal dose;
     private ProductUnitType unit;
     private AdministrationRoute administrationRoute;

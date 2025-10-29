@@ -4,10 +4,7 @@ import com.gaedet.biocampovet.core.inventory.dto.KardexRegistrationRequest;
 import com.gaedet.biocampovet.core.inventory.entity.*;
 import com.gaedet.biocampovet.core.inventory.enums.KardexMovementType;
 import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
-import com.gaedet.biocampovet.core.inventory.repository.KardexMovementRepository;
-import com.gaedet.biocampovet.core.inventory.repository.ProductBranchRepository;
-import com.gaedet.biocampovet.core.inventory.repository.ProductRepository;
-import com.gaedet.biocampovet.core.inventory.repository.ProductSaleModeRepository;
+import com.gaedet.biocampovet.core.inventory.repository.*;
 import com.gaedet.biocampovet.exeption.BadRequestException;
 import com.gaedet.biocampovet.exeption.InsufficientStockException;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +15,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -97,5 +97,39 @@ public class KardexService {
                 .orElseThrow(() -> new BadRequestException("Modo de venta no válido para la conversión de unidades"));
 
         return quantity.multiply(BigDecimal.valueOf(saleMode.getQuantityEquivalent()));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, BigDecimal> getStockForProducts(List<Long> productIds, Long branchId) {
+
+        List<ProductStockAggregate> aggregates;
+
+        if (branchId != null) {
+            aggregates = kardexMovementRepository.findTotalStockByProductIdsAndBranch(productIds, branchId);
+        } else {
+            aggregates = kardexMovementRepository.findTotalStockByProductIds(productIds);
+        }
+
+        return aggregates.stream()
+                .collect(Collectors.toMap(
+                        ProductStockAggregate::getProductId,
+                        ProductStockAggregate::getTotalStock
+                ));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, Map<Long, BigDecimal>> getAggregatedBranchStock(List<Long> productIds) {
+
+        List<ProductBranchStockAggregate> aggregates = kardexMovementRepository
+                .findAggregatedBranchStockByProductIds(productIds);
+
+        return aggregates.stream()
+                .collect(Collectors.groupingBy(
+                        ProductBranchStockAggregate::getProductId,
+                        Collectors.toMap(
+                                ProductBranchStockAggregate::getBranchId,
+                                ProductBranchStockAggregate::getTotalStock
+                        )
+                ));
     }
 }

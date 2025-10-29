@@ -54,7 +54,7 @@ public class SaleMapperResponses {
 
         return new SaleProductResponse(
                 saleProduct.getId(),
-                ProductMapper.toResponse(saleProduct.getProduct()),
+                null,
                 saleProduct.getUnitType(),
                 saleProduct.getQuantityEquivalent(),
                 saleProduct.getPrice(),

@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -28,4 +29,25 @@ public interface KardexMovementRepository extends JpaRepository<KardexMovement, 
             @Param("branchId") Long branchId,
             @Param("batchId") Long batchId
     );
+
+    @Query("SELECT km.product.id as productId, SUM(km.quantity) as totalStock " +
+            "FROM KardexMovement km " +
+            "WHERE km.product.id IN :productIds " +
+            "GROUP BY km.product.id")
+    List<ProductStockAggregate> findTotalStockByProductIds(@Param("productIds") List<Long> productIds);
+
+    @Query("SELECT km.product.id as productId, SUM(km.quantity) as totalStock " +
+            "FROM KardexMovement km " +
+            "WHERE km.product.id IN :productIds AND km.branch.id = :branchId " +
+            "GROUP BY km.product.id")
+    List<ProductStockAggregate> findTotalStockByProductIdsAndBranch(
+            @Param("productIds") List<Long> productIds,
+            @Param("branchId") Long branchId
+    );
+
+    @Query("SELECT km.product.id as productId, km.branch.id as branchId, SUM(km.quantity) as totalStock " +
+            "FROM KardexMovement km " +
+            "WHERE km.product.id IN :productIds " +
+            "GROUP BY km.product.id, km.branch.id")
+    List<ProductBranchStockAggregate> findAggregatedBranchStockByProductIds(@Param("productIds") List<Long> productIds);
 }

@@ -29,13 +29,12 @@ public class ProductSummaryResponse {
     private BigDecimal standardPrice;
 
     private Set<AdministrationRoute> administrationRoutes;
-
     private List<SaleModeSummary> saleModes;
-
     private List<BranchStockSummary> branchStocks;
 
-    private Integer totalStockUnits;
-    private Double totalStockFractional;
-    private Boolean belowMinStock;
+    private BigDecimal stockMainUnit;
+    private BigDecimal stockBaseUnitRemainder;
+    private Boolean isBelowMinStock;
+    private Boolean isAvailable;
 }
 

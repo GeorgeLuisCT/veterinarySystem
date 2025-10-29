@@ -7,21 +7,24 @@ import com.gaedet.biocampovet.core.inventory.entity.Product;
 import com.gaedet.biocampovet.core.inventory.entity.ProductBranch;
 import com.gaedet.biocampovet.core.inventory.entity.ProductSaleMode;
 import com.gaedet.biocampovet.core.inventory.enums.AdministrationRoute;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 public final class ProductMapper {
 
-    public static Product toEntity(ProductCreateRequest request, CategoryProduct category, List<Branch> allBranches) {
-        Product product = Product.builder()
+    public static Product toEntity(ProductCreateRequest request, CategoryProduct category) {
+        return Product.builder()
                 .name(request.getName())
                 .description(request.getDescription())
                 .minStock(request.getMinStock())
                 .category(category)
                 .sku(request.getSku())
                 .presentation(request.getPresentation())
-                .unitType(request.getUnitType())
-                .standardPrice(request.getStandardPrice())
+                .unitType(request.getBaseUnitType())
                 .contentTotal(request.getContentTotal())
                 .administrationRoutes(
                         request.getAdministrationRoutes() == null
@@ -29,99 +32,110 @@ public final class ProductMapper {
                                 : new java.util.HashSet<>(request.getAdministrationRoutes())
                 )
                 .build();
-
-        Set<Long> activeBranchIds = request.getBranchIds() == null
-                ? java.util.Collections.emptySet()
-                : new java.util.HashSet<>(request.getBranchIds());
-
-        Set<ProductBranch> branchStocks = allBranches.stream()
-                .map(branch -> ProductBranch.builder()
-                        .branch(branch)
-                        .product(product)
-                        .isActive(activeBranchIds.contains(branch.getId()))
-                        .build())
-                .collect(java.util.stream.Collectors.toSet());
-        product.setBranchStocks(branchStocks);
-
-        Set<ProductSaleMode> saleModes = (request.getSaleModes() == null
-                ? java.util.Collections.<ProductSaleModeRequest>emptySet()
-                : request.getSaleModes())
-                .stream()
-                .map(modeReq -> ProductSaleMode.builder()
-                        .product(product)
-                        .unitType(modeReq.getUnitType())
-                        .quantityEquivalent(modeReq.getQuantityEquivalent())
-                        .price(modeReq.getPrice())
-                        .build())
-                .collect(java.util.stream.Collectors.toSet());
-        product.setSaleModes(saleModes);
-
-        return product;
     }
 
-    public static ProductResponse toResponse(Product product) {
-        java.util.List<ProductBranchStockResponse> branchStocks = product.getBranchStocks().stream()
-                .map(pbs -> ProductBranchStockResponse.builder()
-                        .id(pbs.getId())
-                        .branchId(pbs.getBranch().getId())
-                        .branchName(pbs.getBranch().getName())
-                        .build())
+    public static ProductResponse toResponse(
+            Product p,
+            BigDecimal mainStockBaseUnit,
+            Map<Long, BigDecimal> branchStockMap
+    ) {
+
+        BigDecimal basePrice = p.getSaleModes().stream()
+                .filter(ProductSaleMode::getIsBaseMode)
+                .findFirst()
+                .map(ProductSaleMode::getPrice)
+                .orElse(BigDecimal.ZERO);
+
+        List<SaleModeSummary> saleModes = p.getSaleModes().stream()
+                .sorted(Comparator.comparing(ProductSaleMode::getUnitType))
+                .map(ProductMapper::toSaleModeSummary)
                 .toList();
 
-        java.util.List<ProductSaleModeResponse> saleModes = product.getSaleModes().stream()
-                .map(psm -> ProductSaleModeResponse.builder()
-                        .id(psm.getId())
-                        .unitType(psm.getUnitType())
-                        .price(psm.getPrice())
-                        .quantityEquivalent(psm.getQuantityEquivalent())
-                        .build())
+        Map<Long, BigDecimal> safeBranchStockMap = Optional.ofNullable(branchStockMap).orElse(Collections.emptyMap());
+
+        List<BranchStockSummary> stocks = p.getBranchStocks().stream()
+                .sorted(Comparator.comparing(s -> s.getBranch().getName(), String.CASE_INSENSITIVE_ORDER))
+                .map(s -> {
+                    BigDecimal stockBase = safeBranchStockMap.getOrDefault(s.getBranch().getId(), BigDecimal.ZERO);
+                    StockTuple branchStockTuple = convertStockToTuple(stockBase, p.getContentTotal());
+
+                    return BranchStockSummary.builder()
+                            .branchId(s.getBranch().getId())
+                            .branchName(s.getBranch().getName())
+                            .active(s.isActive())
+                            .stockMainUnit(branchStockTuple.getMainUnit())
+                            .stockBaseUnitRemainder(branchStockTuple.getBaseUnitRemainder())
+                            .build();
+                })
                 .toList();
 
-        java.util.List<AdministrationRoute> routes = product.getAdministrationRoutes() == null
-                ? java.util.Collections.emptyList()
-                : new java.util.ArrayList<>(product.getAdministrationRoutes());
+        StockTuple mainStockTuple = convertStockToTuple(mainStockBaseUnit, p.getContentTotal());
+        int minStock = p.getMinStock() == null ? 0 : p.getMinStock();
+
+        BigDecimal minStockInBaseUnit = BigDecimal.valueOf(minStock).multiply(BigDecimal.valueOf(p.getContentTotal()));
+        boolean isBelowMin = mainStockBaseUnit.compareTo(minStockInBaseUnit) < 0;
+        boolean isAvailable = mainStockBaseUnit.compareTo(BigDecimal.ZERO) > 0;
 
         return ProductResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .description(product.getDescription())
-                .minStock(product.getMinStock())
-                .category(CategoryProductMapper.toResponse(product.getCategory()))
-                .sku(product.getSku())
-                .presentation(product.getPresentation())
-                .unitType(product.getUnitType())
-                .standardPrice(product.getStandardPrice())
-                .contentTotal(product.getContentTotal())
-                .administrationRoutes(routes)
-                .branchStocks(branchStocks)
+                .id(p.getId())
+                .name(p.getName())
+                .categoryResponse(CategoryProductMapper.toResponse(p.getCategory()))
+                .description(p.getDescription())
+                .minStock(p.getMinStock())
+                .sku(p.getSku())
+                .presentation(p.getPresentation())
+                .unitType(p.getUnitType())
+                .contentTotal(p.getContentTotal())
+                .standardPrice(basePrice)
+                .administrationRoutes(p.getAdministrationRoutes() != null ? p.getAdministrationRoutes() : Set.of())
                 .saleModes(saleModes)
+                .branchStocks(stocks)
+                .stockMainUnit(mainStockTuple.getMainUnit())
+                .stockBaseUnitRemainder(mainStockTuple.getBaseUnitRemainder())
+                .isBelowMinStock(isBelowMin)
+                .isAvailable(isAvailable)
                 .build();
     }
 
-    public static ProductSummaryResponse toSummary(Product p) {
-        List<SaleModeSummary> saleModes = p.getSaleModes() == null ? List.of() :
-                p.getSaleModes().stream()
-                        .sorted(Comparator.comparing(ProductSaleMode::getUnitType))
-                        .map(sm -> SaleModeSummary.builder()
-                                .unitType(sm.getUnitType())
-                                .quantityEquivalent(sm.getQuantityEquivalent())
-                                .price(sm.getPrice())
-                                .build())
-                        .toList();
+    public static ProductSummaryResponse toSummary(Product p, BigDecimal mainStockBaseUnit, Map<Long, BigDecimal> branchStockMap
+    ) {
 
-        List<BranchStockSummary> stocks = p.getBranchStocks() == null ? List.of() :
-                p.getBranchStocks().stream()
-                        .sorted(Comparator.comparing(x -> x.getBranch().getName(), String.CASE_INSENSITIVE_ORDER))
-                        .map(s -> BranchStockSummary.builder()
-                                .branchId(s.getBranch().getId())
-                                .branchName(s.getBranch().getName())
-                                .active(s.isActive())
-                                .build())
-                        .toList();
+        BigDecimal basePrice = p.getSaleModes().stream()
+                .filter(ProductSaleMode::getIsBaseMode)
+                .findFirst()
+                .map(ProductSaleMode::getPrice)
+                .orElse(BigDecimal.ZERO);
 
-        int totalUnits = stocks.stream().mapToInt(bs -> nvl(bs.getStockUnits(), 0)).sum();
-        double totalFrac = stocks.stream().mapToDouble(bs -> nvl(bs.getStockFractional(), 0.0)).sum();
-        boolean belowMin = (totalUnits + totalFrac) < nvl(p.getMinStock(), 0);
+        List<SaleModeSummary> saleModes = p.getSaleModes().stream()
+                .filter(sm -> !sm.getIsBaseMode())
+                .sorted(Comparator.comparing(ProductSaleMode::getUnitType))
+                .map(ProductMapper::toSaleModeSummary)
+                .toList();
+
+        Map<Long, BigDecimal> safeBranchStockMap = Optional.ofNullable(branchStockMap).orElse(Collections.emptyMap());
+
+        List<BranchStockSummary> stocks = p.getBranchStocks().stream()
+                .sorted(Comparator.comparing(s -> s.getBranch().getName(), String.CASE_INSENSITIVE_ORDER))
+                .map(s -> {
+                    BigDecimal stockBase = safeBranchStockMap.getOrDefault(s.getBranch().getId(), BigDecimal.ZERO);
+                    StockTuple branchStockTuple = convertStockToTuple(stockBase, p.getContentTotal());
+
+                    return BranchStockSummary.builder()
+                            .branchId(s.getBranch().getId())
+                            .branchName(s.getBranch().getName())
+                            .active(s.isActive())
+                            .stockMainUnit(branchStockTuple.getMainUnit())
+                            .stockBaseUnitRemainder(branchStockTuple.getBaseUnitRemainder())
+                            .build();
+                })
+                .toList();
+
+        StockTuple mainStockTuple = convertStockToTuple(mainStockBaseUnit, p.getContentTotal());
+        int minStock = p.getMinStock() == null ? 0 : p.getMinStock();
+
+        BigDecimal minStockInBaseUnit = BigDecimal.valueOf(minStock).multiply(BigDecimal.valueOf(p.getContentTotal()));
+        boolean isBelowMin = mainStockBaseUnit.compareTo(minStockInBaseUnit) < 0;
+        boolean isAvailable = mainStockBaseUnit.compareTo(BigDecimal.ZERO) > 0;
 
         return ProductSummaryResponse.builder()
                 .id(p.getId())
@@ -133,13 +147,14 @@ public final class ProductMapper {
                 .presentation(p.getPresentation())
                 .unitType(p.getUnitType())
                 .contentTotal(p.getContentTotal())
-                .standardPrice(p.getStandardPrice())
+                .standardPrice(basePrice)
                 .administrationRoutes(p.getAdministrationRoutes() != null ? p.getAdministrationRoutes() : Set.of())
                 .saleModes(saleModes)
                 .branchStocks(stocks)
-                .totalStockUnits(totalUnits)
-                .totalStockFractional(totalFrac)
-                .belowMinStock(belowMin)
+                .stockMainUnit(mainStockTuple.getMainUnit())
+                .stockBaseUnitRemainder(mainStockTuple.getBaseUnitRemainder())
+                .isBelowMinStock(isBelowMin)
+                .isAvailable(isAvailable)
                 .build();
     }
 
@@ -149,9 +164,8 @@ public final class ProductMapper {
         product.setMinStock(request.getMinStock());
         product.setSku(request.getSku());
         product.setPresentation(request.getPresentation());
-        product.setUnitType(request.getUnitType());
+        product.setUnitType(request.getBaseUnitType());
         product.setCategory(category);
-        product.setStandardPrice(request.getStandardPrice());
         product.setContentTotal(request.getContentTotal());
 
         java.util.Set<AdministrationRoute> routes = request.getAdministrationRoutes() == null
@@ -160,6 +174,45 @@ public final class ProductMapper {
         product.setAdministrationRoutes(routes);
     }
 
-    private static Integer nvl(Integer v, Integer d) { return v == null ? d : v; }
-    private static Double nvl(Double v, Double d) { return v == null ? d : v; }
+    @Data
+    @AllArgsConstructor
+    private static class StockTuple {
+        private BigDecimal mainUnit;
+        private BigDecimal baseUnitRemainder;
+    }
+
+    private static StockTuple convertStockToTuple(BigDecimal totalStockBaseUnit, Double contentTotal) {
+        if (contentTotal == null || contentTotal <= 0) {
+            return new StockTuple(totalStockBaseUnit, BigDecimal.ZERO);
+        }
+
+        BigDecimal mainUnitSize = BigDecimal.valueOf(contentTotal);
+
+        BigDecimal mainUnit = totalStockBaseUnit.divide(mainUnitSize, 0, RoundingMode.FLOOR);
+        BigDecimal baseUnitRemainder = totalStockBaseUnit.remainder(mainUnitSize);
+
+        return new StockTuple(mainUnit, baseUnitRemainder);
+    }
+
+    private static SaleModeSummary toSaleModeSummary(ProductSaleMode sm) {
+        return SaleModeSummary.builder()
+                .unitType(sm.getUnitType())
+                .quantityEquivalent(sm.getQuantityEquivalent())
+                .price(sm.getPrice())
+                .isBaseMode(sm.getIsBaseMode())
+                .build();
+    }
+
+    public static ProductBasicResponse toBasicResponse(Product p) {
+        if (p == null) {
+            return null;
+        }
+        return ProductBasicResponse.builder()
+                .id(p.getId())
+                .name(p.getName())
+                .sku(p.getSku())
+                .unitType(p.getUnitType())
+                .presentation(p.getPresentation())
+                .build();
+    }
 }

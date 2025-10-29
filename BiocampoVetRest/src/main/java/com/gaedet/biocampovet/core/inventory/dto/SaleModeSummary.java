@@ -16,4 +16,5 @@ public class SaleModeSummary {
     private ProductUnitType unitType;
     private Double quantityEquivalent;
     private BigDecimal price;
+    private boolean isBaseMode;
 }

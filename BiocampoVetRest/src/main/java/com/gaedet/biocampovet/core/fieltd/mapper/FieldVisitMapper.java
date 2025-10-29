@@ -156,7 +156,7 @@ public class FieldVisitMapper {
     private static FieldVisitServiceProductResponse toServiceProduct(FieldVisitServiceProduct entity) {
         return FieldVisitServiceProductResponse.builder()
                 .id(entity.getId())
-                .product(ProductMapper.toSummary(entity.getProduct()))
+                .product(ProductMapper.toBasicResponse(entity.getProduct()))
                 .dose(entity.getDose())
                 .unit(entity.getUnit())
                 .administrationRoute(entity.getAdministrationRoute())

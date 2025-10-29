@@ -5,6 +5,7 @@ import com.gaedet.biocampovet.core.users.entity.User;
 import com.gaedet.biocampovet.core.users.enums.RoleName;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +15,36 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByUsername(String username);
+
+        @Query("""
+      select distinct u
+      from User u
+      left join fetch u.employee e
+      left join fetch e.employeeBranches eb
+      left join fetch eb.branch b
+      left join fetch u.roles r
+      where u.username = :username
+    """)
+    Optional<User> findAuthBundleByUsername(@Param("username") String username);
+
+    @Query("""
+      select distinct u
+      from User u
+      left join fetch u.roles r
+      where u.username = :username
+    """)
+    Optional<User> findWithRolesByUsername(@Param("username") String username);
+
+    @Query("""
+  select distinct u
+  from User u
+  left join fetch u.employee e
+  left join fetch e.employeeBranches eb
+  left join fetch eb.branch b
+  left join fetch u.roles r
+  where u.id = :id
+""")
+    Optional<User> findAuthBundleById(@Param("id") Long id);
 
     @Query(value = """
     SELECT 

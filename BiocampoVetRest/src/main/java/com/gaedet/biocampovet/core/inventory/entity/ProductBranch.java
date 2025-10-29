@@ -7,7 +7,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(
-        name = "product_branch_stock",
+        name = "product_branch",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = { "product_id", "branch_id" })
         }

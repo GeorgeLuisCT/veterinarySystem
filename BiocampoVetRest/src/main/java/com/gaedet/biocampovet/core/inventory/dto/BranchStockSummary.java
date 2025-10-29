@@ -1,9 +1,12 @@
 package com.gaedet.biocampovet.core.inventory.dto;
 
+import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -13,6 +16,7 @@ public class BranchStockSummary {
     private Long branchId;
     private String branchName;
     private boolean active;
-    private Integer stockUnits;
-    private Double stockFractional;
+
+    private BigDecimal stockMainUnit;
+    private BigDecimal stockBaseUnitRemainder;
 }

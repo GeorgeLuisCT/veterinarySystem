@@ -82,9 +82,6 @@ class FieldVisitServiceTest {
     @Autowired
     private DocumentTypeRepository documentTypeRepository;
 
-    @MockBean
-    private InitializerService initializerService;
-
     @Autowired
     private ProductRepository productRepository;
 
@@ -149,7 +146,6 @@ class FieldVisitServiceTest {
                     .sku("SKU-" + UUID.randomUUID())
                     .presentation(ProductPresentationType.NONE)
                     .unitType(ProductUnitType.UNIT)
-                    .standardPrice(BigDecimal.valueOf(10))
                     .contentTotal(1.0)
                     .build();
             return productRepository.save(created);

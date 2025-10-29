@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,16 +27,18 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    @Transactional(readOnly = true)
     public UserInfoResponse getUserInfo(Long userId, Long branchId) {
-        User user = userRepository.findById(userId)
+        User user = userRepository.findAuthBundleById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
         Employee employee = user.getEmployee();
 
         UserInfoResponse dto = new UserInfoResponse();
         dto.setUserId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setRoles(user.getRoles().stream()
-                .map(role -> role.getName().name())
+                .map(r -> r.getName().name())
                 .collect(Collectors.toSet()));
         dto.setEmployeeId(employee.getId());
         dto.setFirstName(employee.getFirstName());
@@ -44,39 +47,32 @@ public class UserService {
         dto.setPhoneNumber(employee.getPhoneNumber());
         dto.setBurden(employee.getBurden());
 
-        // Setear todas las sucursales del empleado
-        dto.setBranches(employee.getEmployeeBranches().stream().map(employeeBranch -> {
-            BranchResponse branchResponse = new BranchResponse();
-            branchResponse.setId(employeeBranch.getId());
-            branchResponse.setName(employeeBranch.getBranch().getName());
-            branchResponse.setLocation(employeeBranch.getBranch().getLocation());
-            return branchResponse;
-        }).collect(Collectors.toSet()));
+        dto.setBranches(employee.getEmployeeBranches().stream()
+                .map(eb -> {
+                    Branch b = eb.getBranch();
+                    BranchResponse br = new BranchResponse();
+                    br.setId(b.getId());
+                    br.setName(b.getName());
+                    br.setLocation(b.getLocation());
+                    return br;
+                })
+                .collect(Collectors.toSet())
+        );
 
-        // Sucursal seleccionada: si branchId == 0, retornamos una sucursal virtual
-        BranchResponse selectedBranchResponse;
+        BranchResponse selected;
         if (branchId == null || branchId == 0L) {
-            selectedBranchResponse = new BranchResponse();
-            selectedBranchResponse.setId(0L);
-            selectedBranchResponse.setName("Todas las sucursales");
-            selectedBranchResponse.setLocation("-");
+            selected = new BranchResponse(0L, "Todas las sucursales", "-");
         } else {
-            EmployeeBranch employeeBranch = employee.getEmployeeBranches().stream()
-                    .filter(eb -> eb.getBranch().getId().equals(branchId))
+            Branch selectedBranch = employee.getEmployeeBranches().stream()
+                    .map(EmployeeBranch::getBranch)
+                    .filter(b -> b.getId().equals(branchId))
                     .findFirst()
                     .orElseThrow(() -> new RuntimeException("Sucursal no encontrada para este usuario"));
 
-            Branch selectedBranch = employeeBranch.getBranch();
-
-            selectedBranchResponse = new BranchResponse();
-            selectedBranchResponse.setId(selectedBranch.getId());
-            selectedBranchResponse.setName(selectedBranch.getName());
-            selectedBranchResponse.setLocation(selectedBranch.getLocation());
-
+            selected = new BranchResponse(selectedBranch.getId(), selectedBranch.getName(), selectedBranch.getLocation());
         }
 
-        dto.setSelectedBranch(selectedBranchResponse);
-
+        dto.setSelectedBranch(selected);
         return dto;
     }
 

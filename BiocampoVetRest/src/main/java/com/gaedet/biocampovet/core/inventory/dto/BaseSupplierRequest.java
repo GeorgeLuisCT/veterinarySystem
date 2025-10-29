@@ -1,7 +1,6 @@
 package com.gaedet.biocampovet.core.inventory.dto;
 
 import com.gaedet.biocampovet.core.inventory.enums.SupplierType;
-import com.gaedet.biocampovet.core.inventory.util.ValidProductRequest;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

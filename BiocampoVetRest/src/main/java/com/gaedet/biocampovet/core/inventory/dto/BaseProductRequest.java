@@ -3,7 +3,6 @@ package com.gaedet.biocampovet.core.inventory.dto;
 import com.gaedet.biocampovet.core.inventory.enums.AdministrationRoute;
 import com.gaedet.biocampovet.core.inventory.enums.ProductPresentationType;
 import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
-import com.gaedet.biocampovet.core.inventory.util.ValidProductRequest;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,7 +14,6 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ValidProductRequest
 public class BaseProductRequest {
 
     @NotBlank(message = "El nombre no puede estar vacío")
@@ -39,14 +37,17 @@ public class BaseProductRequest {
     @NotNull(message = "La presentación del producto es obligatoria")
     private ProductPresentationType presentation;
 
-    @NotNull(message = "La unidad de medida es obligatoria")
-    private ProductUnitType unitType;
+    @NotNull(message = "La unidad base es obligatoria")
+    private ProductUnitType baseUnitType;
+
+    @NotNull(message = "La unidad principal es obligatoria")
+    private ProductUnitType mainUnitType;
 
     @NotNull(message = "El precio estándar es obligatorio")
     private BigDecimal standardPrice;
 
     @NotNull(message = "El contenido total es obligatorio")
-    @DecimalMin(value = "0.1", message = "El contenido total debe ser mayor a 0")
+    @DecimalMin(value = "0.01", message = "El contenido total debe ser mayor a 0")
     private Double contentTotal;
 
     private Set<AdministrationRoute> administrationRoutes;

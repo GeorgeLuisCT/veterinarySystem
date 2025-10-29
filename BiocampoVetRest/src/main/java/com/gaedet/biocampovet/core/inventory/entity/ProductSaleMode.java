@@ -6,13 +6,9 @@ import lombok.*;
 import javax.persistence.*;
 import java.math.BigDecimal;
 
+
 @Entity
-@Table(
-        name = "product_sale_mode",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"product_id", "unit_type"})
-        }
-)
+@Table(name = "product_sale_mode")
 @NoArgsConstructor
 @Getter
 @Setter
@@ -37,4 +33,7 @@ public class ProductSaleMode {
 
     @Column(nullable = false)
     private BigDecimal price;
+
+    @Column(nullable = false)
+    private Boolean isBaseMode;
 }

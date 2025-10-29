@@ -51,7 +51,7 @@ public class InventoryMovementService {
         movement.setDate(request.getDate());
         movement.setSourceBranch(entityManager.getReference(Branch.class, request.getBranchId()));
         movement.setSupplier(entityManager.getReference(Supplier.class, request.getSupplierId()));
-        movement.setEmployee(entityManager.getReference(Employee.class, employeeId)); // CORREGIDO
+        movement.setEmployee(entityManager.getReference(Employee.class, employeeId));
         movement.setDescription(request.getDescription());
 
         List<InventoryMovementProduct> products = request.getProducts().stream()

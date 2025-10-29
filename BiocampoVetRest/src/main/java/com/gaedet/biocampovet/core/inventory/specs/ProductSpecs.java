@@ -23,9 +23,7 @@ public final class ProductSpecs {
             ProductPresentationType presentation,
             ProductUnitType unitType,
             AdministrationRoute route,
-            Boolean hasSaleModes,
-            Boolean availableOnly,
-            Boolean minStockAlertOnly
+            Boolean hasSaleModes
     ) {
         return Specification
                 .where(textSearch(q))
@@ -35,8 +33,6 @@ public final class ProductSpecs {
                 .and(byRoute(route))
                 .and(byHasSaleModes(hasSaleModes))
                 .and(byBranchActive(branchId, active))
-                .and(availableOnly != null && availableOnly ? availableInBranchOrAny(branchId) : null)
-                .and(minStockAlertOnly != null && minStockAlertOnly ? belowMinStock(branchId) : null)
                 .and(distinct());
     }
 
@@ -111,80 +107,6 @@ public final class ProductSpecs {
             }
 
             return cb.and(preds.toArray(new Predicate[0]));
-        };
-    }
-
-
-    private static Specification<Product> availableInBranchOrAny(Long branchId) {
-        return (root, query, cb) -> {
-            if (branchId != null && branchId != 0) {
-                Join<Product, ProductBranch> pbs = root.join("branchStocks", JoinType.LEFT);
-                return cb.and(
-                        cb.equal(pbs.get("branch").get("id"), branchId),
-                        cb.or(
-                                cb.greaterThan(pbs.get("stockUnits"), 0),
-                                cb.greaterThan(pbs.get("stockFractional"), 0.0)
-                        )
-                );
-            } else {
-                Subquery<Long> sq = query.subquery(Long.class);
-                Root<Product> p2 = sq.from(Product.class);
-                Join<Product, ProductBranch> pbs2 = p2.join("branchStocks", JoinType.LEFT);
-                sq.select(p2.get("id")).where(
-                        cb.equal(p2.get("id"), root.get("id")),
-                        cb.or(
-                                cb.greaterThan(pbs2.get("stockUnits"), 0),
-                                cb.greaterThan(pbs2.get("stockFractional"), 0.0)
-                        )
-                );
-                return cb.exists(sq);
-            }
-        };
-    }
-
-    private static Specification<Product> belowMinStock(Long branchId) {
-        return (root, query, cb) -> {
-            // Usamos subqueries para sumar
-            if (branchId != null && branchId != 0) {
-                // Suma en una sucursal específica
-                Subquery<Double> sumFrac = query.subquery(Double.class);
-                Root<ProductBranch> spf = sumFrac.from(ProductBranch.class);
-                sumFrac.select(cb.sum(cb.<Double>coalesce(spf.get("stockFractional"), 0.0)))
-                        .where(
-                                cb.equal(spf.get("product").get("id"), root.get("id")),
-                                cb.equal(spf.get("branch").get("id"), branchId)
-                        );
-
-                Subquery<Integer> sumUnits = query.subquery(Integer.class);
-                Root<ProductBranch> spu = sumUnits.from(ProductBranch.class);
-                sumUnits.select(cb.sum(cb.<Integer>coalesce(spu.get("stockUnits"), 0)))
-                        .where(
-                                cb.equal(spu.get("product").get("id"), root.get("id")),
-                                cb.equal(spu.get("branch").get("id"), branchId)
-                        );
-
-                Expression<Double> total = cb.sum(
-                        cb.<Double>coalesce(cb.toDouble(sumUnits.getSelection()), 0.0),
-                        cb.<Double>coalesce(sumFrac.getSelection(), 0.0)
-                );
-                return cb.lessThan(total, cb.toDouble(root.get("minStock")));
-            } else {
-                Subquery<Double> sumFrac = query.subquery(Double.class);
-                Root<ProductBranch> spf = sumFrac.from(ProductBranch.class);
-                sumFrac.select(cb.sum(cb.<Double>coalesce(spf.get("stockFractional"), 0.0)))
-                        .where(cb.equal(spf.get("product").get("id"), root.get("id")));
-
-                Subquery<Integer> sumUnits = query.subquery(Integer.class);
-                Root<ProductBranch> spu = sumUnits.from(ProductBranch.class);
-                sumUnits.select(cb.sum(cb.<Integer>coalesce(spu.get("stockUnits"), 0)))
-                        .where(cb.equal(spu.get("product").get("id"), root.get("id")));
-
-                Expression<Double> total = cb.sum(
-                        cb.<Double>coalesce(cb.toDouble(sumUnits.getSelection()), 0.0),
-                        cb.<Double>coalesce(sumFrac.getSelection(), 0.0)
-                );
-                return cb.lessThan(total, cb.toDouble(root.get("minStock")));
-            }
         };
     }
 }
