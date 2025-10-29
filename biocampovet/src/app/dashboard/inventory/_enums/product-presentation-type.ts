@@ -32,7 +32,7 @@ export const ProductPresentationTypeLabels: Record<ProductPresentationType, stri
   [ProductPresentationType.GALLON]: "Galón",
   [ProductPresentationType.CASE]: "Estuche",
   [ProductPresentationType.ROLL]: "Rollo",
-  [ProductPresentationType.LOOSE]: "Unidad",
+  [ProductPresentationType.LOOSE]: "Suelto",
   [ProductPresentationType.NONE]: "Unidad",
 };
 
@@ -51,7 +51,7 @@ export const ProductPresentationTypeLabelsPlural: Record<ProductPresentationType
   [ProductPresentationType.GALLON]: "Galones",
   [ProductPresentationType.CASE]: "Estuches",
   [ProductPresentationType.ROLL]: "Rollos",
-  [ProductPresentationType.LOOSE]: "Unidades",
+  [ProductPresentationType.LOOSE]: "Sueltos",
   [ProductPresentationType.NONE]: "Unidades",
 };
 

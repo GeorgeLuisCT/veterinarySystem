@@ -1,9 +1,7 @@
-import { ProductBranchStockResponse } from "./product-branch-stock-response";
-import { ProductSaleModeResponse } from "./product-sale-mode-response";
 import { ProductPresentationType } from "../_enums/product-presentation-type";
 import { ProductUnitType } from "../_enums/product-unit-type";
-import { CategoryProductResponse } from "./category-product-response";
 import { AdministrationRoute } from "../_enums/administration-route";
+import { CategoryProductResponse } from "./category-product-response";
 
 
 export interface ProductListParams {
@@ -25,51 +23,65 @@ export interface SaleModeSummary {
   unitType: ProductUnitType;
   quantityEquivalent: number;
   price: number;
+  baseMode: boolean;
+}
+
+export interface ProductBasicResponse {
+  id: number;
+  name: string;
+  sku: string;
+  unitType: ProductUnitType;
+  presentation: ProductPresentationType;
 }
 
 export interface BranchStockSummary {
   branchId: number;
   branchName: string;
   active: boolean;
-  stockUnits: number;
-  stockFractional: number;
+  stockMainUnit: number;
+  stockBaseUnitRemainder: number;
 }
 
 export interface ProductResponse {
   id: number;
   name: string;
-  description: string;
-  minStock: number;
-  category: CategoryProductResponse;
+  categoryResponse: CategoryProductResponse;
+  description: string | null;
+  minStock: number | null;
   sku: string;
   presentation: ProductPresentationType;
   unitType: ProductUnitType;
+  contentTotal: number | null;
   standardPrice: number;
-  contentTotal: number;
-  isActive: boolean;
-  administrationRoutes?: AdministrationRoute[];
-
-  branchStocks: ProductBranchStockResponse[];
-  saleModes: ProductSaleModeResponse[];
+  administrationRoutes: AdministrationRoute[];
+  saleModes: SaleModeSummary[];
+  branchStocks: BranchStockSummary[];
+  stockMainUnit: number;
+  stockBaseUnitRemainder: number;
+  isBelowMinStock: boolean;
+  isAvailable: boolean;
 }
 
 export interface ProductSummaryResponse {
   id: number;
   name: string;
   categoryName: string | null;
-  description: string;
-  minStock: number;
+  description: string | null;
+  minStock: number | null;
   sku: string;
   presentation: ProductPresentationType;
   unitType: ProductUnitType;
-  contentTotal: number;
-  standardPrice: number | string;
+  contentTotal: number | null;
+  standardPrice: number;
+
   administrationRoutes: AdministrationRoute[];
   saleModes: SaleModeSummary[];
   branchStocks: BranchStockSummary[];
-  totalStockUnits: number;
-  totalStockFractional: number;
-  belowMinStock: boolean;
+
+  stockMainUnit: number;
+  stockBaseUnitRemainder: number;
+  isBelowMinStock: boolean;
+  isAvailable: boolean;
 }
 
 export interface ProductQuickSearchResponse {
@@ -77,5 +89,5 @@ export interface ProductQuickSearchResponse {
   name: string;
   presentation: ProductPresentationType;
   sku: string;
-  standardPrice: string;
+  standardPrice: number;
 }

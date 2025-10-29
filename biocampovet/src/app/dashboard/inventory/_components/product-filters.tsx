@@ -27,6 +27,12 @@ import {
   AdministrationRouteLabels,
   AdministrationRouteOptions,
 } from "../_enums/administration-route";
+import { categoryService } from "../_service/category-product-service";
+
+type Category = {
+  id: number;
+  name: string;
+};
 
 type FiltersShape = Omit<ProductListParams, "page" | "size" | "branchId">;
 
@@ -53,6 +59,13 @@ const ALL = "__ALL__";
 
 export default function ProductFilters({ branchId, value, onChange, onReset }: Props) {
   const [state, setState] = React.useState<FiltersShape>({ ...DEFAULTS, ...(value ?? {}) });
+  const [categories, setCategories] = React.useState<Category[]>([]);
+
+  React.useEffect(() => {
+    categoryService.getAll()
+      .then(setCategories)
+      .catch(() => setCategories([]));
+  }, []);
 
   React.useEffect(() => {
     setState({ ...DEFAULTS, ...(value ?? {}) });
@@ -69,7 +82,6 @@ export default function ProductFilters({ branchId, value, onChange, onReset }: P
     apply({ ...state, [key]: v });
   };
 
-  // debounce de búsqueda
   const [qLocal, setQLocal] = React.useState(state.q ?? "");
   React.useEffect(() => setQLocal(state.q ?? ""), [state.q]);
   React.useEffect(() => {
@@ -77,7 +89,7 @@ export default function ProductFilters({ branchId, value, onChange, onReset }: P
     return () => clearTimeout(t);
   }, [qLocal]);
 
-  const toSelectValue = (v?: string) => v ?? ALL;
+  const toSelectValue = (v?: string | number) => v?.toString() ?? ALL;
   const fromSelectValue = (v: string) => (v === ALL ? undefined : (v as any));
 
   const handleReset = () => {
@@ -88,7 +100,7 @@ export default function ProductFilters({ branchId, value, onChange, onReset }: P
   return (
     <div className="w-full overflow-x-auto rounded-2xl border bg-background/80 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex min-w-max items-center gap-3">
-        <div className="relative w-[280px]">
+        <div className="relative w-[220px]">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="pl-8"
@@ -99,12 +111,31 @@ export default function ProductFilters({ branchId, value, onChange, onReset }: P
         </div>
 
         <Select
+          value={toSelectValue(state.categoryId)}
+          onValueChange={(val) =>
+            setField("categoryId", val === ALL ? undefined : Number(val))
+          }
+        >
+          <SelectTrigger className="w-56">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>Todas las categorías</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat.id} value={String(cat.id)}>
+                {cat.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
           value={toSelectValue(state.presentation as any)}
           onValueChange={(val) =>
             setField("presentation", fromSelectValue(val) as ProductPresentationType | undefined)
           }
         >
-          <SelectTrigger className="w-56">
+          <SelectTrigger className="w-52">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -123,7 +154,7 @@ export default function ProductFilters({ branchId, value, onChange, onReset }: P
             setField("unitType", fromSelectValue(val) as ProductUnitType | undefined)
           }
         >
-          <SelectTrigger className="w-56">
+          <SelectTrigger className="w-42">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -142,7 +173,7 @@ export default function ProductFilters({ branchId, value, onChange, onReset }: P
             setField("route", fromSelectValue(val) as AdministrationRoute | undefined)
           }
         >
-          <SelectTrigger className="w-56">
+          <SelectTrigger className="w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

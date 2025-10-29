@@ -6,10 +6,7 @@ import type {
   ProductListParams,
   ProductQuickSearchResponse,
 } from "../_types/product-response";
-import type {
-  ProductCreateRequest,
-  ProductUpdateRequest,
-} from "../_types/product-request";
+import { ProductApiCreateRequest, ProductApiUpdateRequest } from "../_types/product-request";
 
 interface ProductSearchParams {
   name: string;
@@ -31,14 +28,14 @@ const buildQueryParams = (params: Record<string, unknown>) => {
 
 export const ProductService = {
   createProduct: async (
-    data: ProductCreateRequest
+    data: ProductApiCreateRequest
   ): Promise<ProductSummaryResponse> => {
     const response = await api.post<ProductSummaryResponse>("/products/create", data);
     return response.data;
   },
 
   updateProduct: async (
-    data: ProductUpdateRequest
+    data: ProductApiUpdateRequest
   ): Promise<ProductSummaryResponse> => {
     const response = await api.put<ProductSummaryResponse>("/products/update", data);
     return response.data;

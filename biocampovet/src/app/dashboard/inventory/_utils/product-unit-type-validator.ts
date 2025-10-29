@@ -88,6 +88,23 @@ export const UNIT_CONVERSION_FACTORS: Partial<
   },
 };
 
+// --- INICIO DE CAMBIOS ---
+
+// Definir qué unidades se consideran 'fraccionables'
+const FRACIONABLE_UNITS = [
+  ProductUnitType.GRAM,
+  ProductUnitType.MILLIGRAM,
+  ProductUnitType.MICROGRAM,
+  ProductUnitType.MILLILITER,
+];
+
+// Helper para saber si una unidad es fraccionable
+export function isFracionableUnit(unitType: ProductUnitType): boolean {
+  return FRACIONABLE_UNITS.includes(unitType);
+}
+
+// --- FIN DE CAMBIOS ---
+
 
 export function isCompatibleProductUnit(
   original: ProductUnitType,
@@ -108,14 +125,18 @@ export function getAllowedVariantsFiltered(original?: ProductUnitType): ProductU
 }
 
 export function getNextAvailableUnitType(
-  unitType: ProductUnitType | null,
-  currentModes: { unitType: ProductUnitType }[]
+  baseUnitType: ProductUnitType | null,
+  currentModes: { unitType: ProductUnitType }[],
+  mainUnitType: ProductUnitType | null
 ): ProductUnitType | null {
-  if (!unitType) return null;
+  if (!baseUnitType) return null;
 
-  const alreadyUsed = currentModes.map((m) => m.unitType);
-  const availableModes = getAllowedVariants(unitType).filter(
-    (mode) => !alreadyUsed.includes(mode)
+  const alreadyUsed = new Set(currentModes.map((m) => m.unitType));
+  if (baseUnitType) alreadyUsed.add(baseUnitType);
+  if (mainUnitType) alreadyUsed.add(mainUnitType);
+
+  const availableModes = getAllowedVariants(baseUnitType).filter(
+    (mode) => !alreadyUsed.has(mode)
   );
 
   return availableModes[0] ?? null;
@@ -142,19 +163,25 @@ export function isValidSaleQuantity(
 }
 
 export function getAvailableVariantsForIndex(
-  unitType: ProductUnitType | null,
+  baseUnitType: ProductUnitType | null,
   saleModes: { unitType: ProductUnitType }[],
-  currentIndex: number
+  currentIndex: number,
+  mainUnitType: ProductUnitType | null
 ): ProductUnitType[] {
-  if (!unitType) return [];
+  if (!baseUnitType) return [];
 
-  const alreadyUsed = saleModes
-    .filter((_, i) => i !== currentIndex)
-    .map((m) => m.unitType);
+  const alreadyUsed = new Set(
+    saleModes
+      .filter((_, i) => i !== currentIndex)
+      .map((m) => m.unitType)
+  );
+  
+  if (baseUnitType) alreadyUsed.add(baseUnitType);
+  if (mainUnitType) alreadyUsed.add(mainUnitType);
 
-  return getAllowedVariants(unitType).filter(
-    (mode) => !alreadyUsed.includes(mode)
+  const currentModeUnit = saleModes[currentIndex]?.unitType;
+
+  return getAllowedVariants(baseUnitType).filter(
+    (mode) => mode === currentModeUnit || !alreadyUsed.has(mode)
   );
 }
-
-
