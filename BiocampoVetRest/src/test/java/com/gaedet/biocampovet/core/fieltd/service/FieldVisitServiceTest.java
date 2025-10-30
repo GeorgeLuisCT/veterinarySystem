@@ -144,7 +144,7 @@ class FieldVisitServiceTest {
                     .minStock(1)
                     .category(category)
                     .sku("SKU-" + UUID.randomUUID())
-                    .presentation(ProductPresentationType.NONE)
+                    .presentation(ProductPresentationType.UNIT)
                     .unitType(ProductUnitType.UNIT)
                     .contentTotal(1.0)
                     .build();

@@ -13,8 +13,7 @@ export enum ProductPresentationType {
   GALLON = "GALLON",
   CASE = "CASE",
   ROLL = "ROLL",
-  LOOSE = "LOOSE",
-  NONE = "NONE",
+  UNIT = "UNIT",
 }
 
 export const ProductPresentationTypeLabels: Record<ProductPresentationType, string> = {
@@ -32,8 +31,7 @@ export const ProductPresentationTypeLabels: Record<ProductPresentationType, stri
   [ProductPresentationType.GALLON]: "Galón",
   [ProductPresentationType.CASE]: "Estuche",
   [ProductPresentationType.ROLL]: "Rollo",
-  [ProductPresentationType.LOOSE]: "Suelto",
-  [ProductPresentationType.NONE]: "Unidad",
+  [ProductPresentationType.UNIT]: "Unidad",
 };
 
 export const ProductPresentationTypeLabelsPlural: Record<ProductPresentationType, string> = {
@@ -51,8 +49,7 @@ export const ProductPresentationTypeLabelsPlural: Record<ProductPresentationType
   [ProductPresentationType.GALLON]: "Galones",
   [ProductPresentationType.CASE]: "Estuches",
   [ProductPresentationType.ROLL]: "Rollos",
-  [ProductPresentationType.LOOSE]: "Sueltos",
-  [ProductPresentationType.NONE]: "Unidades",
+  [ProductPresentationType.UNIT]: "Unidades",
 };
 
 export function getProductPresentationTypeLabel(presentation: ProductPresentationType): string {

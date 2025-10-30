@@ -76,6 +76,7 @@ public class ProductService {
         );
     }
 
+    @Transactional(readOnly = true)
     public ProductResponse getProduct(Long id) {
         Product product = productRepository.findWithDetailsById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));

@@ -4,15 +4,17 @@ import { Control, useFieldArray, useFormContext, useWatch } from "react-hook-for
 import { Button } from "@/components/ui/button";
 import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import { Trash2, Plus } from "lucide-react";
-import { toast } from "sonner";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { ProductRequest } from "../_types/product-request";
 import { FloatingLabelInput } from "@/components/floating-label-input";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
-import { getProductUnitTypeLabel, getProductUnitTypeLabelByQuantity, ProductUnitType } from "../_enums/product-unit-type";
-import { getAvailableVariantsForIndex, getNextAvailableUnitType, isFracionableUnit } from "../_utils/product-unit-type-validator";
+import { getProductUnitTypeLabel, ProductUnitType } from "../_enums/product-unit-type";
+import { getAllowedVariants, getNextAvailableUnitType, isFracionableUnit } from "../_utils/product-unit-type-validator";
 import { ProductPresentationType } from "../_enums/product-presentation-type";
 import { presentationToUnitMap } from "../_helpers/product-mapper";
+import { useToast } from "@/hooks/use-toast";
+import { getSaleModeSummaryText } from "../_utils/product-util-labels";
+import { ProductSaleModeRequest } from "../_types/product-sale-mode-request";
 
 interface Props {
     control: Control<ProductRequest>;
@@ -30,15 +32,16 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
     const { setValue } = useFormContext<ProductRequest>();
     const saleModes = useWatch({ control, name: "saleModes" });
     const mainUnitType = presentationType ? presentationToUnitMap[presentationType] : null;
+    const {toast} = useToast();
 
     function handleAddSaleMode() {
         if (!baseUnitType || !mainUnitType) {
-            toast.error("Define la Presentación y la Unidad Base primero.");
+            toast({variant: "destructive", title: "Error", description: "Define la Presentación y la Unidad Base primero."});
             return;
         }
         const next = getNextAvailableUnitType(baseUnitType, saleModes, mainUnitType);
         if (!next) {
-            toast.warning("Ya se han agregado todos los modos de venta posibles.");
+            toast({variant: "destructive", title: "Error", description: "Ya se han agregado todos los modos de venta posibles."});
             return;
         }
         
@@ -52,28 +55,26 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
         });
     }
 
-    const relativeUnitOptions = useMemo(() => {
-        const options: { value: ProductUnitType; label: string }[] = [];
-        if (mainUnitType) {
-            options.push({ value: mainUnitType, label: getProductUnitTypeLabel(mainUnitType) });
-        }
-        if (baseUnitType && baseUnitType !== mainUnitType) {
-            options.push({ value: baseUnitType, label: getProductUnitTypeLabel(baseUnitType) });
-        }
-        return options;
-    }, [baseUnitType, mainUnitType]);
-
     useEffect(() => {
         if (!saleModes) return;
         
         saleModes.forEach((mode, index) => {
-            if (mode.unitType && isFracionableUnit(mode.unitType)) {
-                if (mode.relativeUnitType !== mode.unitType) {
-                    setValue(`saleModes.${index}.relativeUnitType`, mode.unitType, { shouldDirty: true });
+            if (mode.unitType) {
+                const isFraccionable = isFracionableUnit(mode.unitType);
+                
+                if (isFraccionable) {
+                    if (mode.relativeUnitType !== mode.unitType) {
+                        setValue(`saleModes.${index}.relativeUnitType`, mode.unitType, { shouldDirty: true });
+                    }
+                } else {
+                    const targetUnit = mainUnitType ?? baseUnitType; 
+                    if (targetUnit && mode.relativeUnitType !== targetUnit) {
+                        setValue(`saleModes.${index}.relativeUnitType`, targetUnit, { shouldDirty: true });
+                    }
                 }
             }
         });
-    }, [saleModes, setValue]);
+    }, [saleModes, setValue, mainUnitType, baseUnitType]);
 
     const formatPEN = (n?: number | string) => {
         const num = typeof n === "string" ? Number(n) : n;
@@ -87,24 +88,20 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
                 const current = saleModes?.[index];
                 const modeUnit: ProductUnitType | undefined = current?.unitType;
                 
-                const isFraccionable = modeUnit ? isFracionableUnit(modeUnit) : false;
-
                 const relQty: number = Number(current?.relativeQuantity ?? 0);
                 const relUnit: ProductUnitType | undefined = current?.relativeUnitType;
                 const priceVal = current?.price;
-
-                const modeLabel = modeUnit ? getProductUnitTypeLabel(modeUnit).toLowerCase() : "modo";
-                const relUnitLabelLower =
-                    relUnit != null ? getProductUnitTypeLabelByQuantity(relUnit, relQty).toLowerCase() : "…";
-                const qtyText = relQty > 0 ? relQty : "…";
+                
                 const priceText = priceVal != null && priceVal !== undefined ? formatPEN(priceVal) : "…";
                 
-                const isRedundant = modeUnit === relUnit;
+                const summaryText = getSaleModeSummaryText(
+                    modeUnit, 
+                    relQty,
+                    presentationType
+                );
                 
-                const rowSummary = isRedundant
-                    ? `${qtyText} ${relUnitLabelLower} a ${priceText}`
-                    : `${modeLabel} de ${qtyText} ${relUnitLabelLower} a ${priceText}`;
-
+                const rowSummary = `${summaryText} a ${priceText}`;
+                
                 return (
                     <div key={field.id} className="rounded-xl border p-3 space-y-2">
                         <div className="grid grid-cols-12 gap-2 items-end">
@@ -118,9 +115,9 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
                                                 id={`saleModes.${index}.unitType`}
                                                 label="Modo de venta"
                                                 value={field.value ?? ""}
-                                                onValueChange={field.onChange}
-                                                disabled={isEdit && (saleModes?.[index] as any)?.id !== undefined}
-                                                options={getAvailableVariantsForIndex(baseUnitType, saleModes, index, mainUnitType).map(
+                                                onValueChange={field.onChange} 
+                                                disabled={isEdit && (saleModes?.[index] as ProductSaleModeRequest)?.id !== undefined}
+                                                options={getAllowedVariants(baseUnitType).map(
                                                     (mode) => ({
                                                         value: mode,
                                                         label: getProductUnitTypeLabel(mode),
@@ -164,11 +161,8 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
                                                 label="Unidad"
                                                 value={field.value ?? ""}
                                                 onValueChange={field.onChange}
-                                                options={isFraccionable && modeUnit
-                                                    ? [{ value: modeUnit, label: getProductUnitTypeLabel(modeUnit) }]
-                                                    : relativeUnitOptions
-                                                }
-                                                disabled={isFraccionable}
+                                                options={relUnit ? [{ value: relUnit, label: getProductUnitTypeLabel(relUnit) }] : []}
+                                                disabled={true} 
                                             />
                                         </FormControl>
                                         <FormMessage className="ml-2" />
@@ -215,18 +209,17 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
                 );
             })}
 
-            {/* footer con botón abajo-derecha */}
-          <div className="border-t pt-3 flex justify-end">
+        <div className="border-t pt-3 flex justify-end">
             <Button
-              type="button"
-              onClick={handleAddSaleMode}
-              variant="link"
-              className="flex items-center gap-1 rounded-xl cursor-pointer"
+                type="button"
+                onClick={handleAddSaleMode}
+                variant="link"
+                className="flex items-center gap-1 rounded-xl cursor-pointer"
             >
-              <Plus className="h-4 w-4" />
-              <span>Agregar</span>
+                <Plus className="h-4 w-4" />
+                <span>Agregar</span>
             </Button>
-          </div>
+        </div>
         </div>
     );
 }

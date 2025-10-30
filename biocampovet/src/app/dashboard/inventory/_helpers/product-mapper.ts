@@ -17,8 +17,7 @@ export const presentationToUnitMap: Record<ProductPresentationType, ProductUnitT
   [ProductPresentationType.GALLON]: ProductUnitType.UNIT,
   [ProductPresentationType.CASE]: ProductUnitType.BOX,
   [ProductPresentationType.ROLL]: ProductUnitType.UNIT,
-  [ProductPresentationType.LOOSE]: ProductUnitType.UNIT,
-  [ProductPresentationType.NONE]: ProductUnitType.UNIT,
+  [ProductPresentationType.UNIT]: ProductUnitType.UNIT,
 };
 
 export function mapToCreateRequest(data: ProductRequest): ProductApiCreateRequest {

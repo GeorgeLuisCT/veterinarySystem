@@ -83,12 +83,7 @@ export const ALLOWED_UNITS_BY_PRESENTATION: Record<ProductPresentationType, Prod
   ROLL: [
     ProductUnitType.UNIT, // por pieza (si no existen metros en tu enum)
   ],
-  LOOSE: [
-    ProductUnitType.UNIT, // unidades sueltas
-    ProductUnitType.GRAM, // granel por peso
-    ProductUnitType.MILLILITER, // granel por volumen
-  ],
-  NONE: [
+  UNIT: [
     ...COUNT_UNITS,
     ...MASS_UNITS,
     ...VOLUME_UNITS,

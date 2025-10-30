@@ -13,8 +13,8 @@ public enum ProductUnitType {
     UNIT("Unidad", "Ud."),
     CAPSULE("Cápsula", "Cap."),
     TABLET("Tableta", "Tab."),
-    PACK("Paquete", "Ud."),
-    BOX("Caja", "Ud.");
+    PACK("Paquete", "Pq."),
+    BOX("Caja", "Cj.");
 
     private final String label;
     private final String abbreviation;
@@ -22,5 +22,12 @@ public enum ProductUnitType {
     ProductUnitType(String label, String abbreviation) {
         this.label = label;
         this.abbreviation = abbreviation;
+    }
+
+    public boolean isFracionable() {
+        return switch (this) {
+            case KILOGRAM, GRAM, MILLIGRAM, MICROGRAM, LITER, MILLILITER -> true;
+            default -> false;
+        };
     }
 }

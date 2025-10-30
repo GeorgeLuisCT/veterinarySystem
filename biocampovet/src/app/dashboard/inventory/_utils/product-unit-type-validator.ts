@@ -92,10 +92,14 @@ export const UNIT_CONVERSION_FACTORS: Partial<
 
 // Definir qué unidades se consideran 'fraccionables'
 const FRACIONABLE_UNITS = [
+  ProductUnitType.KILOGRAM,
   ProductUnitType.GRAM,
   ProductUnitType.MILLIGRAM,
   ProductUnitType.MICROGRAM,
+  ProductUnitType.LITER,
   ProductUnitType.MILLILITER,
+  ProductUnitType.CAPSULE,
+  ProductUnitType.TABLET,
 ];
 
 // Helper para saber si una unidad es fraccionable
@@ -113,7 +117,7 @@ export function isCompatibleProductUnit(
   return ALLOWED_VARIANTS[original]?.includes(variant) ?? false;
 }
 
-export function getAllowedVariants(unitType?: ProductUnitType): ProductUnitType[] {
+export function getAllowedVariants(unitType?: ProductUnitType | null): ProductUnitType[] {
   if (!unitType) return [];
   return ALLOWED_VARIANTS[unitType] ?? [];
 }

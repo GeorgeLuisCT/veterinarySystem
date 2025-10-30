@@ -5,21 +5,36 @@ import com.gaedet.biocampovet.core.inventory.dto.ProductSaleModeRequest;
 import com.gaedet.biocampovet.core.inventory.entity.Product;
 import com.gaedet.biocampovet.core.inventory.entity.ProductSaleMode;
 import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
+import com.gaedet.biocampovet.core.inventory.util.UnitConversionUtil;
 import com.gaedet.biocampovet.exeption.BadRequestException;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public final class ProductSaleModeMapper {
 
+    private ProductSaleModeMapper() {
+    }
+
     public static Set<ProductSaleMode> toEntitySet(Product product, ProductCreateRequest request) {
 
-        Set<ProductSaleMode> saleModes = new java.util.HashSet<>();
+        if (product.getUnitType() == ProductUnitType.UNIT &&
+                request.getMainUnitType() == ProductUnitType.UNIT &&
+                request.getContentTotal() != 1.0) {
+
+            throw new BadRequestException(
+                    "Si la unidad base y la unidad de venta principal son 'UNIDAD', " +
+                            "el contenido total (contentTotal) debe ser exactamente 1.0"
+            );
+        }
+
+        Set<ProductSaleMode> saleModes = new HashSet<>();
         Map<ProductUnitType, Double> equivalentsMap = new HashMap<>();
 
-        equivalentsMap.put(product.getUnitType(), 1.0);
+        UnitConversionUtil.populateEquivalentsMap(equivalentsMap, product.getUnitType());
 
         ProductSaleMode principalSaleMode = ProductSaleMode.builder()
                 .product(product)
@@ -31,31 +46,31 @@ public final class ProductSaleModeMapper {
 
         saleModes.add(principalSaleMode);
 
-        equivalentsMap.put(principalSaleMode.getUnitType(), principalSaleMode.getQuantityEquivalent());
+        equivalentsMap.putIfAbsent(principalSaleMode.getUnitType(), principalSaleMode.getQuantityEquivalent());
 
         if (request.getSaleModes() != null) {
 
             for (ProductSaleModeRequest modeReq : request.getSaleModes()) {
 
-                Double relativeEquivalent = equivalentsMap.get(modeReq.getRelativeUnitType());
+                Double relativeEquivalentToBase = equivalentsMap.get(modeReq.getRelativeUnitType());
 
-                if (relativeEquivalent == null) {
-                    throw new BadRequestException("Unidad relativa no válida: " + modeReq.getRelativeUnitType());
+                if (relativeEquivalentToBase == null) {
+                    throw new BadRequestException("Unidad relativa no válida o no definida para esta unidad base: " + modeReq.getRelativeUnitType());
                 }
 
-                Double finalEquivalent = modeReq.getRelativeQuantity() * relativeEquivalent;
+                Double finalEquivalentInBaseUnit = modeReq.getRelativeQuantity() * relativeEquivalentToBase;
 
                 ProductSaleMode otherSaleMode = ProductSaleMode.builder()
                         .product(product)
                         .unitType(modeReq.getUnitType())
-                        .quantityEquivalent(finalEquivalent)
+                        .quantityEquivalent(finalEquivalentInBaseUnit)
                         .price(modeReq.getPrice())
                         .isBaseMode(false)
                         .build();
 
                 saleModes.add(otherSaleMode);
 
-                equivalentsMap.put(otherSaleMode.getUnitType(), otherSaleMode.getQuantityEquivalent());
+                equivalentsMap.putIfAbsent(otherSaleMode.getUnitType(), otherSaleMode.getQuantityEquivalent());
             }
         }
         return saleModes;

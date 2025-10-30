@@ -77,7 +77,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "category",
             "saleModes",
             "branchStocks",
-            "branchStocks.branch"
+            "branchStocks.branch",
+            "administrationRoutes"
     })
     Optional<Product> findWithDetailsById(Long id);
 

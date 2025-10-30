@@ -49,6 +49,16 @@ public class SaleModeService {
 
     public void updateOrAddSaleModes(Product product, ProductUpdateRequest request) {
 
+        if (product.getUnitType() == ProductUnitType.UNIT &&
+                request.getMainUnitType() == ProductUnitType.UNIT &&
+                request.getContentTotal() != 1.0) {
+
+            throw new BadRequestException(
+                    "Si la unidad base y la unidad de venta principal son 'UNIDAD', " +
+                            "el contenido total (contentTotal) debe ser exactamente 1.0"
+            );
+        }
+
         ProductSaleMode baseMode = product.getSaleModes().stream()
                 .filter(ProductSaleMode::getIsBaseMode)
                 .findFirst()
@@ -60,12 +70,12 @@ public class SaleModeService {
 
         Map<ProductUnitType, Double> equivalentsMap = new HashMap<>();
 
-        equivalentsMap.put(request.getBaseUnitType(), 1.0);
+        equivalentsMap.put(product.getUnitType(), 1.0);
 
         equivalentsMap.put(baseMode.getUnitType(), baseMode.getQuantityEquivalent());
 
         Set<ProductUnitType> unitTypes = new HashSet<>();
-        unitTypes.add(request.getBaseUnitType());
+        unitTypes.add(product.getUnitType());
         unitTypes.add(baseMode.getUnitType());
 
         if (request.getSaleModes() == null) {

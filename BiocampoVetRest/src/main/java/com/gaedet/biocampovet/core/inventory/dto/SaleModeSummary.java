@@ -13,8 +13,9 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SaleModeSummary {
+    private Long id;
     private ProductUnitType unitType;
-    private Double quantityEquivalent;
+    private BigDecimal relativeQuantity;
     private BigDecimal price;
     private boolean isBaseMode;
 }

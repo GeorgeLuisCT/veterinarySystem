@@ -18,8 +18,7 @@ public enum ProductPresentationType {
     GALLON("Galón"),
     CASE("Estuche"),
     ROLL("Rollo"),
-    LOOSE("Suelto"),
-    NONE("Ninguno");
+    UNIT("Suelto");
 
     private final String label;
 

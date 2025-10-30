@@ -1,13 +1,13 @@
 export enum ProductUnitType {
+  UNIT = "UNIT",
+  CAPSULE = "CAPSULE",
+  TABLET = "TABLET",
   KILOGRAM = "KILOGRAM",
   GRAM = "GRAM",
   MILLIGRAM = "MILLIGRAM",
   MICROGRAM = "MICROGRAM",
   LITER = "LITER",
   MILLILITER = "MILLILITER",
-  UNIT = "UNIT",
-  CAPSULE = "CAPSULE",
-  TABLET = "TABLET",
   PACK = "PACK",
   BOX = "BOX"
 }

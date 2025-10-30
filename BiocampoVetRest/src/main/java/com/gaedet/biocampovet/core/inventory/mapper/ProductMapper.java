@@ -7,6 +7,8 @@ import com.gaedet.biocampovet.core.inventory.entity.Product;
 import com.gaedet.biocampovet.core.inventory.entity.ProductBranch;
 import com.gaedet.biocampovet.core.inventory.entity.ProductSaleMode;
 import com.gaedet.biocampovet.core.inventory.enums.AdministrationRoute;
+import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
+import com.gaedet.biocampovet.core.inventory.util.UnitConversionUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -46,9 +48,13 @@ public final class ProductMapper {
                 .map(ProductSaleMode::getPrice)
                 .orElse(BigDecimal.ZERO);
 
+        final BigDecimal baseEquivalence = BigDecimal.valueOf(p.getContentTotal());
+        final ProductUnitType baseUnit = p.getUnitType();
+
         List<SaleModeSummary> saleModes = p.getSaleModes().stream()
+                .filter(mode -> !mode.getIsBaseMode())
                 .sorted(Comparator.comparing(ProductSaleMode::getUnitType))
-                .map(ProductMapper::toSaleModeSummary)
+                .map(mode -> toSaleModeSummary(mode, baseEquivalence, baseUnit))
                 .toList();
 
         Map<Long, BigDecimal> safeBranchStockMap = Optional.ofNullable(branchStockMap).orElse(Collections.emptyMap());
@@ -97,8 +103,7 @@ public final class ProductMapper {
                 .build();
     }
 
-    public static ProductSummaryResponse toSummary(Product p, BigDecimal mainStockBaseUnit, Map<Long, BigDecimal> branchStockMap
-    ) {
+    public static ProductSummaryResponse toSummary(Product p, BigDecimal mainStockBaseUnit, Map<Long, BigDecimal> branchStockMap) {
 
         BigDecimal basePrice = p.getSaleModes().stream()
                 .filter(ProductSaleMode::getIsBaseMode)
@@ -106,11 +111,16 @@ public final class ProductMapper {
                 .map(ProductSaleMode::getPrice)
                 .orElse(BigDecimal.ZERO);
 
+
+        final BigDecimal baseEquivalence = BigDecimal.valueOf(p.getContentTotal());
+        final ProductUnitType baseUnit = p.getUnitType();
+
         List<SaleModeSummary> saleModes = p.getSaleModes().stream()
                 .filter(sm -> !sm.getIsBaseMode())
                 .sorted(Comparator.comparing(ProductSaleMode::getUnitType))
-                .map(ProductMapper::toSaleModeSummary)
+                .map(mode -> toSaleModeSummary(mode, baseEquivalence, baseUnit))
                 .toList();
+
 
         Map<Long, BigDecimal> safeBranchStockMap = Optional.ofNullable(branchStockMap).orElse(Collections.emptyMap());
 
@@ -194,12 +204,31 @@ public final class ProductMapper {
         return new StockTuple(mainUnit, baseUnitRemainder);
     }
 
-    private static SaleModeSummary toSaleModeSummary(ProductSaleMode sm) {
+    public static SaleModeSummary toSaleModeSummary(ProductSaleMode mode, BigDecimal baseEquivalence, ProductUnitType baseUnit) {
+
+        BigDecimal relativeQuantity;
+        BigDecimal absoluteQuantity = BigDecimal.valueOf(mode.getQuantityEquivalent());
+
+        if (mode.getUnitType().isFracionable()) {
+            relativeQuantity = UnitConversionUtil.convertFromBase(
+                    absoluteQuantity,
+                    baseUnit,
+                    mode.getUnitType()
+            );
+
+        } else {
+            if (baseEquivalence.compareTo(BigDecimal.ZERO) == 0) {
+                relativeQuantity = BigDecimal.ZERO;
+            } else {
+                relativeQuantity = absoluteQuantity.divide(baseEquivalence, 6, RoundingMode.HALF_UP);
+            }
+        }
+
         return SaleModeSummary.builder()
-                .unitType(sm.getUnitType())
-                .quantityEquivalent(sm.getQuantityEquivalent())
-                .price(sm.getPrice())
-                .isBaseMode(sm.getIsBaseMode())
+                .id(mode.getId())
+                .unitType(mode.getUnitType())
+                .relativeQuantity(relativeQuantity)
+                .price(mode.getPrice())
                 .build();
     }
 

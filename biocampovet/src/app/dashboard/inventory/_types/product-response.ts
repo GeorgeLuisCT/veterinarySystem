@@ -20,8 +20,9 @@ export interface ProductListParams {
 }
 
 export interface SaleModeSummary {
+  id: number;
   unitType: ProductUnitType;
-  quantityEquivalent: number;
+  relativeQuantity: number;
   price: number;
   baseMode: boolean;
 }

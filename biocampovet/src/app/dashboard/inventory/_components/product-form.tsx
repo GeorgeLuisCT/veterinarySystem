@@ -5,14 +5,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
-import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import ProductService from "../_service/product-service";
 import { BranchService } from "@/app/dashboard/branche/services/branch-service";
 import { categoryService } from "../_service/category-product-service";
 import { useProductContext } from "../_context/product-context-type";
 import { productCreateSchema, ProductRequest, productUpdateSchema } from "../_types/product-request";
-import { mapToCreateRequest, mapToUpdateRequest } from "../_helpers/product-mapper";
+import { mapToCreateRequest, mapToUpdateRequest, presentationToUnitMap } from "../_helpers/product-mapper";
 import { ZodTypeAny } from "zod";
 import { useUser } from "@/context/user-context";
 import { FloatingLabelInput } from "@/components/floating-label-input";
@@ -38,6 +37,7 @@ import {
 } from "../_enums/administration-route";
 import { ProductResponse } from "../_types/product-response";
 import { ProductSaleModeRequest } from "../_types/product-sale-mode-request";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProductFormProps {
   open: boolean;
@@ -48,14 +48,14 @@ interface ProductFormProps {
 function mapApiResponseToForm(product: ProductResponse): ProductRequest {
   const baseMode = product.saleModes.find((m) => m.baseMode);
   const otherModes = product.saleModes.filter((m) => !m.baseMode);
-  const mainEquivalent = baseMode?.quantityEquivalent ?? 1;
+  const mainEquivalent = baseMode?.relativeQuantity ?? 1;
 
   const mappedSaleModes: ProductSaleModeRequest[] = otherModes.map((mode) => {
     let relativeUnitType = baseMode?.unitType ?? ProductUnitType.UNIT;
-    let relativeQuantity = mode.quantityEquivalent / mainEquivalent;
+    let relativeQuantity = mode.relativeQuantity / mainEquivalent;
     if (relativeQuantity % 1 !== 0 || relativeQuantity === 0) {
       relativeUnitType = product.unitType;
-      relativeQuantity = mode.quantityEquivalent;
+      relativeQuantity = mode.relativeQuantity;
     }
     return {
       id: (mode as any).id,
@@ -90,6 +90,8 @@ export function ProductForm({ open, setOpen, productId }: ProductFormProps) {
   const { addProduct, updateProduct } = useProductContext();
   const { userInfo } = useUser();
   const schema: ZodTypeAny = productId ? productUpdateSchema : productCreateSchema;
+
+  const { toast } = useToast();
 
   const form = useForm<ProductRequest>({
     resolver: zodResolver(schema),
@@ -126,14 +128,14 @@ export function ProductForm({ open, setOpen, productId }: ProductFormProps) {
           form.reset(formData);
         }
       } catch (error: unknown) {
-        toast.error(getAaxiosErrorMessage(error) || "Error al cargar los datos");
+        toast({ variant: "destructive", title: "Error", description: getAaxiosErrorMessage(error) || "Error al cargar los datos" });
         setOpen(false);
       } finally {
         setLoading(false);
       }
     }
     loadData();
-  }, [productId, setOpen, userInfo?.selectedBranch?.id, form]);
+  }, [productId, setOpen, userInfo?.selectedBranch?.id, form, toast]);
 
   const handleSearchBranches = async (query: string) => {
     try {
@@ -147,41 +149,65 @@ export function ProductForm({ open, setOpen, productId }: ProductFormProps) {
       if (productId) {
         const req = mapToUpdateRequest(data, productId);
         const updatedProduct = await ProductService.updateProduct(req);
-        toast.success("Producto actualizado correctamente");
+        toast({ variant: "default", title: "Exito", description: "Producto actualizado correctamente" });
         updateProduct(updatedProduct);
       } else {
         const req = mapToCreateRequest(data);
         const createdProduct = await ProductService.createProduct(req);
-        toast.success("Producto registrado correctamente");
+        toast({ variant: "default", title: "Exito", description: "Producto registrado correctamente" });
         const selectedId = userInfo?.selectedBranch?.id ?? 0;
         const branchIds = data.branchIds ?? [];
         const include = branchIds.includes(selectedId);
         const shouldAdd = (selectedId > 0 && include) || (branchIds.length > 0 && selectedId === 0);
         if (shouldAdd) addProduct(createdProduct);
         else if (selectedId > 0 && !include)
-          toast.warning("El producto fue creado, pero no está disponible en esta sucursal.");
+          toast({ variant: "destructive", title: "Error", description: "El producto fue creado, pero no está disponible en esta sucursal." });
       }
       form.reset();
       setOpen(false);
     } catch (error: unknown) {
-      toast.error(getAaxiosErrorMessage(error) || "Error al guardar el producto");
+      toast({ variant: "destructive", title: "Error", description: getAaxiosErrorMessage(error) || "Error al guardar el producto" });
     }
   };
 
   const selectedPresentation = form.watch("presentation") as ProductPresentationType | undefined;
   const allowedBaseUnits = getAllowedUnitsByPresentation(selectedPresentation);
-  const baseUnit = form.watch("unitType");
+  const baseUnit = form.watch("unitType")
   const contentTotalVal = form.watch("contentTotal");
   const priceVal = form.watch("standardPrice");
+
+  const isLockedUnit = React.useMemo(() => {
+    if (!selectedPresentation || !baseUnit) return false;
+
+    const mainUnit = presentationToUnitMap[selectedPresentation] ?? ProductUnitType.UNIT;
+
+    const baseIsUnit = baseUnit === ProductUnitType.UNIT;
+
+    return mainUnit === ProductUnitType.UNIT && baseIsUnit;
+  }, [selectedPresentation, baseUnit]);
 
   function handlePresentationChange(value: ProductPresentationType, form: UseFormReturn<ProductRequest>) {
     form.setValue("presentation", value);
     const list = getAllowedUnitsByPresentation(value);
-    form.setValue("unitType", list[0] ?? ProductUnitType.UNIT, {
+
+    const newUnitType = list[0] ?? ProductUnitType.UNIT;
+    form.setValue("unitType", newUnitType, {
       shouldValidate: true,
       shouldDirty: true,
     });
+
+    const mainUnit = presentationToUnitMap[value] ?? ProductUnitType.UNIT;
+
+    if (mainUnit === ProductUnitType.UNIT && newUnitType === ProductUnitType.UNIT) {
+      form.setValue("contentTotal", 1, { shouldValidate: true, shouldDirty: true });
+    }
   }
+
+  React.useEffect(() => {
+    if (isLockedUnit) {
+      form.setValue("contentTotal", 1, { shouldValidate: true, shouldDirty: true });
+    }
+  }, [isLockedUnit, form]);
 
   const formatPEN = (n?: number | string) => {
     const num = typeof n === "string" ? Number(n) : n;
@@ -198,8 +224,12 @@ export function ProductForm({ open, setOpen, productId }: ProductFormProps) {
     const qtyText = qty > 0 ? qty : "…";
     const uText = unitLabel || "…";
     const pText = priceText || "…";
+
+    if (isLockedUnit && qty === 1) {
+      return `${qtyText} ${presLabel} a ${pText}`;
+    }
     return `${presLabel} de ${qtyText} ${uText} a ${pText}`;
-  }, [selectedPresentation, baseUnit, contentTotalVal, priceVal]);
+  }, [selectedPresentation, baseUnit, contentTotalVal, priceVal, isLockedUnit]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -346,6 +376,7 @@ export function ProductForm({ open, setOpen, productId }: ProductFormProps) {
                               step="any"
                               label="Contenido de la Presentación"
                               onChange={(v) => field.onChange(parseFloat(v) || "")}
+                              disabled={isLockedUnit}
                             />
                           </FormControl>
                           <FormMessage />

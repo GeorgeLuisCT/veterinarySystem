@@ -21,7 +21,7 @@ export function getMainUnitLabelText(
 
   // Caso especial producto completo
   if (
-    (presentation === ProductPresentationType.LOOSE || presentation === ProductPresentationType.NONE) &&
+    (presentation === ProductPresentationType.UNIT) &&
     unitType === ProductUnitType.UNIT &&
     quantity === 1
   ) {
