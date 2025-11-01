@@ -52,7 +52,6 @@ public final class ProductMapper {
         final ProductUnitType baseUnit = p.getUnitType();
 
         List<SaleModeSummary> saleModes = p.getSaleModes().stream()
-                .filter(mode -> !mode.getIsBaseMode())
                 .sorted(Comparator.comparing(ProductSaleMode::getUnitType))
                 .map(mode -> toSaleModeSummary(mode, baseEquivalence, baseUnit))
                 .toList();
@@ -229,6 +228,7 @@ public final class ProductMapper {
                 .unitType(mode.getUnitType())
                 .relativeQuantity(relativeQuantity)
                 .price(mode.getPrice())
+                .isBaseMode(mode.getIsBaseMode())
                 .build();
     }
 

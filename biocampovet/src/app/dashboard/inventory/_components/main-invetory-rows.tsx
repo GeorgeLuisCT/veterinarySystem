@@ -251,7 +251,6 @@ export const useInventoryColumns = (branchId: number) => {
                         return (
                             <Badge
                                 variant="outline"
-                                className={b.active ? "border-emerald-300 text-emerald-700" : "border-zinc-300 text-zinc-600"}
                                 title={b.active ? "Activo" : "Inactivo"}
                             >
                                 {b.active ? "Activo" : "Inactivo"}

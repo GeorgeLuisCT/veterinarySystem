@@ -71,6 +71,7 @@ export default function MainInvetory({ branchId }: Props) {
         branchId,
         ...filters,
       });
+      console.log(resp);
       setProducts(resp);
     } catch (error: unknown) {
       const message = getAaxiosErrorMessage(error) || "Error al cargar productos";

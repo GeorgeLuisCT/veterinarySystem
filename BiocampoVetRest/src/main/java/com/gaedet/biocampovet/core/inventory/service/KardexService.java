@@ -5,6 +5,7 @@ import com.gaedet.biocampovet.core.inventory.entity.*;
 import com.gaedet.biocampovet.core.inventory.enums.KardexMovementType;
 import com.gaedet.biocampovet.core.inventory.enums.ProductUnitType;
 import com.gaedet.biocampovet.core.inventory.repository.*;
+import com.gaedet.biocampovet.core.inventory.util.UnitConversionUtil;
 import com.gaedet.biocampovet.exeption.BadRequestException;
 import com.gaedet.biocampovet.exeption.InsufficientStockException;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -88,15 +90,34 @@ public class KardexService {
     }
 
     private BigDecimal convertToBaseUnit(Product product, BigDecimal quantity, ProductUnitType unitType) {
+
         if (unitType == null || unitType.equals(product.getUnitType())) {
             return quantity;
         }
 
-        ProductSaleMode saleMode = productSaleModeRepository
-                .findByProductIdAndUnitType(product.getId(), unitType) // CORREGIDO
-                .orElseThrow(() -> new BadRequestException("Modo de venta no válido para la conversión de unidades"));
+        if (unitType.isFracionable()) {
 
-        return quantity.multiply(BigDecimal.valueOf(saleMode.getQuantityEquivalent()));
+            ProductUnitType baseUnit = product.getUnitType(); // ej. KILOGRAM
+
+            Map<ProductUnitType, Double> factors = new HashMap<>();
+            UnitConversionUtil.populateEquivalentsMap(factors, baseUnit);
+
+            Double factor = factors.get(unitType);
+
+            if (factor == null) {
+                throw new BadRequestException("No se encontró un factor de conversión física de " + unitType + " a " + baseUnit);
+            }
+
+            return quantity.multiply(BigDecimal.valueOf(factor));
+
+        } else {
+
+            ProductSaleMode saleMode = productSaleModeRepository
+                    .findByProductIdAndUnitType(product.getId(), unitType)
+                    .orElseThrow(() -> new BadRequestException("Modo de venta no válido '" + unitType + "' para el producto '" + product.getName() + "'"));
+
+            return quantity.multiply(BigDecimal.valueOf(saleMode.getQuantityEquivalent()));
+        }
     }
 
     @Transactional(readOnly = true)

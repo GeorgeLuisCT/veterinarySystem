@@ -32,21 +32,21 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
     const { setValue } = useFormContext<ProductRequest>();
     const saleModes = useWatch({ control, name: "saleModes" });
     const mainUnitType = presentationType ? presentationToUnitMap[presentationType] : null;
-    const {toast} = useToast();
+    const { toast } = useToast();
 
     function handleAddSaleMode() {
         if (!baseUnitType || !mainUnitType) {
-            toast({variant: "destructive", title: "Error", description: "Define la Presentación y la Unidad Base primero."});
+            toast({ variant: "destructive", title: "Error", description: "Define la Presentación y la Unidad Base primero." });
             return;
         }
         const next = getNextAvailableUnitType(baseUnitType, saleModes, mainUnitType);
         if (!next) {
-            toast({variant: "destructive", title: "Error", description: "Ya se han agregado todos los modos de venta posibles."});
+            toast({ variant: "destructive", title: "Error", description: "Ya se han agregado todos los modos de venta posibles." });
             return;
         }
-        
+
         const isFraccionable = isFracionableUnit(next);
-        
+
         append({
             unitType: next,
             price: 0,
@@ -57,17 +57,17 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
 
     useEffect(() => {
         if (!saleModes) return;
-        
+
         saleModes.forEach((mode, index) => {
             if (mode.unitType) {
                 const isFraccionable = isFracionableUnit(mode.unitType);
-                
+
                 if (isFraccionable) {
                     if (mode.relativeUnitType !== mode.unitType) {
                         setValue(`saleModes.${index}.relativeUnitType`, mode.unitType, { shouldDirty: true });
                     }
                 } else {
-                    const targetUnit = mainUnitType ?? baseUnitType; 
+                    const targetUnit = mainUnitType ?? baseUnitType;
                     if (targetUnit && mode.relativeUnitType !== targetUnit) {
                         setValue(`saleModes.${index}.relativeUnitType`, targetUnit, { shouldDirty: true });
                     }
@@ -87,21 +87,21 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
             {fields.map((field, index) => {
                 const current = saleModes?.[index];
                 const modeUnit: ProductUnitType | undefined = current?.unitType;
-                
+
                 const relQty: number = Number(current?.relativeQuantity ?? 0);
                 const relUnit: ProductUnitType | undefined = current?.relativeUnitType;
                 const priceVal = current?.price;
-                
+
                 const priceText = priceVal != null && priceVal !== undefined ? formatPEN(priceVal) : "…";
-                
+
                 const summaryText = getSaleModeSummaryText(
-                    modeUnit, 
+                    modeUnit,
                     relQty,
                     presentationType
                 );
-                
+
                 const rowSummary = `${summaryText} a ${priceText}`;
-                
+
                 return (
                     <div key={field.id} className="rounded-xl border p-3 space-y-2">
                         <div className="grid grid-cols-12 gap-2 items-end">
@@ -115,7 +115,7 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
                                                 id={`saleModes.${index}.unitType`}
                                                 label="Modo de venta"
                                                 value={field.value ?? ""}
-                                                onValueChange={field.onChange} 
+                                                onValueChange={field.onChange}
                                                 disabled={isEdit && (saleModes?.[index] as ProductSaleModeRequest)?.id !== undefined}
                                                 options={getAllowedVariants(baseUnitType).map(
                                                     (mode) => ({
@@ -162,7 +162,7 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
                                                 value={field.value ?? ""}
                                                 onValueChange={field.onChange}
                                                 options={relUnit ? [{ value: relUnit, label: getProductUnitTypeLabel(relUnit) }] : []}
-                                                disabled={true} 
+                                                disabled={true}
                                             />
                                         </FormControl>
                                         <FormMessage className="ml-2" />
@@ -209,17 +209,17 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
                 );
             })}
 
-        <div className="border-t pt-3 flex justify-end">
-            <Button
-                type="button"
-                onClick={handleAddSaleMode}
-                variant="link"
-                className="flex items-center gap-1 rounded-xl cursor-pointer"
-            >
-                <Plus className="h-4 w-4" />
-                <span>Agregar</span>
-            </Button>
-        </div>
+            <div className="border-t pt-3 flex justify-end">
+                <Button
+                    type="button"
+                    onClick={handleAddSaleMode}
+                    variant="link"
+                    className="flex items-center gap-1 rounded-xl cursor-pointer"
+                >
+                    <Plus className="h-4 w-4" />
+                    <span>Agregar</span>
+                </Button>
+            </div>
         </div>
     );
 }
