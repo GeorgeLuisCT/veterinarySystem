@@ -66,6 +66,11 @@ public class InventoryMovementController {
         return ResponseEntity.ok(resp);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<InventoryMovementResponse> getMovementById(@PathVariable Long id) {
+        return ResponseEntity.ok(movementService.getMovementById(id));
+    }
+
     @GetMapping("/kardex-history")
     public ResponseEntity<PaginatedResponse<KardexMovementResponse>> getKardexHistory(
             @RequestParam(defaultValue = "0") int page,

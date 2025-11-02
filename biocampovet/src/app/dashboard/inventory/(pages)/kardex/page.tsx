@@ -19,8 +19,8 @@ import type { KardexMovementResponse } from "../../_types/kardex-movement-respon
 import { KardexMovementTypeLabels } from "../../_enums/kardex-movement-type";
 import ProductService from "../../_service/product-service";
 import type { ProductQuickSearchResponse } from "../../_types/product-response";
-import { SearchPopover } from "./search-popover";
-import { useDebouncedSearch } from "./use-debounced-search";
+import { useDebouncedSearch } from "../../_components/movements/use-debounced-search";
+import { SearchPopover } from "../../_components/movements/search-popover";
 
 const DATE_TIME_FORMAT = "dd/MM/yyyy HH:mm";
 

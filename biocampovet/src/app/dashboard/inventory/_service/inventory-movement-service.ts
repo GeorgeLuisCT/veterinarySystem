@@ -18,10 +18,13 @@ export interface KardexHistoryParams {
   batchId?: number;
 }
 
-const buildQueryParams = (params: Record<string, unknown>) =>
+const buildQueryParams = <T extends object>(params: T) =>
   Object.fromEntries(
-    Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== "")
-  );
+    Object.entries(params as Record<string, unknown>).filter(
+      ([, value]) => value !== undefined && value !== null && value !== ""
+    )
+  ) as Partial<T>;
+
 
 export const InventoryMovementService = {
   listMovements: async (

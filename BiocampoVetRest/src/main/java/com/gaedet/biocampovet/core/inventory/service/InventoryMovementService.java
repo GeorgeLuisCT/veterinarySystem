@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -105,7 +106,7 @@ public class InventoryMovementService {
         movement.setDate(LocalDateTime.now());
         movement.setSourceBranch(entityManager.getReference(Branch.class, request.getSourceBranchId()));
         movement.setTargetBranch(entityManager.getReference(Branch.class, request.getTargetBranchId()));
-        movement.setEmployee(entityManager.getReference(Employee.class, employeeId)); // CORREGIDO
+        movement.setEmployee(entityManager.getReference(Employee.class, employeeId));
         movement.setDescription(request.getDescription());
 
         List<InventoryMovementProduct> products = request.getProducts().stream()
@@ -125,7 +126,6 @@ public class InventoryMovementService {
         for (InventoryMovementProduct p : savedMovement.getProducts()) {
             BigDecimal quantity = BigDecimal.valueOf(p.getQuantity());
 
-            // 1. Salida de la sucursal origen
             kardexService.registerMovement(KardexRegistrationRequest.builder()
                     .productId(p.getProduct().getId())
                     .branchId(savedMovement.getSourceBranch().getId())
@@ -137,7 +137,6 @@ public class InventoryMovementService {
                     .originType("InventoryMovement")
                     .build());
 
-            // 2. Entrada en la sucursal destino
             kardexService.registerMovement(KardexRegistrationRequest.builder()
                     .productId(p.getProduct().getId())
                     .branchId(savedMovement.getTargetBranch().getId())
@@ -220,6 +219,13 @@ public class InventoryMovementService {
                 .currentPage(result.getNumber())
                 .pageSize(result.getSize())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public InventoryMovementResponse getMovementById(Long id) {
+        InventoryMovement movement = movementRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new EntityNotFoundException("Movimiento no encontrado: " + id));
+        return InventoryMovementMapper.toResponse(movement);
     }
 
     @Transactional(readOnly = true)
