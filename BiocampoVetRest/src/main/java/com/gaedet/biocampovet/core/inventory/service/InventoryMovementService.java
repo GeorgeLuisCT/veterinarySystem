@@ -22,6 +22,7 @@ import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -201,9 +202,10 @@ public class InventoryMovementService {
 
     @Transactional(readOnly = true)
     public PaginatedResponse<InventoryMovementSummaryResponse> listMovements(
-            int page, int size, Long branchId, InventoryMovementType type, LocalDate startDate, LocalDate endDate) {
+            int page, int size, Long branchId, Collection<InventoryMovementType> types,
+            LocalDate startDate, LocalDate endDate) {
 
-        Specification<InventoryMovement> spec = InventoryMovementSpecs.byFilters(branchId, type, startDate, endDate);
+        Specification<InventoryMovement> spec = InventoryMovementSpecs.byFilters(branchId, types, startDate, endDate);
         Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by("date").descending());
 
         Page<InventoryMovement> result = movementRepository.findAll(spec, pageable);

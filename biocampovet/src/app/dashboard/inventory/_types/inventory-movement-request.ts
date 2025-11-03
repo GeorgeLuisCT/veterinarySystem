@@ -12,9 +12,7 @@ const numericField = (minMessage: string) =>
       }
       return value;
     },
-    z
-      .number({ required_error: minMessage })
-      .positive(minMessage)
+    z.number({ required_error: minMessage }).positive(minMessage)
   );
 
 const positiveQuantity = numericField("La cantidad debe ser mayor a 0");
@@ -45,13 +43,8 @@ const optionalString = z
   .or(z.literal("").transform(() => undefined));
 
 export const purchaseProductSchema = z.object({
-  productId: z
-    .number({ required_error: "Selecciona un producto" })
-    .min(1, "Selecciona un producto"),
-  batchNumber: z
-    .string({ required_error: "El número de lote es obligatorio" })
-    .trim()
-    .min(1, "El número de lote no puede estar vacío"),
+  productId: z.number({ required_error: "Selecciona un producto" }).min(1, "Selecciona un producto"),
+  batchNumber: z.string({ required_error: "El número de lote es obligatorio" }).trim().min(1, "El número de lote no puede estar vacío"),
   expirationDate: z
     .string()
     .trim()
@@ -59,89 +52,56 @@ export const purchaseProductSchema = z.object({
     .optional()
     .or(z.literal("").transform(() => undefined)),
   quantity: positiveQuantity,
-  unitType: z.nativeEnum(ProductUnitType, {
-    required_error: "La unidad es obligatoria",
-  }),
+  unitType: z.nativeEnum(ProductUnitType, { required_error: "La unidad es obligatoria" }),
   unitCost: unitCostSchema,
 });
 
 export const purchaseCreateSchema = z.object({
-  branchId: z
-    .number({ required_error: "Selecciona una sucursal" })
-    .min(1, "Selecciona una sucursal"),
-  supplierId: z
-    .number({ required_error: "Selecciona un proveedor" })
-    .min(1, "Selecciona un proveedor"),
-  date: z
-    .string({ required_error: "La fecha de compra es obligatoria" })
-    .min(1, "La fecha de compra es obligatoria"),
+  branchId: z.number({ required_error: "Selecciona una sucursal" }).min(1, "Selecciona una sucursal"),
+  supplierId: z.number({ required_error: "Selecciona un proveedor" }).min(1, "Selecciona un proveedor"),
+  date: z.string({ required_error: "La fecha de compra es obligatoria" }).min(1, "La fecha de compra es obligatoria"),
   description: optionalString,
-  products: z
-    .array(purchaseProductSchema)
-    .min(1, "Agrega al menos un producto"),
+  products: z.array(purchaseProductSchema).min(1, "Agrega al menos un producto"),
 });
 
 export const transferProductSchema = z.object({
-  productId: z
-    .number({ required_error: "Selecciona un producto" })
-    .min(1, "Selecciona un producto"),
-  batchId: z
-    .number({ required_error: "Selecciona un lote" })
-    .min(1, "Selecciona un lote válido"),
+  productId: z.number({ required_error: "Selecciona un producto" }).min(1, "Selecciona un producto"),
+  batchId: z.number({ required_error: "Selecciona un lote" }).min(1, "Selecciona un lote válido"),
   quantity: positiveQuantity,
-  unitType: z.nativeEnum(ProductUnitType, {
-    required_error: "La unidad es obligatoria",
-  }),
+  unitType: z.nativeEnum(ProductUnitType, { required_error: "La unidad es obligatoria" }),
 });
 
-export const transferCreateSchema = z
-  .object({
-    sourceBranchId: z
-      .number({ required_error: "Selecciona la sucursal de origen" })
-      .min(1, "Selecciona la sucursal de origen"),
-    targetBranchId: z
-      .number({ required_error: "Selecciona la sucursal de destino" })
-      .min(1, "Selecciona la sucursal de destino"),
-    description: optionalString,
-    products: z
-      .array(transferProductSchema)
-      .min(1, "Agrega al menos un producto"),
-  })
-  .superRefine((data, ctx) => {
-    if (data.sourceBranchId === data.targetBranchId) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "La sucursal de origen y destino no pueden ser la misma",
-        path: ["targetBranchId"],
-      });
-    }
-  });
+
+export const transferCreateBaseSchema = z.object({
+  sourceBranchId: z.number({ required_error: "Selecciona la sucursal de origen" }).min(1, "Selecciona la sucursal de origen"),
+  targetBranchId: z.number({ required_error: "Selecciona la sucursal de destino" }).min(1, "Selecciona la sucursal de destino"),
+  description: optionalString,
+  products: z.array(transferProductSchema).min(1, "Agrega al menos un producto"),
+});
+
+export const transferCreateSchema = transferCreateBaseSchema.superRefine((data, ctx) => {
+  if (data.sourceBranchId === data.targetBranchId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "La sucursal de origen y destino no pueden ser la misma",
+      path: ["targetBranchId"],
+    });
+  }
+});
 
 export const adjustmentProductSchema = z.object({
-  productId: z
-    .number({ required_error: "Selecciona un producto" })
-    .min(1, "Selecciona un producto"),
-  batchId: z
-    .number({ required_error: "Selecciona un lote" })
-    .min(1, "Selecciona un lote válido"),
+  productId: z.number({ required_error: "Selecciona un producto" }).min(1, "Selecciona un producto"),
+  batchId: z.number({ required_error: "Selecciona un lote" }).min(1, "Selecciona un lote válido"),
   quantity: positiveQuantity,
-  unitType: z.nativeEnum(ProductUnitType, {
-    required_error: "La unidad es obligatoria",
-  }),
-  adjustmentType: z.nativeEnum(AdjustmentType, {
-    required_error: "Selecciona el tipo de ajuste",
-  }),
+  unitType: z.nativeEnum(ProductUnitType, { required_error: "La unidad es obligatoria" }),
+  adjustmentType: z.nativeEnum(AdjustmentType, { required_error: "Selecciona el tipo de ajuste" }),
   reason: optionalString,
 });
 
 export const adjustmentCreateSchema = z.object({
-  branchId: z
-    .number({ required_error: "Selecciona una sucursal" })
-    .min(1, "Selecciona una sucursal"),
+  branchId: z.number({ required_error: "Selecciona una sucursal" }).min(1, "Selecciona una sucursal"),
   description: optionalString,
-  products: z
-    .array(adjustmentProductSchema)
-    .min(1, "Agrega al menos un producto"),
+  products: z.array(adjustmentProductSchema).min(1, "Agrega al menos un producto"),
 });
 
 export type PurchaseProductRequest = z.infer<typeof purchaseProductSchema>;
@@ -157,7 +117,7 @@ export interface InventoryMovementListParams {
   page?: number;
   size?: number;
   branchId?: number;
-  type?: InventoryMovementType;
+  types?: InventoryMovementType[];
   startDate?: string;
   endDate?: string;
 }

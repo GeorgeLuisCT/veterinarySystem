@@ -3,10 +3,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table";
-import { Eye, PlusCircle } from "lucide-react";
+import {
+  Eye,
+  PlusCircle,
+  CalendarDays,
+  Tag,
+  Building2,
+  ArrowRight,
+  UserRound,
+  FileText,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import DataTable, { Action } from "@/components/data-table";
 import { toast } from "sonner";
 import type { PaginatedResponse } from "@/types/paginated-response";
@@ -14,15 +22,25 @@ import { getAaxiosErrorMessage } from "@/helpers/error";
 import InventoryMovementService from "../_service/inventory-movement-service";
 import type { InventoryMovementSummaryResponse } from "../_types/inventory-movement-summary-response";
 import { useUser } from "@/context/user-context";
-import InventoryMovementDetail from "./inventory-movement-detail";
 import { TransferDialog } from "./movements/transfer-dialog";
 import { AdjustmentDialog } from "./movements/adjustment-dialog";
 import MovementFiltersBar, { MovementFilters } from "./movements/movement-filters";
 import { InventoryMovementType } from "../_enums/inventory-movement-type";
+import { redirect } from "next/navigation";
 
 const DATE_TIME_DISPLAY_FORMAT = "dd/MM/yyyy HH:mm";
-
 const toBackendDate = (date?: Date) => (date ? format(date, "yyyy-MM-dd") : undefined);
+
+const typeBadgeClass = (t?: string) => {
+  switch (t) {
+    case "TRANSFER":
+      return "bg-blue-50 text-blue-700 border-blue-200";
+    case "ADJUSTMENT":
+      return "bg-amber-50 text-amber-700 border-amber-200";
+    default:
+      return "bg-zinc-50 text-zinc-700 border-zinc-200";
+  }
+};
 
 export default function MainInventoryMovements() {
   const { userInfo } = useUser();
@@ -38,9 +56,6 @@ export default function MainInventoryMovements() {
     dateRange: { from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), to: new Date() },
     typeUi: "ALL",
   });
-
-  const [detailMovementId, setDetailMovementId] = useState<number | null>(null);
-  const [detailOpen, setDetailOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [adjustmentOpen, setAdjustmentOpen] = useState(false);
 
@@ -49,34 +64,88 @@ export default function MainInventoryMovements() {
   }, [normalizedBranchId, JSON.stringify(filters)]);
 
   const columns = useMemo<ColumnDef<InventoryMovementSummaryResponse>[]>(() => {
-    const base: ColumnDef<InventoryMovementSummaryResponse>[] = [
+    const cols: ColumnDef<InventoryMovementSummaryResponse>[] = [
       {
         accessorKey: "date",
         header: "Fecha",
-        cell: ({ row }) => format(new Date(row.original.date), DATE_TIME_DISPLAY_FORMAT),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <CalendarDays className="h-3.5 w-3.5 text-zinc-500" />
+            <span className="truncate">
+              {format(new Date(row.original.date), DATE_TIME_DISPLAY_FORMAT)}
+            </span>
+          </div>
+        ),
       },
       {
         accessorKey: "type",
         header: "Tipo",
         cell: ({ row }) => (
-          <Badge variant="outline" className="font-medium">
-            {row.original.type === "PURCHASE"
-              ? "Compra"
-              : row.original.type === "TRANSFER"
-              ? "Transferencia"
-              : row.original.type === "ADJUSTMENT"
-              ? "Ajuste"
-              : row.original.type}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Tag className="h-3.5 w-3.5 text-zinc-500" />
+            <Badge
+              variant="outline"
+              className={`font-medium rounded-full border ${typeBadgeClass(row.original.type)}`}
+            >
+              {row.original.type === "TRANSFER"
+                ? "Transferencia"
+                : row.original.type === "ADJUSTMENT"
+                  ? "Ajuste"
+                  : row.original.type ?? "—"}
+            </Badge>
+          </div>
         ),
       },
-      { accessorKey: "sourceBranchName", header: "Origen", cell: ({ row }) => row.original.sourceBranchName ?? "-" },
-      { accessorKey: "targetBranchName", header: "Destino", cell: ({ row }) => row.original.targetBranchName ?? "-" },
-      { accessorKey: "employeeName", header: "Registrado por", cell: ({ row }) => row.original.employeeName ?? "-" },
-      { accessorKey: "description", header: "Descripción", cell: ({ row }) => row.original.description ?? "-" },
+      ...(!normalizedBranchId
+        ? ([
+          {
+            accessorKey: "sourceBranchName",
+            header: "Sucursal",
+            cell: ({ row }) => (
+              <div className="flex items-center gap-2">
+                <Building2 className="h-3.5 w-3.5 text-zinc-500" />
+                <Badge variant="secondary" className="rounded-full">
+                  {row.original.sourceBranchName ?? "—"}
+                </Badge>
+              </div>
+            ),
+          } as ColumnDef<InventoryMovementSummaryResponse>,
+        ] as ColumnDef<InventoryMovementSummaryResponse>[])
+        : []),
+      {
+        accessorKey: "flow",
+        header: "Flujo",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2 min-w-[220px]">
+            <span className="truncate text-sm">{row.original.sourceBranchName ?? "—"}</span>
+            <ArrowRight className="h-3.5 w-3.5 text-zinc-500" />
+            <span className="truncate text-sm">{row.original.targetBranchName ?? "—"}</span>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "employeeName",
+        header: "Registrado por",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <UserRound className="h-3.5 w-3.5 text-zinc-500" />
+            <span className="truncate">{row.original.employeeName ?? "—"}</span>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "description",
+        header: "Descripción",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2 max-w-[420px]">
+            <FileText className="h-3.5 w-3.5 text-zinc-500" />
+            <span className="truncate">{row.original.description ?? "—"}</span>
+          </div>
+        ),
+      },
     ];
-    return base;
-  }, []);
+    return cols;
+  }, [normalizedBranchId]);
 
   const actions = useMemo<Action<InventoryMovementSummaryResponse>[]>(() => [
     {
@@ -84,8 +153,7 @@ export default function MainInventoryMovements() {
       type: "direct",
       icon: <Eye className="h-4 w-4" />,
       onClick: (row) => {
-        setDetailMovementId(row.id);
-        setDetailOpen(true);
+        redirect(`/dashboard/inventory/movements/${row.id}`);
       },
     },
   ], []);
@@ -96,14 +164,16 @@ export default function MainInventoryMovements() {
       const startDate = filters.dateRange?.from ? toBackendDate(filters.dateRange.from) : undefined;
       const endDate = filters.dateRange?.to ? toBackendDate(filters.dateRange.to) : undefined;
 
-      const typeParam =
-        filters.typeUi === "ALL" ? undefined : (filters.typeUi as InventoryMovementType);
+      const types =
+        filters.typeUi === "ALL"
+          ? [InventoryMovementType.TRANSFER, InventoryMovementType.ADJUSTMENT]
+          : [filters.typeUi as InventoryMovementType];
 
       const response = await InventoryMovementService.listMovements({
         page: pageIndex,
         size: pageSize,
         branchId: normalizedBranchId,
-        type: typeParam,
+        types,
         startDate,
         endDate,
       });
@@ -124,7 +194,9 @@ export default function MainInventoryMovements() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Movimientos de inventario</h1>
-          <p className="text-sm text-muted-foreground">Gestiona y revisa los movimientos registrados en el inventario.</p>
+          <p className="text-sm text-muted-foreground">
+            Gestiona y revisa los movimientos registrados en el inventario.
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button onClick={() => setTransferOpen(true)}>
@@ -161,12 +233,14 @@ export default function MainInventoryMovements() {
           pageIndex={pageIndex}
           pageSize={pageSize}
           onPageIndexChange={setPageIndex}
-          onPageSizeChange={(size) => { setPageSize(size); setPageIndex(0); }}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPageIndex(0);
+          }}
           actions={actions}
           loading={loading}
           onRowClick={(row) => {
-            setDetailMovementId(row.id);
-            setDetailOpen(true);
+            redirect(`/dashboard/inventory/movements/${row.id}`);
           }}
         />
       </div>
@@ -174,26 +248,15 @@ export default function MainInventoryMovements() {
       <TransferDialog
         open={transferOpen}
         onOpenChange={setTransferOpen}
-        branchOptions={userInfo?.selectedBranch ? [userInfo.selectedBranch] : []}
         onCreated={() => fetchMovements()}
       />
 
       <AdjustmentDialog
         open={adjustmentOpen}
         onOpenChange={setAdjustmentOpen}
-        branchOptions={userInfo?.selectedBranch ? [userInfo.selectedBranch] : []}
         defaultBranchId={selectedBranchId}
         onCreated={() => fetchMovements()}
       />
-
-      <Dialog open={detailOpen} onOpenChange={(v) => { setDetailOpen(v); if (!v) setDetailMovementId(null); }}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Detalle del movimiento</DialogTitle>
-          </DialogHeader>
-          {detailMovementId && <InventoryMovementDetail movementId={detailMovementId} />}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

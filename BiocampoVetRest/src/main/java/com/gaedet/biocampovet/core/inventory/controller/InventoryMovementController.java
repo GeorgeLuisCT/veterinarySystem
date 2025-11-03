@@ -58,11 +58,11 @@ public class InventoryMovementController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Long branchId,
-            @RequestParam(required = false) InventoryMovementType type,
+            @RequestParam(name = "types", required = false) List<InventoryMovementType> types,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
-        var resp = movementService.listMovements(page, size, branchId, type, startDate, endDate);
+        var resp = movementService.listMovements(page, size, branchId, types, startDate, endDate);
         return ResponseEntity.ok(resp);
     }
 

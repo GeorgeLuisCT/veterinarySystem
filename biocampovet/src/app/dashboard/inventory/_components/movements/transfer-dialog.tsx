@@ -1,228 +1,46 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { PlusCircle, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { Loader2, Plus } from "lucide-react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { FloatingLabelInput } from "@/components/floating-label-input";
-import { FloatingLabelSelect } from "@/components/floating-label-select";
+import type { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
+import { BranchService } from "@/app/dashboard/branche/services/branch-service";
+import { useUser } from "@/context/user-context";
 
-import {
-  transferCreateSchema,
-  transferProductSchema,
-  type TransferCreateRequest,
-} from "../../_types/inventory-movement-request";
-import { ProductUnitType, ProductUnitTypeLabels } from "../../_enums/product-unit-type";
+import { useDebouncedSearch } from "./use-debounced-search";
 import ProductService from "../../_service/product-service";
 import InventoryMovementService from "../../_service/inventory-movement-service";
-import type { ProductQuickSearchResponse } from "../../_types/product-response";
-import type { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
 import { getAaxiosErrorMessage } from "@/helpers/error";
-import { SearchPopover } from "./search-popover";
-import { useDebouncedSearch } from "./use-debounced-search";
+import { useToast } from "@/hooks/use-toast";
+
+import type { ProductQuickSearchResponse } from "../../_types/product-response";
+import type { TransferCreateRequest } from "../../_types/inventory-movement-request";
+
 import type { TransferProductDraft } from "./types";
-
-const transferFormSchema = z.object({
-  sourceBranchId: z.number({ required_error: "Selecciona la sucursal de origen" }).min(1),
-  targetBranchId: z.number({ required_error: "Selecciona la sucursal de destino" }).min(1),
-  description: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal("").transform(() => undefined)),
-});
-
-type TransferFormValues = z.infer<typeof transferFormSchema>;
-type TransferProductFormValues = z.infer<typeof transferProductSchema>;
+import { TransferForm, transferFormSchema, type TransferFormValues } from "./transfer-form";
+import { TransferProductItemForm } from "./transfer-product-item-form";
 
 interface TransferDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  branchOptions: BranchResponse[];
+  defaultSourceBranchId?: number;
   onCreated: () => void;
 }
 
-export function TransferDialog({ open, onOpenChange, branchOptions, onCreated }: TransferDialogProps) {
+export function TransferDialog({ open, onOpenChange, defaultSourceBranchId, onCreated }: TransferDialogProps) {
+  const { userInfo } = useUser();
   const form = useForm<TransferFormValues>({
     resolver: zodResolver(transferFormSchema),
-    defaultValues: {
-      sourceBranchId: undefined,
-      targetBranchId: undefined,
-      description: "",
-    },
-  });
-
-  const [products, setProducts] = useState<TransferProductDraft[]>([]);
-
-  useEffect(() => {
-    if (!open) {
-      form.reset({ sourceBranchId: undefined, targetBranchId: undefined, description: "" });
-      setProducts([]);
-    }
-  }, [form, open]);
-
-  const handleSubmit = form.handleSubmit(async (values) => {
-    if (!values.sourceBranchId || !values.targetBranchId) {
-      toast.error("Selecciona las sucursales de origen y destino");
-      return;
-    }
-    if (products.length === 0) {
-      toast.error("Agrega al menos un producto");
-      return;
-    }
-
-    const payload: TransferCreateRequest = {
-      sourceBranchId: values.sourceBranchId,
-      targetBranchId: values.targetBranchId,
-      description: values.description,
-      products: products.map((product) => ({
-        productId: product.productId,
-        batchId: product.batchId,
-        quantity: product.quantity,
-        unitType: product.unitType,
-      })),
-    };
-
-    try {
-      await InventoryMovementService.createTransfer(payload);
-      toast.success("Transferencia registrada");
-      onCreated();
-      onOpenChange(false);
-    } catch (error) {
-      toast.error(getAaxiosErrorMessage(error) ?? "No se pudo registrar la transferencia");
-    }
+    defaultValues: { sourceBranchId: undefined, targetBranchId: undefined, description: "" },
+    mode: "onBlur",
   });
 
   const sourceBranchId = form.watch("sourceBranchId");
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Registrar transferencia</DialogTitle>
-          <DialogDescription>Desplaza stock entre sucursales.</DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={(event) => event.preventDefault()}>
-            <FormField
-              control={form.control}
-              name="sourceBranchId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <FloatingLabelSelect
-                      id="sourceBranchId"
-                      label="Sucursal de origen"
-                      value={field.value ? String(field.value) : ""}
-                      onValueChange={(value) => field.onChange(Number(value))}
-                      options={branchOptions.map((branch) => ({
-                        value: String(branch.id),
-                        label: branch.name,
-                      }))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="targetBranchId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <FloatingLabelSelect
-                      id="targetBranchId"
-                      label="Sucursal de destino"
-                      value={field.value ? String(field.value) : ""}
-                      onValueChange={(value) => field.onChange(Number(value))}
-                      options={branchOptions.map((branch) => ({
-                        value: String(branch.id),
-                        label: branch.name,
-                      }))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormControl>
-                    <FloatingLabelInput {...field} id="description" label="Notas (opcional)" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-
-        <ProductsTable
-          products={products}
-          onAdd={(item) => setProducts((prev) => [...prev, item])}
-          onRemove={(index) => setProducts((prev) => prev.filter((_, idx) => idx !== index))}
-          sourceBranchId={sourceBranchId}
-        />
-
-        <div className="flex justify-end pt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="mr-2">
-            Cancelar
-          </Button>
-          <Button onClick={handleSubmit} disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? "Guardando..." : "Guardar Transferencia"}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-interface ProductsTableProps {
-  products: TransferProductDraft[];
-  onAdd: (product: TransferProductDraft) => void;
-  onRemove: (index: number) => void;
-  sourceBranchId?: number;
-}
-
-function ProductsTable({ products, onAdd, onRemove, sourceBranchId }: ProductsTableProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<ProductQuickSearchResponse | null>(null);
-
-  const productForm = useForm<TransferProductFormValues>({
-    resolver: zodResolver(transferProductSchema),
-    defaultValues: {
-      productId: undefined,
-      batchId: undefined,
-      quantity: 1,
-      unitType: ProductUnitType.UNIT,
-    },
-  });
-
+  const [allBranches, setAllBranches] = useState<BranchResponse[]>([]);
   const {
     options: productOptions,
     setOptions: setProductOptions,
@@ -233,228 +51,180 @@ function ProductsTable({ products, onAdd, onRemove, sourceBranchId }: ProductsTa
     ProductService.searchProducts(query, sourceBranchId)
   );
 
-  const unitOptions = useMemo(
-    () =>
-      Object.values(ProductUnitType).map((unit) => ({
-        value: unit,
-        label: ProductUnitTypeLabels[unit] ?? unit,
-      })),
-    []
-  );
+  const [items, setItems] = useState<Array<TransferProductDraft | null>>([null]);
+  const { toast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) {
-      productForm.reset({
-        productId: undefined,
-        batchId: undefined,
-        quantity: 1,
-        unitType: ProductUnitType.UNIT,
-      });
-      setSelectedProduct(null);
-      cancelProductSearch();
+    if (!open) {
       setProductOptions([]);
+      cancelProductSearch();
+      setItems([null]);
+      form.reset({ sourceBranchId: undefined, targetBranchId: undefined, description: "" });
+      setSubmitting(false);
+      return;
     }
-  }, [isOpen, productForm, cancelProductSearch, setProductOptions]);
+    (async () => {
+      try {
+        const list = await BranchService.getBranches();
+        setAllBranches(list);
 
-  const handleAddProduct = (data: TransferProductFormValues) => {
-    if (!selectedProduct) {
-      productForm.setError("productId", { message: "Selecciona un producto" });
-      toast.error("Selecciona un producto");
+        const userSelId = userInfo?.selectedBranch?.id ?? 0;
+        const effectiveDefault =
+          userSelId && userSelId > 0 ? userSelId : (defaultSourceBranchId ?? undefined);
+
+        if (effectiveDefault) {
+          form.setValue("sourceBranchId", effectiveDefault, { shouldValidate: true });
+        }
+      } catch {
+        setAllBranches([]);
+      }
+    })();
+  }, [open, defaultSourceBranchId, userInfo?.selectedBranch?.id, form, setProductOptions, cancelProductSearch]);
+
+  useEffect(() => {
+    const target = form.getValues("targetBranchId");
+    if (target && sourceBranchId && target === sourceBranchId) {
+      form.setValue("targetBranchId", 0, { shouldValidate: true, shouldDirty: true });
+    }
+  }, [sourceBranchId]);
+
+  const upsertItem = (index: number, draft: TransferProductDraft) => {
+    setItems((prev) => {
+      const next = [...prev];
+      next[index] = draft;
+      return next;
+    });
+  };
+  const removeItem = (index: number) => setItems((prev) => prev.filter((_, i) => i !== index));
+  const addBlankItem = () => setItems((prev) => [...prev, null]);
+
+  const onSubmit = form.handleSubmit(async (values) => {
+    if (!values.sourceBranchId) {
+      toast({ variant: "destructive", title: "Error", description: "Selecciona la sucursal de origen" });
+      return;
+    }
+    if (!values.targetBranchId) {
+      toast({ variant: "destructive", title: "Error", description: "Selecciona la sucursal de destino" });
       return;
     }
 
-    onAdd({
-      ...data,
-      productId: selectedProduct.id,
-      productName: selectedProduct.name,
-      sku: selectedProduct.sku,
+    const validProducts: TransferProductDraft[] = [];
+    const itemErrors: number[] = [];
+
+    items.forEach((it, idx) => {
+      if (it && it.productId && it.quantity && it.unitType) validProducts.push(it);
+      else itemErrors.push(idx);
     });
 
-    productForm.reset({
-      productId: undefined,
-      batchId: undefined,
-      quantity: 1,
-      unitType: ProductUnitType.UNIT,
-    });
-    setSelectedProduct(null);
-    cancelProductSearch();
-    setProductOptions([]);
-    setIsOpen(false);
-  };
+    if (validProducts.length === 0) {
+      toast({ variant: "destructive", title: "Error", description: "Agrega y completa al menos un producto" });
+      return;
+    }
+    if (itemErrors.length > 0) {
+      toast({ variant: "destructive", title: "Revisa tus productos", description: `Hay ${itemErrors.length} bloque(s) con errores` });
+      return;
+    }
+
+    const payload: TransferCreateRequest = {
+      sourceBranchId: values.sourceBranchId!,
+      targetBranchId: values.targetBranchId!,
+      description: values.description?.trim() || undefined,
+      products: validProducts.map((p) => ({
+        productId: p.productId,
+        batchId: p.batchId,
+        quantity: p.quantity,
+        unitType: p.unitType,
+      })),
+    };
+
+    try {
+      setSubmitting(true);
+      await InventoryMovementService.createTransfer(payload);
+      toast({ title: "Éxito", description: "Transferencia registrada correctamente" });
+      onCreated();
+      onOpenChange(false);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: getAaxiosErrorMessage(error) ?? "No se pudo registrar la transferencia" });
+    } finally {
+      setSubmitting(false);
+    }
+  });
+
+  const sourceOptions = useMemo<BranchResponse[]>(() => {
+    const userSel = userInfo?.selectedBranch;
+    if (userSel?.id && userSel.id > 0) {
+      const found = allBranches.find((b) => b.id === userSel.id);
+      return found ? [found] : [userSel];
+    }
+    return allBranches;
+  }, [allBranches, userInfo?.selectedBranch]);
+
+  const targetOptions = useMemo<BranchResponse[]>(() => {
+    if (!sourceBranchId || sourceBranchId === 0) return allBranches;
+    return allBranches.filter((b) => b.id !== sourceBranchId);
+  }, [allBranches, sourceBranchId]);
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <section className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-muted-foreground">Productos ({products.length})</h3>
-          <CollapsibleTrigger asChild>
-            <Button size="sm" variant="outline" disabled={!sourceBranchId}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Añadir producto
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[min(96vw,1000px)] max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-4xl" aria-busy={submitting}>
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="text-xl font-semibold">Registrar transferencia</DialogTitle>
+          <DialogDescription>Desplaza stock entre sucursales.</DialogDescription>
+        </DialogHeader>
+
+        <fieldset className="rounded-2xl border p-4">
+          <legend className="px-1 text-sm font-semibold">Datos de la transferencia</legend>
+          <TransferForm
+            form={form}
+            sourceOptions={sourceOptions}
+            targetOptions={targetOptions}
+          />
+        </fieldset>
+
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold">Productos</h3>
+            <Button type="button" variant="ghost" className="h-8" onClick={addBlankItem} disabled={!sourceBranchId}>
+              <Plus className="h-4 w-4" /> Añadir otro producto
             </Button>
-          </CollapsibleTrigger>
-        </div>
-        {!sourceBranchId && (
-          <p className="text-xs text-muted-foreground">Selecciona la sucursal de origen para elegir productos.</p>
-        )}
-        <div className="overflow-x-auto rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Producto</TableHead>
-                <TableHead>Lote ID</TableHead>
-                <TableHead>Cantidad</TableHead>
-                <TableHead>Unidad</TableHead>
-                <TableHead className="w-14" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-sm text-muted-foreground">
-                    Aún no has añadido productos.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                products.map((product, index) => (
-                  <TableRow key={`${product.productId}-${index}`}>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{product.productName}</span>
-                        {product.sku && (
-                          <span className="text-xs text-muted-foreground">SKU: {product.sku}</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{product.batchId}</TableCell>
-                    <TableCell>{product.quantity}</TableCell>
-                    <TableCell>{ProductUnitTypeLabels[product.unitType]}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => onRemove(index)} title="Eliminar">
-                        <Trash2 className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </section>
+          </div>
 
-      <CollapsibleContent className="mt-2 space-y-4 rounded-md border p-4">
-        <h4 className="text-sm font-semibold">Detalles del nuevo producto</h4>
-        <Form {...productForm}>
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
-            {/* INICIO DE LA CORRECCIÓN */}
-            <div className="space-y-2">
-              <SearchPopover
-                selected={selectedProduct}
-                onSelect={(option) => {
-                  setSelectedProduct(option);
-                  productForm.setValue("productId", option.id, { shouldValidate: true });
-                  productForm.clearErrors("productId");
-                }}
-                placeholder="Buscar producto"
-                search={searchProduct}
-                cancel={cancelProductSearch}
-                options={productOptions}
-                loading={productLoading}
-                getOptionLabel={(option) => option.name}
-                getOptionDescription={(option) => (option.sku ? `SKU: ${option.sku}` : undefined)}
-                onClosed={() => setProductOptions([])}
-              />
-              <FormField
-                control={productForm.control}
-                name="productId"
-                render={() => (
-                  <FormItem>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {!sourceBranchId && (
+            <div className="rounded-xl border p-4 text-sm text-muted-foreground">
+              Selecciona la sucursal de origen para buscar productos.
             </div>
-            {/* FIN DE LA CORRECCIÓN */}
+          )}
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <FormField
-                control={productForm.control}
-                name="batchId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <FloatingLabelInput
-                        {...field}
-                        id="batchId"
-                        label="ID de lote"
-                        type="number"
-                        placeholder="Ej. 1024"
-                        onChange={(value) =>
-                          field.onChange(value === "" ? undefined : parseInt(value, 10))
-                        }
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <p className="text-xs text-muted-foreground">Usa el identificador interno del lote.</p>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <div className="space-y-3">
+            {items.map((it, idx) => (
+              <TransferProductItemForm
+                key={idx}
+                index={idx}
+                value={it}
+                onChange={upsertItem}
+                onRemove={removeItem}
+                productOptions={productOptions}
+                productLoading={productLoading}
+                searchProduct={searchProduct}
+                cancelProductSearch={cancelProductSearch}
+                disabled={!sourceBranchId}
               />
+            ))}
+          </div>
+        </section>
 
-              <FormField
-                control={productForm.control}
-                name="quantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <FloatingLabelInput
-                        {...field}
-                        id="quantity"
-                        label="Cantidad"
-                        type="number"
-                        step="0.01"
-                        onChange={(value) =>
-                          field.onChange(value === "" ? undefined : parseFloat(value))
-                        }
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={productForm.control}
-                name="unitType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <FloatingLabelSelect
-                        id="unitType"
-                        label="Unidad"
-                        value={field.value ?? ProductUnitType.UNIT}
-                        onValueChange={(value) => field.onChange(value as ProductUnitType)}
-                        options={unitOptions}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="button" onClick={productForm.handleSubmit(handleAddProduct)}>
-                Agregar a la lista
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CollapsibleContent>
-    </Collapsible>
+        <DialogFooter className="pt-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Cancelar</Button>
+          <Button onClick={onSubmit} disabled={submitting}>
+            {submitting ? (
+              <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Guardando…</span>
+            ) : (
+              "Guardar transferencia"
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

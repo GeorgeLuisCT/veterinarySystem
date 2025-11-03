@@ -8,13 +8,14 @@ import org.springframework.data.jpa.domain.Specification;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class InventoryMovementSpecs {
 
     public static Specification<InventoryMovement> byFilters(
             Long branchId,
-            InventoryMovementType type,
+            Collection<InventoryMovementType> types,
             LocalDate startDate,
             LocalDate endDate
     ) {
@@ -28,8 +29,8 @@ public class InventoryMovementSpecs {
                 ));
             }
 
-            if (type != null) {
-                predicates.add(cb.equal(root.get("type"), type));
+            if (types != null && !types.isEmpty()) {
+                predicates.add(root.get("type").in(types));
             }
 
             if (startDate != null) {

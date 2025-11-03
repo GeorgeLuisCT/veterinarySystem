@@ -18,21 +18,33 @@ export interface KardexHistoryParams {
   batchId?: number;
 }
 
-const buildQueryParams = <T extends object>(params: T) =>
+export const buildQueryParams = <T extends object>(params: T) =>
   Object.fromEntries(
-    Object.entries(params as Record<string, unknown>).filter(
-      ([, value]) => value !== undefined && value !== null && value !== ""
-    )
+    Object.entries(params as Record<string, unknown>).flatMap(([key, value]) => {
+      if (value === undefined || value === null || value === "") return [];
+      if (Array.isArray(value)) {
+        if (value.length === 0) return [];
+        return [[key, value.join(",")]];
+      }
+      return [[key, value]];
+    })
   ) as Partial<T>;
 
+const toCsv = (arr?: unknown[]) => (arr && arr.length ? arr.join(",") : undefined);
 
 export const InventoryMovementService = {
-  listMovements: async (
+listMovements: async (
     params: InventoryMovementListParams = {}
   ): Promise<PaginatedResponse<InventoryMovementSummaryResponse>> => {
-    const response = await api.get<PaginatedResponse<InventoryMovementSummaryResponse>>("/inventory-movements", {
-      params: buildQueryParams(params),
-    });
+    const response = await api.get<PaginatedResponse<InventoryMovementSummaryResponse>>(
+      "/inventory-movements",
+      {
+        params: buildQueryParams({
+          ...params,
+          types: toCsv(params.types),
+        }),
+      }
+    );
     return response.data;
   },
 

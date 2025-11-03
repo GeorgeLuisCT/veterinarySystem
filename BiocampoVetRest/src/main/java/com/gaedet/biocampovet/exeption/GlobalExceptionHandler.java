@@ -108,6 +108,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
+    // 🔹 Stock insuficiente
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<Map<String, String>> handleInsufficientStock(InsufficientStockException ex) {
+        logger.warn("Stock insuficiente:", ex);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Stock insuficiente");
+        response.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
     // 🔹 Fallback general para errores no controlados
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {

@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { parseISO, isValid, format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
-import { getPurchaseSummaryText } from "../../_utils/product-util-labels";
+import { getMovementSummaryText } from "../../_utils/product-util-labels";
 
 function normalizeLocalDate(value?: string): string {
   if (!value) return "";
@@ -131,7 +131,7 @@ export function ProductItemForm({
     if (!selectedMode) return null;
     const q = Number(quantity) || 0;
     const cost = Number(unitCost) || 0;
-    return `${getPurchaseSummaryText(q, selectedMode.unitType, selectedMode.relativeQuantity, fullProductDetails.presentation as ProductPresentationType)} a S/ ${cost.toFixed(2)}`;
+    return `${getMovementSummaryText(q, selectedMode.unitType, selectedMode.relativeQuantity, fullProductDetails.presentation as ProductPresentationType)} a S/ ${cost.toFixed(2)}`;
   }, [fullProductDetails, productDetailsLoading, unitType, quantity, unitCost]);
 
   useEffect(() => {

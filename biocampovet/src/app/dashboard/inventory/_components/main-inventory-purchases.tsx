@@ -5,13 +5,11 @@ import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye, PlusCircle, CalendarDays, Tag, Truck, UserRound, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import DataTable, { Action } from "@/components/data-table";
 import { toast } from "sonner";
 import type { PaginatedResponse } from "@/types/paginated-response";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import { useUser } from "@/context/user-context";
-import InventoryMovementDetail from "./inventory-movement-detail";
 import PurchaseFiltersBar, { PurchaseFilters } from "./movements/purchase-filters";
 import { InventoryMovementSummaryResponse } from "../_types/inventory-movement-summary-response";
 import InventoryMovementService from "../_service/inventory-movement-service";
@@ -125,7 +123,7 @@ export default function MainInventoryPurchases() {
         page: pageIndex,
         size: pageSize,
         branchId: normalizedBranchId,
-        type: InventoryMovementType.PURCHASE,
+        types: [InventoryMovementType.PURCHASE],
         startDate,
         endDate,
       });

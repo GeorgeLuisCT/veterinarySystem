@@ -47,7 +47,6 @@ export default function MovementFiltersBar({ value, onChange, onReset, onRefresh
       dateRange: value?.dateRange ?? defaultDateRange,
       typeUi: value?.typeUi ?? "ALL",
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(value)]);
 
   const apply = (next: MovementFilters) => {

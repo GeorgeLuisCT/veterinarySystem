@@ -189,10 +189,8 @@ export function PurchaseDialog({ open, onOpenChange, branchOptions, defaultBranc
             selectedSupplier={selectedSupplier}
             setSelectedSupplier={setSelectedSupplier}
             supplierOptions={supplierOptions}
-            setSupplierOptions={setSupplierOptions}
             supplierLoading={supplierLoading}
             searchSupplier={searchSupplier}
-            cancelSupplierSearch={cancelSupplierSearch}
           />
         </fieldset>
 

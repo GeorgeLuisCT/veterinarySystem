@@ -1,269 +1,45 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { z } from "zod";
+import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { PlusCircle, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { Loader2, Plus } from "lucide-react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import type { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
+import { BranchService } from "@/app/dashboard/branche/services/branch-service";
+import { useUser } from "@/context/user-context";
 
-import {
-  adjustmentCreateSchema,
-  adjustmentProductSchema,
-  type AdjustmentCreateRequest,
-} from "../../_types/inventory-movement-request";
-import { ProductUnitType, ProductUnitTypeLabels } from "../../_enums/product-unit-type";
-import { AdjustmentType, AdjustmentTypeLabels } from "../../_enums/adjustment-type";
+import { useDebouncedSearch } from "./use-debounced-search";
 import ProductService from "../../_service/product-service";
 import InventoryMovementService from "../../_service/inventory-movement-service";
-import type { ProductQuickSearchResponse } from "../../_types/product-response";
-import type { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
 import { getAaxiosErrorMessage } from "@/helpers/error";
-import { SearchPopover } from "./search-popover";
-import { useDebouncedSearch } from "./use-debounced-search";
+import { useToast } from "@/hooks/use-toast";
+
+import type { ProductQuickSearchResponse } from "../../_types/product-response";
+import type { AdjustmentCreateRequest } from "../../_types/inventory-movement-request";
+
 import type { AdjustmentProductDraft } from "./types";
-
-const adjustmentFormSchema = z.object({
-  branchId: z.number({ required_error: "Selecciona una sucursal" }).min(1),
-  description: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal("").transform(() => undefined)),
-});
-
-type AdjustmentFormValues = z.infer<typeof adjustmentFormSchema>;
-
+import { AdjustmentForm, adjustmentFormSchema, type AdjustmentFormValues } from "./adjustment-form";
+import { AdjustmentProductItemForm } from "./adjustment-product-item-form";
 interface AdjustmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  branchOptions: BranchResponse[];
   defaultBranchId?: number;
   onCreated: () => void;
 }
 
-export function AdjustmentDialog({
-  open,
-  onOpenChange,
-  branchOptions,
-  defaultBranchId,
-  onCreated,
-}: AdjustmentDialogProps) {
+export function AdjustmentDialog({ open, onOpenChange, defaultBranchId, onCreated }: AdjustmentDialogProps) {
+  const { userInfo } = useUser();
   const form = useForm<AdjustmentFormValues>({
     resolver: zodResolver(adjustmentFormSchema),
-    defaultValues: {
-      branchId: defaultBranchId,
-      description: "",
-    },
-  });
-
-  const [products, setProducts] = useState<AdjustmentProductDraft[]>([]);
-  const [productDialogOpen, setProductDialogOpen] = useState(false);
-
-  useEffect(() => {
-    if (!open) {
-      form.reset({ branchId: defaultBranchId, description: "" });
-      setProducts([]);
-    }
-  }, [defaultBranchId, form, open]);
-
-  const handleSubmit = form.handleSubmit(async (values) => {
-    if (!values.branchId) {
-      toast.error("Selecciona la sucursal");
-      return;
-    }
-    if (products.length === 0) {
-      toast.error("Agrega al menos un producto");
-      return;
-    }
-
-    const payload: AdjustmentCreateRequest = {
-      branchId: values.branchId,
-      description: values.description,
-      products: products.map((product) => ({
-        productId: product.productId,
-        batchId: product.batchId,
-        quantity: product.quantity,
-        unitType: product.unitType,
-        adjustmentType: product.adjustmentType,
-        reason: product.reason,
-      })),
-    };
-
-    try {
-      await InventoryMovementService.createAdjustment(payload);
-      toast.success("Ajuste registrado");
-      onCreated();
-      onOpenChange(false);
-    } catch (error) {
-      toast.error(getAaxiosErrorMessage(error) ?? "No se pudo registrar el ajuste");
-    }
+    defaultValues: { branchId: undefined, description: "" },
+    mode: "onBlur",
   });
 
   const branchId = form.watch("branchId");
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Registrar ajuste</DialogTitle>
-          <DialogDescription>Ajusta el stock de la sucursal seleccionada.</DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={(event) => event.preventDefault()}>
-            <FormField
-              control={form.control}
-              name="branchId"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <Label>Sucursal</Label>
-                  <Select
-                    value={field.value ? String(field.value) : ""}
-                    onValueChange={(value) => field.onChange(Number(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona una sucursal" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {branchOptions.map((branch) => (
-                        <SelectItem key={branch.id} value={String(branch.id)}>
-                          {branch.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <Label>Notas (opcional)</Label>
-                  <FormControl>
-                    <Textarea {...field} rows={3} placeholder="Motivo general del ajuste" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-
-        <section className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-muted-foreground">Productos ({products.length})</h3>
-            <Button size="sm" onClick={() => setProductDialogOpen(true)} disabled={!branchId}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Añadir producto
-            </Button>
-          </div>
-          {!branchId && (
-            <p className="text-xs text-muted-foreground">Selecciona primero la sucursal.</p>
-          )}
-
-          <div className="overflow-x-auto rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Producto</TableHead>
-                  <TableHead>Lote ID</TableHead>
-                  <TableHead>Cantidad</TableHead>
-                  <TableHead>Unidad</TableHead>
-                  <TableHead>Tipo de ajuste</TableHead>
-                  <TableHead>Motivo</TableHead>
-                  <TableHead className="w-14" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center text-sm text-muted-foreground">
-                      Aún no has añadido productos.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  products.map((product, index) => (
-                    <TableRow key={`${product.productId}-${index}`}>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{product.productName}</span>
-                          {product.sku && (
-                            <span className="text-xs text-muted-foreground">SKU: {product.sku}</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>{product.batchId}</TableCell>
-                      <TableCell>{product.quantity}</TableCell>
-                      <TableCell>{ProductUnitTypeLabels[product.unitType]}</TableCell>
-                      <TableCell>{AdjustmentTypeLabels[product.adjustmentType]}</TableCell>
-                      <TableCell>{product.reason || "-"}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => setProducts((prev) => prev.filter((_, idx) => idx !== index))}>
-                          <Trash2 className="h-4 w-4 text-muted-foreground" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </section>
-
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button onClick={handleSubmit}>Registrar ajuste</Button>
-        </div>
-      </DialogContent>
-
-      <AdjustmentProductDialog
-        open={productDialogOpen}
-        onOpenChange={setProductDialogOpen}
-        onAdd={(product) => setProducts((prev) => [...prev, product])}
-        branchId={branchId}
-      />
-    </Dialog>
-  );
-}
-
-interface AdjustmentProductDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onAdd: (product: AdjustmentProductDraft) => void;
-  branchId?: number;
-}
-
-function AdjustmentProductDialog({ open, onOpenChange, onAdd, branchId }: AdjustmentProductDialogProps) {
-  const [selectedProduct, setSelectedProduct] = useState<ProductQuickSearchResponse | null>(null);
-  const [batchId, setBatchId] = useState("");
-  const [quantity, setQuantity] = useState("1");
-  const [unitType, setUnitType] = useState<ProductUnitType>(ProductUnitType.UNIT);
-  const [adjustmentType, setAdjustmentType] = useState<AdjustmentType>(AdjustmentType.ENTRY);
-  const [reason, setReason] = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
+  const [allBranches, setAllBranches] = useState<BranchResponse[]>([]);
   const {
     options: productOptions,
     setOptions: setProductOptions,
@@ -274,162 +50,161 @@ function AdjustmentProductDialog({ open, onOpenChange, onAdd, branchId }: Adjust
     ProductService.searchProducts(query, branchId)
   );
 
+  const [items, setItems] = useState<Array<AdjustmentProductDraft | null>>([null]);
+  const { toast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
+
   useEffect(() => {
     if (!open) {
-      setSelectedProduct(null);
-      setBatchId("");
-      setQuantity("1");
-      setUnitType(ProductUnitType.UNIT);
-      setAdjustmentType(AdjustmentType.ENTRY);
-      setReason("");
-      setErrors({});
-      cancelProductSearch();
       setProductOptions([]);
-    }
-  }, [cancelProductSearch, open, setProductOptions]);
-
-  const handleSubmit = () => {
-    if (!selectedProduct) {
-      setErrors({ productId: "Selecciona un producto" });
-      toast.error("Selecciona un producto");
+      cancelProductSearch();
+      setItems([null]);
+      form.reset({ branchId: undefined, description: "" });
+      setSubmitting(false);
       return;
     }
+    (async () => {
+      try {
+        const list = await BranchService.getBranches();
+        setAllBranches(list);
 
-    const parsed = adjustmentProductSchema.safeParse({
-      productId: selectedProduct.id,
-      batchId: Number(batchId),
-      quantity: Number(quantity),
-      unitType,
-      adjustmentType,
-      reason: reason || undefined,
+        const userSelId = userInfo?.selectedBranch?.id ?? 0;
+        const effectiveDefault = userSelId && userSelId > 0 ? userSelId : (defaultBranchId ?? undefined);
+        if (effectiveDefault) {
+          form.setValue("branchId", effectiveDefault, { shouldValidate: true });
+        }
+      } catch {
+        setAllBranches([]);
+      }
+    })();
+  }, [open, defaultBranchId, userInfo?.selectedBranch?.id, form, setProductOptions, cancelProductSearch]);
+
+  const upsertItem = (index: number, draft: AdjustmentProductDraft) => {
+    setItems((prev) => {
+      const next = [...prev];
+      next[index] = draft;
+      return next;
     });
-
-    if (!parsed.success) {
-      const nextErrors: Record<string, string> = {};
-      parsed.error.issues.forEach((issue) => {
-        const key = String(issue.path[0] ?? "form");
-        nextErrors[key] = issue.message;
-      });
-      setErrors(nextErrors);
-      toast.error("Corrige los campos del producto");
-      return;
-    }
-
-    onAdd({
-      ...parsed.data,
-      productName: selectedProduct.name,
-      sku: selectedProduct.sku,
-    });
-    onOpenChange(false);
   };
+  const removeItem = (index: number) => setItems((prev) => prev.filter((_, i) => i !== index));
+  const addBlankItem = () => setItems((prev) => [...prev, null]);
+
+  const onSubmit = form.handleSubmit(async (values) => {
+    if (!values.branchId) {
+      toast({ variant: "destructive", title: "Error", description: "Selecciona la sucursal" });
+      return;
+    }
+
+    const validProducts: AdjustmentProductDraft[] = [];
+    const itemErrors: number[] = [];
+
+    items.forEach((it, idx) => {
+      if (it && it.productId && it.quantity && it.unitType && it.adjustmentType) validProducts.push(it);
+      else itemErrors.push(idx);
+    });
+
+    if (validProducts.length === 0) {
+      toast({ variant: "destructive", title: "Error", description: "Agrega y completa al menos un producto" });
+      return;
+    }
+    if (itemErrors.length > 0) {
+      toast({ variant: "destructive", title: "Revisa tus productos", description: `Hay ${itemErrors.length} bloque(s) con errores` });
+      return;
+    }
+
+    const payload: AdjustmentCreateRequest = {
+      branchId: values.branchId!,
+      description: values.description?.trim() || undefined,
+      products: validProducts.map((p) => ({
+        productId: p.productId,
+        batchId: p.batchId,
+        quantity: p.quantity,
+        unitType: p.unitType,
+        adjustmentType: p.adjustmentType,
+        reason: p.reason?.trim() || undefined,
+      })),
+    };
+
+    try {
+      setSubmitting(true);
+      await InventoryMovementService.createAdjustment(payload);
+      toast({ title: "Éxito", description: "Ajuste registrado correctamente" });
+      onCreated();
+      onOpenChange(false);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: getAaxiosErrorMessage(error) ?? "No se pudo registrar el ajuste" });
+    } finally {
+      setSubmitting(false);
+    }
+  });
+
+  const branchSelectOptions = useMemo<BranchResponse[]>(() => {
+    const userSel = userInfo?.selectedBranch;
+    if (userSel?.id && userSel.id > 0) {
+      const found = allBranches.find((b) => b.id === userSel.id);
+      return found ? [found] : [userSel];
+    }
+    return allBranches;
+  }, [allBranches, userInfo?.selectedBranch]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
-          <DialogTitle>Agregar producto</DialogTitle>
-          <DialogDescription>Registra el detalle del producto involucrado en el ajuste.</DialogDescription>
+      <DialogContent className="w-[min(96vw,1000px)] max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-4xl" aria-busy={submitting}>
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="text-xl font-semibold">Registrar ajuste</DialogTitle>
+          <DialogDescription>Ajusta el stock de la sucursal seleccionada.</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Producto</Label>
-            <SearchPopover
-              selected={selectedProduct}
-              onSelect={(option) => {
-                setSelectedProduct(option);
-                setErrors((prev) => ({ ...prev, productId: "" }));
-              }}
-              placeholder="Buscar producto"
-              search={searchProduct}
-              cancel={cancelProductSearch}
-              options={productOptions}
-              loading={productLoading}
-              getOptionLabel={(option) => option.name}
-              getOptionDescription={(option) => (option.sku ? `SKU: ${option.sku}` : undefined)}
-              onClosed={() => setProductOptions([])}
-            />
-            {errors.productId && <p className="text-sm text-destructive">{errors.productId}</p>}
-          </div>
+        <fieldset className="rounded-2xl border p-4">
+          <legend className="px-1 text-sm font-semibold">Datos del ajuste</legend>
+          <AdjustmentForm
+            form={form}
+            branchOptions={branchSelectOptions}
+          />
+        </fieldset>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>ID de lote</Label>
-              <Input
-                type="number"
-                min="1"
-                value={batchId}
-                onChange={(event) => setBatchId(event.target.value)}
-                placeholder="Ej. 2041"
-              />
-              <p className="text-xs text-muted-foreground">Usa el identificador interno del lote a ajustar.</p>
-              {errors.batchId && <p className="text-sm text-destructive">{errors.batchId}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Cantidad</Label>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={quantity}
-                onChange={(event) => setQuantity(event.target.value)}
-              />
-              {errors.quantity && <p className="text-sm text-destructive">{errors.quantity}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Unidad</Label>
-              <Select value={unitType} onValueChange={(value) => setUnitType(value as ProductUnitType)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Unidad" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(ProductUnitType).map((unit) => (
-                    <SelectItem key={unit} value={unit}>
-                      {ProductUnitTypeLabels[unit]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.unitType && <p className="text-sm text-destructive">{errors.unitType}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Tipo de ajuste</Label>
-              <Select value={adjustmentType} onValueChange={(value) => setAdjustmentType(value as AdjustmentType)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(AdjustmentType).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {AdjustmentTypeLabels[type]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.adjustmentType && <p className="text-sm text-destructive">{errors.adjustmentType}</p>}
-            </div>
-
-            <div className="md:col-span-2 space-y-2">
-              <Label>Motivo (opcional)</Label>
-              <Textarea
-                value={reason}
-                onChange={(event) => setReason(event.target.value)}
-                placeholder="Describe la razón del ajuste"
-              />
-              {errors.reason && <p className="text-sm text-destructive">{errors.reason}</p>}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold">Productos</h3>
+            <Button type="button" variant="ghost" className="h-8" onClick={addBlankItem} disabled={!branchId}>
+              <Plus className="h-4 w-4" /> Añadir otro producto
             </Button>
-            <Button onClick={handleSubmit}>Agregar</Button>
           </div>
-        </div>
+
+          {!branchId && (
+            <div className="rounded-xl border p-4 text-sm text-muted-foreground">
+              Selecciona la sucursal para buscar productos.
+            </div>
+          )}
+
+          <div className="space-y-3">
+            {items.map((it, idx) => (
+              <AdjustmentProductItemForm
+                key={idx}
+                index={idx}
+                value={it}
+                onChange={upsertItem}
+                onRemove={removeItem}
+                productOptions={productOptions}
+                productLoading={productLoading}
+                searchProduct={searchProduct}
+                cancelProductSearch={cancelProductSearch}
+                disabled={!branchId}
+              />
+            ))}
+          </div>
+        </section>
+
+        <DialogFooter className="pt-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Cancelar</Button>
+          <Button onClick={onSubmit} disabled={submitting}>
+            {submitting ? (
+              <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Guardando…</span>
+            ) : (
+              "Guardar ajuste"
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

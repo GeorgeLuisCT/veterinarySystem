@@ -1,10 +1,8 @@
-// PurchaseForm.tsx
 "use client";
 
 import * as React from "react";
 import { UseFormReturn } from "react-hook-form";
 import { SupplierQuickSearchResponse } from "../../_types/supplier-response";
-import { Dispatch, SetStateAction } from "react";
 import { Form, FormField, FormControl, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
@@ -23,7 +21,6 @@ export const purchaseFormSchema = purchaseCreateSchema.pick({
 
 export type PurchaseFormValues = z.infer<typeof purchaseFormSchema>;
 
-// Normaliza a 'yyyy-MM-ddTHH:mm:ss' (sin Z ni milisegundos)
 function normalizeLocalDateTime(value?: string): string {
   if (!value) return "";
   try {
@@ -42,10 +39,8 @@ interface PurchaseFormProps {
   selectedSupplier: SupplierQuickSearchResponse | null;
   setSelectedSupplier: (supplier: SupplierQuickSearchResponse | null) => void;
   supplierOptions: SupplierQuickSearchResponse[];
-  setSupplierOptions: Dispatch<SetStateAction<SupplierQuickSearchResponse[]>>;
   supplierLoading: boolean;
   searchSupplier: (query: string) => void;
-  cancelSupplierSearch: () => void;
 }
 
 export function PurchaseForm({
@@ -54,7 +49,6 @@ export function PurchaseForm({
   selectedSupplier,
   setSelectedSupplier,
   supplierOptions,
-  setSupplierOptions,
   supplierLoading,
   searchSupplier,
 }: PurchaseFormProps) {

@@ -42,7 +42,7 @@ export function getSaleModeSummaryText(
     return `${modeLabel} de ${qtyText} ${finalUnitLabel}`;
 }
 
-export function getPurchaseSummaryText(
+export function getMovementSummaryText(
     formQuantity: number | null | undefined,
     modeUnit: ProductUnitType | null | undefined,
     relativeQuantity: number | null | undefined,
