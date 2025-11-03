@@ -76,10 +76,22 @@ public class InventoryMovementController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam Long productId,
-            @RequestParam Long branchId,
-            @RequestParam(required = false) Long batchId
+            @RequestParam(required = false) Long branchId,
+            @RequestParam(required = false) Long batchId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
-        var resp = movementService.getKardexHistory(page, size, productId, branchId, batchId);
+        var resp = movementService.getKardexHistory(
+                page, size, productId, branchId, batchId, startDate, endDate
+        );
         return ResponseEntity.ok(resp);
+    }
+    @GetMapping("/batches/search")
+    public ResponseEntity<List<ProductBatchSearchResponse>> searchBatches(
+            @RequestParam Long productId,
+            @RequestParam String query
+    ) {
+        System.out.println("holaaa");
+        return ResponseEntity.ok(movementService.searchBatches(productId, query));
     }
 }

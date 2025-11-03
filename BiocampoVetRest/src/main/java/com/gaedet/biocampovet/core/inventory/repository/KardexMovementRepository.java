@@ -11,9 +11,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
-public interface KardexMovementRepository extends JpaRepository<KardexMovement, Long>,
-        JpaSpecificationExecutor<KardexMovement> {
+public interface KardexMovementRepository
+        extends JpaRepository<KardexMovement, Long>, JpaSpecificationExecutor<KardexMovement> {
 
     @Query("SELECT SUM(km.quantity) FROM KardexMovement km " +
             "WHERE km.product.id = :productId AND km.branch.id = :branchId")

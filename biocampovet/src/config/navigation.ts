@@ -103,7 +103,6 @@ export const navigationConfig = {
         { title: "Proveedores", url: "/dashboard/inventory/suppliers", rolesAllowed: ["ROLE_WAREHOUSE", "ROLE_ADMIN"] },
         { title: "Compras", url: "/dashboard/inventory/movements/purchase", rolesAllowed: ["ROLE_ADMIN"] },
         { title: "Movimientos", url: "/dashboard/inventory/movements", rolesAllowed: ["ROLE_ADMIN", "ROLE_WAREHOUSE"] },
-        { title: "Kardex", url: "/dashboard/inventory/movements/kardex", rolesAllowed: ["ROLE_ADMIN", "ROLE_WAREHOUSE"] },
       ],
     },
     

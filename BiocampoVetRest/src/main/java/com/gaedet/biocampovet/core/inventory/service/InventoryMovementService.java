@@ -11,6 +11,7 @@ import com.gaedet.biocampovet.core.inventory.enums.KardexMovementType;
 import com.gaedet.biocampovet.core.inventory.mapper.InventoryMovementMapper;
 import com.gaedet.biocampovet.core.inventory.repository.*;
 import com.gaedet.biocampovet.core.inventory.specs.InventoryMovementSpecs;
+import com.gaedet.biocampovet.core.inventory.specs.KardexSpecifications;
 import com.gaedet.biocampovet.exeption.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,11 +20,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
-import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
@@ -33,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -232,19 +229,17 @@ public class InventoryMovementService {
 
     @Transactional(readOnly = true)
     public PaginatedResponse<KardexMovementResponse> getKardexHistory(
-            int page, int size, Long productId, Long branchId, Long batchId) {
+            int page, int size, Long productId, Long branchId, Long batchId,
+            LocalDate startDate, LocalDate endDate) {
 
-        Specification<KardexMovement> spec = (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("product").get("id"), productId));
-            predicates.add(cb.equal(root.get("branch").get("id"), branchId));
-            if (batchId != null) {
-                predicates.add(cb.equal(root.get("batch").get("id"), batchId));
-            }
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
+        Specification<KardexMovement> spec =
+                KardexSpecifications.kardexHistory(productId, branchId, batchId, startDate, endDate);
 
-        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by("date").descending());
+        Pageable pageable = PageRequest.of(
+                Math.max(page, 0),
+                Math.max(size, 1),
+                Sort.by(Sort.Direction.DESC, "date").and(Sort.by(Sort.Direction.DESC, "id"))
+        );
 
         Page<KardexMovement> result = kardexMovementRepository.findAll(spec, pageable);
 
@@ -261,7 +256,6 @@ public class InventoryMovementService {
                 .build();
     }
 
-
     private ProductBatch findOrCreateBatch(Product product, String batchNumber, LocalDate expirationDate) {
         Optional<ProductBatch> existingBatch = productBatchRepository.findByProduct_IdAndBatchNumber(
                 product.getId(),
@@ -277,6 +271,27 @@ public class InventoryMovementService {
         newBatch.setBatchNumber(batchNumber);
         newBatch.setExpirationDate(expirationDate);
         return productBatchRepository.save(newBatch);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductBatchSearchResponse> searchBatches(Long productId, String query) {
+        if (query == null || query.isBlank()) {
+            return Collections.emptyList();
+        }
+
+        Pageable limit = PageRequest.of(0, 20);
+
+        List<ProductBatch> batches = productBatchRepository
+                .findByProductIdAndBatchNumberContainingIgnoreCase(productId, query, limit);
+
+        return batches.stream()
+                .map(batch -> new ProductBatchSearchResponse(
+                        batch.getId(),
+                        batch.getBatchNumber(),
+                        batch.getProduct().getId(),
+                        batch.getExpirationDate()
+                ))
+                .collect(Collectors.toList());
     }
 }
 

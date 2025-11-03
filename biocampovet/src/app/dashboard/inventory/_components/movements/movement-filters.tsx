@@ -75,7 +75,7 @@ export default function MovementFiltersBar({ value, onChange, onReset, onRefresh
                 {formatDateRangeLabel(state.dateRange)}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="p-0" align="start">
+            <PopoverContent className="w-auto p-2" align="start">
               <Calendar
                 mode="range"
                 locale={es}

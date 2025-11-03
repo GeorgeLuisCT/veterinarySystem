@@ -9,13 +9,21 @@ import {
 import { InventoryMovementSummaryResponse } from "../_types/inventory-movement-summary-response";
 import { InventoryMovementResponse } from "../_types/inventory-movement-response";
 import { KardexMovementResponse } from "../_types/kardex-movement-response";
+import { ProductBatchSearchResponse } from "../_types/product-batch-response";
 
 export interface KardexHistoryParams {
   page?: number;
   size?: number;
   productId: number;
-  branchId: number;
+  branchId?: number;
   batchId?: number;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface BatchSearchParams {
+  productId: number;
+  query: string;
 }
 
 export const buildQueryParams = <T extends object>(params: T) =>
@@ -33,7 +41,7 @@ export const buildQueryParams = <T extends object>(params: T) =>
 const toCsv = (arr?: unknown[]) => (arr && arr.length ? arr.join(",") : undefined);
 
 export const InventoryMovementService = {
-listMovements: async (
+  listMovements: async (
     params: InventoryMovementListParams = {}
   ): Promise<PaginatedResponse<InventoryMovementSummaryResponse>> => {
     const response = await api.get<PaginatedResponse<InventoryMovementSummaryResponse>>(
@@ -73,6 +81,16 @@ listMovements: async (
   ): Promise<PaginatedResponse<KardexMovementResponse>> => {
     const response = await api.get<PaginatedResponse<KardexMovementResponse>>(
       "/inventory-movements/kardex-history",
+      { params: buildQueryParams(params) }
+    );
+    return response.data;
+  },
+
+  searchBatches: async (
+    params: BatchSearchParams
+  ): Promise<ProductBatchSearchResponse[]> => {
+    const response = await api.get<ProductBatchSearchResponse[]>(
+      "/inventory-movements/batches/search",
       { params: buildQueryParams(params) }
     );
     return response.data;

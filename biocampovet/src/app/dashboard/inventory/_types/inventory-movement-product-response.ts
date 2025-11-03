@@ -1,6 +1,6 @@
 import { ProductUnitType } from "../_enums/product-unit-type";
 import { InventoryProductSummary } from "./inventory-product-summary";
-import { ProductBatchSummaryResponse } from "./product-batch-summary-response";
+import { ProductBatchSummaryResponse } from "./product-batch-response";
 
 export interface InventoryMovementProductResponse {
   id: number;
