@@ -89,6 +89,13 @@ public class KardexService {
                 .orElse(BigDecimal.ZERO);
     }
 
+    @Transactional(readOnly = true)
+    public BigDecimal convertToBaseUnit(Long productId, BigDecimal quantity, ProductUnitType unitType) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado para conversión de unidades"));
+        return convertToBaseUnit(product, quantity, unitType);
+    }
+
     private BigDecimal convertToBaseUnit(Product product, BigDecimal quantity, ProductUnitType unitType) {
 
         if (unitType == null || unitType.equals(product.getUnitType())) {

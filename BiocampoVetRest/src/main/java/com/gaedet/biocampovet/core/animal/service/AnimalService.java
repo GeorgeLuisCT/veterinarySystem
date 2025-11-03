@@ -2,15 +2,12 @@ package com.gaedet.biocampovet.core.animal.service;
 
 import com.gaedet.biocampovet.core.animal.dto.*;
 import com.gaedet.biocampovet.core.animal.entity.Animal;
-import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
 import com.gaedet.biocampovet.core.animal.mapper.AnimalMapper;
 import com.gaedet.biocampovet.core.animal.repository.AnimalRepository;
-import com.gaedet.biocampovet.core.animal.util.ClinicalHistoryUtils;
 import com.gaedet.biocampovet.core.customer.entity.Customer;
 import com.gaedet.biocampovet.core.customer.repository.CustomerRepository;
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
-import com.gaedet.biocampovet.core.sales.dto.*;
-import com.gaedet.biocampovet.core.sales.repository.SaleProductRepository;
+import com.gaedet.biocampovet.core.sales.dto.SaleProductsGrouped;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,8 +27,6 @@ public class AnimalService {
     private final CustomerRepository customerRepository;
     private final AnimalMapper animalMapper;
     private final EntityManager entityManager;
-    private final SaleProductRepository saleProductRepository;
-
 
     @Transactional
     public AnimalSummaryResponse createAnimal(AnimalCreateRequest request) {
@@ -124,16 +119,10 @@ public class AnimalService {
         Animal animal = animalRepository.findById(animalId)
                 .orElseThrow(() -> new EntityNotFoundException("Animal not found"));
 
-        List<SaleProductSummaryResponse> saleProducts = saleProductRepository.findSummaryByAnimalId(animalId);
-
-
         return ClinicalHistoryResponse.builder()
                 .animal(animalMapper.toResponse(animal))
-                .saleProductsGrouped(SaleProductsGrouped.builder()
-                        .categories(ClinicalHistoryUtils.groupSaleProductsByCategory(saleProducts))
-                        .build())
+                .saleProductsGrouped(SaleProductsGrouped.empty())
                 .build();
     }
 
 }
-

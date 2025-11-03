@@ -11,12 +11,11 @@ public record ProductQuickSearchResponse(
 ) {
     public static ProductQuickSearchResponse fromNativeRow(Object[] row) {
         return new ProductQuickSearchResponse(
-                ((Number) row[0]).longValue(),    // id
-                (String) row[1],                  // name
-                (String) row[2],                  //presentation
-                (String) row[3],                  // sku
-                (BigDecimal) row[4]               // standard_price
+                ((Number) row[0]).longValue(),
+                (String) row[1],
+                (String) row[2],
+                (String) row[3],
+                (BigDecimal) row[4]
         );
     }
 }
-

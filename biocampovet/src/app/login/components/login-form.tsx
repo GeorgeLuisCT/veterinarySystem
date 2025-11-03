@@ -31,7 +31,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
       if (data.branches && data.branches.length > 0) {
         setBranches(data.branches as BranchResponse[]);
       } else {
-        router.push("/dashboard/sales/new");
+        router.push("/dashboard/pos/sales/new");
       }
     } catch (error: unknown) {
       setError(getAaxiosErrorMessage(error));

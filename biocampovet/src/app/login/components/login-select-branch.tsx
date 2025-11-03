@@ -27,7 +27,7 @@ export function LoginSelectBranch({ branches }: LoginSelectBranchProps) {
     try {
       const token = await selectBranch(selectedBranch);
       if (token) {
-        window.location.href = "/dashboard/sales/new";
+        window.location.href = "/dashboard/pos/sales/new";
       }
     } catch (err: unknown) {
       setError(getAaxiosErrorMessage(err));
