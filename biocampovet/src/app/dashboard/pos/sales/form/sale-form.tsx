@@ -15,7 +15,7 @@ import CustomerService from "@/app/dashboard/customer/management/service/custome
 import AnimalService from "@/app/dashboard/patients/animals/service/animal-service";
 import { FloatingLabelMultiSelect } from "@/components/floating-label-multi-select";
 import { CustomerQuickSearchResponse } from "@/app/dashboard/customer/management/types/customer-quick-search-response";
-import { AnimalQuickSearchResponse } from "../../patients/animals/types/animal-quick-search-response";
+import { AnimalQuickSearchResponse } from "../../../patients/animals/types/animal-quick-search-response";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { toast } from "sonner";
 

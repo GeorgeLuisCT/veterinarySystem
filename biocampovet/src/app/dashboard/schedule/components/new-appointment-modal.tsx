@@ -34,6 +34,7 @@ import { ClinicalAppointmentTab } from "./new-appointment-modal/clinical-appoint
 import { GroomingAppointmentTab } from "./new-appointment-modal/grooming-appointment-tab";
 import { SurgicalAppointmentTab } from "./new-appointment-modal/surgical-appointment-tab";
 import type { Option } from "./types";
+import { AnimalSpeciesLabels } from "../../patients/animals/enums/animal-species";
 
 type NewAppointmentModalTab = "clinical" | "grooming" | "surgical";
 
@@ -119,7 +120,7 @@ export function NewAppointmentModal({ open, onOpenChange, onCreated, initialDate
 
         const options = results.map((a) => ({
           id: a.id,
-          label: `${a.name} • ${a.ownerName ?? "Sin propietario"} • ${a.speciesName ?? ""}`.trim(),
+          label: `${a.name} • ${a.ownerName ?? "Sin propietario"} • ${AnimalSpeciesLabels[a.species] ?? ""}`.trim(),
         }));
 
         setAnimalOptions(options);

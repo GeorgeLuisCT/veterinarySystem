@@ -1,7 +1,7 @@
 import { AnimalQuickSearchResponse } from "@/app/dashboard/patients/animals/types/animal-quick-search-response";
 import { SaleProductLocal, SaleProductRequest } from "../types/sale-product-request";
 import { generateUID } from "@/utils/uid-generator";
-import { ProductResponse } from "../../inventory/_types/product-response";
+import { ProductResponse } from "../../../inventory/_types/product-response";
 
 /**
  * Transforma un SaleProductRequest en SaleProductLocal agregando el producto y el animal como objetos completos

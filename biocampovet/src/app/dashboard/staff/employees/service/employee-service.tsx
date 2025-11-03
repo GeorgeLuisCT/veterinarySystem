@@ -68,7 +68,7 @@ export const EmployeeService = {
     if (branchId !== undefined) params.branchId = branchId;
 
     const response = await api.get<PaginatedResponse<EmployeeSummaryResponse>>(
-      "/employees/list",
+      "/employees",
       { params }
     );
     return response.data;

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useSales } from "../context/sales-context-type";
-import { SaleForm } from "@/app/dashboard/sales/form/sale-form";
+import { SaleForm } from "@/app/dashboard/pos/sales/form/sale-form";
 import { SalePaymentForm } from "./sale-payment-form";
 
 export default function SalesHeader() {

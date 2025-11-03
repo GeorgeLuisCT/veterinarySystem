@@ -79,8 +79,8 @@ export const navigationConfig = {
       icon: ShoppingCart,
       rolesAllowed: ["ROLE_ADMIN", "ROLE_CASHIER", "ROLE_MANAGER", "ROLE_RECEPTIONIST"],
       items: [
-        { title: "Nueva Venta", url: "/dashboard/pos/new", rolesAllowed: ["ROLE_CASHIER", "ROLE_RECEPTIONIST"] },
-        { title: "Historial de Ventas", url: "/dashboard/pos/history", rolesAllowed: ["ROLE_ADMIN", "ROLE_MANAGER"] },
+        { title: "Nueva Venta", url: "/dashboard/pos/sales/new", rolesAllowed: ["ROLE_CASHIER", "ROLE_RECEPTIONIST"] },
+        { title: "Historial de Ventas", url: "/dashboard/pos/sales/history", rolesAllowed: ["ROLE_ADMIN", "ROLE_MANAGER"] },
       ],
     },
      {

@@ -1,6 +1,6 @@
 import { AnimalResponse } from "@/app/dashboard/patients/animals/types/animal-response";
-import { ProductResponse } from "../../inventory/_types/product-response";
-import { ProductUnitType } from "../../inventory/_enums/product-unit-type";
+import { ProductResponse } from "../../../inventory/_types/product-response";
+import { ProductUnitType } from "../../../inventory/_enums/product-unit-type";
 
 export interface SaleProductResponse {
     id: number;
