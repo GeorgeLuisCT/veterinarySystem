@@ -18,8 +18,8 @@ import { getAaxiosErrorMessage } from "@/helpers/error";
 import VehicleService from "../../services/vehicle-service";
 import { VehicleResponse } from "../../types/vehicle-response";
 import { createVehicleSchema, CreateVehicleRequest, updateVehicleSchema, UpdateVehicleRequest } from "../../types/vehicle-request";
-import { EmployeeService } from "@/app/dashboard/staff/employees/service/employee-service";
-import { EmployeeQuickSearchResponse } from "@/app/dashboard/staff/employees/types/employee-quick-search-response";
+import { EmployeeService } from "@/app/dashboard/staff/service/employee-service";
+import { EmployeeQuickSearchResponse } from "@/app/dashboard/staff/types/employee-quick-search-response";
 import { BranchService } from "@/app/dashboard/branche/services/branch-service";
 import { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
 

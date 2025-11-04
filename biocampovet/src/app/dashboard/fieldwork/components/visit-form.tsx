@@ -23,8 +23,8 @@ import { GeoZoneType } from "../enums/geo-zone-type";
 import FarmService from "../services/farm-service";
 import VehicleService from "../services/vehicle-service";
 import { VehicleQuickSearchResponse } from "../types/vehicle-quick-search-response";
-import { EmployeeService } from "@/app/dashboard/staff/employees/service/employee-service";
-import { EmployeeQuickSearchResponse } from "@/app/dashboard/staff/employees/types/employee-quick-search-response";
+import { EmployeeService } from "@/app/dashboard/staff/service/employee-service";
+import { EmployeeQuickSearchResponse } from "@/app/dashboard/staff/types/employee-quick-search-response";
 
 function toLocalDateTimeStringSeconds(d: Date) {
   return d.toISOString().slice(0, 19);

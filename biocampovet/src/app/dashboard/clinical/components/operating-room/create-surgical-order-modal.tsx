@@ -9,12 +9,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { Textarea } from "@/components/ui/textarea";
-import EmployeeService from "@/app/dashboard/staff/employees/service/employee-service";
+import EmployeeService from "@/app/dashboard/staff/service/employee-service";
 import { RoleName } from "@/enums/role-name";
 import { OperatingRoomService } from "@/app/dashboard/branche/services/operating-room-service";
 import { useUser } from "@/context/user-context";
 import ClinicalServiceService from "@/app/dashboard/clinical/service/clinical-service-service";
-import AnimalService from "@/app/dashboard/patients/animals/service/animal-service";
+import AnimalService from "@/app/dashboard/crm/patients/service/animal-service";
 import { CreateSurgicalOrderRequest, createSurgicalOrderSchema } from "@/app/dashboard/schedule/types/surgical-order-request";
 import SurgicalOrderService from "@/app/dashboard/schedule/service/surgical-order-service";
 

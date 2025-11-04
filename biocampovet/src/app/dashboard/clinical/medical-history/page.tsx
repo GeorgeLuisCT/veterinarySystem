@@ -1,221 +1,161 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import DashboardLayoutSection from "../../dashboard-layout-section";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, DollarSign, AlertCircle, PawPrint, User, MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
-import { AnimalSummaryResponse } from "../../patients/animals/types/animal-summary-response";
-import { ColumnDef } from "@tanstack/react-table";
-import AnimalService from "../../patients/animals/service/animal-service";
-import { getAaxiosErrorMessage } from "@/helpers/error";
-import { useToast } from "@/hooks/use-toast";
-import DataTable from "@/components/data-table";
-import { PaginatedResponse } from "@/types/paginated-response";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { Download } from "lucide-react";
+import AnimalInfoCard from "./components/animal-info-card";
+import LastVisitSummary from "./components/last-visit-summary";
+import ClinicalHistoryTabs from "./components/clinical-history-tabs";
+import PreventiveMedicineTabs from "./components/preventive-medicine-tabs";
+import DiagnosticsAndFollowUpTabs from "./components/diagnostics-and-follow-up-tabs";
 
-export default function ClinicalHistoryPage() {
-  const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
-  const [loading, setLoading] = useState(false);
 
-  const [animals, setAnimals] = useState<PaginatedResponse<AnimalSummaryResponse>>();
-
-  const { toast } = useToast();
-  const router = useRouter();
-
-  const stats = [
-    {
-      title: "Pacientes Totales",
-      value: "1,284",
-      change: "+12.5%",
-      icon: PawPrint,
-      trend: "up",
+// NOTE: Mock data – replace with real fetch
+const medicalRecords = [
+  {
+    id: 1,
+    patientName: "Max",
+    owner: "Carlos Rodríguez",
+    lastVisit: "2024-01-05",
+    species: "Perro",
+    breed: "Golden Retriever",
+    age: "5 años",
+    sex: "Macho (Castrado)",
+    microchip: "985100012345678",
+    allergies: ["Pollo"],
+    chronicConditions: ["Artritis leve en cadera derecha"],
+    behaviorNotes: "Ansioso con ruidos fuertes, amigable con el personal.",
+    diet: {
+      food: "Royal Canin Hypoallergenic",
+      quantity: "350g al día",
+      notes:
+        "Dieta estricta por alergia al pollo. Evitar snacks no recetados.",
     },
-    {
-      title: "Citas Hoy",
-      value: "23",
-      change: "8 pendientes",
-      icon: Calendar,
-      trend: "neutral",
-    },
-    {
-      title: "Ingresos del Mes",
-      value: "$45,231",
-      change: "+18.2%",
-      icon: DollarSign,
-      trend: "up",
-    },
-    {
-      title: "Emergencias Activas",
-      value: "3",
-      change: "Requieren atención",
-      icon: AlertCircle,
-      trend: "down",
-    },
-  ]
-
-  const animalColumns: ColumnDef<AnimalSummaryResponse>[] = useMemo(
-    () => [
+    weightHistory: [
+      { date: "2023-06-15", weightKg: 29.8 },
+      { date: "2023-12-10", weightKg: 30.2 },
+      { date: "2024-01-05", weightKg: 30.5 },
+    ],
+    consultations: [
       {
-        accessorKey: "name",
-        header: "Animal",
-        cell: ({ row }) => (
-          <div className="px-2 py-3">
-            <div className="flex items-center gap-3">
-              <PawPrint className="h-5 w-5 text-primary" />
-              <div>
-                <Link href={`/dashboard/animals/${row.original.id}`} className="font-bold hover:underline">
-                  {row.original.name}
-                </Link>
-                {/* Mostramos la raza como un detalle secundario */}
-                <div className="text-xs text-muted-foreground">{row.original.breed ?? "Raza no especificada"}</div>
-              </div>
-            </div>
-          </div>
-        ),
+        date: "2024-01-05",
+        type: "Consulta General",
+        vet: "Dra. María González",
+        reasonForVisit:
+          "El propietario reporta que Max se rasca mucho la oreja derecha.",
+        vitals: { weight: "30.5 kg", temp: "38.5°C", hr: "90 lpm", rr: "20 rpm" },
+        diagnosis: "Otitis externa leve",
+        treatment: "Limpieza de oídos y gotas antibióticas",
+        notes: "Mejoría notable. Control en 7 días.",
       },
       {
-        accessorKey: "speciesName",
-        header: "Especie",
-        cell: ({ row }) => (
-          <div className="px-2 py-3">
-            <Badge variant="outline">{row.original.speciesName ?? "—"}</Badge>
-          </div>
-        ),
-      },
-      {
-        accessorKey: "birthDate",
-        header: "Edad",
-        cell: ({ row }) => {
-          const birthDate = row.original.birthDate ? new Date(row.original.birthDate) : null;
-          const age = birthDate ? formatDistanceToNow(birthDate, { addSuffix: true, locale: es }) : "—";
-
-          return (
-            <div className="px-2 py-3 flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span className="font-medium text-foreground">{age.replace("hace aproximadamente", "").trim()}</span>
-            </div>
-          );
-        },
-      },
-      {
-        accessorKey: "ownerName",
-        header: "Dueño",
-        cell: ({ row }) => (
-          <div className="px-2 py-3 flex items-center gap-2 text-sm">
-            <User className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{row.original.ownerName ?? "Sin dueño"}</span>
-          </div>
-        ),
-      },
-      {
-        id: "actions",
-        header: () => <div className="text-right">Acciones</div>,
-        cell: ({ row }) => {
-          const animal = row.original;
-
-          return (
-            <div className="text-right px-2 py-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Abrir menú</span>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => router.push(`/dashboard/animals/${animal.id}`)}>
-                    <Eye className="mr-2 h-4 w-4" />
-                    Ver Ficha
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push(`/dashboard/animals/edit/${animal.id}`)}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Editar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="text-red-600"
-                    onClick={() => {
-                      // Lógica para abrir modal de eliminación
-                      // setAnimalToDelete(animal);
-                      // setDeleteOpen(true);
-                    }}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Eliminar
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          );
-        },
+        date: "2023-12-10",
+        type: "Chequeo y Vacunación",
+        vet: "Dr. Pedro Martínez",
+        reasonForVisit: "Control anual y aplicación de vacuna antirrábica.",
+        vitals: { weight: "30.2 kg", temp: "38.6°C", hr: "85 lpm", rr: "18 rpm" },
+        diagnosis: "Paciente sano, chequeo preventivo",
+        treatment: "Vacuna antirrábica anual",
+        notes: "Sin reacciones adversas.",
       },
     ],
-    []
-  );
+    vaccines: [
+      { name: "Antirrábica", date: "2023-12-10", nextDue: "2024-12-10", status: "Vigente" },
+      { name: "Parvovirus", date: "2023-06-15", nextDue: "2024-06-15", status: "Próxima" },
+      { name: "Moquillo", date: "2023-06-15", nextDue: "2024-06-15", status: "Próxima" },
+    ],
+    deworming: [
+      { date: "2023-12-10", product: "Milbemax", type: "Interna", nextDue: "2024-03-10" },
+      { date: "2023-12-28", product: "Bravecto", type: "Externa", nextDue: "2024-03-28" },
+    ],
+    procedures: [
+      {
+        date: "2021-03-15",
+        procedure: "Castración",
+        vet: "Dr. Alan Morales",
+        notes: "Recuperación sin complicaciones.",
+      },
+    ],
+    prescriptions: [
+      {
+        date: "2024-01-05",
+        medication: "Otomax (Gotas óticas)",
+        dosage: "3 gotas cada 12 horas",
+        duration: "7 días",
+      },
+    ],
+    labResults: [
+      {
+        date: "2023-11-20",
+        test: "Hemograma completo",
+        result: "Normal",
+        file: "hemograma_max_112023.pdf",
+      },
+    ],
+    imagingStudies: [
+      {
+        date: "2023-05-10",
+        type: "Radiografía de Cadera",
+        summary:
+          "Leves signos de displasia en cadera derecha, compatibles con artritis.",
+        file: "rx_cadera_max_052023.dcm",
+      },
+    ],
+    groomingHistory: [
+      {
+        date: "2022-09-01",
+        procedure: "Profilaxis Dental",
+        vet: "Dr. Alan Morales",
+        notes: "Eliminación de sarro moderado. Sin extracciones.",
+      },
+    ],
+  },
+];
 
-  useEffect(() => {
-    fetchAnimals(0, 10, searchQuery);
-  }, [searchQuery]);
+export default function MedicalHistoryPage() {
+  const [selectedPatient] = useState(medicalRecords[0]);
+  if (!selectedPatient) return <div>Cargando paciente...</div>;
 
-  const fetchAnimals = async (page: number, pageSize: number, query?: string) => {
-    setLoading(true);
-    try {
-      const response = await AnimalService.getAnimals({
-        page,
-        size: pageSize,
-        active: true,
-        query,
-      });
-      setAnimals(response);
-    } catch (error: unknown) {
-      const message = getAaxiosErrorMessage(error) || "Error al cargar animales";
-      toast({ variant: "destructive", title: "Error", description: message });
-      console.error("Error fetching animals:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const lastConsultation = selectedPatient.consultations?.[0];
 
   return (
-    <DashboardLayoutSection>
-      <div className="space-y-6">
+    <div className="flex min-h-screen flex-col bg-muted/40">
+      <main className="flex-1 p-4 sm:p-6">
+        <div className="mx-auto max-w-7xl space-y-6">
+          {/* 1) Información del animal */}
+          <AnimalInfoCard patient={selectedPatient}>
+            <Button variant="outline" size="sm">
+              <Download className="mr-2 h-4 w-4" /> Exportar PDF
+            </Button>
+          </AnimalInfoCard>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-                <stat.icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p
-                  className={`text-xs ${stat.trend === "up" ? "text-accent" : stat.trend === "down" ? "text-destructive" : "text-muted-foreground"}`}
-                >
-                  {stat.change}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+          {/* 2) Resumen de la última visita */}
+          {lastConsultation && (
+            <LastVisitSummary consultation={lastConsultation} />
+          )}
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* 3) Historial Clínico y Tratamientos (SIN Recetas) */}
+            <ClinicalHistoryTabs
+              consultations={selectedPatient.consultations}
+              procedures={selectedPatient.procedures}
+            />
+
+            {/* 4) Medicina Preventiva */}
+            <PreventiveMedicineTabs
+              vaccines={selectedPatient.vaccines}
+              deworming={selectedPatient.deworming}
+              groomingHistory={selectedPatient.groomingHistory}
+            />
+          </div>
+
+          {/* 5) Diagnóstico y Seguimiento (solo Laboratorio y Peso) */}
+          <DiagnosticsAndFollowUpTabs
+            labResults={selectedPatient.labResults}
+            weightHistory={selectedPatient.weightHistory}
+          />
         </div>
-
-        <DataTable<AnimalSummaryResponse>
-          data={animals?.content || []}
-          columns={animalColumns}
-          fetchData={fetchAnimals}
-          onSearch={setSearchQuery}
-          totalPages={animals?.totalPages || 1}
-          loading={loading}
-          searchPlaceholder="Buscar por nombre, especie, raza o dueño..."
-        />
-
-
-      </div>
-    </DashboardLayoutSection>
+      </main>
+    </div>
   );
 }

@@ -27,7 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AnimalSpeciesDetails } from "../../patients/animals/enums/animal-species";
+import { AnimalSpeciesDetails } from "../../crm/patients/enums/animal-species";
 import { CageSizeLabels } from "../enums/cage-size";
 import { formatAdmissionTime } from "@/utils/farmated-dates";
 

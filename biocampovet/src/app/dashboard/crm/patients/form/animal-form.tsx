@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import { FloatingLabelInput } from "@/components/floating-label-input";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
+import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -15,10 +16,10 @@ import { useAnimalContext } from "../context/animal-context";
 import { animalCreateSchema, AnimalRequest, animalUpdateSchema } from "../types/animal-request";
 import { mapToCreateAnimalRequest, mapToUpdateAnimalRequest } from "../helpers/animal-mapper";
 import { AnimalSummaryResponse } from "../types/animal-summary-response";
-import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
-import CustomerService from "@/app/dashboard/customer/management/service/customer-service";
-import { CustomerQuickSearchResponse } from "@/app/dashboard/customer/management/types/customer-quick-search-response";
+import { CustomerQuickSearchResponse } from "../../customers/types/customer-quick-search-response";
+import CustomerService from "../../customers/service/customer-service";
 import { getAaxiosErrorMessage } from "@/helpers/error";
+import { AnimalSpecies, AnimalSpeciesOptions } from "../enums/animal-species";
 
 interface AnimalFormProps {
   setOpen: (open: boolean) => void;
@@ -35,7 +36,6 @@ export function AnimalForm({
   onSuccess,
   fixedCustomer,
 }: AnimalFormProps) {
-  const [speciesList, setSpeciesList] = React.useState<AnimalSpeciesResponse[]>([]);
   const [ownersList, setOwnersList] = React.useState<CustomerQuickSearchResponse[]>([]);
   const [loading, setLoading] = React.useState(true);
 
@@ -46,7 +46,7 @@ export function AnimalForm({
     defaultValues: {
       name: "",
       ownerId: fixedCustomer ? fixedCustomer.id : 0,
-      speciesId: 0,
+      species: AnimalSpecies.CANINE,
       breed: "",
       birthDate: "",
     },
@@ -55,9 +55,6 @@ export function AnimalForm({
   React.useEffect(() => {
     async function fetchData() {
       try {
-        const speciesData = await AnimalSpeciesService.getAnimalSpecies();
-        setSpeciesList(speciesData);
-
         if (!fixedCustomer) {
           setOwnersList([]);
         }
@@ -67,9 +64,9 @@ export function AnimalForm({
           form.reset({
             name: animal.name,
             ownerId: fixedCustomer ? fixedCustomer.id : animal.owner.id,
-            speciesId: animal.species.id,
+            species: (animal.species as AnimalSpecies) ?? AnimalSpecies.CANINE,
             breed: animal.breed ?? "",
-            birthDate: animal.birthDate,
+            birthDate: animal.birthDate ?? "",
             id: animal.id,
           });
         }
@@ -173,19 +170,16 @@ export function AnimalForm({
 
             <FormField
               control={form.control}
-              name="speciesId"
+              name="species"
               render={({ field }) => (
                 <FormItem className="gap-0">
                   <FormControl>
                     <FloatingLabelSelect
-                      id="speciesId"
+                      id="species"
                       label="Especie"
                       value={String(field.value ?? "")}
-                      onValueChange={(value) => field.onChange(parseInt(value))}
-                      options={speciesList.map((specie) => ({
-                        value: String(specie.id),
-                        label: specie.name,
-                      }))}
+                      onValueChange={(value) => field.onChange(value as AnimalSpecies)}
+                      options={AnimalSpeciesOptions}
                     />
                   </FormControl>
                   <FormMessage className="ml-2" />

@@ -12,7 +12,6 @@ import {
   LayoutDashboard, // Nuevo icono
   Settings, // Nuevo icono
   BookHeart, // Nuevo icono
-  Sofa, // Nuevo icono
   Hospital,
   Scissors, // Nuevo icono
 } from "lucide-react";
@@ -52,7 +51,6 @@ export const navigationConfig = {
       items: [
         { title: "Gestionar Clientes", url: "/dashboard/crm/customers", rolesAllowed: ["ROLE_RECEPTIONIST"] },
         { title: "Gestionar Pacientes", url: "/dashboard/crm/patients", rolesAllowed: ["ROLE_RECEPTIONIST", "ROLE_VETERINARIAN"] },
-        { title: "Deudas", url: "/dashboard/crm/debts", rolesAllowed: ["ROLE_RECEPTIONIST", "ROLE_ADMIN"] },
       ],
     },
 
@@ -164,21 +162,22 @@ export const navigationConfig = {
       url: "/dashboard/staff",
       icon: UserCog,
       rolesAllowed: ["ROLE_ADMIN", "ROLE_MANAGER"],
-      items: [
-        { title: "Gestionar Empleados", url: "/dashboard/staff/employees", rolesAllowed: ["ROLE_MANAGER"] },
-        { title: "Turnos y Horarios", url: "/dashboard/staff/shifts", rolesAllowed: ["ROLE_MANAGER"] },
-      ],
+      items: [],
     },
     {
       title: "Configuración",
       url: "/dashboard/settings",
       icon: Settings,
       rolesAllowed: ["ROLE_ADMIN"],
+      items: [],
+    },
+    {
+      title: "Seguridad",
+      url: "/dashboard/security",
+      icon: Users,
+      rolesAllowed: ["ROLE_ADMIN"],
       items: [
-        { title: "Mi Clínica / Sucursales", url: "/dashboard/settings/branches", rolesAllowed: ["ROLE_ADMIN"] },
-        { title: "Usuarios y Roles", url: "/dashboard/settings/security", rolesAllowed: ["ROLE_ADMIN"] },
-        { title: "Plantillas", url: "/dashboard/settings/templates", rolesAllowed: ["ROLE_ADMIN"] },
-        { title: "Auditoría", url: "/dashboard/settings/audit", rolesAllowed: ["ROLE_ADMIN"] },
+        { title: "Usuarios", url: "/dashboard/security/users", rolesAllowed: ["ROLE_ADMIN"] },
       ],
     },
   ],

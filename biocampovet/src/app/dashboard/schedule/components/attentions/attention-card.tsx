@@ -6,7 +6,7 @@ import { FaUserMd } from "react-icons/fa";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AnimalSpeciesDetails } from "@/app/dashboard/patients/animals/enums/animal-species";
+import { AnimalSpeciesDetails } from "@/app/dashboard/crm/patients/enums/animal-species";
 import { AttentionStatus, AttentionStatusDetails } from "@/app/dashboard/schedule/enums/attention-status";
 import { AttentionType, AttentionTypeDetails, AttentionTypeLabels } from "@/app/dashboard/schedule/enums/attention-type";
 import { formatCheckInTime } from "@/utils/farmated-dates";

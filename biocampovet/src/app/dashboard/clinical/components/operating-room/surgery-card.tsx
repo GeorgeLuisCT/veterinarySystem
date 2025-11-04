@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock, Stethoscope, MoveRight, Tags, PawPrint, MapPin, ClipboardList } from "lucide-react";
-import { AnimalSpeciesDetails } from "@/app/dashboard/patients/animals/enums/animal-species";
+import { AnimalSpeciesDetails } from "@/app/dashboard/crm/patients/enums/animal-species";
 import { SurgicalReportStatus } from "../../enums/surgical-report-status";
 
 export type SurgeryCardData = {

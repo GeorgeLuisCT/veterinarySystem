@@ -4,6 +4,7 @@ import javax.persistence.*;
 
 import com.gaedet.biocampovet.core.animal.entity.Animal;
 import com.gaedet.biocampovet.core.clinic.enums.ReminderStatus;
+import com.gaedet.biocampovet.core.clinic.enums.ReminderType;
 import lombok.*;
 import java.time.LocalDate;
 
@@ -27,8 +28,9 @@ public class Reminder {
     @JoinColumn(name = "animal_id", nullable = false)
     private Animal animal;
 
-    @Column(nullable = false)
-    private String reminderType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "reminder_type", nullable = false, length = 50)
+    private ReminderType reminderType;
 
     @Column(nullable = false)
     private LocalDate dueDate;

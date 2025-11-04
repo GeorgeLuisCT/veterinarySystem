@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FieldVisitResponse } from "../../types/visit-response";
-import { AnimalSpeciesLabels } from "@/app/dashboard/patients/animals/enums/animal-species";
+import { AnimalSpeciesLabels } from "@/app/dashboard/crm/patients/enums/animal-species";
 import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
 

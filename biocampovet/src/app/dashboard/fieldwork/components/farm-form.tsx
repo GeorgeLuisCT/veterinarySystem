@@ -11,13 +11,13 @@ import { FloatingLabelInput } from '@/components/floating-label-input';
 import { FloatingLabelSelect } from '@/components/floating-label-select';
 import { useToast } from '@/hooks/use-toast';
 
-import { CustomerService } from '@/app/dashboard/customer/management/service/customer-service';
-import { CustomerQuickSearchResponse } from '@/app/dashboard/customer/management/types/customer-quick-search-response';
 import { GeoZoneService } from '../services/geo-zone-service';
 import { GeoZoneSummaryResponse } from '../types/geo-zone-response';
 import { FarmResponse } from '../types/farm-response';
 import { CreateFarmRequest, UpdateFarmRequest, createFarmSchema, updateFarmSchema } from '../types/farm-request';
 import { FarmService } from '../services/farm-service';
+import { CustomerQuickSearchResponse } from '../../crm/customers/types/customer-quick-search-response';
+import CustomerService from '../../crm/customers/service/customer-service';
 
 interface Props {
   setOpen: (open: boolean) => void;

@@ -2,7 +2,7 @@ import { HospitalizationStatus } from "@/app/dashboard/clinical/enums/hospitaliz
 import { AdmissionTiming } from "../enums/admission-timing";
 import { HospitalizationCause } from "../enums/hospitalization-cause";
 import { CageSize } from "../enums/cage-size";
-import { AnimalBasicResponse } from "../../patients/animals/types/animal-basic-response";
+import { AnimalBasicResponse } from "../../crm/patients/types/animal-basic-response";
 
 export interface CageResponse {
   id: number;

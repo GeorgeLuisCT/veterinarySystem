@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState } from "react";
 import { EmployeeSummaryResponse } from "../types/employee-summary-response";
+import { PaginatedResponse } from "@/types/paginated-response";
 
 interface EmployeeContextType {
-  employees: EmployeeSummaryResponse[];
-  setEmployees: React.Dispatch<React.SetStateAction<EmployeeSummaryResponse[]>>;
+  employees: PaginatedResponse<EmployeeSummaryResponse>;
+  setEmployees: React.Dispatch<React.SetStateAction<PaginatedResponse<EmployeeSummaryResponse>>>;
   addEmployee: (employee: EmployeeSummaryResponse) => void;
   removeEmployee: (id: number) => void;
   updateEmployee: (employee: EmployeeSummaryResponse) => void;
@@ -18,20 +19,33 @@ export const useEmployeeContext = () => {
 };
 
 export const EmployeeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [employees, setEmployees] = useState<EmployeeSummaryResponse[]>([]);
+  const [employees, setEmployees] = useState<PaginatedResponse<EmployeeSummaryResponse>>({
+    content: [],
+    totalPages: 0,
+    totalElements: 0,
+    pageSize: 0,
+    currentPage: 0,
+  });
 
   const addEmployee = (employee: EmployeeSummaryResponse) => {
-    setEmployees(prev => [employee, ...prev]);
+    setEmployees(prev => ({
+      ...prev,
+      content: [employee, ...prev.content],
+    }));
   };
 
   const removeEmployee = (id: number) => {
-    setEmployees(prev => prev.filter(e => e.id !== id));
+    setEmployees(prev => ({
+      ...prev,
+      content: prev.content.filter(e => e.id !== id),
+    }));
   };
 
   const updateEmployee = (updated: EmployeeSummaryResponse) => {
-    setEmployees(prev =>
-      prev.map(e => (e.id === updated.id ? updated : e))
-    );
+    setEmployees(prev => ({
+      ...prev,
+      content: prev.content.map(e => (e.id === updated.id ? updated : e)),
+    }));
   };
 
   return (

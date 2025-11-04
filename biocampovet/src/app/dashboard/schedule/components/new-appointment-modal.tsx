@@ -26,15 +26,15 @@ import {
   CreateSurgicalAppointmentRequest,
 } from "../types/appointment-request";
 import type { AppointmentDetailResponse } from "../types/appointment-response";
-import AnimalService from "@/app/dashboard/patients/animals/service/animal-service";
-import EmployeeService from "@/app/dashboard/staff/employees/service/employee-service";
+import AnimalService from "@/app/dashboard/crm/patients/service/animal-service";
+import EmployeeService from "@/app/dashboard/staff/service/employee-service";
 import { BranchService } from "@/app/dashboard/branche/services/branch-service";
 import { useUser } from "@/context/user-context";
 import { ClinicalAppointmentTab } from "./new-appointment-modal/clinical-appointment-tab";
 import { GroomingAppointmentTab } from "./new-appointment-modal/grooming-appointment-tab";
 import { SurgicalAppointmentTab } from "./new-appointment-modal/surgical-appointment-tab";
 import type { Option } from "./types";
-import { AnimalSpeciesLabels } from "../../patients/animals/enums/animal-species";
+import { AnimalSpeciesLabels } from "../../crm/patients/enums/animal-species";
 
 type NewAppointmentModalTab = "clinical" | "grooming" | "surgical";
 

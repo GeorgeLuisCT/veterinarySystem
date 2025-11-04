@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { AnimalResponse } from "@/app/dashboard/patients/animals/types/animal-response";
-import AnimalService from "@/app/dashboard/patients/animals/service/animal-service";
+import { AnimalResponse } from "@/app/dashboard/crm/patients/types/animal-response";
+import AnimalService from "@/app/dashboard/crm/patients/service/animal-service";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
-import { AnimalSex, AnimalSexLabels } from "@/app/dashboard/patients/animals/enums/animal-sex";
-import { AnimalSpecies, AnimalSpeciesLabels, AnimalSpeciesDetails } from "@/app/dashboard/patients/animals/enums/animal-species";
+import { AnimalSex, AnimalSexLabels } from "@/app/dashboard/crm/patients/enums/animal-sex";
+import { AnimalSpecies, AnimalSpeciesLabels, AnimalSpeciesDetails } from "@/app/dashboard/crm/patients/enums/animal-species";
 
 function calcAge(iso?: string) {
   if (!iso) return "—";

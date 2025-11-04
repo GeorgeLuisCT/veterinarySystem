@@ -4,7 +4,7 @@ import { AdministrationRoute } from "../../inventory/_enums/administration-route
 import { FrequencyUnit } from "../enums/frequency-unit";
 import { SurgicalReportStatus } from "../enums/surgical-report-status";
 import { AnestheticPhase } from "../enums/anesthetic-phase";
-import { AnimalBasicResponse } from "../../patients/animals/types/animal-basic-response";
+import { AnimalBasicResponse } from "../../crm/patients/types/animal-basic-response";
 
 export interface SurgicalReportSummaryResponse {
   id: number;

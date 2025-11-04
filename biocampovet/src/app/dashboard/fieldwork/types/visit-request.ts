@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { FieldVisitStatus } from '../enums/field-visit-status';
 import { ProductUnitType } from '@/app/dashboard/inventory/_enums/product-unit-type';
 import { AdministrationRoute } from '@/app/dashboard/inventory/_enums/administration-route';
-import { AnimalSpecies } from '@/app/dashboard/patients/animals/enums/animal-species';
+import { AnimalSpecies } from '@/app/dashboard/crm/patients/enums/animal-species';
 
 const baseVisitCore = z.object({
   farmId: z.number().int().positive().optional(),

@@ -28,7 +28,7 @@ import { getAaxiosErrorMessage } from "@/helpers/error";
 
 import { CageResponse } from "@/app/dashboard/clinical/types/cage-response";
 import HospitalizationService from "../../service/hospitalization-service";
-import AnimalService from "@/app/dashboard/patients/animals/service/animal-service";
+import AnimalService from "@/app/dashboard/crm/patients/service/animal-service";
 
 import { createHospitalizationSchema } from "../../types/hospitalization-request";
 import { AdmissionTiming } from "../../enums/admission-timing";

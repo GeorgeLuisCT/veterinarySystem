@@ -6,7 +6,7 @@ import { PlusCircle, RefreshCcw, Scissors } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/context/user-context";
 import { useToast } from "@/hooks/use-toast";
-import { AnimalBasicResponse } from "@/app/dashboard/patients/animals/types/animal-basic-response";
+import { AnimalBasicResponse } from "@/app/dashboard/crm/patients/types/animal-basic-response";
 import AttentionService from "@/app/dashboard/schedule/service/attention-service";
 import { AttentionStatus } from "@/app/dashboard/schedule/enums/attention-status";
 import { AttentionType } from "@/app/dashboard/schedule/enums/attention-type";

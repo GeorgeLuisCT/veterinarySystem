@@ -1,12 +1,12 @@
 "use client";
 
 import { useUser } from "@/context/user-context";
-import DashboardLayoutSection from "../../dashboard-layout-section";
 
 import { useEffect } from "react";
 import { EmployeeProvider } from "./context/employee-context";
 import { EmployeeNavigation } from "./components/employee-navigation";
 import MainEmployee from "./components/main-employee";
+import DashboardLayoutSection from "../dashboard-layout-section";
 
 export default function InventoryPage() {
   const { userInfo } = useUser();

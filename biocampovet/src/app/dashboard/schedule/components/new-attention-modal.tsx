@@ -21,8 +21,8 @@ import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import { useUser } from "@/context/user-context";
-import AnimalService from "@/app/dashboard/patients/animals/service/animal-service";
-import EmployeeService from "@/app/dashboard/staff/employees/service/employee-service";
+import AnimalService from "@/app/dashboard/crm/patients/service/animal-service";
+import EmployeeService from "@/app/dashboard/staff/service/employee-service";
 import ClinicalServiceService from "@/app/dashboard/clinical/service/clinical-service-service";
 import { BranchService } from "@/app/dashboard/branche/services/branch-service";
 

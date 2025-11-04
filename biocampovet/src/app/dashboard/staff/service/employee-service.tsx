@@ -1,10 +1,10 @@
-import { EmployeeQuickSearchResponse } from "@/app/dashboard/staff/employees/types/employee-quick-search-response";
+import { EmployeeQuickSearchResponse } from "@/app/dashboard/staff/types/employee-quick-search-response";
 import {
   EmployeeCreateRequest,
   EmployeeUpdateRequest,
-} from "@/app/dashboard/staff/employees/types/employee-request";
-import { EmployeeResponse } from "@/app/dashboard/staff/employees/types/employee-response";
-import { EmployeeSummaryResponse } from "@/app/dashboard/staff/employees/types/employee-summary-response";
+} from "@/app/dashboard/staff/types/employee-request";
+import { EmployeeResponse } from "@/app/dashboard/staff/types/employee-response";
+import { EmployeeSummaryResponse } from "@/app/dashboard/staff/types/employee-summary-response";
 import api from "@/services/api";
 import { PaginatedResponse } from "@/types/paginated-response";
 

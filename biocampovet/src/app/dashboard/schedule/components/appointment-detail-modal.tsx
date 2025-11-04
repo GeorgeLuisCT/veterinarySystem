@@ -29,7 +29,7 @@ import { AttentionStatus, AttentionStatusLabels } from "../enums/attention-statu
 import { Loader2 } from "lucide-react";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import { useToast } from "@/hooks/use-toast";
-import EmployeeService from "@/app/dashboard/staff/employees/service/employee-service";
+import EmployeeService from "@/app/dashboard/staff/service/employee-service";
 
 interface AppointmentDetailModalProps {
   open: boolean;

@@ -64,24 +64,6 @@ export default function RemindersPage() {
                     <p className="text-gray-600 mt-1">Gestiona las comunicaciones preventivas con los clientes.</p>
                 </div>
 
-                {/* --- KPIs / Métricas --- */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-                    <Card>
-                        <CardHeader className="flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-medium">Pendientes (Próximos 7 Días)</CardTitle>
-                            <Bell className="h-4 w-4 text-red-500" />
-                        </CardHeader>
-                        <CardContent><div className="text-2xl font-bold">4</div></CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-medium">Vacunas Próximas (Mes)</CardTitle>
-                            <Syringe className="h-4 w-4 text-gray-400" />
-                        </CardHeader>
-                        <CardContent><div className="text-2xl font-bold">12</div></CardContent>
-                    </Card>
-                </div>
-
                 <Card>
                     <CardHeader>
                         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">

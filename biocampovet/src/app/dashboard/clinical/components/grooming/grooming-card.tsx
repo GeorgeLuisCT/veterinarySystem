@@ -7,8 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
-import { AnimalSpeciesDetails } from "@/app/dashboard/patients/animals/enums/animal-species";
-import type { AnimalBasicResponse } from "@/app/dashboard/patients/animals/types/animal-basic-response";
+import { AnimalSpeciesDetails } from "@/app/dashboard/crm/patients/enums/animal-species";
+import type { AnimalBasicResponse } from "@/app/dashboard/crm/patients/types/animal-basic-response";
 
 export type GroomingCardData = {
   id: number;

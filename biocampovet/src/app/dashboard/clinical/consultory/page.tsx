@@ -14,7 +14,7 @@ import type { ClinicalAttentionSummaryResponse } from "../types/clinical-attenti
 import ConsultationCard from "../components/consultory/consultation-card";
 import ConsultoryFilters, { type ConsultoryFilters as Filters } from "../components/consultory/consultation-filters";
 import NewAttentionModal from "@/app/dashboard/schedule/components/new-attention-modal";
-import { AnimalBasicResponse } from "../../patients/animals/types/animal-basic-response";
+import { AnimalBasicResponse } from "../../crm/patients/types/animal-basic-response";
 import { useUser } from "@/context/user-context";
 
 function formatLocalDate(d: Date): string {

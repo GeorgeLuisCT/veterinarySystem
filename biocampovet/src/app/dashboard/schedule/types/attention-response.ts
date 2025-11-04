@@ -1,7 +1,7 @@
 import { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
 import { AttentionType } from "../enums/attention-type";
 import { AttentionStatus } from "../enums/attention-status";
-import { AnimalBasicResponse } from "../../patients/animals/types/animal-basic-response";
+import { AnimalBasicResponse } from "../../crm/patients/types/animal-basic-response";
 
 export interface AttentionListParams {
   page?: number;

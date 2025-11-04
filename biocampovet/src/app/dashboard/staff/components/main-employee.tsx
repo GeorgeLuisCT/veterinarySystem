@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import DataTable, { Action } from "@/components/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { EmployeeSummaryResponse } from "../types/employee-summary-response";
@@ -31,15 +31,30 @@ type Props = {
   branchId: number;
 };
 
+type Filters = {
+  q?: string;
+  active: boolean; // alineado con el backend
+};
+
+const DEFAULT_FILTERS: Filters = {
+  q: undefined,
+  active: true,
+};
+
 export default function MainEmployee({ branchId }: Props) {
+  // Context (se asume que guarda la respuesta paginada, como en Animals)
   const { employees, setEmployees, removeEmployee } = useEmployeeContext();
 
-  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeSummaryResponse | null>(null);
+  const [selectedEmployee, setSelectedEmployee] =
+    useState<EmployeeSummaryResponse | null>(null);
   const [activePanel, setActivePanel] = useState<EmployeePanel | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
+
+  // Filtros + paginación controlada
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
   const openPanel = (panel: EmployeePanel, employee: EmployeeSummaryResponse) => {
     setSelectedEmployee(employee);
@@ -88,93 +103,132 @@ export default function MainEmployee({ branchId }: Props) {
     },
   ];
 
-  useEffect(() => {
-    fetchEmployees(0, 10, searchQuery);
-  }, [branchId, searchQuery]);
+  const fetchEmployees = useCallback(
+    async (page: number = 0, size: number = 10) => {
+      setLoading(true);
+      try {
+        const response = await EmployeeService.getEmployees({
+          page,
+          size,
+          active: filters.active,
+          branchId,
+          query: filters.q ?? undefined,
+        });
+        // Igual que en MainAnimals: guardar la respuesta paginada completa
+        setEmployees(response);
+      } catch (error: unknown) {
+        const message =
+          getAaxiosErrorMessage(error) || "Error al cargar empleados";
+        toast.error(message);
+        console.error("Error fetching employees:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [branchId, filters, setEmployees]
+  );
 
-  const fetchEmployees = async (page: number = 0, pageSize: number = 10, query?: string) => {
+  // Reset de página cuando cambien filtros o branch
+  useEffect(() => {
+    setPageIndex(0);
+  }, [filters, branchId]);
+
+  // Cargar datos al cambiar página/tamaño/filtros/sucursal
+  useEffect(() => {
+    fetchEmployees(pageIndex, pageSize);
+  }, [fetchEmployees, pageIndex, pageSize]);
+
+  const handleDisableEmployee = async () => {
+    if (!selectedEmployee) return;
     setLoading(true);
     try {
-      const response = await EmployeeService.getEmployees({
-        page,
-        size: pageSize,
-        active: true,
-        branchId,
-        query,
-      });
-      setEmployees(response.content);
-      setTotalPages(response.totalPages);
+      await EmployeeService.softDeleteEmployee(selectedEmployee.id, branchId);
+      toast.success(
+        `Empleado desactivado correctamente ${
+          branchId ? "en la sucursal actual" : "en todas las sucursales"
+        }`
+      );
+      setActivePanel(null);
+      // refrescar la página actual
+      fetchEmployees(pageIndex, pageSize);
     } catch (error: unknown) {
-      const message = getAaxiosErrorMessage(error) || "Error al cargar empleados";
+      const message =
+        getAaxiosErrorMessage(error) || "Error al desactivar el empleado";
       toast.error(message);
-      console.error("Error fetching employees:", error);
+      console.error("Error disabling employee:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDisableEmployee = async () => {
-    if (selectedEmployee) {
-      setLoading(true);
-      try {
-        await EmployeeService.softDeleteEmployee(selectedEmployee.id, branchId);
-        removeEmployee(selectedEmployee.id);
-        toast.success(
-          `Empleado desactivado correctamente ${branchId ? "en la sucursal actual" : "en todas las sucursales"}`
-        );
-        setActivePanel(null);
-      } catch (error: unknown) {
-        const message = getAaxiosErrorMessage(error) || "Error al desactivar el empleado";
-        toast.error(message);
-        console.error("Error disabling employee:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
   const handleDeleteEmployee = async () => {
-    if (selectedEmployee) {
-      setLoading(true);
-      try {
-        await EmployeeService.hardDeleteEmployee(selectedEmployee.id);
-        removeEmployee(selectedEmployee.id);
-        toast.success("Empleado eliminado correctamente");
-        setActivePanel(null);
-      } catch (error: unknown) {
-        const message = getAaxiosErrorMessage(error) || "Error al eliminar el empleado";
-        toast.error(message);
-        console.error("Error deleting employee:", error);
-      } finally {
-        setLoading(false);
-      }
+    if (!selectedEmployee) return;
+    setLoading(true);
+    try {
+      await EmployeeService.hardDeleteEmployee(selectedEmployee.id);
+      removeEmployee(selectedEmployee.id);
+      toast.success("Empleado eliminado correctamente");
+      setActivePanel(null);
+    } catch (error: unknown) {
+      const message =
+        getAaxiosErrorMessage(error) || "Error al eliminar el empleado";
+      toast.error(message);
+      console.error("Error deleting employee:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="h-full">
+    <div className="h-full space-y-4">
+      {/* Buscador simple alineado al patrón */}
+      <div className="flex items-center gap-2">
+        <input
+          className="w-full rounded-md border px-3 py-2 text-sm bg-background"
+          placeholder="Buscar por nombre, apellido, cargo o correo…"
+          value={filters.q ?? ""}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, q: e.target.value || undefined }))
+          }
+        />
+      </div>
+
       <DataTable<EmployeeSummaryResponse>
-        data={employees}
+        pageData={employees}
         columns={employeeColumns}
         actions={employeeActions}
-        fetchData={fetchEmployees}
-        onSearch={setSearchQuery}
-        totalPages={totalPages}
+        pageIndex={employees?.currentPage ?? pageIndex}
+        pageSize={employees?.pageSize ?? pageSize}
+        onPageIndexChange={setPageIndex}
+        onPageSizeChange={(s) => {
+          setPageSize(s);
+          setPageIndex(0);
+        }}
         loading={loading}
       />
 
-      <Dialog open={activePanel === EmployeePanel.Edit} onOpenChange={() => setActivePanel(null)}>
+      {/* Editar */}
+      <Dialog
+        open={activePanel === EmployeePanel.Edit}
+        onOpenChange={() => setActivePanel(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Empleado</DialogTitle>
-            <DialogDescription>Modifica los datos generales del empleado.</DialogDescription>
+            <DialogDescription>
+              Modifica los datos generales del empleado.
+            </DialogDescription>
           </DialogHeader>
           {selectedEmployee && (
-            <EmployeeForm employeeId={selectedEmployee.id} setOpen={() => setActivePanel(null)} />
+            <EmployeeForm
+              employeeId={selectedEmployee.id}
+              setOpen={() => setActivePanel(null)}
+            />
           )}
         </DialogContent>
       </Dialog>
 
+      {/* Desactivar */}
       <ConfirmationDialog
         open={activePanel === EmployeePanel.Disable}
         onClose={() => setActivePanel(null)}
@@ -182,13 +236,13 @@ export default function MainEmployee({ branchId }: Props) {
         description={
           branchId === 0 ? (
             <>
-              Al deshabilitar <strong>{selectedEmployee?.firstName}</strong>, será removido de{" "}
-              <strong>todas las sucursales</strong>.
+              Al deshabilitar <strong>{selectedEmployee?.firstName}</strong>,
+              será removido de <strong>todas las sucursales</strong>.
             </>
           ) : (
             <>
-              Al deshabilitar <strong>{selectedEmployee?.firstName}</strong>, será removido de{" "}
-              <strong>la sucursal actual</strong>.
+              Al deshabilitar <strong>{selectedEmployee?.firstName}</strong>,
+              será removido de <strong>la sucursal actual</strong>.
             </>
           )
         }
@@ -197,14 +251,15 @@ export default function MainEmployee({ branchId }: Props) {
         confirmText="Estoy seguro"
       />
 
+      {/* Eliminar */}
       <ConfirmationDialog
         open={activePanel === EmployeePanel.Delete}
         onClose={() => setActivePanel(null)}
         title="¿Estás seguro de eliminar este empleado?"
         description={
           <>
-            Al eliminar <strong>{selectedEmployee?.firstName}</strong>, desaparecerá completamente
-            del sistema.
+            Al eliminar <strong>{selectedEmployee?.firstName}</strong>,
+            desaparecerá completamente del sistema.
           </>
         }
         tooltipMessage="Esta acción no se puede deshacer."
@@ -213,7 +268,11 @@ export default function MainEmployee({ branchId }: Props) {
         confirmVariant="destructive"
       />
 
-      <Dialog open={activePanel === EmployeePanel.View} onOpenChange={() => setActivePanel(null)}>
+      {/* Ver */}
+      <Dialog
+        open={activePanel === EmployeePanel.View}
+        onOpenChange={() => setActivePanel(null)}
+      >
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detalles del Empleado</DialogTitle>
@@ -223,7 +282,9 @@ export default function MainEmployee({ branchId }: Props) {
                 : "Visualiza la información completa del empleado en esta sucursal."}
             </DialogDescription>
           </DialogHeader>
-          {selectedEmployee && <EmployeeDetail employeeId={selectedEmployee.id} />}
+          {selectedEmployee && (
+            <EmployeeDetail employeeId={selectedEmployee.id} />
+          )}
         </DialogContent>
       </Dialog>
     </div>

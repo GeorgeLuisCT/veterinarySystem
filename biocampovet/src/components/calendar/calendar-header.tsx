@@ -254,12 +254,12 @@ export function CalendarHeader({
         )}
 
         {/* Acciones: desktop vs móvil */}
-        <div className="hidden md:flex items-center gap-1 md:gap-2">
+        {/*<div className="hidden md:flex items-center gap-1 md:gap-2">
           <DesktopActions />
         </div>
         <div className="md:hidden">
           <MobileMenu />
-        </div>
+        </div>*/}
 
         {/* Botón principal configurable */}
         {primaryAction && (

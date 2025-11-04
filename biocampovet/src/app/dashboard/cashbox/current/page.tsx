@@ -6,14 +6,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/context/user-context";
-import CashSessionService from "./_service/cash-session.service";
-import { CashSessionDetailResponse, CashSessionSummaryResponse } from "./_types/cash-session-response";
-import { CashMovementType } from "./_types/cash-session-enums";
-import OpenSessionDialog from "./_components/open-session-dialog";
-import RegisterMovementDialog from "./_components/register-movement-dialog";
-import CloseSessionDialog from "./_components/close-session-dialog";
-import { MovementFormValues } from "./_schemas/movement-schema";
-import { CloseSessionFormValues } from "./_schemas/close-session-schema";
+import { CashSessionDetailResponse, CashSessionSummaryResponse } from "../_types/cash-session-response";
+import CashSessionService from "../_service/cash-session.service";
+import { MovementFormValues } from "../_schemas/movement-schema";
+import { CloseSessionFormValues } from "../_schemas/close-session-schema";
+import OpenSessionDialog from "../_components/open-session-dialog";
+import RegisterMovementDialog from "../_components/register-movement-dialog";
+import CloseSessionDialog from "../_components/close-session-dialog";
+import { CashMovementType } from "../_types/cash-session-enums";
+
 
 export default function CurrentCashSessionPage() {
   const { userInfo } = useUser();
