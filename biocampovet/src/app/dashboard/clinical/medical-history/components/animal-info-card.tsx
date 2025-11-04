@@ -1,27 +1,63 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
+import { AlertTriangle, CalendarClock, PawPrint } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle } from "lucide-react";
+import type { ClinicalHistoryPatientInfo } from "../../types/medical-history-response";
+import { AnimalSpeciesLabels } from "@/app/dashboard/crm/patients/enums/animal-species";
+import { AnimalSexLabels } from "@/app/dashboard/crm/patients/enums/animal-sex";
 
 interface Props {
-  patient: any; // TIP: replace with a typed interface
-  children?: ReactNode; // for actions (e.g., Export PDF)
+  patient: ClinicalHistoryPatientInfo;
+  children?: ReactNode;
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("es-PE", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
 }
 
 export default function AnimalInfoCard({ patient, children }: Props) {
-  const showAllergy = patient.allergies?.length > 0 && patient.allergies[0] !== "Ninguna conocida";
-  const showChronic = patient.chronicConditions?.length > 0;
+  const alertGroups = useMemo(() => {
+    const allergies = patient.allergies?.filter(Boolean) ?? [];
+    const chronic = patient.chronicConditions?.filter(Boolean) ?? [];
+    return { allergies, chronic };
+  }, [patient.allergies, patient.chronicConditions]);
+
+  const ownerLine = patient.owner
+    ? `${patient.owner.name}${patient.owner.documentNumber ? ` • ${patient.owner.documentNumber}` : ""}`
+    : "Propietario no registrado";
+
+  const speciesLabel = patient.speciesLabel ?? (patient.species ? AnimalSpeciesLabels[patient.species] : "—");
+  const sexLabel = patient.sexLabel ?? (patient.sex ? AnimalSexLabels[patient.sex] : "—");
 
   return (
     <Card>
       <CardHeader>
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
-          <div>
-            <CardTitle className="text-2xl">{patient.patientName}</CardTitle>
-            <CardDescription>
-              Propietario: {patient.owner} • Última visita: {patient.lastVisit}
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <PawPrint className="h-5 w-5 text-primary" />
+              <CardTitle className="text-2xl">{patient.name}</CardTitle>
+            </div>
+            <CardDescription className="flex flex-wrap items-center gap-2 text-sm">
+              <span>{ownerLine}</span>
+              {patient.lastVisitDate && (
+                <>
+                  <span>•</span>
+                  <span className="inline-flex items-center gap-1">
+                    <CalendarClock className="h-3.5 w-3.5" />
+                    Última visita: {formatDate(patient.lastVisitDate)}
+                  </span>
+                </>
+              )}
             </CardDescription>
           </div>
           {children}
@@ -33,48 +69,48 @@ export default function AnimalInfoCard({ patient, children }: Props) {
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm md:grid-cols-4">
             <div>
               <span className="text-muted-foreground">Especie: </span>
-              <span className="font-medium">{patient.species}</span>
+              <span className="font-medium">{speciesLabel}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Raza: </span>
-              <span className="font-medium">{patient.breed}</span>
+              <span className="font-medium">{patient.breed ?? "—"}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Sexo: </span>
-              <span className="font-medium">{patient.sex}</span>
+              <span className="font-medium">{sexLabel}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Edad: </span>
-              <span className="font-medium">{patient.age}</span>
+              <span className="font-medium">{patient.age ?? "—"}</span>
             </div>
             <div className="col-span-2">
               <span className="text-muted-foreground">Microchip: </span>
-              <span className="font-medium">{patient.microchip}</span>
+              <span className="font-medium">{patient.microchip ?? "—"}</span>
             </div>
           </div>
 
-          {(showAllergy || showChronic) && (
+          {(alertGroups.allergies.length > 0 || alertGroups.chronic.length > 0) && (
             <div className="space-y-3 rounded-md border border-destructive/50 bg-destructive/5 p-3">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-destructive" />
-                <h4 className="font-semibold text-destructive">Alertas Médicas Importantes</h4>
+                <h4 className="font-semibold text-destructive">Alertas médicas importantes</h4>
               </div>
-              {showAllergy && (
+              {alertGroups.allergies.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 text-sm">
                   <span className="font-medium text-foreground">Alergias:</span>
-                  {patient.allergies.map((a: string) => (
-                    <Badge key={a} variant="destructive">
-                      {a}
+                  {alertGroups.allergies.map((allergy) => (
+                    <Badge key={allergy} variant="destructive">
+                      {allergy}
                     </Badge>
                   ))}
                 </div>
               )}
-              {showChronic && (
+              {alertGroups.chronic.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="font-medium text-foreground">Condiciones Crónicas:</span>
-                  {patient.chronicConditions.map((c: string) => (
-                    <Badge key={c} variant="secondary" className="border border-amber-500/50">
-                      {c}
+                  <span className="font-medium text-foreground">Condiciones crónicas:</span>
+                  {alertGroups.chronic.map((condition) => (
+                    <Badge key={condition} variant="secondary" className="border border-amber-500/50">
+                      {condition}
                     </Badge>
                   ))}
                 </div>

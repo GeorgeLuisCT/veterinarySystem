@@ -6,10 +6,30 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class LaboratoryRequestSpecs {
+
+    public static Specification<LaboratoryRequest> byAnimalAndCreatedRange(
+            Long animalId, LocalDateTime from, LocalDateTime to) {
+
+        return (root, cq, cb) -> {
+            List<Predicate> p = new ArrayList<>();
+            p.add(cb.equal(root.get("animal").get("id"), animalId));
+
+            if (from != null) {
+                p.add(cb.greaterThanOrEqualTo(root.get("createdAt"), from));
+            }
+            if (to != null) {
+                p.add(cb.lessThanOrEqualTo(root.get("createdAt"), to));
+            }
+
+            cq.distinct(true);
+            return cb.and(p.toArray(new Predicate[0]));
+        };
+    }
 
     public static Specification<LaboratoryRequest> byFilters(
             List<LabRequestStatus> statuses,

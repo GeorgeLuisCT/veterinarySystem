@@ -19,6 +19,25 @@ public final class SurgicalReportSpecs {
     private SurgicalReportSpecs() {
     }
 
+    public static Specification<SurgicalReport> byAnimalAndSurgeryRange(
+            Long animalId, LocalDateTime from, LocalDateTime to) {
+
+        return (root, cq, cb) -> {
+            List<Predicate> p = new ArrayList<>();
+            p.add(cb.equal(root.get("attention").get("animal").get("id"), animalId));
+
+            if (from != null) {
+                p.add(cb.greaterThanOrEqualTo(root.get("surgeryStartAt"), from));
+            }
+            if (to != null) {
+                p.add(cb.lessThanOrEqualTo(root.get("surgeryStartAt"), to));
+            }
+
+            cq.distinct(true);
+            return cb.and(p.toArray(new Predicate[0]));
+        };
+    }
+
     public static Specification<SurgicalReport> byFilters(
             List<SurgicalReportStatus> statuses,
             Long branchId,

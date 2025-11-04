@@ -2,6 +2,7 @@ package com.gaedet.biocampovet.core.animal.repository;
 
 import com.gaedet.biocampovet.core.animal.dto.AnimalSummaryResponse;
 import com.gaedet.biocampovet.core.animal.entity.Animal;
+import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -85,8 +86,33 @@ public interface AnimalRepository extends JpaRepository<Animal, Long> {
             @Param("isActive") Boolean isActive
     );
 
-    @EntityGraph(attributePaths = {"species", "owner"})
+    @EntityGraph(type = EntityGraph.EntityGraphType.LOAD, attributePaths = {
+            "owner",
+            "owner.documentType",
+            "allergies",
+            "chronicConditions"
+    })
     Optional<Animal> findWithDetailsById(Long id);
+
+
+
+    @EntityGraph(attributePaths = {"owner"})
+    @Query("""
+        select a from Animal a
+        where (:query is null or lower(a.name) like lower(concat('%', :query, '%'))
+            or lower(a.owner.name) like lower(concat('%', :query, '%'))
+            or lower(a.breed) like lower(concat('%', :query, '%'))
+            or lower(a.microchipNumber) like lower(concat('%', :query, '%')))
+          and (:speciesList is null or a.species in :speciesList)
+          and (:active is null or a.isActive = :active)
+        order by a.name asc
+    """)
+    Page<Animal> searchForClinicalHistory(
+            @Param("query") String query,
+            @Param("speciesList") List<AnimalSpecies> speciesList,
+            @Param("active") Boolean active,
+            Pageable pageable
+    );
 
     boolean existsByOwner_IdAndNameIgnoreCase(Long ownerId, String name);
 }

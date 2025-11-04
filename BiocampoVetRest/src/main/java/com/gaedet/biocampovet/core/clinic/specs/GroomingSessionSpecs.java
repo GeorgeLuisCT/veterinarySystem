@@ -18,6 +18,30 @@ public final class GroomingSessionSpecs {
     private GroomingSessionSpecs() {
     }
 
+    public static Specification<GroomingSession> byAnimalAndTimeRange(
+            Long animalId, LocalDateTime from, LocalDateTime to) {
+
+        return (root, cq, cb) -> {
+            List<Predicate> p = new ArrayList<>();
+            p.add(cb.equal(root.get("attention").get("animal").get("id"), animalId));
+
+            if (from != null) {
+                p.add(cb.greaterThanOrEqualTo(root.get("startedAt"), from));
+            }
+            if (to != null) {
+                Predicate finishedLeTo = cb.and(
+                        cb.isNotNull(root.get("finishedAt")),
+                        cb.lessThanOrEqualTo(root.get("finishedAt"), to)
+                );
+                Predicate startedLeTo = cb.lessThanOrEqualTo(root.get("startedAt"), to);
+                p.add(cb.or(finishedLeTo, startedLeTo));
+            }
+
+            cq.distinct(true);
+            return cb.and(p.toArray(new Predicate[0]));
+        };
+    }
+
     public static Specification<GroomingSession> byFilters(
             List<GroomingStatus> statuses,
             Long branchId,

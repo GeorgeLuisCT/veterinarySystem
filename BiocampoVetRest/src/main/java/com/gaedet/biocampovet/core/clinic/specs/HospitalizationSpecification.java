@@ -6,10 +6,33 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class HospitalizationSpecification {
+
+    public static Specification<Hospitalization> byAnimalAndAdmissionDischargeRange(
+            Long animalId, LocalDateTime from, LocalDateTime to) {
+
+        return (root, cq, cb) -> {
+            List<Predicate> p = new ArrayList<>();
+            p.add(cb.equal(root.get("animal").get("id"), animalId));
+
+            if (from != null) {
+                Predicate dischargeNull = cb.isNull(root.get("dischargeDate"));
+                Predicate dischargeGeFrom = cb.greaterThanOrEqualTo(root.get("dischargeDate"), from);
+                p.add(cb.or(dischargeNull, dischargeGeFrom));
+            }
+
+            if (to != null) {
+                p.add(cb.lessThanOrEqualTo(root.get("admissionDate"), to));
+            }
+
+            cq.distinct(true);
+            return cb.and(p.toArray(new Predicate[0]));
+        };
+    }
 
     public static Specification<Hospitalization> byFilters(
             Long branchId,

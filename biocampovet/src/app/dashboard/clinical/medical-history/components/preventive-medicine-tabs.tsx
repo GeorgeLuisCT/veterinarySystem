@@ -1,124 +1,150 @@
 "use client";
 
+import { Bug, MonitorCog, Scissors, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Bug, MonitorCog, Scissors, ShieldCheck, Syringe } from "lucide-react";
+import type {
+  ClinicalHistoryGroomingEntry,
+  ClinicalHistoryPreventiveCare,
+  ClinicalHistoryPreventiveEvent,
+} from "../../types/medical-history-response";
+import { ClinicalServiceCategory, ClinicalServiceCategoryLabels } from "../../enums/clinical-service-category";
 
-const EmptyState = ({ icon: Icon, message }: { icon: any; message: string }) => (
+const EmptyState = ({ icon: Icon, message }: { icon: React.ComponentType<{ className?: string }>; message: string }) => (
   <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
     <Icon className="mx-auto h-12 w-12 text-muted-foreground" />
     <p className="mt-4 text-sm font-medium text-muted-foreground">{message}</p>
   </div>
 );
 
-function VaccinesTab({ vaccines }: { vaccines: any[] }) {
+function formatDate(value?: string) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("es-PE", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+function PreventiveList({ items }: { items: ClinicalHistoryPreventiveEvent[] }) {
+  if (!items.length) {
+    return <EmptyState icon={ShieldCheck} message="No hay registros de medicina preventiva." />;
+  }
   return (
     <div className="space-y-3">
-      {vaccines?.length > 0 ? (
-        vaccines.map((vaccine, index) => (
-          <Card key={index} className="flex items-center justify-between p-4">
+      {items.map((event) => {
+        const categoryLabel = ClinicalServiceCategoryLabels[event.category];
+        return (
+          <Card key={`${event.serviceItemId}-${event.performedAt ?? "pending"}`} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="font-semibold text-foreground">{vaccine.name}</p>
-              <p className="text-sm text-muted-foreground">
-                Aplicada: {vaccine.date} • Próxima: {vaccine.nextDue}
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-semibold text-foreground">{event.serviceName}</p>
+                <Badge variant="outline">{categoryLabel}</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Aplicada: {formatDate(event.performedAt)} • Próxima: {formatDate(event.nextDueDate)}
               </p>
+              {event.veterinarian && (
+                <p className="text-xs text-muted-foreground mt-1">Responsable: {event.veterinarian}</p>
+              )}
+              {event.notes && <p className="text-xs text-muted-foreground mt-1">{event.notes}</p>}
             </div>
-            <Badge
-              variant={vaccine.status === "Vigente" ? "default" : "secondary"}
-              className={vaccine.status === "Vigente" ? "bg-green-600 text-white" : ""}
-            >
-              {vaccine.status}
-            </Badge>
           </Card>
-        ))
-      ) : (
-        <EmptyState icon={Syringe} message="No hay registros de vacunas." />
-      )}
+        );
+      })}
     </div>
   );
 }
 
-function DewormingTab({ deworming }: { deworming: any[] }) {
+function DewormingList({ items }: { items: ClinicalHistoryPreventiveEvent[] }) {
+  if (!items.length) {
+    return <EmptyState icon={Bug} message="No hay registros de desparasitación." />;
+  }
   return (
     <div className="space-y-3">
-      {deworming?.length > 0 ? (
-        deworming.map((item, index) => (
-          <Card key={index} className="flex items-center justify-between p-4">
-            <div>
-              <p className="font-semibold text-foreground">
-                {item.product} <Badge variant="outline">{item.type}</Badge>
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Aplicada: {item.date} • Próxima: {item.nextDue}
-              </p>
-            </div>
-          </Card>
-        ))
-      ) : (
-        <EmptyState icon={Bug} message="No hay registros de desparasitación." />
-      )}
+      {items.map((event) => (
+        <Card key={`${event.serviceItemId}-${event.performedAt ?? "pending"}`} className="p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-semibold text-foreground">{event.serviceName}</p>
+            <Badge variant="outline">{ClinicalServiceCategoryLabels[event.category]}</Badge>
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">
+            Aplicada: {formatDate(event.performedAt)} • Próxima: {formatDate(event.nextDueDate)}
+          </p>
+          {event.notes && <p className="text-xs text-muted-foreground mt-1">{event.notes}</p>}
+        </Card>
+      ))}
     </div>
   );
 }
 
-function GroomingTab({ groomingHistory }: { groomingHistory: any[] }) {
+function GroomingList({ entries }: { entries: ClinicalHistoryGroomingEntry[] }) {
+  if (!entries.length) {
+    return <EmptyState icon={Scissors} message="No hay historial de peluquería registrado." />;
+  }
+
   return (
     <div className="space-y-4">
-      {groomingHistory?.length > 0 ? (
-        groomingHistory.map((item, index) => (
-          <Card key={index} className="p-4">
-            <div className="mb-2">
-              <p className="font-semibold text-foreground">{item.service || item.procedure}</p>
-              <p className="text-sm text-muted-foreground">
-                Fecha: {item.date} • {item.vet ? `Veterinario: ${item.vet}` : item.groomer ? `Estilista: ${item.groomer}` : null}
-              </p>
-            </div>
-            <div className="text-sm">
-              <p className="font-medium text-foreground">Notas:</p>
-              <p className="text-muted-foreground">{item.notes}</p>
-            </div>
-          </Card>
-        ))
-      ) : (
-        <EmptyState icon={Scissors} message="No hay historial de peluquería registrado." />
-      )}
+      {entries.map((entry) => (
+        <Card key={entry.id} className="p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-semibold text-foreground">{entry.serviceName}</p>
+            <Badge variant="outline">{entry.status}</Badge>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Inicio: {formatDate(entry.startedAt)} • Fin: {formatDate(entry.finishedAt)}
+          </p>
+          {entry.assignedProfessional && (
+            <p className="mt-1 text-sm text-muted-foreground">Profesional: {entry.assignedProfessional}</p>
+          )}
+          {entry.behaviorNotes && (
+            <p className="mt-2 text-xs text-muted-foreground">Comportamiento: {entry.behaviorNotes}</p>
+          )}
+          {entry.clinicalObservations && (
+            <p className="mt-2 text-xs text-muted-foreground">Observaciones: {entry.clinicalObservations}</p>
+          )}
+        </Card>
+      ))}
     </div>
   );
 }
 
-export default function PreventiveMedicineTabs({
-  vaccines,
-  deworming,
-  groomingHistory,
-}: {
-  vaccines: any[];
-  deworming: any[];
-  groomingHistory: any[];
-}) {
+export default function PreventiveMedicineTabs({ preventiveCare }: { preventiveCare: ClinicalHistoryPreventiveCare }) {
+  const vaccines = preventiveCare.vaccines.filter((item) => item.category === ClinicalServiceCategory.VACCINATION);
+  const deworming = preventiveCare.deworming.filter((item) => item.category === ClinicalServiceCategory.DEWORMING);
+
   return (
     <Card className="col-span-1">
       <CardHeader>
-        <CardTitle className="text-lg">Medicina Preventiva</CardTitle>
+        <CardTitle className="text-lg">Medicina preventiva</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="vaccinesAndDeworming">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="vaccinesAndDeworming">
-              <ShieldCheck className="mr-2 h-4 w-4" />Vacunas y Desp.
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              Vacunas y Desparasitación
             </TabsTrigger>
             <TabsTrigger value="grooming">
-              <MonitorCog className="mr-2 h-4 w-4" />Baño y Peluquería
+              <MonitorCog className="mr-2 h-4 w-4" />
+              Baño y Peluquería
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="vaccinesAndDeworming" className="mt-4 space-y-4">
-            <h4 className="font-semibold">Vacunas</h4>
-            <VaccinesTab vaccines={vaccines} />
-            <h4 className="mt-4 font-semibold">Desparasitación</h4>
-            <DewormingTab deworming={deworming} />
+          <TabsContent value="vaccinesAndDeworming" className="mt-4 space-y-6">
+            <div>
+              <h4 className="font-semibold mb-2">Vacunas</h4>
+              <PreventiveList items={vaccines} />
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Desparasitación</h4>
+              <DewormingList items={deworming} />
+            </div>
           </TabsContent>
           <TabsContent value="grooming" className="mt-4">
-            <GroomingTab groomingHistory={groomingHistory} />
+            <GroomingList entries={preventiveCare.groomingSessions} />
           </TabsContent>
         </Tabs>
       </CardContent>

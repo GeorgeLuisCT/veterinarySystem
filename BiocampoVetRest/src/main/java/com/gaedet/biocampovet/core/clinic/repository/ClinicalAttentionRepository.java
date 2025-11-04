@@ -1,14 +1,20 @@
 package com.gaedet.biocampovet.core.clinic.repository;
 
+import com.gaedet.biocampovet.core.clinic.dto.history.ClinicalHistoryLatestAttentionProjection;
 import com.gaedet.biocampovet.core.clinic.entity.ClinicalAttention;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Set;
+import java.util.List;
 
 @Repository
 public interface ClinicalAttentionRepository extends
@@ -23,7 +29,7 @@ public interface ClinicalAttentionRepository extends
             "attention.branch",
             "attention.attendingEmployee"
     })
-    Page<ClinicalAttention> findAll(@Nullable org.springframework.data.jpa.domain.Specification<ClinicalAttention> spec,
+    Page<ClinicalAttention> findAll(@Nullable Specification<ClinicalAttention> spec,
                                     Pageable pageable);
 
     @EntityGraph(attributePaths = {
@@ -32,8 +38,8 @@ public interface ClinicalAttentionRepository extends
             "attention.branch",
             "attention.attendingEmployee"
     })
-    java.util.List<ClinicalAttention> findAll(@Nullable org.springframework.data.jpa.domain.Specification<ClinicalAttention> spec,
-                                              org.springframework.data.domain.Sort sort);
+    List<ClinicalAttention> findAll(@Nullable Specification<ClinicalAttention> spec,
+                                    Sort sort);
 
     @EntityGraph(attributePaths = {
             "attention",
@@ -72,4 +78,47 @@ public interface ClinicalAttentionRepository extends
     boolean existsByAttention_Id(Long attentionId);
 
     @Query("select ca from ClinicalAttention ca where ca.attention.id = :attentionId")
-    Optional<ClinicalAttention> findByAttentionId(@Param("attentionId") Long attentionId);}
+    Optional<ClinicalAttention> findByAttentionId(@Param("attentionId") Long attentionId);
+
+
+    @Query("""
+        select distinct ca from ClinicalAttention ca
+        left join fetch ca.serviceItems items
+        left join fetch items.clinicalService
+        where ca in :attentions
+    """)
+    List<ClinicalAttention> loadServiceItemsFor(@Param("attentions") List<ClinicalAttention> attentions);
+
+    @EntityGraph(attributePaths = {
+            "attention",
+            "attention.animal",
+            "attention.branch",
+            "attention.attendingEmployee",
+            "attention.service"
+    })
+    List<ClinicalAttention> findByIdIn(Set<Long> ids);
+
+    @Query("""
+        select ca.attention.animal.id as animalId,
+               ca.id as clinicalAttentionId,
+               ca.visitDate as visitDate
+        from ClinicalAttention ca
+        where ca.attention.animal.id in :animalIds
+          and ca.visitDate = (
+              select max(innerCa.visitDate)
+              from ClinicalAttention innerCa
+              where innerCa.attention.animal.id = ca.attention.animal.id
+          )
+    """)
+    List<ClinicalHistoryLatestAttentionProjection> findLatestByAnimalIds(
+            @Param("animalIds") Set<Long> animalIds
+    );
+
+    @Query("""
+        select ca.attention.animal.id, count(ca)
+        from ClinicalAttention ca
+        where ca.attention.animal.id in :animalIds
+        group by ca.attention.animal.id
+    """)
+    List<Object[]> countByAnimalIds(@Param("animalIds") Set<Long> animalIds);
+}

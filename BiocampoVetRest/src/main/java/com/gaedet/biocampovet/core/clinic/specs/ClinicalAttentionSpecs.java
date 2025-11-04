@@ -7,9 +7,12 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -17,6 +20,26 @@ import java.util.Set;
 public final class ClinicalAttentionSpecs {
 
     private ClinicalAttentionSpecs() {
+    }
+
+    public static Specification<ClinicalAttention> byAnimalAndVisitRange(
+            Long animalId, LocalDateTime from, LocalDateTime to) {
+
+        return (root, cq, cb) -> {
+            List<Predicate> p = new ArrayList<>();
+            Path<Long> animalIdPath = root.get("attention").get("animal").get("id");
+            p.add(cb.equal(animalIdPath, animalId));
+
+            if (from != null) {
+                p.add(cb.greaterThanOrEqualTo(root.get("visitDate"), from));
+            }
+            if (to != null) {
+                p.add(cb.lessThanOrEqualTo(root.get("visitDate"), to));
+            }
+
+            cq.distinct(true);
+            return cb.and(p.toArray(new Predicate[0]));
+        };
     }
 
     public static Specification<ClinicalAttention> byFilters(
