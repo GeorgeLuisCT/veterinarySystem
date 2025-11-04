@@ -184,7 +184,7 @@ export default function AttentionsPage() {
   return (
     <DashboardLayoutSection>
       <div className="h-full bg-gray-50 p-4 sm:p-6">
-        <div className="max-w-7xl mx-auto h-full flex flex-col">
+        <div className="max-w-8xl mx-auto h-full flex flex-col">
           <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
             <div>
               <h1 className="text-3xl font-bold text-slate-900">Recepción</h1>
