@@ -10,6 +10,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -17,8 +18,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateSaleRequest {
-
-    private Long saleId;
 
     @Builder.Default
     private boolean finalizeSale = false;
@@ -31,10 +30,8 @@ public class CreateSaleRequest {
 
     private Long customerId;
 
-    @NotNull
     private SalesDocumentType documentType;
 
-    @NotBlank
     private String documentNumber;
 
     @NotEmpty
@@ -42,7 +39,8 @@ public class CreateSaleRequest {
     private List<SaleItemRequest> items;
 
     @Valid
-    private List<SalePaymentRequest> payments;
+    @Builder.Default
+    private List<SalePaymentRequest> payments = new ArrayList<>();
 
     private String notes;
 }

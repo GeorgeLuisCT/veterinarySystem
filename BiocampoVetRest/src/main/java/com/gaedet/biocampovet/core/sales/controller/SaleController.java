@@ -2,7 +2,11 @@ package com.gaedet.biocampovet.core.sales.controller;
 
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
 import com.gaedet.biocampovet.core.sales.billable.BillableServiceItem;
+import com.gaedet.biocampovet.core.sales.dto.FinalizeSaleRequest;
+import com.gaedet.biocampovet.core.sales.dto.UpdateSaleRequest;
 import com.gaedet.biocampovet.core.sales.dto.request.CreateSaleRequest;
+import com.gaedet.biocampovet.core.sales.dto.request.SaleItemRequest;
+import com.gaedet.biocampovet.core.sales.dto.request.SalePaymentRequest;
 import com.gaedet.biocampovet.core.sales.dto.request.VoidSaleRequest;
 import com.gaedet.biocampovet.core.sales.dto.response.SaleResponse;
 import com.gaedet.biocampovet.core.sales.dto.response.SaleSummaryResponse;
@@ -13,13 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -33,8 +31,16 @@ public class SaleController {
     private final SaleService saleService;
 
     @PostMapping
-    public ResponseEntity<SaleResponse> saveSale(@RequestBody @Valid CreateSaleRequest request) {
-        return ResponseEntity.ok(saleService.saveSale(request));
+    public ResponseEntity<SaleResponse> createSale(@RequestBody @Valid CreateSaleRequest request) {
+        return ResponseEntity.ok(saleService.createSale(request));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<SaleResponse> updateSale(
+            @PathVariable Long id,
+            @RequestBody @Valid UpdateSaleRequest request
+    ) {
+        return ResponseEntity.ok(saleService.updateSale(id, request));
     }
 
     @GetMapping("/{id}")
@@ -82,5 +88,65 @@ public class SaleController {
             @RequestParam(required = false) String q
     ) {
         return ResponseEntity.ok(saleService.listBillableItems(branchId, attentionId, patientId, q));
+    }
+
+    @PostMapping("/{id}/details")
+    public ResponseEntity<SaleResponse> addDetailToSale(
+            @PathVariable Long id,
+            @RequestBody @Valid SaleItemRequest request
+    ) {
+        return ResponseEntity.ok(saleService.addDetailToSale(id, request));
+    }
+
+    @PutMapping("/{id}/details/{detailId}")
+    public ResponseEntity<SaleResponse> updateSaleDetail(
+            @PathVariable Long id,
+            @PathVariable Long detailId,
+            @RequestBody @Valid SaleItemRequest request
+    ) {
+        return ResponseEntity.ok(saleService.updateSaleDetail(id, detailId, request));
+    }
+
+    @DeleteMapping("/{id}/details/{detailId}")
+    public ResponseEntity<Void> deleteSaleDetail(
+            @PathVariable Long id,
+            @PathVariable Long detailId
+    ) {
+        saleService.deleteSaleDetail(id, detailId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/payments")
+    public ResponseEntity<SaleResponse> addPaymentToSale(
+            @PathVariable Long id,
+            @RequestBody @Valid SalePaymentRequest request
+    ) {
+        return ResponseEntity.ok(saleService.addPaymentToSale(id, request));
+    }
+
+    @PutMapping("/{id}/payments/{paymentId}")
+    public ResponseEntity<SaleResponse> updateSalePayment(
+            @PathVariable Long id,
+            @PathVariable Long paymentId,
+            @RequestBody @Valid SalePaymentRequest request
+    ) {
+        return ResponseEntity.ok(saleService.updateSalePayment(id, paymentId, request));
+    }
+
+    @DeleteMapping("/{id}/payments/{paymentId}")
+    public ResponseEntity<Void> deleteSalePayment(
+            @PathVariable Long id,
+            @PathVariable Long paymentId
+    ) {
+        saleService.deleteSalePayment(id, paymentId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/finalize")
+    public ResponseEntity<SaleResponse> finalizeSale(
+            @PathVariable Long id,
+            @RequestBody @Valid FinalizeSaleRequest request
+    ) {
+        return ResponseEntity.ok(saleService.finalizeSale(id, request));
     }
 }

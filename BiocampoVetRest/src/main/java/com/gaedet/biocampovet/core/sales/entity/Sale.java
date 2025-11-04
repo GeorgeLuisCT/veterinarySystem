@@ -32,6 +32,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+
+
 @Entity
 @Table(
         name = "sales",
@@ -70,10 +72,10 @@ public class Sale {
     private SaleStatus status = SaleStatus.DRAFT;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "document_type", nullable = false, length = 20)
+    @Column(name = "document_type", length = 20)
     private SalesDocumentType documentType;
 
-    @Column(name = "document_number", length = 32, nullable = false)
+    @Column(name = "document_number", length = 32)
     private String documentNumber;
 
     @Column(name = "subtotal", precision = 14, scale = 2, nullable = false)

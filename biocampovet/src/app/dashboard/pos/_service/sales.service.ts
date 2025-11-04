@@ -1,6 +1,14 @@
 import api from "@/services/api";
 import { PaginatedResponse } from "@/types/paginated-response";
-import { CreateSaleRequest, SaleListParams, VoidSaleRequest } from "../_types/sale-request";
+import {
+  CreateSaleRequest,
+  SaleListParams,
+  VoidSaleRequest,
+  SaleItemRequest,
+  SalePaymentRequest,
+  UpdateSaleRequest,
+  FinalizeSaleRequest,
+} from "../_types/sale-request";
 import { SaleResponse, SaleSummaryResponse } from "../_types/sale-response";
 
 const SalesService = {
@@ -9,15 +17,28 @@ const SalesService = {
     return response.data;
   },
 
+  async updateSale(
+    id: number,
+    payload: UpdateSaleRequest
+  ): Promise<SaleResponse> {
+    const response = await api.put<SaleResponse>(`/sales/${id}`, payload);
+    return response.data;
+  },
+
   async getSale(id: number): Promise<SaleResponse> {
     const response = await api.get<SaleResponse>(`/sales/${id}`);
     return response.data;
   },
 
-  async listSales(params: SaleListParams): Promise<PaginatedResponse<SaleSummaryResponse>> {
-    const response = await api.get<PaginatedResponse<SaleSummaryResponse>>("/sales", {
-      params,
-    });
+  async listSales(
+    params: SaleListParams
+  ): Promise<PaginatedResponse<SaleSummaryResponse>> {
+    const response = await api.get<PaginatedResponse<SaleSummaryResponse>>(
+      "/sales",
+      {
+        params,
+      }
+    );
     return response.data;
   },
 
@@ -30,6 +51,70 @@ const SalesService = {
 
   async voidSale(id: number, payload: VoidSaleRequest): Promise<SaleResponse> {
     const response = await api.post<SaleResponse>(`/sales/${id}/void`, payload);
+    return response.data;
+  },
+
+  async addDetailToSale(
+    saleId: number,
+    payload: SaleItemRequest
+  ): Promise<SaleResponse> {
+    const response = await api.post<SaleResponse>(
+      `/sales/${saleId}/details`,
+      payload
+    );
+    return response.data;
+  },
+
+  async updateSaleDetail(
+    saleId: number,
+    detailId: number,
+    payload: SaleItemRequest
+  ): Promise<SaleResponse> {
+    const response = await api.put<SaleResponse>(
+      `/sales/${saleId}/details/${detailId}`,
+      payload
+    );
+    return response.data;
+  },
+
+  async deleteSaleDetail(saleId: number, detailId: number): Promise<void> {
+    await api.delete(`/sales/${saleId}/details/${detailId}`);
+  },
+
+  async addPaymentToSale(
+    saleId: number,
+    payload: SalePaymentRequest
+  ): Promise<SaleResponse> {
+    const response = await api.post<SaleResponse>(
+      `/sales/${saleId}/payments`,
+      payload
+    );
+    return response.data;
+  },
+
+  async updateSalePayment(
+    saleId: number,
+    paymentId: number,
+    payload: SalePaymentRequest
+  ): Promise<SaleResponse> {
+    const response = await api.put<SaleResponse>(
+      `/sales/${saleId}/payments/${paymentId}`,
+      payload
+    );
+    return response.data;
+  },
+
+  async deleteSalePayment(saleId: number, paymentId: number): Promise<void> {
+    await api.delete(`/sales/${saleId}/payments/${paymentId}`);
+  },
+  async finalizeSale(
+    id: number,
+    payload: FinalizeSaleRequest
+  ): Promise<SaleResponse> {
+    const response = await api.post<SaleResponse>(
+      `/sales/${id}/finalize`,
+      payload
+    );
     return response.data;
   },
 };

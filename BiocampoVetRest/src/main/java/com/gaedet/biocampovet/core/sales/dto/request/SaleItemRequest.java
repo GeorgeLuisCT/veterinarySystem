@@ -24,8 +24,6 @@ public class SaleItemRequest {
 
     private Long productId;
 
-    private Long productBatchId;
-
     private Long saleModeId;
 
     private BillableServiceType serviceType;

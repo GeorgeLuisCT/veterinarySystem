@@ -1,3 +1,4 @@
+// app/dashboard/pos/_hooks/usePaymentCollector.ts
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
@@ -5,7 +6,8 @@ import { PaymentMethod } from "../_types/sale-enums";
 import { SalePaymentRequest } from "../_types/sale-request";
 
 export interface PaymentEntry extends SalePaymentRequest {
-  id: string;
+  id: string; // ID local único para React
+  paymentId?: number; // ID de la base de datos (SalePayment.id)
 }
 
 const generateId = () => Math.random().toString(36).slice(2, 11);
@@ -13,11 +15,19 @@ const generateId = () => Math.random().toString(36).slice(2, 11);
 export function usePaymentCollector(initialPayments: PaymentEntry[] = []) {
   const [payments, setPayments] = useState<PaymentEntry[]>(initialPayments);
 
-  const addPayment = useCallback((payment: Omit<PaymentEntry, "id">) => {
-    setPayments((prev) => [...prev, { ...payment, id: generateId() }]);
+  const addPayment = useCallback((payment: Omit<PaymentEntry, "id" | "paymentId">) => {
+    setPayments((prev) => [
+      ...prev,
+      {
+        ...payment,
+        id: generateId(),
+        paymentId: undefined,
+      },
+    ]);
   }, []);
 
   const removePayment = useCallback((id: string) => {
+    // Este remove es solo local, el de la API se maneja en la página
     setPayments((prev) => prev.filter((payment) => payment.id !== id));
   }, []);
 
@@ -25,7 +35,7 @@ export function usePaymentCollector(initialPayments: PaymentEntry[] = []) {
     setPayments([]);
   }, []);
 
-  const setPaymentEntries = useCallback((entries: PaymentEntry[]) => {
+  const setPaymentsList = useCallback((entries: PaymentEntry[]) => {
     setPayments(entries);
   }, []);
 
@@ -45,17 +55,29 @@ export function usePaymentCollector(initialPayments: PaymentEntry[] = []) {
   }, [payments]);
 
   const toSalePayments = useCallback((): SalePaymentRequest[] => {
-    return payments.map(({ id, ...rest }) => ({ ...rest, paidAt: rest.paidAt ?? new Date().toISOString() }));
+    // Quita los IDs locales (id, paymentId) antes de enviar al backend
+    return payments.map(({ id, paymentId, ...rest }) => ({
+      ...rest,
+      paidAt: rest.paidAt ?? new Date().toISOString(),
+    }));
   }, [payments]);
+
+  const findPaymentByClientId = useCallback(
+    (clientId: string) => {
+      return payments.find((p) => p.id === clientId);
+    },
+    [payments]
+  );
 
   return {
     payments,
     addPayment,
     removePayment,
     resetPayments,
-    setPaymentEntries,
+    setPayments: setPaymentsList, // Exportando con nombre actualizado
     updatePayment,
     totals,
     toSalePayments,
+    findPaymentByClientId, // Exportando la nueva función
   };
 }

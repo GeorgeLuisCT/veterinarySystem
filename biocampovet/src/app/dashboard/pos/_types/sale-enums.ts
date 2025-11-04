@@ -8,6 +8,7 @@ export enum SalesDocumentType {
   BOLETA = "BOLETA",
   FACTURA = "FACTURA",
   NOTA_VENTA = "NOTA_VENTA",
+  NONE = "NONE"
 }
 
 export enum SaleItemKind {

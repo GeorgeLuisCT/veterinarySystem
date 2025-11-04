@@ -7,15 +7,13 @@ import com.gaedet.biocampovet.core.sales.dto.response.SaleSummaryResponse;
 import com.gaedet.biocampovet.core.sales.entity.Sale;
 import com.gaedet.biocampovet.core.sales.entity.SaleDetail;
 import com.gaedet.biocampovet.core.sales.entity.SalePayment;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
-public class SaleMapper {
+public final class SaleMapper {
 
-    public SaleSummaryResponse toSummary(Sale sale) {
+    public static SaleSummaryResponse toSummary(Sale sale) {
         return SaleSummaryResponse.builder()
                 .id(sale.getId())
                 .documentType(sale.getDocumentType())
@@ -29,13 +27,13 @@ public class SaleMapper {
                 .build();
     }
 
-    public SaleResponse toResponse(Sale sale) {
+    public static SaleResponse toResponse(Sale sale) {
         List<SaleDetailResponse> details = sale.getDetails().stream()
-                .map(this::toDetailResponse)
+                .map(SaleMapper::toDetailResponse)
                 .collect(Collectors.toList());
 
         List<SalePaymentResponse> payments = sale.getPayments().stream()
-                .map(this::toPaymentResponse)
+                .map(SaleMapper::toPaymentResponse)
                 .collect(Collectors.toList());
 
         return SaleResponse.builder()
@@ -60,7 +58,7 @@ public class SaleMapper {
                 .build();
     }
 
-    public SaleDetailResponse toDetailResponse(SaleDetail detail) {
+    public static SaleDetailResponse toDetailResponse(SaleDetail detail) {
         return SaleDetailResponse.builder()
                 .id(detail.getId())
                 .description(detail.getItemDescription())
@@ -80,7 +78,7 @@ public class SaleMapper {
                 .build();
     }
 
-    public SalePaymentResponse toPaymentResponse(SalePayment payment) {
+    public static SalePaymentResponse toPaymentResponse(SalePayment payment) {
         return SalePaymentResponse.builder()
                 .id(payment.getId())
                 .amount(payment.getAmountPaid())

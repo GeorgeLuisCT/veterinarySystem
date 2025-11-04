@@ -160,4 +160,27 @@ public class KardexService {
                         )
                 ));
     }
+
+    @Transactional(readOnly = true)
+    public BigDecimal getCurrentStock(Long productId, Long branchId, Long batchId) {
+        if (batchId == null) {
+            return kardexMovementRepository
+                    .findCurrentStockByProductAndBranchWithoutBatch(productId, branchId)
+                    .orElse(BigDecimal.ZERO);
+        }
+        return kardexMovementRepository
+                .findCurrentStockByProductAndBranchAndBatch(productId, branchId, batchId)
+                .orElse(BigDecimal.ZERO);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, BigDecimal> getStockForProductByBatch(Long productId, Long branchId) {
+
+        return kardexMovementRepository.findStockByProductAndBranchGroupedByBatch(productId, branchId)
+                .stream()
+                .collect(Collectors.toMap(
+                        ProductBatchStockAggregate::getBatchId,
+                        ProductBatchStockAggregate::getTotalStock
+                ));
+    }
 }

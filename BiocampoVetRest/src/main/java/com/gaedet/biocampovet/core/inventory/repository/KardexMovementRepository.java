@@ -49,4 +49,18 @@ public interface KardexMovementRepository
             "WHERE km.product.id IN :productIds " +
             "GROUP BY km.product.id, km.branch.id")
     List<ProductBranchStockAggregate> findAggregatedBranchStockByProductIds(@Param("productIds") List<Long> productIds);
+
+    @Query("SELECT km.batch.id as batchId, SUM(km.quantity) as totalStock " +
+            "FROM KardexMovement km " +
+            "WHERE km.product.id = :productId AND km.branch.id = :branchId " +
+            "AND km.batch.id IS NOT NULL " +
+            "GROUP BY km.batch.id")
+    List<ProductBatchStockAggregate> findStockByProductAndBranchGroupedByBatch(
+            @Param("productId") Long productId,
+            @Param("branchId") Long branchId
+    );
+
+    @Query("SELECT SUM(km.quantity) FROM KardexMovement km " +
+            "WHERE km.product.id = :productId AND km.branch.id = :branchId AND km.batch.id IS NULL")
+    Optional<BigDecimal> findCurrentStockByProductAndBranchWithoutBatch(Long productId, Long branchId);
 }
