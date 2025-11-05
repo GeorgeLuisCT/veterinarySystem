@@ -40,6 +40,7 @@ const APPOINTMENT_TYPE_COLORS: Record<AppointmentType, string> = {
 };
 
 const APPOINTMENT_STATUS_COLORS: Record<AppointmentStatus, string> = {
+  [AppointmentStatus.REQUESTED]: "#6366F1",
   [AppointmentStatus.SCHEDULED]: "#2563EB",
   [AppointmentStatus.CONFIRMED]: "#0EA5E9",
   [AppointmentStatus.CHECKED_IN]: "#10B981",

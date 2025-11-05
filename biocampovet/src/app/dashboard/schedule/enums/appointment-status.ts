@@ -1,4 +1,5 @@
 export enum AppointmentStatus {
+  REQUESTED = "REQUESTED",
   SCHEDULED = "SCHEDULED",
   CONFIRMED = "CONFIRMED",
   CHECKED_IN = "CHECKED_IN",
@@ -9,6 +10,7 @@ export enum AppointmentStatus {
 }
 
 export const AppointmentStatusLabels: Record<AppointmentStatus, string> = {
+  [AppointmentStatus.REQUESTED]: "Solicitada",
   [AppointmentStatus.SCHEDULED]: "Programada",
   [AppointmentStatus.CONFIRMED]: "Confirmada",
   [AppointmentStatus.CHECKED_IN]: "Registrada",

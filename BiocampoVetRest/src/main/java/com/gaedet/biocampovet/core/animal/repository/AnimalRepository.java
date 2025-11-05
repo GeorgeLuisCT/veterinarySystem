@@ -115,4 +115,6 @@ public interface AnimalRepository extends JpaRepository<Animal, Long> {
     );
 
     boolean existsByOwner_IdAndNameIgnoreCase(Long ownerId, String name);
+
+    List<Animal> findByOwner_IdAndIsActiveTrueOrderByNameAsc(Long ownerId);
 }

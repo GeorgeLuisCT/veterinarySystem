@@ -21,6 +21,10 @@ public class AppointmentDetailResponse {
     private final String animalName;
     private final Long assignedEmployeeId;
     private final String assignedEmployeeFullName;
+    private final String requesterName;
+    private final String requesterEmail;
+    private final String requesterPhone;
+    private final String requestNotes;
     private final ClinicalAppointmentDetailResponse clinicalDetail;
     private final GroomingAppointmentDetailResponse groomingDetail;
     private final SurgicalAppointmentDetailResponse surgicalDetail;

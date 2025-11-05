@@ -48,6 +48,18 @@ public class Appointment {
     @Column(nullable = false, length = 32)
     private AppointmentStatus status;
 
+    @Column(name = "requester_name", length = 160)
+    private String requesterName;
+
+    @Column(name = "requester_email", length = 160)
+    private String requesterEmail;
+
+    @Column(name = "requester_phone", length = 64)
+    private String requesterPhone;
+
+    @Column(name = "request_notes", columnDefinition = "TEXT")
+    private String requestNotes;
+
     @OneToOne(mappedBy = "appointment", fetch = FetchType.LAZY)
     private ClinicalAppointmentDetail clinicalDetail;
 

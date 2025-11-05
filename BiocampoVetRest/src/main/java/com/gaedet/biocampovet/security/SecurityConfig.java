@@ -41,6 +41,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .antMatchers("/api/auth/login").permitAll()
+                        .antMatchers("/api/public/**").permitAll()
+                        .antMatchers("/api/document-types/**").permitAll()
                         .antMatchers("/api/admin/**").hasAuthority(RoleName.ROLE_ADMIN.name())
                         .antMatchers("/api/veterinarian/**").hasAuthority(RoleName.ROLE_VETERINARIAN.name())
                         .antMatchers("/api/assistant/**").hasAuthority(RoleName.ROLE_ASSISTANT.name())
