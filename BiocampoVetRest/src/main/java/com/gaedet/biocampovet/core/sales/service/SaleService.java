@@ -345,8 +345,7 @@ public class SaleService {
         sale.getDetails().addAll(newDetails);
         recalculateSaleTotals(sale);
 
-        Sale savedSale = saleRepository.save(sale);
-        return SaleMapper.toResponse(savedSale);
+        return SaleMapper.toResponse(sale);
     }
 
     @Transactional
@@ -692,7 +691,7 @@ public class SaleService {
             reservedByBatch.put(batch.getId(), alreadyReservedBase.add(quantityToTakeBase));
         }
 
-        if (finalizeSale && quantityToFulfillBase.compareTo(ZERO) > 0) {
+        if (quantityToFulfillBase.compareTo(ZERO) > 0) {
             BigDecimal fulfilledSaleUnits = quantityNeededSaleUnits.subtract(quantityToFulfillBase.divide(factor, 3, ROUNDING_MODE));
             throw new InsufficientStockException(
                     "Stock insuficiente para " + product.getName() + ". Se pidieron " + quantityNeededSaleUnits

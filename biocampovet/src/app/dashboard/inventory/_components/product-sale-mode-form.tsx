@@ -24,12 +24,9 @@ interface Props {
 }
 
 export function ProductSaleModeForm({ control, baseUnitType, presentationType, isEdit }: Props) {
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: "saleModes",
-    });
+    const { fields, append, remove } = useFieldArray({ control, name: "saleModes" });
 
-    const { setValue } = useFormContext<ProductRequest>();
+    const { setValue, register } = useFormContext<ProductRequest>();
     const saleModes = useWatch({ control, name: "saleModes" });
     const mainUnitType = presentationType ? presentationToUnitMap[presentationType] : null;
     const { toast } = useToast();
@@ -44,33 +41,31 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
             toast({ variant: "destructive", title: "Error", description: "Ya se han agregado todos los modos de venta posibles." });
             return;
         }
-
-        const isFraccionable = isFracionableUnit(next);
-
+        const isFrac = isFracionableUnit(next);
         append({
             unitType: next,
             price: 0,
             relativeQuantity: 1,
-            relativeUnitType: isFraccionable ? next : (mainUnitType ?? baseUnitType),
+            relativeUnitType: isFrac ? next : (mainUnitType ?? baseUnitType),
         });
     }
 
     useEffect(() => {
         if (!saleModes) return;
-
         saleModes.forEach((mode, index) => {
-            if (mode.unitType) {
-                const isFraccionable = isFracionableUnit(mode.unitType);
-
-                if (isFraccionable) {
-                    if (mode.relativeUnitType !== mode.unitType) {
-                        setValue(`saleModes.${index}.relativeUnitType`, mode.unitType, { shouldDirty: true });
-                    }
-                } else {
-                    const targetUnit = mainUnitType ?? baseUnitType;
-                    if (targetUnit && mode.relativeUnitType !== targetUnit) {
-                        setValue(`saleModes.${index}.relativeUnitType`, targetUnit, { shouldDirty: true });
-                    }
+            if (!mode?.unitType) return;
+            const isFrac = isFracionableUnit(mode.unitType);
+            if (isFrac) {
+                if (mode.relativeUnitType !== mode.unitType) {
+                    setValue(`saleModes.${index}.relativeUnitType`, mode.unitType, { shouldDirty: true });
+                }
+                if (mode.relativeQuantity !== 1) {
+                    setValue(`saleModes.${index}.relativeQuantity`, 1, { shouldDirty: true });
+                }
+            } else {
+                const targetUnit = mainUnitType ?? baseUnitType;
+                if (targetUnit && mode.relativeUnitType !== targetUnit) {
+                    setValue(`saleModes.${index}.relativeUnitType`, targetUnit, { shouldDirty: true });
                 }
             }
         });
@@ -87,109 +82,89 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
             {fields.map((field, index) => {
                 const current = saleModes?.[index];
                 const modeUnit: ProductUnitType | undefined = current?.unitType;
+                const isFrac = modeUnit ? isFracionableUnit(modeUnit) : false;
 
                 const relQty: number = Number(current?.relativeQuantity ?? 0);
                 const relUnit: ProductUnitType | undefined = current?.relativeUnitType;
                 const priceVal = current?.price;
 
                 const priceText = priceVal != null && priceVal !== undefined ? formatPEN(priceVal) : "…";
-
-                const summaryText = getSaleModeSummaryText(
-                    modeUnit,
-                    relQty,
-                    presentationType
-                );
-
+                const summaryText = getSaleModeSummaryText(modeUnit, relQty, presentationType);
                 const rowSummary = `${summaryText} a ${priceText}`;
 
                 return (
                     <div key={field.id} className="rounded-xl border p-3 space-y-2">
-                        <div className="grid grid-cols-12 gap-2 items-end">
-                            <FormField
-                                control={control}
-                                name={`saleModes.${index}.unitType`}
-                                render={({ field }) => (
-                                    <FormItem className="col-span-3 gap-0">
-                                        <FormControl>
-                                            <FloatingLabelSelect
-                                                id={`saleModes.${index}.unitType`}
-                                                label="Modo de venta"
-                                                value={field.value ?? ""}
-                                                onValueChange={field.onChange}
-                                                disabled={isEdit && (saleModes?.[index] as ProductSaleModeRequest)?.id !== undefined}
-                                                options={getAllowedVariants(baseUnitType).map(
-                                                    (mode) => ({
+                        <div className="flex flex-row items-end gap-3">
+                            <div className="flex flex gap-2 w-full">
+                                <FormField
+                                    control={control}
+                                    name={`saleModes.${index}.unitType`}
+                                    render={({ field }) => (
+                                        <FormItem className="flex-1">
+                                            <FormControl>
+                                                <FloatingLabelSelect
+                                                    id={`saleModes.${index}.unitType`}
+                                                    label="Modo de venta"
+                                                    value={field.value ?? ""}
+                                                    onValueChange={field.onChange}
+                                                    className="w-full"
+                                                    disabled={isEdit && (saleModes?.[index] as ProductSaleModeRequest)?.id !== undefined}
+                                                    options={getAllowedVariants(baseUnitType).map((mode) => ({
                                                         value: mode,
                                                         label: getProductUnitTypeLabel(mode),
-                                                    })
-                                                )}
-                                            />
-                                        </FormControl>
-                                        <FormMessage className="ml-2" />
-                                    </FormItem>
-                                )}
-                            />
+                                                    }))}
+                                                />
+                                            </FormControl>
+                                            <FormMessage className="ml-2" />
+                                        </FormItem>
+                                    )}
+                                />
 
-                            <FormField
-                                control={control}
-                                name={`saleModes.${index}.relativeQuantity`}
-                                render={({ field }) => (
-                                    <FormItem className="col-span-2 gap-0">
-                                        <FormControl>
-                                            <FloatingLabelInput
-                                                {...field}
-                                                id={`saleModes.${index}.relativeQuantity`}
-                                                type="number"
-                                                step="any"
-                                                label="Cantidad"
-                                                onChange={(value) => field.onChange(parseFloat(value) || "")}
-                                            />
-                                        </FormControl>
-                                        <FormMessage className="ml-2" />
-                                    </FormItem>
+                                {!isFrac && (
+                                    <FormField
+                                        control={control}
+                                        name={`saleModes.${index}.relativeQuantity`}
+                                        render={({ field }) => (
+                                            <FormItem className="flex-1">
+                                                <FormControl>
+                                                    <FloatingLabelInput
+                                                        {...field}
+                                                        id={`saleModes.${index}.relativeQuantity`}
+                                                        type="number"
+                                                        step="any"
+                                                        label="Cantidad"
+                                                        className="w-full"
+                                                        onChange={(value) => field.onChange(parseFloat(value) || "")}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage className="ml-2" />
+                                            </FormItem>
+                                        )}
+                                    />
                                 )}
-                            />
 
-                            <FormField
-                                control={control}
-                                name={`saleModes.${index}.relativeUnitType`}
-                                render={({ field }) => (
-                                    <FormItem className="col-span-3 gap-0">
-                                        <FormControl>
-                                            <FloatingLabelSelect
-                                                id={`saleModes.${index}.relativeUnitType`}
-                                                label="Unidad"
-                                                value={field.value ?? ""}
-                                                onValueChange={field.onChange}
-                                                options={relUnit ? [{ value: relUnit, label: getProductUnitTypeLabel(relUnit) }] : []}
-                                                disabled={true}
-                                            />
-                                        </FormControl>
-                                        <FormMessage className="ml-2" />
-                                    </FormItem>
-                                )}
-                            />
+                                <FormField
+                                    control={control}
+                                    name={`saleModes.${index}.price`}
+                                    render={({ field }) => (
+                                        <FormItem className="flex-1">
+                                            <FormControl>
+                                                <FloatingLabelInput
+                                                    {...field}
+                                                    id={`saleModes.${index}.price`}
+                                                    type="number"
+                                                    label="Precio"
+                                                    className="w-full"
+                                                    onChange={(value) => field.onChange(parseFloat(value) || "")}
+                                                />
+                                            </FormControl>
+                                            <FormMessage className="ml-2" />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
 
-                            <FormField
-                                control={control}
-                                name={`saleModes.${index}.price`}
-                                render={({ field }) => (
-                                    <FormItem className="col-span-3 gap-0">
-                                        <FormControl>
-                                            <FloatingLabelInput
-                                                {...field}
-                                                id={`saleModes.${index}.price`}
-                                                type="number"
-                                                label="Precio"
-                                                onChange={(value) => field.onChange(parseFloat(value) || "")}
-                                            />
-                                        </FormControl>
-                                        <FormMessage className="ml-2" />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <div className="col-span-1 flex justify-start">
+                            <div className="flex items-center">
                                 <Button
                                     type="button"
                                     variant="ghost"
@@ -201,6 +176,8 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
                                 </Button>
                             </div>
                         </div>
+
+                        <input type="hidden" value={relUnit ?? ""} {...register(`saleModes.${index}.relativeUnitType` as const)} />
 
                         <div className="text-xs text-muted-foreground bg-muted/40 rounded-md px-3 py-1">
                             {rowSummary}

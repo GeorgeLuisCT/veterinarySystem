@@ -1,4 +1,4 @@
-import PublicLandingPage from "@/components/public/public-landing-page";
+import PublicLandingPage from "@/app/landing/components/public-landing-page";
 
 export default function Home() {
   return <PublicLandingPage />;

@@ -3,8 +3,11 @@ package com.gaedet.biocampovet.core.publicportal.service;
 import com.gaedet.biocampovet.core.animal.entity.Animal;
 import com.gaedet.biocampovet.core.animal.repository.AnimalRepository;
 import com.gaedet.biocampovet.core.branches.dto.BranchResponse;
+import com.gaedet.biocampovet.core.branches.dto.PublicCompanyResponse;
 import com.gaedet.biocampovet.core.branches.entity.Branch;
+import com.gaedet.biocampovet.core.branches.entity.Company;
 import com.gaedet.biocampovet.core.branches.repository.BranchRepository;
+import com.gaedet.biocampovet.core.branches.repository.CompanyRepository;
 import com.gaedet.biocampovet.core.branches.service.BranchService;
 import com.gaedet.biocampovet.core.clinic.dto.history.ClinicalHistoryDetailResponse;
 import com.gaedet.biocampovet.core.clinic.entity.Appointment;
@@ -38,6 +41,16 @@ public class PublicPortalService {
     private final BranchService branchService;
     private final AppointmentRepository appointmentRepository;
     private final ClinicalHistoryQueryService clinicalHistoryQueryService;
+    private final CompanyRepository companyRepository;
+
+    @Transactional(readOnly = true)
+    public PublicCompanyResponse getCompanyInfo() {
+        Company company = companyRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException("Información de la compañía no encontrada."));
+
+        return toPublicCompanyResponse(company);
+    }
 
     @Transactional(readOnly = true)
     public List<PublicAnimalSummaryResponse> getAnimalsForClient(Long documentTypeId, String documentNumber) {
@@ -180,5 +193,11 @@ public class PublicPortalService {
             throw new BadRequestException(message);
         }
         return value;
+    }
+    private PublicCompanyResponse toPublicCompanyResponse(Company company) {
+        return PublicCompanyResponse.builder()
+                .name(company.getName())
+                .industry(company.getIndustry())
+                .build();
     }
 }

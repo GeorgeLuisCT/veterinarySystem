@@ -7,7 +7,8 @@ import type {
   PublicAnimalSummary,
   PublicAppointmentRequestPayload,
   PublicAppointmentResponse,
-} from "./public-portal.types";
+} from "../types/public-portal.types";
+import { PublicCompanyResponse } from "../types/public-company-response";
 
 export const PublicPortalService = {
   listBranches: async (): Promise<BranchResponse[]> => {
@@ -52,6 +53,11 @@ export const PublicPortalService = {
       "/public/appointments/request",
       payload,
     );
+    return response.data;
+  },
+
+  getCompanyInfo: async (): Promise<PublicCompanyResponse> => {
+    const response = await api.get<PublicCompanyResponse>("/public/company");
     return response.data;
   },
 };

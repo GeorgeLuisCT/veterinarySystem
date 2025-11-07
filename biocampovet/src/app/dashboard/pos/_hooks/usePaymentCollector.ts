@@ -1,4 +1,3 @@
-// app/dashboard/pos/_hooks/usePaymentCollector.ts
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
@@ -6,28 +5,31 @@ import { PaymentMethod } from "../_types/sale-enums";
 import { SalePaymentRequest } from "../_types/sale-request";
 
 export interface PaymentEntry extends SalePaymentRequest {
-  id: string; // ID local único para React
-  paymentId?: number; // ID de la base de datos (SalePayment.id)
+  id: string;
+  paymentId?: number;
 }
 
-const generateId = () => Math.random().toString(36).slice(2, 11);
+const generateId = () => `local-${Math.random().toString(36).slice(2, 11)}`;
 
 export function usePaymentCollector(initialPayments: PaymentEntry[] = []) {
   const [payments, setPayments] = useState<PaymentEntry[]>(initialPayments);
 
-  const addPayment = useCallback((payment: Omit<PaymentEntry, "id" | "paymentId">) => {
+  const addPayment = useCallback((payment: Omit<PaymentEntry, "id" | "paymentId">): PaymentEntry => {
+    const newPayment: PaymentEntry = {
+      ...payment,
+      id: generateId(),
+      paymentId: undefined,
+    };
+
     setPayments((prev) => [
       ...prev,
-      {
-        ...payment,
-        id: generateId(),
-        paymentId: undefined,
-      },
+      newPayment,
     ]);
+
+    return newPayment;
   }, []);
 
   const removePayment = useCallback((id: string) => {
-    // Este remove es solo local, el de la API se maneja en la página
     setPayments((prev) => prev.filter((payment) => payment.id !== id));
   }, []);
 
@@ -35,13 +37,31 @@ export function usePaymentCollector(initialPayments: PaymentEntry[] = []) {
     setPayments([]);
   }, []);
 
+  const uniqByPayment = (list: PaymentEntry[]) => {
+    const seen = new Set<string>();
+    return list.filter((p) => {
+      const k = p.paymentId ? `db-${p.paymentId}` : p.id;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  };
+
   const setPaymentsList = useCallback((entries: PaymentEntry[]) => {
-    setPayments(entries);
+    setPayments(uniqByPayment(entries));
   }, []);
 
   const updatePayment = useCallback((id: string, update: Partial<SalePaymentRequest>) => {
     setPayments((prev) =>
       prev.map((payment) => (payment.id === id ? { ...payment, ...update } : payment))
+    );
+  }, []);
+
+  const updatePaymentId = useCallback((localId: string, dbId: number) => {
+    setPayments((prev) =>
+      prev.map((payment) =>
+        payment.id === localId ? { ...payment, paymentId: dbId } : payment
+      )
     );
   }, []);
 
@@ -54,8 +74,8 @@ export function usePaymentCollector(initialPayments: PaymentEntry[] = []) {
     return { totalPaid, byMethod };
   }, [payments]);
 
+
   const toSalePayments = useCallback((): SalePaymentRequest[] => {
-    // Quita los IDs locales (id, paymentId) antes de enviar al backend
     return payments.map(({ id, paymentId, ...rest }) => ({
       ...rest,
       paidAt: rest.paidAt ?? new Date().toISOString(),
@@ -69,15 +89,24 @@ export function usePaymentCollector(initialPayments: PaymentEntry[] = []) {
     [payments]
   );
 
+  const findPaymentByDbId = useCallback(
+    (dbId: number) => {
+      return payments.find((p) => p.paymentId === dbId);
+    },
+    [payments]
+  );
+
   return {
     payments,
     addPayment,
     removePayment,
     resetPayments,
-    setPayments: setPaymentsList, // Exportando con nombre actualizado
+    setPayments: setPaymentsList,
     updatePayment,
     totals,
     toSalePayments,
-    findPaymentByClientId, // Exportando la nueva función
+    findPaymentByClientId,
+    updatePaymentId,
+    findPaymentByDbId,
   };
 }

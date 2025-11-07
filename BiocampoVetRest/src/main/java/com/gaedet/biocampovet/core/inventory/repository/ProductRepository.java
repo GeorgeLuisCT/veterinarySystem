@@ -45,7 +45,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
               AND psm.is_base_mode = TRUE
             ORDER BY psm.id
             LIMIT 1
-        ) AS standard_price
+        ) AS standard_price,
+        p.unit_type,
+        p.content_total
     FROM products p
     WHERE (:branchId IS NULL OR EXISTS (
         SELECT 1

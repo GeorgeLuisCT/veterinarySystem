@@ -9,6 +9,8 @@ import type {
 import type { BillableServiceItem } from "../_types/billable-service";
 import { SaleItemKind } from "../_types/sale-enums";
 import type { SaleItemRequest } from "../_types/sale-request"; // Usamos el tipo Zod inferido
+import { formatPresentation } from "../../inventory/_helpers/product-formatters";
+import { getSaleModeSummaryText } from "../../inventory/_utils/product-util-labels";
 
 export interface PosCartItem extends SaleItemRequest {
   id: string; // ID local único para React
@@ -40,15 +42,24 @@ export function usePosCart(initialItems: PosCartItem[] = []) {
           return prev.map((item) =>
             item.id === existing.id
               ? {
-                  ...item,
-                  quantity: updatedQuantity,
-                  lineSubtotal: updatedQuantity * item.unitPrice,
-                }
+                ...item,
+                quantity: updatedQuantity,
+                lineSubtotal: updatedQuantity * item.unitPrice,
+              }
               : item
           );
         }
 
         const price = saleMode.price ?? 0;
+
+        const labelForMode = saleMode.baseMode
+          ? formatPresentation(product)
+          : getSaleModeSummaryText(
+            saleMode.unitType,
+            saleMode.relativeQuantity,
+            product.presentation
+          );
+
         const newItem: PosCartItem = {
           id: generateId(),
           detailId: undefined, // Es un ítem nuevo
@@ -62,8 +73,8 @@ export function usePosCart(initialItems: PosCartItem[] = []) {
           taxAmount: undefined,
           descriptionOverride: undefined,
           metadataJson: undefined,
-          name: `${product.name} - ${saleMode.unitType}`,
-          saleModeLabel: saleMode.unitType,
+          name: `${product.name}`,
+          saleModeLabel: labelForMode,
           quantityEquivalent: saleMode.relativeQuantity ?? undefined,
           lineSubtotal: price,
         };
@@ -102,10 +113,10 @@ export function usePosCart(initialItems: PosCartItem[] = []) {
       prev.map((item) =>
         item.id === itemId
           ? {
-              ...item,
-              quantity,
-              lineSubtotal: (item.unitPrice ?? 0) * quantity,
-            }
+            ...item,
+            quantity,
+            lineSubtotal: (item.unitPrice ?? 0) * quantity,
+          }
           : item
       )
     );

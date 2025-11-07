@@ -3,10 +3,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { ChevronsUpDown, Check, X } from "lucide-react";
+import { ChevronsUpDown, Check, X, FileText, User, StickyNote } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -17,6 +17,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 import { SalesDocumentType } from "../_types/sale-enums";
@@ -27,9 +28,9 @@ import { CustomerQuickSearchResponse } from "../../crm/customers/types/customer-
 type Props = {
   form: UseFormReturn<SaleFormValues>;
   isFinalized: boolean;
-  isEditing: boolean; // Necesario para saber cuándo auto-guardar
+  isEditing: boolean;
   documentOptions: { value: SalesDocumentType; label: string }[];
-  onHeaderUpdate: (values: SaleFormValues) => void; // Callback para auto-guardar
+  onHeaderUpdate: (values: SaleFormValues) => void;
 };
 
 type CustomerOption = {
@@ -55,16 +56,14 @@ export default function SaleDetailsSection({
     formState: { errors, isDirty, dirtyFields },
   } = form;
 
-  // --- Lógica de Auto-guardado ---
+  // --- Auto-guardado ---
   const watchedValues = watch();
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const isMounted = useRef(false);
 
   useEffect(() => {
     if (!isEditing || !isDirty || !isMounted.current) {
-      if (!isMounted.current) {
-        isMounted.current = true;
-      }
+      if (!isMounted.current) isMounted.current = true;
       return;
     }
 
@@ -74,29 +73,20 @@ export default function SaleDetailsSection({
       dirtyFields.customerId ||
       dirtyFields.notes;
 
-    if (!hasRelevantChange) {
-      return;
-    }
+    if (!hasRelevantChange) return;
 
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
 
     debounceRef.current = setTimeout(() => {
-      // Solo llama a actualizar si el formulario es válido (opcional pero recomendado)
-      // if (form.formState.isValid) {
       onHeaderUpdate(watchedValues);
-      // }
-    }, 400); // 400ms de debounce
+    }, 400);
 
     return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
+      if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [watchedValues, isEditing, isDirty, dirtyFields, onHeaderUpdate]);
 
-  // --- Lógica del ComboBox de Cliente ---
+  // --- ComboBox Cliente ---
   const selectedId = watch("customerId");
 
   useEffect(() => {
@@ -106,10 +96,7 @@ export default function SaleDetailsSection({
         setSelected(null);
         return;
       }
-      // Evitar fetch si el nombre ya está cargado
-      if (selected && selected.id === selectedId) {
-        return;
-      }
+      if (selected && selected.id === selectedId) return;
       try {
         const data = await CustomerService.getCustomer(selectedId);
         if (!active) return;
@@ -128,8 +115,7 @@ export default function SaleDetailsSection({
   const customerSearchDebounceRef = useRef<number | null>(null);
   useEffect(() => {
     if (!open) return;
-    if (customerSearchDebounceRef.current)
-      window.clearTimeout(customerSearchDebounceRef.current);
+    if (customerSearchDebounceRef.current) window.clearTimeout(customerSearchDebounceRef.current);
 
     customerSearchDebounceRef.current = window.setTimeout(async () => {
       try {
@@ -146,8 +132,7 @@ export default function SaleDetailsSection({
     }, 300);
 
     return () => {
-      if (customerSearchDebounceRef.current)
-        window.clearTimeout(customerSearchDebounceRef.current);
+      if (customerSearchDebounceRef.current) window.clearTimeout(customerSearchDebounceRef.current);
     };
   }, [query, open]);
 
@@ -175,61 +160,52 @@ export default function SaleDetailsSection({
   const notesErr = errors.notes?.message as string | undefined;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base font-semibold">1. Detalles de la venta</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-4 md:grid-cols-3">
-        <div className="space-y-2">
-          <Label>Tipo de comprobante</Label>
+    <Card className="surface-card h-60">
+      <CardContent className="grid gap-4 md:grid-cols-24">
+        {/* Tipo de comprobante (Select shadcn + icono) */}
+        <div className="space-y-2 col-span-11">
+          <Label className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-primary" />
+            Tipo de comprobante
+          </Label>
           <div className="relative">
-            <select
-              className={cn(
-                "w-full appearance-none rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50",
-                documentTypeErr && "border-destructive focus:ring-destructive"
-              )}
-              {...form.register("documentType", {
-                onChange: (e) =>
-                  form.setValue("documentType", e.target.value as SalesDocumentType, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  }),
-              })}
+            <FileText className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/80" />
+            <Select
+              value={(watch("documentType") as string) ?? ""}
+              onValueChange={(v) =>
+                form.setValue("documentType", v as SalesDocumentType, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                })
+              }
               disabled={isFinalized}
             >
-              <option value="" disabled>
-                Selecciona
-              </option>
-              {documentOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <ChevronsUpDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 opacity-60" />
+              <SelectTrigger
+                className={cn(
+                  "w-full pl-9",
+                  documentTypeErr && "border-destructive focus:ring-destructive"
+                )}
+              >
+                <SelectValue placeholder="Selecciona" />
+              </SelectTrigger>
+              <SelectContent>
+                {documentOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           {documentTypeErr && <p className="text-xs text-destructive">{documentTypeErr}</p>}
         </div>
 
-        <div className="space-y-2">
-          <Label>Número de comprobante</Label>
-          <Input
-            {...form.register("documentNumber", {
-              onChange: (e) =>
-                form.setValue("documentNumber", e.target.value, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                }),
-            })}
-            placeholder="Serie - Número"
-            disabled={isFinalized}
-            className={cn(documentNumberErr && "border-destructive focus-visible:ring-destructive")}
-          />
-          {documentNumberErr && <p className="text-xs text-destructive">{documentNumberErr}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <Label>Cliente</Label>
+        {/* Cliente (Command + iconos) */}
+        <div className="space-y-2 col-span-12">
+          <Label className="flex items-center gap-2">
+            <User className="h-4 w-4 text-primary" />
+            Cliente
+          </Label>
           <div className="flex items-center gap-2">
             <Popover open={open} onOpenChange={(v) => !isFinalized && setOpen(v)}>
               <PopoverTrigger asChild>
@@ -237,7 +213,7 @@ export default function SaleDetailsSection({
                   type="button"
                   variant="outline"
                   className={cn(
-                    "w-full justify-between",
+                    "w-full justify-between pl-9",
                     !customerDisplay && "text-muted-foreground",
                     customerIdErr && "border-destructive"
                   )}
@@ -247,7 +223,7 @@ export default function SaleDetailsSection({
                   <ChevronsUpDown className="ml-2 h-4 w-4 opacity-60" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="p-0 w-[min(28rem,90vw)]">
+              <PopoverContent className="p-0 w-[min(33rem,95vw)]">
                 <Command shouldFilter={false}>
                   <CommandInput
                     value={query}
@@ -268,6 +244,7 @@ export default function SaleDetailsSection({
                             onSelect={() => handleSelect(opt)}
                             className="flex items-center gap-2"
                           >
+                            <User className="h-4 w-4 opacity-80" />
                             <Check
                               className={cn(
                                 "h-4 w-4",
@@ -276,7 +253,6 @@ export default function SaleDetailsSection({
                             />
                             <div className="flex flex-col">
                               <span className="text-sm font-medium">{opt.name}</span>
-                              <span className="text-xs text-muted-foreground">ID: {opt.id}</span>
                             </div>
                           </CommandItem>
                         ))}
@@ -287,7 +263,14 @@ export default function SaleDetailsSection({
               </PopoverContent>
             </Popover>
             {selectedId && !isFinalized && (
-              <Button type="button" variant="ghost" size="icon" onClick={handleClear} title="Quitar cliente">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={handleClear}
+                title="Quitar cliente"
+                className="shrink-0"
+              >
                 <X className="h-4 w-4" />
               </Button>
             )}
@@ -296,20 +279,27 @@ export default function SaleDetailsSection({
           {customerIdErr && <p className="text-xs text-destructive">{customerIdErr}</p>}
         </div>
 
-        <div className="md:col-span-3 space-y-2">
-          <Label>Notas</Label>
-          <Input
-            {...form.register("notes", {
-              onChange: (event) =>
-                form.setValue("notes", event.target.value, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                }),
-            })}
-            placeholder="Observaciones de la venta"
-            disabled={isFinalized}
-            className={cn(notesErr && "border-destructive focus-visible:ring-destructive")}
-          />
+        {/* Notas (Textarea + icono) */}
+        <div className="space-y-2 col-span-23">
+          <Label className="flex items-center gap-2">
+            <StickyNote className="h-4 w-4 text-primary" />
+            Notas
+          </Label>
+          <div className="relative">
+            <StickyNote className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-primary/80" />
+            <Textarea
+              {...form.register("notes", {
+                onChange: (event) =>
+                  form.setValue("notes", event.target.value, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  }),
+              })}
+              placeholder="Observaciones de la venta"
+              disabled={isFinalized}
+              className={cn("min-h-12 pl-9", notesErr && "border-destructive focus-visible:ring-destructive")}
+            />
+          </div>
           {notesErr && <p className="text-xs text-destructive">{notesErr}</p>}
         </div>
       </CardContent>

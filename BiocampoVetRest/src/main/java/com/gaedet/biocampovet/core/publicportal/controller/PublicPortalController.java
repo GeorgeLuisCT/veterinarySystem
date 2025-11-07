@@ -1,6 +1,7 @@
 package com.gaedet.biocampovet.core.publicportal.controller;
 
 import com.gaedet.biocampovet.core.branches.dto.BranchResponse;
+import com.gaedet.biocampovet.core.branches.dto.PublicCompanyResponse;
 import com.gaedet.biocampovet.core.clinic.dto.history.ClinicalHistoryDetailResponse;
 import com.gaedet.biocampovet.core.publicportal.dto.PublicAnimalSummaryResponse;
 import com.gaedet.biocampovet.core.publicportal.dto.PublicAppointmentRequest;
@@ -49,6 +50,12 @@ public class PublicPortalController {
     ) {
         ClinicalHistoryDetailResponse history = publicPortalService.getClinicalHistory(documentTypeId, documentNumber, animalId);
         return ResponseEntity.ok(history);
+    }
+
+    @GetMapping("/company")
+    public ResponseEntity<PublicCompanyResponse> getCompanyInfo() {
+        PublicCompanyResponse companyInfo = publicPortalService.getCompanyInfo();
+        return ResponseEntity.ok(companyInfo);
     }
 
     @PostMapping("/appointments/request")

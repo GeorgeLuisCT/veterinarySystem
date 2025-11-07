@@ -9,6 +9,7 @@ import { getProductPresentationTypeLabel, getProductPresentationTypeLabelByQuant
 import { AdministrationRouteLabels } from "../_enums/administration-route";
 import { getSaleModeSummaryText } from "../_utils/product-util-labels";
 import { presentationToUnitMap } from "../_helpers/product-mapper";
+import { formatPresentation } from "../_helpers/product-formatters";
 
 const currency = (n: number | string) =>
     new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN", maximumFractionDigits: 2 }).format(Number(n));
@@ -52,29 +53,7 @@ export const useInventoryColumns = (branchId: number) => {
                 header: "Presentación original",
                 cell: ({ row }) => {
                     const p = row.original;
-                    const presentationLabel = getProductPresentationTypeLabel(p.presentation);
-
-                    if (!p.contentTotal || p.contentTotal === 0) {
-                        return <span>{presentationLabel}</span>;
-                    }
-
-                    const mainUnit = presentationToUnitMap[p.presentation] ?? ProductUnitType.UNIT;
-                    const isLockedUnit = mainUnit === ProductUnitType.UNIT && p.unitType === ProductUnitType.UNIT;
-
-                    if (isLockedUnit && p.contentTotal === 1) {
-                        return (
-                            <div>
-                                <span className="leading-tight">{p.contentTotal} {presentationLabel}</span>
-                            </div>
-                        );
-                    }
-
-                    const unitLabel = getProductUnitTypeLabelByQuantity(p.unitType, p.contentTotal);
-                    return (
-                        <div>
-                            <span className="leading-tight">{presentationLabel} de {p.contentTotal} {unitLabel}</span>
-                        </div>
-                    );
+                    return <span className="leading-tight">{formatPresentation(p)}</span>;
                 },
             },
             {
@@ -86,7 +65,6 @@ export const useInventoryColumns = (branchId: number) => {
                 id: "saleModes",
                 header: " Otros Modos Venta",
                 cell: ({ row }) => {
-                    // 'modes' ahora es List<SaleModeSummary>
                     const modes: SaleModeSummary[] = row.original.saleModes ?? [];
                     if (modes.length === 0) return <span className="text-xs text-muted-foreground">—</span>;
 

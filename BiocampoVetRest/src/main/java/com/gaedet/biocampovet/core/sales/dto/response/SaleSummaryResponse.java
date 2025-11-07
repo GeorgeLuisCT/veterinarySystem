@@ -20,5 +20,6 @@ public class SaleSummaryResponse {
     Long branchId;
     Long sellerId;
     Long customerId;
+    String customerName;
 }
 

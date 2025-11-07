@@ -60,4 +60,5 @@ export interface SaleSummaryResponse {
   branchId: number;
   sellerId: number;
   customerId?: number;
+  customerName?: string;
 }

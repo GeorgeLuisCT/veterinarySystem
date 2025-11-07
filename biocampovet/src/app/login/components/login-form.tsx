@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -11,14 +11,30 @@ import { LoginSelectBranch } from "./login-select-branch";
 import { login } from "../services/auth-service";
 import { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
 import { getAaxiosErrorMessage } from "@/helpers/error";
+import PublicPortalService from "@/app/landing/service/public-portal-service";
 
 export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [branches, setBranches] = useState<BranchResponse[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchCompanyInfo = async () => {
+      try {
+        const data = await PublicPortalService.getCompanyInfo();
+        setCompanyName(data.name);
+      } catch (error) {
+        console.error("Failed to fetch company info:", error);
+        setCompanyName("la Clínica");
+      }
+    };
+
+    fetchCompanyInfo();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +65,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Bienvenido</h1>
                 <p className="text-muted-foreground text-balance">
-                  Inicie sesión para acceder a ViocampoVet
+                  Inicie sesión para acceder a {companyName || "la plataforma"}
                 </p>
               </div>
               <div className="grid gap-3">
@@ -74,7 +90,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
               <Button type="submit" className="w-full cursor-pointer" disabled={loading}>
-                {loading ? "Logging in..." : "Iniciar sesión"}
+                {loading ? "Ingresando..." : "Iniciar sesión"}
               </Button>
             </div>
           </form>

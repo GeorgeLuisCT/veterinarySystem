@@ -14,17 +14,22 @@ export function getSaleModeSummaryText(
     relativeQuantity: number | null | undefined,
     presentationType: ProductPresentationType | null | undefined
 ): string {
-
     if (!modeUnit) {
         return "modo de venta";
     }
 
-    const quantity: number = Number(relativeQuantity ?? 0);
-    const qtyText = quantity % 1 !== 0 ? quantity.toFixed(2) : String(quantity);
+    const quantity = Number(relativeQuantity ?? 0);
+    const isInt = Number.isInteger(quantity);
+    const qtyText = isInt ? String(quantity) : quantity.toFixed(2);
 
     const isModeFraccionable = isFracionableUnit(modeUnit);
+    const isOne = Math.abs(quantity - 1) < 1e-9;
+
     if (isModeFraccionable) {
         const unitLabel = getProductUnitTypeLabelByQuantity(modeUnit, quantity).toLowerCase();
+        if (isOne) {
+            return `por ${unitLabel}`;
+        }
         return `${qtyText} ${unitLabel}`;
     }
 
@@ -32,7 +37,7 @@ export function getSaleModeSummaryText(
     if (presentationType) {
         finalUnitLabel = getProductPresentationTypeLabelByQuantity(presentationType, quantity).toLowerCase();
     } else {
-        finalUnitLabel = (quantity === 1) ? "unidad" : "unidades";
+        finalUnitLabel = isOne ? "unidad" : "unidades";
     }
 
     if (modeUnit === ProductUnitType.UNIT) {

@@ -1,5 +1,6 @@
 package com.gaedet.biocampovet.core.sales.mapper;
 
+import com.gaedet.biocampovet.core.customer.entity.Customer;
 import com.gaedet.biocampovet.core.sales.dto.response.SaleDetailResponse;
 import com.gaedet.biocampovet.core.sales.dto.response.SalePaymentResponse;
 import com.gaedet.biocampovet.core.sales.dto.response.SaleResponse;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 public final class SaleMapper {
 
     public static SaleSummaryResponse toSummary(Sale sale) {
+        Customer customer = sale.getCustomer();
         return SaleSummaryResponse.builder()
                 .id(sale.getId())
                 .documentType(sale.getDocumentType())
@@ -24,6 +26,7 @@ public final class SaleMapper {
                 .branchId(sale.getBranch() != null ? sale.getBranch().getId() : null)
                 .sellerId(sale.getSeller() != null ? sale.getSeller().getId() : null)
                 .customerId(sale.getCustomer() != null ? sale.getCustomer().getId() : null)
+                .customerName(customer != null ? customer.getName() : null)
                 .build();
     }
 

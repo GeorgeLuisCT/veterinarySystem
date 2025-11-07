@@ -48,7 +48,7 @@ export default function PaymentTable({ payments, onRemove }: PaymentTableProps) 
             </TableRow>
           )}
           {payments.map((payment) => (
-            <TableRow key={payment.id}>
+            <TableRow key={payment.paymentId ?? payment.id}>
               <TableCell>{paymentLabels[payment.method]}</TableCell>
               <TableCell>S/ {payment.amount.toFixed(2)}</TableCell>
               <TableCell>{payment.reference ?? "—"}</TableCell>

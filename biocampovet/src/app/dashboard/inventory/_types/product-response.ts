@@ -91,4 +91,6 @@ export interface ProductQuickSearchResponse {
   presentation: ProductPresentationType;
   sku: string;
   standardPrice: number;
+  unitType: ProductUnitType;
+  contentTotal: number;
 }
