@@ -14,6 +14,14 @@ public interface SalePaymentRepository extends JpaRepository<SalePayment, Long> 
     List<SalePayment> findBySaleId(Long saleId);
 
     @Query("""
+            SELECT sp.paymentMethod, SUM(sp.amountPaid)
+            FROM SalePayment sp
+            WHERE sp.cashSession.id = :cashSessionId
+            GROUP BY sp.paymentMethod
+            """)
+    List<Object[]> sumByCashSessionGrouped(@Param("cashSessionId") Long cashSessionId);
+
+    @Query("""
             SELECT SUM(sp.amountPaid)
             FROM SalePayment sp
             WHERE sp.paymentMethod = :method
@@ -27,4 +35,3 @@ public interface SalePaymentRepository extends JpaRepository<SalePayment, Long> 
 
     List<SalePayment> findByCashSessionId(Long cashSessionId);
 }
-

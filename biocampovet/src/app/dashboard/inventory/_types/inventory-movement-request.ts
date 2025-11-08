@@ -62,6 +62,21 @@ export const purchaseCreateSchema = z.object({
   date: z.string({ required_error: "La fecha de compra es obligatoria" }).min(1, "La fecha de compra es obligatoria"),
   description: optionalString,
   products: z.array(purchaseProductSchema).min(1, "Agrega al menos un producto"),
+  payNow: z.boolean().optional(),
+  paymentAmount: z
+    .number({ required_error: "Ingresa el monto a pagar" })
+    .positive("El monto debe ser mayor a cero")
+    .optional(),
+  paymentTreasuryAccountId: z.number().optional(),
+}).superRefine((data, ctx) => {
+  if (data.payNow) {
+    if (!data.paymentAmount) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Ingresa el monto a pagar", path: ["paymentAmount"] });
+    }
+    if (!data.paymentTreasuryAccountId) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Selecciona la cuenta de pago", path: ["paymentTreasuryAccountId"] });
+    }
+  }
 });
 
 export const transferProductSchema = z.object({

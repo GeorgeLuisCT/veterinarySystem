@@ -30,6 +30,8 @@ export enum PaymentMethod {
   CASH = "CASH",
   CREDIT_CARD = "CREDIT_CARD",
   DEBIT_CARD = "DEBIT_CARD",
+  YAPE = "YAPE",
+  PLIN = "PLIN",
   BANK_TRANSFER = "BANK_TRANSFER",
   MOBILE_PAYMENT = "MOBILE_PAYMENT",
   CHECK = "CHECK",
@@ -94,6 +96,8 @@ export const PaymentMethodLabels: Record<PaymentMethod, string> = {
   [PaymentMethod.CASH]: "Efectivo",
   [PaymentMethod.CREDIT_CARD]: "Tarjeta de crédito",
   [PaymentMethod.DEBIT_CARD]: "Tarjeta de débito",
+  [PaymentMethod.YAPE]: "Yape",
+  [PaymentMethod.PLIN]: "Plin",
   [PaymentMethod.BANK_TRANSFER]: "Transferencia bancaria",
   [PaymentMethod.MOBILE_PAYMENT]: "Pago móvil",
   [PaymentMethod.CHECK]: "Cheque",
@@ -106,4 +110,3 @@ export const PaymentMethodOptions = (
   value,
   label: PaymentMethodLabels[value],
 }));
-

@@ -1,4 +1,5 @@
 import { CashMovementType } from "./cash-session-enums";
+import { CashboxTransferChannel } from "@/app/dashboard/finance/_types/treasury-account";
 
 export interface OpenCashSessionRequest {
   branchId: number;
@@ -9,6 +10,12 @@ export interface OpenCashSessionRequest {
 export interface CloseCashSessionRequest {
   countedClosingAmount: number;
   notes?: string;
+  paymentTransfers: CashboxTransferAllocation[];
+}
+
+export interface CashboxTransferAllocation {
+  channel: CashboxTransferChannel;
+  treasuryAccountId: number;
 }
 
 export interface RegisterCashMovementRequest {
@@ -24,4 +31,3 @@ export interface CashSessionHistoryParams {
   page?: number;
   size?: number;
 }
-

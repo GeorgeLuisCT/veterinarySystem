@@ -22,6 +22,8 @@ import SupplierService from "../../_service/supplier-service";
 import { useDebouncedSearch } from "./use-debounced-search";
 import { PurchaseForm, purchaseFormSchema, type PurchaseFormValues } from "./purchase-form";
 import { ProductItemForm } from "./pucharse-product-item-form";
+import TreasuryAccountService from "../../../finance/_services/treasury-account-service";
+import { TreasuryAccountResponse } from "../../../finance/_types/treasury-account";
 
 function pad2(n: number) { return String(n).padStart(2, "0"); }
 function nowLocal(): string {
@@ -55,7 +57,15 @@ interface PurchaseDialogProps {
 export function PurchaseDialog({ open, onOpenChange, branchOptions, defaultBranchId, onCreated }: PurchaseDialogProps) {
   const form = useForm<PurchaseFormValues>({
     resolver: zodResolver(purchaseFormSchema),
-    defaultValues: { branchId: defaultBranchId, supplierId: undefined, date: nowLocal(), description: "" },
+    defaultValues: {
+      branchId: defaultBranchId,
+      supplierId: undefined,
+      date: nowLocal(),
+      description: "",
+      payNow: false,
+      paymentAmount: undefined,
+      paymentTreasuryAccountId: undefined,
+    },
     mode: "onBlur",
   });
 
@@ -80,6 +90,7 @@ export function PurchaseDialog({ open, onOpenChange, branchOptions, defaultBranc
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierQuickSearchResponse | null>(null);
 
   const [items, setItems] = useState<Array<PurchaseProductDraft | null>>([null]);
+  const [treasuryAccounts, setTreasuryAccounts] = useState<TreasuryAccountResponse[]>([]);
 
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
@@ -92,10 +103,30 @@ export function PurchaseDialog({ open, onOpenChange, branchOptions, defaultBranc
       cancelSupplierSearch();
       cancelProductSearch();
       setItems([null]);
-      form.reset({ branchId: defaultBranchId, supplierId: undefined, date: nowLocal(), description: "" });
+      form.reset({
+        branchId: defaultBranchId,
+        supplierId: undefined,
+        date: nowLocal(),
+        description: "",
+        payNow: false,
+        paymentAmount: undefined,
+        paymentTreasuryAccountId: undefined,
+      });
       setSubmitting(false);
     }
   }, [open, defaultBranchId, form, setSupplierOptions, setProductOptions, cancelSupplierSearch, cancelProductSearch]);
+
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const data = await TreasuryAccountService.list();
+        setTreasuryAccounts(data);
+      } catch (error) {
+        toast({ variant: "destructive", title: "Error", description: getAaxiosErrorMessage(error) ?? "No se pudieron cargar cuentas" });
+      }
+    };
+    fetchAccounts();
+  }, [toast]);
 
   const upsertItem = (index: number, draft: PurchaseProductDraft) => {
     setItems((prev) => {
@@ -158,7 +189,12 @@ export function PurchaseDialog({ open, onOpenChange, branchOptions, defaultBranc
         unitType: p.unitType,
         unitCost: p.unitCost,
       })),
+      payNow: values.payNow ?? false,
     };
+    if (payload.payNow) {
+      payload.paymentAmount = values.paymentAmount;
+      payload.paymentTreasuryAccountId = values.paymentTreasuryAccountId;
+    }
 
     try {
       setSubmitting(true);
@@ -191,6 +227,7 @@ export function PurchaseDialog({ open, onOpenChange, branchOptions, defaultBranc
             supplierOptions={supplierOptions}
             supplierLoading={supplierLoading}
             searchSupplier={searchSupplier}
+            treasuryAccounts={treasuryAccounts}
           />
         </fieldset>
 

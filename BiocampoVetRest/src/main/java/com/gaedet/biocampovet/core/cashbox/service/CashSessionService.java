@@ -9,13 +9,18 @@ import com.gaedet.biocampovet.core.cashbox.dto.response.CashMovementResponse;
 import com.gaedet.biocampovet.core.cashbox.dto.response.CashSessionDetailResponse;
 import com.gaedet.biocampovet.core.cashbox.dto.response.CashSessionHistoryResponse;
 import com.gaedet.biocampovet.core.cashbox.dto.response.CashSessionSummaryResponse;
+import com.gaedet.biocampovet.core.cashbox.dto.response.CashboxPaymentBreakdownResponse;
 import com.gaedet.biocampovet.core.cashbox.entity.CashSession;
 import com.gaedet.biocampovet.core.cashbox.entity.CashSessionMovement;
 import com.gaedet.biocampovet.core.cashbox.enums.CashMovementType;
 import com.gaedet.biocampovet.core.cashbox.enums.CashSessionStatus;
 import com.gaedet.biocampovet.core.cashbox.repository.CashSessionMovementRepository;
 import com.gaedet.biocampovet.core.cashbox.repository.CashSessionRepository;
+import com.gaedet.biocampovet.core.finance.enums.AccountMovementType;
+import com.gaedet.biocampovet.core.finance.enums.CashboxTransferChannel;
+import com.gaedet.biocampovet.core.finance.service.AccountMovementService;
 import com.gaedet.biocampovet.core.sales.entity.SalePayment;
+import com.gaedet.biocampovet.core.sales.enums.PaymentMethod;
 import com.gaedet.biocampovet.core.sales.repository.SalePaymentRepository;
 import com.gaedet.biocampovet.core.users.entity.User;
 import com.gaedet.biocampovet.core.users.repository.UserRepository;
@@ -34,7 +39,10 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ZERO;
@@ -48,9 +56,17 @@ public class CashSessionService {
     private final SalePaymentRepository salePaymentRepository;
     private final BranchRepository branchRepository;
     private final UserRepository userRepository;
+    private final AccountMovementService accountMovementService;
 
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
     private static final int MONEY_SCALE = 2;
+    private static final Map<CashboxTransferChannel, String> CHANNEL_LABELS = Map.of(
+            CashboxTransferChannel.CASH, "Efectivo",
+            CashboxTransferChannel.YAPE, "Yape",
+            CashboxTransferChannel.PLIN, "Plin",
+            CashboxTransferChannel.CARD, "Tarjeta",
+            CashboxTransferChannel.OTHER, "Otros"
+    );
 
     @Transactional
     public CashSessionSummaryResponse openSession(OpenCashSessionRequest request) {
@@ -131,6 +147,10 @@ public class CashSessionService {
         BigDecimal calculated = summaryBeforeClose.getCalculatedClosingAmount();
         BigDecimal difference = counted.subtract(calculated).setScale(MONEY_SCALE, ROUNDING_MODE);
 
+        Map<CashboxTransferChannel, BigDecimal> paymentTotals = getPaymentChannelTotals(session.getId());
+        Map<CashboxTransferChannel, Long> transferTargets = normalizeTransferTargets(request.getPaymentTransfers());
+        registerCashboxTransfers(session, paymentTotals, transferTargets);
+
         session.setStatus(CashSessionStatus.CLOSED);
         session.setClosedAt(LocalDateTime.now());
         session.setCountedClosingAmount(counted);
@@ -177,11 +197,86 @@ public class CashSessionService {
                 .stream()
                 .map(this::toMovementResponse)
                 .collect(Collectors.toList());
+        List<CashboxPaymentBreakdownResponse> breakdown = buildPaymentBreakdown(session.getId());
 
         return CashSessionDetailResponse.builder()
+                .open(session.getStatus() == CashSessionStatus.OPEN)
                 .session(summary)
                 .movements(movements)
+                .paymentBreakdown(breakdown)
                 .build();
+    }
+
+    private Map<CashboxTransferChannel, Long> normalizeTransferTargets(List<CloseCashSessionRequest.PaymentTransferAllocation> allocations) {
+        Map<CashboxTransferChannel, Long> targets = new EnumMap<>(CashboxTransferChannel.class);
+        if (allocations == null) {
+            return targets;
+        }
+        allocations.stream()
+                .filter(Objects::nonNull)
+                .forEach(allocation -> {
+                    if (allocation.getChannel() != null) {
+                        targets.put(allocation.getChannel(), allocation.getTreasuryAccountId());
+                    }
+                });
+        return targets;
+    }
+
+    private void registerCashboxTransfers(CashSession session,
+                                          Map<CashboxTransferChannel, BigDecimal> totals,
+                                          Map<CashboxTransferChannel, Long> targets) {
+        totals.forEach((channel, amount) -> {
+            BigDecimal normalized = amount.setScale(MONEY_SCALE, ROUNDING_MODE);
+            if (normalized.compareTo(BigDecimal.ZERO) <= 0) {
+                return;
+            }
+            Long accountId = targets.get(channel);
+            if (accountId == null) {
+                throw new BadRequestException("Selecciona una cuenta para " + CHANNEL_LABELS.get(channel));
+            }
+            accountMovementService.registerMovement(
+                    accountId,
+                    normalized,
+                    AccountMovementType.CASHBOX_CLOSING,
+                    "Cierre caja #" + session.getId() + " - " + CHANNEL_LABELS.get(channel),
+                    LocalDateTime.now(),
+                    null
+            );
+        });
+    }
+
+    private Map<CashboxTransferChannel, BigDecimal> getPaymentChannelTotals(Long sessionId) {
+        Map<CashboxTransferChannel, BigDecimal> totals = new EnumMap<>(CashboxTransferChannel.class);
+        salePaymentRepository.sumByCashSessionGrouped(sessionId).forEach(row -> {
+            PaymentMethod method = (PaymentMethod) row[0];
+            BigDecimal amount = (BigDecimal) row[1];
+            if (amount == null) {
+                return;
+            }
+            amount = amount.setScale(MONEY_SCALE, ROUNDING_MODE);
+            CashboxTransferChannel channel = CashboxTransferChannel.fromPaymentMethod(method);
+            if (channel == null) {
+                channel = CashboxTransferChannel.OTHER;
+            }
+            totals.merge(channel, amount, BigDecimal::add);
+        });
+
+        for (CashboxTransferChannel channel : CashboxTransferChannel.values()) {
+            totals.putIfAbsent(channel, BigDecimal.ZERO.setScale(MONEY_SCALE, ROUNDING_MODE));
+        }
+        return totals;
+    }
+
+    private List<CashboxPaymentBreakdownResponse> buildPaymentBreakdown(Long sessionId) {
+        Map<CashboxTransferChannel, BigDecimal> totals = getPaymentChannelTotals(sessionId);
+        return totals.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> CashboxPaymentBreakdownResponse.builder()
+                        .channel(entry.getKey())
+                        .label(CHANNEL_LABELS.get(entry.getKey()))
+                        .amount(entry.getValue())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private CashSessionSummaryResponse buildSummary(CashSession session) {
@@ -252,6 +347,7 @@ public class CashSessionService {
     private BigDecimal sumCashSales(Long sessionId) {
         List<SalePayment> payments = salePaymentRepository.findByCashSessionId(sessionId);
         return payments.stream()
+                .filter(payment -> payment.getPaymentMethod() == PaymentMethod.CASH)
                 .map(SalePayment::getAmountPaid)
                 .reduce(ZERO, BigDecimal::add)
                 .setScale(MONEY_SCALE, ROUNDING_MODE);
@@ -292,6 +388,7 @@ public class CashSessionService {
                                 .map(this::toMovementResponse)
                                 .toList()
                 )
+                .paymentBreakdown(buildPaymentBreakdown(session.getId()))
                 .build();
     }
 
@@ -300,6 +397,7 @@ public class CashSessionService {
                 .open(false)
                 .session(null)
                 .movements(java.util.Collections.emptyList())
+                .paymentBreakdown(java.util.Collections.emptyList())
                 .build();
     }
 }

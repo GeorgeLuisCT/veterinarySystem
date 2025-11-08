@@ -21,6 +21,8 @@ const paymentLabels: Record<PaymentMethod, string> = {
   [PaymentMethod.CASH]: "Efectivo",
   [PaymentMethod.CREDIT_CARD]: "Tarjeta crédito",
   [PaymentMethod.DEBIT_CARD]: "Tarjeta débito",
+  [PaymentMethod.YAPE]: "Yape",
+  [PaymentMethod.PLIN]: "Plin",
   [PaymentMethod.BANK_TRANSFER]: "Transferencia",
   [PaymentMethod.MOBILE_PAYMENT]: "Pago móvil",
   [PaymentMethod.CHECK]: "Cheque",

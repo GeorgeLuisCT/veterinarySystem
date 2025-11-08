@@ -1,4 +1,5 @@
 import { CashMovementType, CashSessionStatus } from "./cash-session-enums";
+import { CashboxTransferChannel } from "@/app/dashboard/finance/_types/treasury-account";
 
 export interface CashMovementResponse {
   id: number;
@@ -34,6 +35,7 @@ export interface CashSessionDetailResponse {
   open: boolean;
   session: CashSessionSummaryResponse | null;
   movements: CashMovementResponse[];
+  paymentBreakdown: CashboxPaymentBreakdownResponse[];
 }
 
 export interface CashSessionHistoryResponse {
@@ -51,3 +53,8 @@ export interface CashSessionHistoryResponse {
   notes?: string;
 }
 
+export interface CashboxPaymentBreakdownResponse {
+  channel: CashboxTransferChannel;
+  label: string;
+  amount: number;
+}

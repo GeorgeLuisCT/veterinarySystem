@@ -9,12 +9,14 @@ import { useUser } from "@/context/user-context";
 import { CashSessionDetailResponse, CashSessionSummaryResponse } from "../_types/cash-session-response";
 import CashSessionService from "../_service/cash-session.service";
 import { MovementFormValues } from "../_schemas/movement-schema";
-import { CloseSessionFormValues } from "../_schemas/close-session-schema";
 import OpenSessionDialog from "../_components/open-session-dialog";
 import RegisterMovementDialog from "../_components/register-movement-dialog";
 import CloseSessionDialog from "../_components/close-session-dialog";
 import { CashMovementType } from "../_types/cash-session-enums";
 import DashboardLayoutSection from "../../dashboard-layout-section";
+import TreasuryAccountService from "../../finance/_services/treasury-account-service";
+import { TreasuryAccountResponse } from "../../finance/_types/treasury-account";
+import { CloseCashSessionRequest } from "../_types/cash-session-request";
 
 export default function CurrentCashSessionPage() {
   const { userInfo } = useUser();
@@ -25,6 +27,7 @@ export default function CurrentCashSessionPage() {
   const [detail, setDetail] = useState<CashSessionDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [closingSummary, setClosingSummary] = useState<CashSessionSummaryResponse | null>(null);
+  const [treasuryAccounts, setTreasuryAccounts] = useState<TreasuryAccountResponse[]>([]);
 
   const loadActiveSession = useCallback(async () => {
     try {
@@ -48,6 +51,19 @@ export default function CurrentCashSessionPage() {
       loadActiveSession();
     }
   }, [branchId, loadActiveSession]);
+
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const data = await TreasuryAccountService.list();
+        setTreasuryAccounts(data);
+      } catch (error) {
+        console.error(error);
+        toast({ title: "No se pudieron cargar las cuentas de tesorería", variant: "destructive" });
+      }
+    };
+    fetchAccounts();
+  }, [toast]);
 
   const handleOpenSession = useCallback(
     async (amount: number) => {
@@ -86,7 +102,7 @@ export default function CurrentCashSessionPage() {
   );
 
   const handleCloseSession = useCallback(
-    async (values: CloseSessionFormValues) => {
+    async (values: CloseCashSessionRequest) => {
       if (!detail) return;
       try {
         const summary = await CashSessionService.closeSession(detail.session!.id, values);
@@ -127,7 +143,12 @@ export default function CurrentCashSessionPage() {
               <div className="flex gap-2">
                 <OpenSessionDialog onOpenSession={handleOpenSession} disabled={Boolean(detail)} />
                 <RegisterMovementDialog onRegister={handleRegisterMovement} disabled={!detail} />
-                <CloseSessionDialog onCloseSession={handleCloseSession} disabled={!detail} />
+                <CloseSessionDialog
+                  onCloseSession={handleCloseSession}
+                  disabled={!detail || treasuryAccounts.length === 0}
+                  breakdown={detail?.paymentBreakdown ?? []}
+                  accounts={treasuryAccounts}
+                />
               </div>
             </div>
 

@@ -1,5 +1,6 @@
 package com.gaedet.biocampovet.core.cashbox.dto.request;
 
+import com.gaedet.biocampovet.core.finance.enums.CashboxTransferChannel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @Builder
@@ -20,5 +22,16 @@ public class CloseCashSessionRequest {
     private BigDecimal countedClosingAmount;
 
     private String notes;
-}
 
+    @Builder.Default
+    private List<PaymentTransferAllocation> paymentTransfers = List.of();
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PaymentTransferAllocation {
+        @NotNull
+        private CashboxTransferChannel channel;
+        private Long treasuryAccountId;
+    }
+}

@@ -313,7 +313,7 @@ public class SaleService {
                 .notes(paymentRequest.getNotes())
                 .build();
 
-        if (linkToCashSession && method == PaymentMethod.CASH) {
+        if (linkToCashSession) {
             CashSession cashSession = cashSessionRepository
                     .findFirstByBranchIdAndCashierIdAndStatus(branch.getId(), sale.getSeller().getId(), CashSessionStatus.OPEN)
                     .orElse(null);

@@ -13,5 +13,6 @@ public class CashSessionDetailResponse {
     CashSessionSummaryResponse session;
     @Singular
     List<CashMovementResponse> movements;
+    @Singular("breakdownItem")
+    List<CashboxPaymentBreakdownResponse> paymentBreakdown;
 }
-

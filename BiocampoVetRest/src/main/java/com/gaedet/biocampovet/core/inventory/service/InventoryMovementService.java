@@ -2,6 +2,7 @@ package com.gaedet.biocampovet.core.inventory.service;
 
 import com.gaedet.biocampovet.core.branches.entity.Branch;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
+import com.gaedet.biocampovet.core.finance.service.AccountPayableService;
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
 import com.gaedet.biocampovet.core.inventory.dto.*;
 import com.gaedet.biocampovet.core.inventory.entity.*;
@@ -30,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 
 @Service
@@ -41,6 +43,10 @@ public class InventoryMovementService {
     private final ProductBatchRepository productBatchRepository;
     private final KardexService kardexService;
     private final EntityManager entityManager;
+    private final AccountPayableService accountPayableService;
+
+    private static final int MONEY_SCALE = 2;
+    private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
 
     @Transactional
     public InventoryMovementResponse createPurchase(PurchaseCreateRequest request, Long employeeId) {
@@ -52,6 +58,8 @@ public class InventoryMovementService {
         movement.setSupplier(entityManager.getReference(Supplier.class, request.getSupplierId()));
         movement.setEmployee(entityManager.getReference(Employee.class, employeeId));
         movement.setDescription(request.getDescription());
+
+        BigDecimal purchaseTotal = calculatePurchaseTotal(request);
 
         List<InventoryMovementProduct> products = request.getProducts().stream()
                 .map(p -> {
@@ -89,7 +97,41 @@ public class InventoryMovementService {
                     .build());
         }
 
+        registerAccountPayableForPurchase(request, savedMovement, purchaseTotal);
+
         return InventoryMovementMapper.toResponse(savedMovement);
+    }
+
+    private BigDecimal calculatePurchaseTotal(PurchaseCreateRequest request) {
+        return request.getProducts().stream()
+                .map(product -> product.getUnitCost().multiply(BigDecimal.valueOf(product.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(MONEY_SCALE, ROUNDING_MODE);
+    }
+
+    private void registerAccountPayableForPurchase(PurchaseCreateRequest request,
+                                                   InventoryMovement movement,
+                                                   BigDecimal totalAmount) {
+        LocalDate issueDate = request.getDate() != null ? request.getDate().toLocalDate() : LocalDate.now();
+        BigDecimal upfront = shouldRegisterInitialPayment(request) ? request.getPaymentAmount() : null;
+        Long treasuryAccountId = shouldRegisterInitialPayment(request) ? request.getPaymentTreasuryAccountId() : null;
+
+        accountPayableService.registerPurchasePayable(
+                request.getSupplierId(),
+                request.getDescription() != null ? request.getDescription() : "Compra inventario #" + movement.getId(),
+                issueDate,
+                totalAmount,
+                upfront,
+                treasuryAccountId,
+                "Pago inicial compra #" + movement.getId()
+        );
+    }
+
+    private boolean shouldRegisterInitialPayment(PurchaseCreateRequest request) {
+        return Boolean.TRUE.equals(request.getPayNow())
+                && request.getPaymentAmount() != null
+                && request.getPaymentTreasuryAccountId() != null
+                && request.getPaymentAmount().compareTo(BigDecimal.ZERO) > 0;
     }
 
     @Transactional
@@ -294,4 +336,3 @@ public class InventoryMovementService {
                 .collect(Collectors.toList());
     }
 }
-

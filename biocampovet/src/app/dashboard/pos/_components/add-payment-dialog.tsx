@@ -47,6 +47,8 @@ const paymentOptions: { value: PaymentMethod; label: string; icon: React.Compone
   { value: PaymentMethod.CASH, label: "Efectivo", icon: Banknote },
   { value: PaymentMethod.CREDIT_CARD, label: "Tarjeta crédito", icon: CreditCard },
   { value: PaymentMethod.DEBIT_CARD, label: "Tarjeta débito", icon: CreditCard },
+  { value: PaymentMethod.YAPE, label: "Yape", icon: Smartphone },
+  { value: PaymentMethod.PLIN, label: "Plin", icon: Smartphone },
   { value: PaymentMethod.BANK_TRANSFER, label: "Transferencia", icon: Landmark },
   { value: PaymentMethod.MOBILE_PAYMENT, label: "Pago móvil", icon: Smartphone },
   { value: PaymentMethod.CHECK, label: "Cheque", icon: Receipt },

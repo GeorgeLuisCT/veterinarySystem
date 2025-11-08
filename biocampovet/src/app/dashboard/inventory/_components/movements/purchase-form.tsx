@@ -11,12 +11,18 @@ import { z } from "zod";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
 import { parseISO, isValid, format } from "date-fns";
+import { Switch } from "@/components/ui/switch";
+import { TreasuryAccountResponse } from "../../../finance/_types/treasury-account";
+import { Input } from "@/components/ui/input";
 
 export const purchaseFormSchema = purchaseCreateSchema.pick({
   branchId: true,
   supplierId: true,
   date: true,
   description: true,
+  payNow: true,
+  paymentAmount: true,
+  paymentTreasuryAccountId: true,
 });
 
 export type PurchaseFormValues = z.infer<typeof purchaseFormSchema>;
@@ -41,6 +47,7 @@ interface PurchaseFormProps {
   supplierOptions: SupplierQuickSearchResponse[];
   supplierLoading: boolean;
   searchSupplier: (query: string) => void;
+  treasuryAccounts: TreasuryAccountResponse[];
 }
 
 export function PurchaseForm({
@@ -51,6 +58,7 @@ export function PurchaseForm({
   supplierOptions,
   supplierLoading,
   searchSupplier,
+  treasuryAccounts,
 }: PurchaseFormProps) {
   const supplierSelectOptions = React.useMemo(() => {
     const base = supplierOptions.map((s) => ({
@@ -156,6 +164,72 @@ export function PurchaseForm({
             </FormItem>
           )}
         />
+
+        <div className="space-y-2 rounded-lg border p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Pagar ahora</p>
+                <p className="text-xs text-muted-foreground">Registra el pago inicial en una cuenta de tesorería.</p>
+              </div>
+              <Switch
+                checked={form.watch("payNow") ?? false}
+                disabled={!treasuryAccounts.length}
+                onCheckedChange={(checked) => form.setValue("payNow", checked)}
+              />
+            </div>
+
+          {!treasuryAccounts.length && (
+            <p className="text-xs text-muted-foreground">
+              Configura cuentas de tesorería para habilitar pagos inmediatos.
+            </p>
+          )}
+          {form.watch("payNow") && (
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="paymentAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={field.value != null ? String(field.value) : ""}
+                        onChange={(event) =>
+                          field.onChange(event.target.value ? Number(event.target.value) : undefined)
+                        }
+                        placeholder="Monto a pagar"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="paymentTreasuryAccountId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <FloatingLabelSelect
+                        id="paymentTreasuryAccountId"
+                        label="Cuenta de tesorería"
+                        value={field.value != null ? String(field.value) : ""}
+                        onValueChange={(value) => field.onChange(value ? Number(value) : undefined)}
+                        options={treasuryAccounts.map((account) => ({
+                          value: String(account.id),
+                          label: account.name,
+                        }))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+        </div>
       </form>
     </Form>
   );
