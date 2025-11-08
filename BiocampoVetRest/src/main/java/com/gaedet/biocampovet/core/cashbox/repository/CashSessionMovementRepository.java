@@ -1,6 +1,6 @@
-package com.gaedet.biocampovet.core.payments.repository;
+package com.gaedet.biocampovet.core.cashbox.repository;
 
-import com.gaedet.biocampovet.core.payments.entity.CashSessionMovement;
+import com.gaedet.biocampovet.core.cashbox.entity.CashSessionMovement;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

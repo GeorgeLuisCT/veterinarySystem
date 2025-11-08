@@ -14,8 +14,11 @@ import java.util.List;
 public class SaleResponse {
     Long id;
     Long branchId;
+    String branchName;
     Long sellerId;
+    String sellerName;
     Long customerId;
+    String customerName;
     SaleStatus status;
     SalesDocumentType documentType;
     String documentNumber;

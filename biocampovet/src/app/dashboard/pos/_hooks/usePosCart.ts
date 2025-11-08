@@ -60,6 +60,11 @@ export function usePosCart(initialItems: PosCartItem[] = []) {
             product.presentation
           );
 
+        const metadata = {
+          kind: SaleItemKind.PRODUCT,
+          saleModeLabel: labelForMode,
+        };
+
         const newItem: PosCartItem = {
           id: generateId(),
           detailId: undefined, // Es un ítem nuevo
@@ -72,7 +77,7 @@ export function usePosCart(initialItems: PosCartItem[] = []) {
           taxRate: undefined,
           taxAmount: undefined,
           descriptionOverride: undefined,
-          metadataJson: undefined,
+          metadataJson: JSON.stringify(metadata),
           name: `${product.name}`,
           saleModeLabel: labelForMode,
           quantityEquivalent: saleMode.relativeQuantity ?? undefined,
@@ -89,6 +94,20 @@ export function usePosCart(initialItems: PosCartItem[] = []) {
       const qty = service.quantity ?? 1;
       const price = service.unitPrice ?? 0;
 
+      let existingMetadata = {};
+      if (service.metadataJson) {
+        try {
+          existingMetadata = JSON.parse(service.metadataJson);
+        } catch (e) {
+          console.error("Failed to parse existing service metadata", e);
+        }
+      }
+
+      const newMetadata = {
+        ...existingMetadata,
+        kind: SaleItemKind.SERVICE,
+      };
+
       const newItem: PosCartItem = {
         id: generateId(),
         detailId: undefined, // Es un ítem nuevo
@@ -99,7 +118,7 @@ export function usePosCart(initialItems: PosCartItem[] = []) {
         quantity: qty,
         taxRate: service.taxRate,
         taxAmount: service.quantity,
-        metadataJson: service.metadataJson,
+        metadataJson: JSON.stringify(newMetadata),
         descriptionOverride: undefined,
         name: service.description,
         lineSubtotal: price * qty,

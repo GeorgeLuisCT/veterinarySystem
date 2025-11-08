@@ -10,16 +10,20 @@ import com.gaedet.biocampovet.core.sales.dto.request.SalePaymentRequest;
 import com.gaedet.biocampovet.core.sales.dto.request.VoidSaleRequest;
 import com.gaedet.biocampovet.core.sales.dto.response.SaleResponse;
 import com.gaedet.biocampovet.core.sales.dto.response.SaleSummaryResponse;
+import com.gaedet.biocampovet.core.sales.enums.SaleStatus;
+import com.gaedet.biocampovet.core.sales.enums.SalesDocumentType;
 import com.gaedet.biocampovet.core.sales.service.SaleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -51,17 +55,21 @@ public class SaleController {
     @GetMapping
     public ResponseEntity<PaginatedResponse<SaleSummaryResponse>> listSales(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Long branchId,
+            @RequestParam(required = false) Long customerId,
+            @RequestParam(required = false) Long sellerId,
+            @RequestParam(required = false) SaleStatus status,
+            @RequestParam(required = false) SalesDocumentType documentType,
+            @RequestParam(required = false) String documentNumber,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
     ) {
-        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1));
-        Page<SaleSummaryResponse> paged = saleService.listSales(pageable);
-        PaginatedResponse<SaleSummaryResponse> response = PaginatedResponse.<SaleSummaryResponse>builder()
-                .content(paged.getContent())
-                .totalPages(paged.getTotalPages())
-                .totalElements(paged.getTotalElements())
-                .currentPage(paged.getNumber())
-                .pageSize(paged.getSize())
-                .build();
+        PaginatedResponse<SaleSummaryResponse> response = saleService.listSales(
+                page, size, q, branchId, customerId, sellerId, status,
+                documentType, documentNumber, startDate, endDate
+        );
         return ResponseEntity.ok(response);
     }
 

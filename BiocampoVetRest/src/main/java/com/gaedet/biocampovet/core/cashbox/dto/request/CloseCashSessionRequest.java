@@ -1,4 +1,4 @@
-package com.gaedet.biocampovet.core.payments.dto.request;
+package com.gaedet.biocampovet.core.cashbox.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,16 +13,12 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OpenCashSessionRequest {
-
-    @NotNull
-    private Long branchId;
-
-    @NotNull
-    private Long cashierId;
+public class CloseCashSessionRequest {
 
     @NotNull
     @DecimalMin(value = "0.00", inclusive = true)
-    private BigDecimal openingAmount;
+    private BigDecimal countedClosingAmount;
+
+    private String notes;
 }
 

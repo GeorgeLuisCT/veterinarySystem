@@ -1,6 +1,6 @@
-package com.gaedet.biocampovet.core.payments.dto.request;
+package com.gaedet.biocampovet.core.cashbox.dto.request;
 
-import com.gaedet.biocampovet.core.payments.enums.CashMovementType;
+import com.gaedet.biocampovet.core.cashbox.enums.CashMovementType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

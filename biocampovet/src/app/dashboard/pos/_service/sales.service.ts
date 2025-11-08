@@ -11,6 +11,14 @@ import {
 } from "../_types/sale-request";
 import { SaleResponse, SaleSummaryResponse } from "../_types/sale-response";
 
+const buildQueryParams = (params: Record<string, unknown>) => {
+  const qp: Record<string, unknown> = {};
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "") qp[k] = v;
+  });
+  return qp;
+}
+
 const SalesService = {
   async saveSale(payload: CreateSaleRequest): Promise<SaleResponse> {
     const response = await api.post<SaleResponse>("/sales", payload);
@@ -33,10 +41,38 @@ const SalesService = {
   async listSales(
     params: SaleListParams
   ): Promise<PaginatedResponse<SaleSummaryResponse>> {
+    const {
+      page = 0,
+      size = 20,
+      q,
+      branchId,
+      customerId,
+      sellerId,
+      status,
+      documentType,
+      documentNumber,
+      startDate,
+      endDate,
+    } = params;
+
+    const query = buildQueryParams({
+      page,
+      size,
+      q,
+      branchId,
+      customerId,
+      sellerId,
+      status,
+      documentType,
+      documentNumber,
+      startDate,
+      endDate,
+    });
+
     const response = await api.get<PaginatedResponse<SaleSummaryResponse>>(
       "/sales",
       {
-        params,
+        params: query,
       }
     );
     return response.data;

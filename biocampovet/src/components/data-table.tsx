@@ -12,6 +12,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PaginatedResponse } from "@/types/paginated-response";
+import type React from "react";
 
 type ActionType = "direct" | "dropdown";
 
@@ -20,6 +21,8 @@ export interface Action<T> {
   onClick: (row: T) => void;
   icon?: React.ReactNode;
   type?: ActionType;
+  isVisible?: (row: T) => boolean;
+  isDisabled?: (row: T) => boolean;
 }
 
 interface DataTableProps<T> {
@@ -76,7 +79,7 @@ export default function DataTable<T>({
     const newTimeout = window.setTimeout(() => onSearch(query), 500);
     setDebounceTimeout(newTimeout);
   };
-  
+
   const table = useReactTable({
     data,
     columns: [
@@ -87,47 +90,68 @@ export default function DataTable<T>({
             id: "actions",
             header: "Acciones",
             cell: ({ row }) => {
-              const directActions = actions.filter((a) => a.type === "direct");
-              const dropdownActions = actions.filter((a) => a.type !== "direct");
+              const rowData = row.original as T;
+
+              // Filtra por visibilidad y tipo
+              const visibleActions = actions.filter((a) =>
+                a.isVisible ? a.isVisible(rowData) : true
+              );
+              const directActions = visibleActions.filter((a) => a.type === "direct");
+              const dropdownActions = visibleActions.filter((a) => a.type !== "direct");
+
               const stop = (e: React.MouseEvent) => e.stopPropagation();
 
               return (
                 <div className="flex items-center justify-center gap-1">
-                  {directActions.map((action, index) => (
-                    <Button
-                      key={index}
-                      variant="ghost"
-                      size="icon"
-                      className="cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        action.onClick(row.original as T);
-                      }}
-                    >
-                      {action.icon}
-                    </Button>
-                  ))}
+                  {directActions.map((action, index) => {
+                    const disabled = action.isDisabled ? action.isDisabled(rowData) : false;
+                    return (
+                      <Button
+                        key={index}
+                        variant="ghost"
+                        size="icon"
+                        className="cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (disabled) return;
+                          action.onClick(rowData);
+                        }}
+                        disabled={disabled}
+                        aria-disabled={disabled}
+                        aria-label={action.label}
+                        title={action.label}
+                      >
+                        {action.icon}
+                      </Button>
+                    );
+                  })}
+
                   {dropdownActions.length > 0 && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild className="cursor-pointer" onClick={stop}>
-                        <Button variant="ghost" size="icon" onClick={stop}>
+                        <Button variant="ghost" size="icon" onClick={stop} aria-label="Más acciones">
                           <MoreHorizontal className="h-5 w-5" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" onClick={stop}>
-                        {dropdownActions.map((action, index) => (
-                          <DropdownMenuItem
-                            key={index}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              action.onClick(row.original as T);
-                            }}
-                            className="flex items-center gap-2 cursor-pointer"
-                          >
-                            {action.icon && <span className="w-4 h-4">{action.icon}</span>}
-                            {action.label}
-                          </DropdownMenuItem>
-                        ))}
+                        {dropdownActions.map((action, index) => {
+                          const disabled = action.isDisabled ? action.isDisabled(rowData) : false;
+                          return (
+                            <DropdownMenuItem
+                              key={index}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (disabled) return;
+                                action.onClick(rowData);
+                              }}
+                              className="flex items-center gap-2 cursor-pointer"
+                              disabled={disabled}
+                            >
+                              {action.icon && <span className="w-4 h-4">{action.icon}</span>}
+                              {action.label}
+                            </DropdownMenuItem>
+                          );
+                        })}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}

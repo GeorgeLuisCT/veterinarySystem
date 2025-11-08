@@ -18,9 +18,9 @@ const CashSessionService = {
     return response.data;
   },
 
-  async getActiveSession(branchId: number, cashierId: number): Promise<CashSessionDetailResponse> {
+  async getActiveSession(branchId: number): Promise<CashSessionDetailResponse> {
     const response = await api.get<CashSessionDetailResponse>("/cash-sessions/active", {
-      params: { branchId, cashierId },
+      params: { branchId },
     });
     return response.data;
   },

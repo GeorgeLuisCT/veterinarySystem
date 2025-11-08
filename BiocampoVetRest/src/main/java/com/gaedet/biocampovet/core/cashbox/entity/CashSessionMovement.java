@@ -1,6 +1,6 @@
-package com.gaedet.biocampovet.core.payments.entity;
+package com.gaedet.biocampovet.core.cashbox.entity;
 
-import com.gaedet.biocampovet.core.payments.enums.CashMovementType;
+import com.gaedet.biocampovet.core.cashbox.enums.CashMovementType;
 import com.gaedet.biocampovet.core.users.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

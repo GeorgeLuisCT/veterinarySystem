@@ -1,20 +1,20 @@
-package com.gaedet.biocampovet.core.payments.service;
+package com.gaedet.biocampovet.core.cashbox.service;
 
 import com.gaedet.biocampovet.core.branches.entity.Branch;
 import com.gaedet.biocampovet.core.branches.repository.BranchRepository;
-import com.gaedet.biocampovet.core.payments.dto.request.CloseCashSessionRequest;
-import com.gaedet.biocampovet.core.payments.dto.request.OpenCashSessionRequest;
-import com.gaedet.biocampovet.core.payments.dto.request.RegisterCashMovementRequest;
-import com.gaedet.biocampovet.core.payments.dto.response.CashMovementResponse;
-import com.gaedet.biocampovet.core.payments.dto.response.CashSessionDetailResponse;
-import com.gaedet.biocampovet.core.payments.dto.response.CashSessionHistoryResponse;
-import com.gaedet.biocampovet.core.payments.dto.response.CashSessionSummaryResponse;
-import com.gaedet.biocampovet.core.payments.entity.CashSession;
-import com.gaedet.biocampovet.core.payments.entity.CashSessionMovement;
-import com.gaedet.biocampovet.core.payments.enums.CashMovementType;
-import com.gaedet.biocampovet.core.payments.enums.CashSessionStatus;
-import com.gaedet.biocampovet.core.payments.repository.CashSessionMovementRepository;
-import com.gaedet.biocampovet.core.payments.repository.CashSessionRepository;
+import com.gaedet.biocampovet.core.cashbox.dto.request.CloseCashSessionRequest;
+import com.gaedet.biocampovet.core.cashbox.dto.request.OpenCashSessionRequest;
+import com.gaedet.biocampovet.core.cashbox.dto.request.RegisterCashMovementRequest;
+import com.gaedet.biocampovet.core.cashbox.dto.response.CashMovementResponse;
+import com.gaedet.biocampovet.core.cashbox.dto.response.CashSessionDetailResponse;
+import com.gaedet.biocampovet.core.cashbox.dto.response.CashSessionHistoryResponse;
+import com.gaedet.biocampovet.core.cashbox.dto.response.CashSessionSummaryResponse;
+import com.gaedet.biocampovet.core.cashbox.entity.CashSession;
+import com.gaedet.biocampovet.core.cashbox.entity.CashSessionMovement;
+import com.gaedet.biocampovet.core.cashbox.enums.CashMovementType;
+import com.gaedet.biocampovet.core.cashbox.enums.CashSessionStatus;
+import com.gaedet.biocampovet.core.cashbox.repository.CashSessionMovementRepository;
+import com.gaedet.biocampovet.core.cashbox.repository.CashSessionRepository;
 import com.gaedet.biocampovet.core.sales.entity.SalePayment;
 import com.gaedet.biocampovet.core.sales.repository.SalePaymentRepository;
 import com.gaedet.biocampovet.core.users.entity.User;
@@ -79,12 +79,11 @@ public class CashSessionService {
     }
 
     @Transactional(readOnly = true)
-    public CashSessionDetailResponse getActiveSession(Long branchId, Long cashierId) {
-        CashSession session = cashSessionRepository
-                .findFirstByBranchIdAndCashierIdAndStatus(branchId, cashierId, CashSessionStatus.OPEN)
-                .orElseThrow(() -> new EntityNotFoundException("No hay caja abierta para el usuario en la sucursal"));
-
-        return buildDetailResponse(session);
+    public CashSessionDetailResponse getActiveSession(Long branchId) {
+        return cashSessionRepository
+                .findFirstByBranchIdAndStatusOrderByOpenedAtDesc(branchId, CashSessionStatus.OPEN)
+                .map(this::buildDetailResponseOpen)
+                .orElseGet(this::buildDetailResponseClosed);
     }
 
     @Transactional
@@ -281,6 +280,26 @@ public class CashSessionService {
                 .registeredByName(registeredName)
                 .registeredAt(movement.getRegisteredAt())
                 .reference(movement.getReference())
+                .build();
+    }
+
+    private CashSessionDetailResponse buildDetailResponseOpen(CashSession session) {
+        return CashSessionDetailResponse.builder()
+                .open(true)
+                .session(buildSummary(session))
+                .movements(
+                        session.getMovements().stream()
+                                .map(this::toMovementResponse)
+                                .toList()
+                )
+                .build();
+    }
+
+    private CashSessionDetailResponse buildDetailResponseClosed() {
+        return CashSessionDetailResponse.builder()
+                .open(false)
+                .session(null)
+                .movements(java.util.Collections.emptyList())
                 .build();
     }
 }

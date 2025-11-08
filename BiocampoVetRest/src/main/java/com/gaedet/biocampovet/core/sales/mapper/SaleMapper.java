@@ -10,12 +10,24 @@ import com.gaedet.biocampovet.core.sales.entity.SaleDetail;
 import com.gaedet.biocampovet.core.sales.entity.SalePayment;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class SaleMapper {
 
     public static SaleSummaryResponse toSummary(Sale sale) {
-        Customer customer = sale.getCustomer();
+        if (sale == null) {
+            return null;
+        }
+
+        String customerName = Optional.ofNullable(sale.getCustomer())
+                .map(Customer::getName)
+                .orElse(null);
+
+        Long customerId = Optional.ofNullable(sale.getCustomer())
+                .map(Customer::getId)
+                .orElse(null);
+
         return SaleSummaryResponse.builder()
                 .id(sale.getId())
                 .documentType(sale.getDocumentType())
@@ -23,10 +35,10 @@ public final class SaleMapper {
                 .status(sale.getStatus())
                 .grandTotal(sale.getGrandTotal())
                 .createdAt(sale.getCreatedAt())
-                .branchId(sale.getBranch() != null ? sale.getBranch().getId() : null)
-                .sellerId(sale.getSeller() != null ? sale.getSeller().getId() : null)
-                .customerId(sale.getCustomer() != null ? sale.getCustomer().getId() : null)
-                .customerName(customer != null ? customer.getName() : null)
+                .branchId(sale.getBranch().getId())
+                .sellerId(sale.getSeller().getId())
+                .customerId(customerId)
+                .customerName(customerName)
                 .build();
     }
 
@@ -41,9 +53,12 @@ public final class SaleMapper {
 
         return SaleResponse.builder()
                 .id(sale.getId())
-                .branchId(sale.getBranch() != null ? sale.getBranch().getId() : null)
-                .sellerId(sale.getSeller() != null ? sale.getSeller().getId() : null)
-                .customerId(sale.getCustomer() != null ? sale.getCustomer().getId() : null)
+                .branchId(sale.getBranch().getId())
+                .branchName(sale.getBranch().getName())
+                .sellerId(sale.getSeller().getId())
+                .sellerName(sale.getSeller().getEmployee().getFullName())
+                .customerId(sale.getCustomer().getId())
+                .customerName(sale.getCustomer().getName())
                 .status(sale.getStatus())
                 .documentType(sale.getDocumentType())
                 .documentNumber(sale.getDocumentNumber())

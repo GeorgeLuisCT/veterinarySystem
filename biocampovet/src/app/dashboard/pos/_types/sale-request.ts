@@ -8,6 +8,22 @@ import {
 } from "../_types/sale-enums";
 import { ProductUnitType } from "@/app/dashboard/inventory/_enums/product-unit-type";
 
+
+export type SaleListParams = {
+  page?: number;
+  size?: number;
+  q?: string;
+  branchId?: number;
+  customerId?: number;
+  sellerId?: number;
+  status?: SaleStatus;
+  documentType?: SalesDocumentType;
+  documentNumber?: string;
+  startDate?: string;
+  endDate?: string;
+};
+
+
 const nonNegative = (field: string) =>
   z
     .number({ required_error: `El campo ${field} es obligatorio` })
@@ -134,15 +150,6 @@ export const voidSaleRequestSchema = z.object({
 
 export type VoidSaleRequest = z.infer<typeof voidSaleRequestSchema>;
 
-export const saleListParamsSchema = z.object({
-  page: z.number().int().min(0).optional(),
-  size: z.number().int().min(1).max(100).optional(),
-  branchId: z.number().int().positive().optional(),
-  status: z.nativeEnum(SaleStatus).optional(),
-  documentNumber: z.string().trim().optional(),
-});
-
-export type SaleListParams = z.infer<typeof saleListParamsSchema>;
 
 export const saleFormSchema = z.object({
   documentType: z.nativeEnum(SalesDocumentType).optional(),

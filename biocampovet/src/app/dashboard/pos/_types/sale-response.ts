@@ -32,8 +32,11 @@ export interface SalePaymentResponse {
 export interface SaleResponse {
   id: number;
   branchId: number;
+  branchName: string;
   sellerId: number;
+  sellerName: string;
   customerId?: number;
+  customerName?: string;
   status: SaleStatus;
   documentType: SalesDocumentType;
   documentNumber: string;

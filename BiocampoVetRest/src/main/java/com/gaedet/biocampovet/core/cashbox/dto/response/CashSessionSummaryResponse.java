@@ -1,6 +1,6 @@
-package com.gaedet.biocampovet.core.payments.dto.response;
+package com.gaedet.biocampovet.core.cashbox.dto.response;
 
-import com.gaedet.biocampovet.core.payments.enums.CashSessionStatus;
+import com.gaedet.biocampovet.core.cashbox.enums.CashSessionStatus;
 import lombok.Builder;
 import lombok.Value;
 

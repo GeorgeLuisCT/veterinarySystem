@@ -1,13 +1,13 @@
-package com.gaedet.biocampovet.core.payments.controller;
+package com.gaedet.biocampovet.core.cashbox.controller;
 
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
-import com.gaedet.biocampovet.core.payments.dto.request.CloseCashSessionRequest;
-import com.gaedet.biocampovet.core.payments.dto.request.OpenCashSessionRequest;
-import com.gaedet.biocampovet.core.payments.dto.request.RegisterCashMovementRequest;
-import com.gaedet.biocampovet.core.payments.dto.response.CashSessionDetailResponse;
-import com.gaedet.biocampovet.core.payments.dto.response.CashSessionHistoryResponse;
-import com.gaedet.biocampovet.core.payments.dto.response.CashSessionSummaryResponse;
-import com.gaedet.biocampovet.core.payments.service.CashSessionService;
+import com.gaedet.biocampovet.core.cashbox.dto.request.CloseCashSessionRequest;
+import com.gaedet.biocampovet.core.cashbox.dto.request.OpenCashSessionRequest;
+import com.gaedet.biocampovet.core.cashbox.dto.request.RegisterCashMovementRequest;
+import com.gaedet.biocampovet.core.cashbox.dto.response.CashSessionDetailResponse;
+import com.gaedet.biocampovet.core.cashbox.dto.response.CashSessionHistoryResponse;
+import com.gaedet.biocampovet.core.cashbox.dto.response.CashSessionSummaryResponse;
+import com.gaedet.biocampovet.core.cashbox.service.CashSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -37,10 +37,9 @@ public class CashSessionController {
 
     @GetMapping("/active")
     public ResponseEntity<CashSessionDetailResponse> getActiveSession(
-            @RequestParam Long branchId,
-            @RequestParam Long cashierId
+            @RequestParam Long branchId
     ) {
-        return ResponseEntity.ok(cashSessionService.getActiveSession(branchId, cashierId));
+        return ResponseEntity.ok(cashSessionService.getActiveSession(branchId));
     }
 
     @GetMapping("/{id}")

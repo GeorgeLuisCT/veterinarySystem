@@ -140,7 +140,7 @@ function PointOfSaleContent() {
         const data = await SalesService.getSale(id);
         if (data.status !== SaleStatus.DRAFT) {
           toast({ title: "Venta no editable", description: "Esta venta ya ha sido procesada.", variant: "destructive" });
-          router.push("/dashboard/pos");
+          router.push("/dashboard/pos/sales/history");
           return;
         }
         syncFromSale(data, true);
@@ -148,7 +148,7 @@ function PointOfSaleContent() {
       } catch {
         toast({ title: "Error al cargar la venta", description: "No se pudo obtener el detalle de la venta.", variant: "destructive" });
         setSale(null);
-        router.push("/dashboard/pos");
+        router.push("/dashboard/pos/sales/history");
       } finally {
         setSubmitting(false);
       }
@@ -162,7 +162,7 @@ function PointOfSaleContent() {
     paymentCollector.resetPayments();
     form.reset(DEFAULT_FORM_VALUES);
     clearSectionErrors();
-    router.push("/dashboard/pos");
+    router.push("/dashboard/pos/sales/new");
   }, [cart, paymentCollector, form, clearSectionErrors, router]);
 
   useEffect(() => {
@@ -404,7 +404,7 @@ function PointOfSaleContent() {
       const finalizedSale = await SalesService.finalizeSale(sale.id, parsed.data);
       toast({ title: "Venta finalizada", description: `Se procesó la venta #${finalizedSale.id}` });
       handleReset();
-      router.push("/dashboard/pos/history");
+      router.push("/dashboard/pos/sales/new");
     } catch (err: unknown) {
       toast({ title: "Error al finalizar la venta", description: getAaxiosErrorMessage(err), variant: "destructive" });
     } finally {

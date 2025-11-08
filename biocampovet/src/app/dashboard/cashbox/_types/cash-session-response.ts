@@ -31,7 +31,8 @@ export interface CashSessionSummaryResponse {
 }
 
 export interface CashSessionDetailResponse {
-  session: CashSessionSummaryResponse;
+  open: boolean;
+  session: CashSessionSummaryResponse | null;
   movements: CashMovementResponse[];
 }
 

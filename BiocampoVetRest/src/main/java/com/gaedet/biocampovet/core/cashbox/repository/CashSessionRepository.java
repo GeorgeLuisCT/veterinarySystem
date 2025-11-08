@@ -1,7 +1,7 @@
-package com.gaedet.biocampovet.core.payments.repository;
+package com.gaedet.biocampovet.core.cashbox.repository;
 
-import com.gaedet.biocampovet.core.payments.entity.CashSession;
-import com.gaedet.biocampovet.core.payments.enums.CashSessionStatus;
+import com.gaedet.biocampovet.core.cashbox.entity.CashSession;
+import com.gaedet.biocampovet.core.cashbox.enums.CashSessionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 

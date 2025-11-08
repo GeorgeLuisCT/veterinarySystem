@@ -1,4 +1,4 @@
-package com.gaedet.biocampovet.core.payments.dto.response;
+package com.gaedet.biocampovet.core.cashbox.dto.response;
 
 import lombok.Builder;
 import lombok.Value;

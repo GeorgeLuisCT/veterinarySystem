@@ -4,6 +4,7 @@ import com.gaedet.biocampovet.core.branches.entity.Branch;
 import com.gaedet.biocampovet.core.branches.repository.BranchRepository;
 import com.gaedet.biocampovet.core.customer.entity.Customer;
 import com.gaedet.biocampovet.core.customer.repository.CustomerRepository;
+import com.gaedet.biocampovet.core.global.PaginatedResponse;
 import com.gaedet.biocampovet.core.inventory.dto.KardexRegistrationRequest;
 import com.gaedet.biocampovet.core.inventory.entity.Product;
 import com.gaedet.biocampovet.core.inventory.entity.ProductBatch;
@@ -14,9 +15,9 @@ import com.gaedet.biocampovet.core.inventory.repository.ProductBatchRepository;
 import com.gaedet.biocampovet.core.inventory.repository.ProductRepository;
 import com.gaedet.biocampovet.core.inventory.repository.ProductSaleModeRepository;
 import com.gaedet.biocampovet.core.inventory.service.KardexService;
-import com.gaedet.biocampovet.core.payments.entity.CashSession;
-import com.gaedet.biocampovet.core.payments.enums.CashSessionStatus;
-import com.gaedet.biocampovet.core.payments.repository.CashSessionRepository;
+import com.gaedet.biocampovet.core.cashbox.entity.CashSession;
+import com.gaedet.biocampovet.core.cashbox.enums.CashSessionStatus;
+import com.gaedet.biocampovet.core.cashbox.repository.CashSessionRepository;
 import com.gaedet.biocampovet.core.sales.billable.BillableServiceItem;
 import com.gaedet.biocampovet.core.sales.billable.BillableServiceRegistry;
 import com.gaedet.biocampovet.core.sales.dto.FinalizeSaleRequest;
@@ -32,19 +33,20 @@ import com.gaedet.biocampovet.core.sales.dto.response.SaleSummaryResponse;
 import com.gaedet.biocampovet.core.sales.entity.Sale;
 import com.gaedet.biocampovet.core.sales.entity.SaleDetail;
 import com.gaedet.biocampovet.core.sales.entity.SalePayment;
-import com.gaedet.biocampovet.core.sales.enums.BillableServiceType;
-import com.gaedet.biocampovet.core.sales.enums.PaymentMethod;
-import com.gaedet.biocampovet.core.sales.enums.SaleItemKind;
-import com.gaedet.biocampovet.core.sales.enums.SaleStatus;
+import com.gaedet.biocampovet.core.sales.enums.*;
 import com.gaedet.biocampovet.core.sales.mapper.SaleMapper;
 import com.gaedet.biocampovet.core.sales.repository.SaleRepository;
+import com.gaedet.biocampovet.core.sales.specs.SaleSpecs;
 import com.gaedet.biocampovet.core.users.entity.User;
 import com.gaedet.biocampovet.core.users.repository.UserRepository;
 import com.gaedet.biocampovet.exeption.BadRequestException;
 import com.gaedet.biocampovet.exeption.InsufficientStockException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -140,8 +142,29 @@ public class SaleService {
     }
 
     @Transactional(readOnly = true)
-    public Page<SaleSummaryResponse> listSales(Pageable pageable) {
-        return saleRepository.findAll(pageable).map(SaleMapper::toSummary);
+    public PaginatedResponse<SaleSummaryResponse> listSales(
+            int page, int size, String q, Long branchId, Long customerId, Long sellerId,
+            SaleStatus status, SalesDocumentType documentType, String documentNumber,
+            LocalDateTime startDate, LocalDateTime endDate
+    ) {
+        Specification<Sale> spec = SaleSpecs.byFilters(
+                q, branchId, customerId, sellerId, status,
+                documentType, documentNumber, startDate, endDate
+        );
+
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by("createdAt").descending());
+
+        Page<Sale> paged = saleRepository.findAll(spec, pageable);
+
+        Page<SaleSummaryResponse> pagedDto = paged.map(SaleMapper::toSummary);
+
+        return PaginatedResponse.<SaleSummaryResponse>builder()
+                .content(pagedDto.getContent())
+                .totalPages(pagedDto.getTotalPages())
+                .totalElements(pagedDto.getTotalElements())
+                .currentPage(pagedDto.getNumber())
+                .pageSize(pagedDto.getSize())
+                .build();
     }
 
     @Transactional(readOnly = true)

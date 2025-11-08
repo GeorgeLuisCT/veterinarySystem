@@ -3,6 +3,9 @@ package com.gaedet.biocampovet.core.sales.repository;
 import com.gaedet.biocampovet.core.sales.entity.Sale;
 import com.gaedet.biocampovet.core.sales.enums.SaleStatus;
 import com.gaedet.biocampovet.core.sales.enums.SalesDocumentType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -12,6 +15,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SaleRepository extends JpaRepository<Sale, Long>, JpaSpecificationExecutor<Sale> {
+
+    @EntityGraph(attributePaths = {"customer", "branch", "seller"})
+    Page<Sale> findAll(Specification<Sale> spec, Pageable pageable);
 
     Optional<Sale> findByDocumentTypeAndDocumentNumber(SalesDocumentType documentType, String documentNumber);
 

@@ -152,7 +152,12 @@ export const navigationConfig = {
       url: "/dashboard/finance",
       icon: PiggyBank,
       rolesAllowed: ["ROLE_ADMIN"],
-      items: [],
+      items: [
+        { title: "Tesorería", url: "/dashboard/finance/finance", rolesAllowed: ["ROLE_ADMIN"] },
+        { title: "Cuentas por Pagar", url: "/dashboard/finance/payable", rolesAllowed: ["ROLE_ADMIN"] },
+        { title: "Gastos", url: "/dashboard/finance/expenses", rolesAllowed: ["ROLE_ADMIN"] },
+        { title: "Traspasos", url: "/dashboard/finance/transfer", rolesAllowed: ["ROLE_ADMIN"] },
+      ],
     },
      {
       title: "Personal",

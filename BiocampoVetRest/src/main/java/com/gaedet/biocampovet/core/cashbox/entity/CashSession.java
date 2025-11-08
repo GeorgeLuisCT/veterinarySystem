@@ -1,7 +1,7 @@
-package com.gaedet.biocampovet.core.payments.entity;
+package com.gaedet.biocampovet.core.cashbox.entity;
 
 import com.gaedet.biocampovet.core.branches.entity.Branch;
-import com.gaedet.biocampovet.core.payments.enums.CashSessionStatus;
+import com.gaedet.biocampovet.core.cashbox.enums.CashSessionStatus;
 import com.gaedet.biocampovet.core.sales.entity.SalePayment;
 import com.gaedet.biocampovet.core.users.entity.User;
 import lombok.AllArgsConstructor;

@@ -1,6 +1,6 @@
 package com.gaedet.biocampovet.core.sales.entity;
 
-import com.gaedet.biocampovet.core.payments.entity.CashSession;
+import com.gaedet.biocampovet.core.cashbox.entity.CashSession;
 import com.gaedet.biocampovet.core.sales.enums.PaymentMethod;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

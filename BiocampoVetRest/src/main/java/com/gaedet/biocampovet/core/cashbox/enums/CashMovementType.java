@@ -1,4 +1,4 @@
-package com.gaedet.biocampovet.core.payments.enums;
+package com.gaedet.biocampovet.core.cashbox.enums;
 
 public enum CashMovementType {
     INCOME,
