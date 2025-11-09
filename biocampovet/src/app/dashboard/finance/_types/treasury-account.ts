@@ -1,26 +1,5 @@
 import { PaginatedResponse } from "@/types/paginated-response";
-
-export enum TreasuryAccountType {
-  BANK = "BANK",
-  CASH = "CASH",
-  DIGITAL = "DIGITAL",
-}
-
-export enum AccountMovementType {
-  CASHBOX_CLOSING = "CASHBOX_CLOSING",
-  SUPPLIER_PAYMENT = "SUPPLIER_PAYMENT",
-  EXPENSE = "EXPENSE",
-  TRANSFER = "TRANSFER",
-  MANUAL_ENTRY = "MANUAL_ENTRY",
-}
-
-export enum CashboxTransferChannel {
-  CASH = "CASH",
-  YAPE = "YAPE",
-  PLIN = "PLIN",
-  CARD = "CARD",
-  OTHER = "OTHER",
-}
+import { AccountMovementType, TreasuryAccountType } from "../_enums/accounts-enums";
 
 export interface TreasuryAccountResponse {
   id: number;

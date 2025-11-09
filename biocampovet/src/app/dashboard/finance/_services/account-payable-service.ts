@@ -17,7 +17,7 @@ export interface AccountPayableListParams {
 export interface CreateAccountPayablePayload {
   supplierId?: number;
   description: string;
-  issueDate: string;
+  issueDateTime: string;
   totalAmount: number;
 }
 

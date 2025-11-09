@@ -6,11 +6,13 @@ import com.gaedet.biocampovet.core.finance.dto.response.AccountPayableDetailResp
 import com.gaedet.biocampovet.core.finance.dto.response.AccountPayableSummaryResponse;
 import com.gaedet.biocampovet.core.finance.entity.AccountPayable;
 import com.gaedet.biocampovet.core.finance.entity.AccountPayablePayment;
+import com.gaedet.biocampovet.core.finance.entity.TreasuryAccount;
 import com.gaedet.biocampovet.core.finance.enums.AccountMovementType;
 import com.gaedet.biocampovet.core.finance.enums.AccountPayableStatus;
 import com.gaedet.biocampovet.core.finance.mapper.AccountPayableMapper;
 import com.gaedet.biocampovet.core.finance.repository.AccountPayablePaymentRepository;
 import com.gaedet.biocampovet.core.finance.repository.AccountPayableRepository;
+import com.gaedet.biocampovet.core.finance.repository.TreasuryAccountRepository;
 import com.gaedet.biocampovet.core.finance.specs.AccountPayableSpecs;
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
 import com.gaedet.biocampovet.core.inventory.entity.Supplier;
@@ -30,6 +32,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +45,7 @@ public class AccountPayableService {
 
     private static final int MONEY_SCALE = 2;
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
+    private final TreasuryAccountRepository treasuryAccountRepository;
 
     @Transactional(readOnly = true)
     public PaginatedResponse<AccountPayableSummaryResponse> list(String search,
@@ -70,7 +74,7 @@ public class AccountPayableService {
     public AccountPayableDetailResponse getDetail(Long id) {
         AccountPayable payable = accountPayableRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cuenta por pagar no encontrada"));
-        payable.setPayments(paymentRepository.findByAccountPayableIdOrderByPaymentDateDesc(id));
+        payable.setPayments(paymentRepository.findByAccountPayableIdOrderByPaymentDateTimeDesc(id));
         return AccountPayableMapper.toDetail(payable);
     }
 
@@ -80,7 +84,7 @@ public class AccountPayableService {
         AccountPayable payable = AccountPayable.builder()
                 .supplier(supplier)
                 .description(request.getDescription().trim())
-                .issueDate(request.getIssueDate())
+                .issueDateTime(request.getIssueDateTime())
                 .totalAmount(request.getTotalAmount().setScale(MONEY_SCALE, ROUNDING_MODE))
                 .amountPaid(BigDecimal.ZERO.setScale(MONEY_SCALE, ROUNDING_MODE))
                 .status(AccountPayableStatus.PENDING)
@@ -93,8 +97,16 @@ public class AccountPayableService {
 
     @Transactional
     public AccountPayableDetailResponse registerPayment(Long accountPayableId, RegisterPaymentRequest request) {
+
+        if (request.getTreasuryAccountId() == null) {
+            throw new BadRequestException("Debe seleccionar una cuenta de tesorería");
+        }
+
         AccountPayable payable = accountPayableRepository.findById(accountPayableId)
                 .orElseThrow(() -> new EntityNotFoundException("Cuenta por pagar no encontrada"));
+
+        TreasuryAccount treasuryAccount = treasuryAccountRepository.findById(request.getTreasuryAccountId())
+                .orElseThrow(() -> new EntityNotFoundException("Cuenta de tesorería no encontrada"));
 
         BigDecimal amount = request.getAmount().setScale(MONEY_SCALE, ROUNDING_MODE);
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -104,12 +116,14 @@ public class AccountPayableService {
         AccountPayablePayment payment = AccountPayablePayment.builder()
                 .accountPayable(payable)
                 .amount(amount)
-                .paymentDate(request.getPaymentDate() != null ? request.getPaymentDate() : LocalDate.now())
+                .paymentDateTime(request.getPaymentDateTime() != null ? request.getPaymentDateTime() : LocalDateTime.now())
                 .notes(request.getNotes())
+                .treasuryAccount(treasuryAccount)
                 .build();
 
         paymentRepository.save(payment);
-        registerMovementForPayment(payment, request.getTreasuryAccountId());
+
+        registerMovementForPayment(payment);
 
         if (payable.getPayments() == null) {
             payable.setPayments(new ArrayList<>());
@@ -119,7 +133,6 @@ public class AccountPayableService {
         refreshStatus(payable);
 
         payable = accountPayableRepository.save(payable);
-        payable.setPayments(paymentRepository.findByAccountPayableIdOrderByPaymentDateDesc(accountPayableId));
 
         return AccountPayableMapper.toDetail(payable);
     }
@@ -127,7 +140,7 @@ public class AccountPayableService {
     @Transactional
     public AccountPayable registerPurchasePayable(Long supplierId,
                                                   String description,
-                                                  LocalDate issueDate,
+                                                  LocalDateTime issueDate,
                                                   BigDecimal totalAmount,
                                                   BigDecimal upfrontPayment,
                                                   Long treasuryAccountId,
@@ -136,7 +149,7 @@ public class AccountPayableService {
         AccountPayable payable = AccountPayable.builder()
                 .supplier(supplier)
                 .description(description)
-                .issueDate(issueDate)
+                .issueDateTime(issueDate)
                 .totalAmount(totalAmount.setScale(MONEY_SCALE, ROUNDING_MODE))
                 .amountPaid(BigDecimal.ZERO.setScale(MONEY_SCALE, ROUNDING_MODE))
                 .status(AccountPayableStatus.PENDING)
@@ -150,7 +163,7 @@ public class AccountPayableService {
             request.setAmount(upfrontPayment);
             request.setTreasuryAccountId(treasuryAccountId);
             request.setNotes(notes);
-            request.setPaymentDate(issueDate);
+            request.setPaymentDateTime(issueDate);
             registerPayment(saved.getId(), request);
             return accountPayableRepository.findById(saved.getId()).orElse(saved);
         }
@@ -158,21 +171,23 @@ public class AccountPayableService {
         return saved;
     }
 
-    private void registerMovementForPayment(AccountPayablePayment payment, Long treasuryAccountId) {
-        if (treasuryAccountId == null) {
-            throw new BadRequestException("Debes seleccionar una cuenta de tesorería");
+    private void registerMovementForPayment(AccountPayablePayment payment) {
+        TreasuryAccount treasuryAccount = payment.getTreasuryAccount();
+
+        if (treasuryAccount == null) {
+            throw new IllegalStateException("El pago debe tener una cuenta de tesorería para registrar el movimiento.");
         }
-        var movementDate = payment.getPaymentDate() != null ? payment.getPaymentDate().atStartOfDay() : LocalDateTime.now();
+
+        var movementDate = Optional.ofNullable(payment.getPaymentDateTime()).orElse(LocalDateTime.now());
+
         var movement = accountMovementService.registerMovement(
-                treasuryAccountId,
+                treasuryAccount.getId(),
                 payment.getAmount().negate(),
                 AccountMovementType.SUPPLIER_PAYMENT,
                 "Pago de cuenta por pagar #" + payment.getAccountPayable().getId(),
                 movementDate,
                 null
         );
-
-        payment.setTreasuryAccount(movement.getTreasuryAccount());
     }
 
     private Supplier resolveSupplier(Long supplierId) {

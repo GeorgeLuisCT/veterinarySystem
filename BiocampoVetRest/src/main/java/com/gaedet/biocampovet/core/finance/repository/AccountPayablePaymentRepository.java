@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface AccountPayablePaymentRepository extends JpaRepository<AccountPayablePayment, Long> {
-    List<AccountPayablePayment> findByAccountPayableIdOrderByPaymentDateDesc(Long accountPayableId);
+    List<AccountPayablePayment> findByAccountPayableIdOrderByPaymentDateTimeDesc(Long accountPayableId);
 }

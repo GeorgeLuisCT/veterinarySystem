@@ -18,9 +18,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { closeSessionSchema, CloseSessionFormValues } from "../_schemas/close-session-schema";
 import { CashboxPaymentBreakdownResponse } from "../_types/cash-session-response";
-import { CashboxTransferChannel, TreasuryAccountResponse } from "@/app/dashboard/finance/_types/treasury-account";
+import {TreasuryAccountResponse } from "@/app/dashboard/finance/_types/treasury-account";
 import { useToast } from "@/hooks/use-toast";
 import { CloseCashSessionRequest } from "../_types/cash-session-request";
+import { CashboxTransferChannel } from "../../finance/_enums/accounts-enums";
 
 interface CloseSessionDialogProps {
   onCloseSession: (payload: CloseCashSessionRequest) => Promise<void>;
@@ -40,7 +41,13 @@ const CHANNEL_LABELS: Record<CashboxTransferChannel, string> = {
 export default function CloseSessionDialog({ onCloseSession, disabled, breakdown, accounts }: CloseSessionDialogProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [allocations, setAllocations] = useState<Record<CashboxTransferChannel, number | undefined>>({});
+  const [allocations, setAllocations] = useState<Record<CashboxTransferChannel, number | undefined>>({
+    [CashboxTransferChannel.CASH]: undefined,
+    [CashboxTransferChannel.YAPE]: undefined,
+    [CashboxTransferChannel.PLIN]: undefined,
+    [CashboxTransferChannel.CARD]: undefined,
+    [CashboxTransferChannel.OTHER]: undefined,
+  });
 
   const form = useForm<CloseSessionFormValues>({
     resolver: zodResolver(closeSessionSchema),

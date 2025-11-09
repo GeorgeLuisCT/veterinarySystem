@@ -7,6 +7,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class CreateAccountPayableRequest {
@@ -16,7 +17,7 @@ public class CreateAccountPayableRequest {
     private String description;
 
     @NotNull
-    private LocalDate issueDate;
+    private LocalDateTime issueDateTime;
 
     @NotNull
     @DecimalMin(value = "0.00", inclusive = false)

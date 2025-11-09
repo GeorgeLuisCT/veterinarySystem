@@ -6,7 +6,7 @@ import { SupplierQuickSearchResponse } from "../../_types/supplier-response";
 import { Form, FormField, FormControl, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
-import { purchaseCreateSchema } from "../../_types/inventory-movement-request";
+import { purchaseCreateBaseSchema } from "../../_types/inventory-movement-request";
 import { z } from "zod";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { TreasuryAccountResponse } from "../../../finance/_types/treasury-account";
 import { Input } from "@/components/ui/input";
 
-export const purchaseFormSchema = purchaseCreateSchema.pick({
+export const purchaseFormSchema = purchaseCreateBaseSchema.pick({
   branchId: true,
   supplierId: true,
   date: true,

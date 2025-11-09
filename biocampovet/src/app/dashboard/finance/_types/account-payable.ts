@@ -11,7 +11,7 @@ export interface AccountPayableSummary {
   supplierId?: number | null;
   supplierName?: string | null;
   description: string;
-  issueDate: string;
+  issueDateTime: string;
   totalAmount: number;
   amountPaid: number;
   status: AccountPayableStatus;
@@ -20,7 +20,7 @@ export interface AccountPayableSummary {
 export interface AccountPayablePaymentResponse {
   id: number;
   amount: number;
-  paymentDate: string;
+  paymentDateTime: string;
   treasuryAccountId: number;
   treasuryAccountName?: string | null;
   notes?: string | null;

@@ -6,7 +6,7 @@ import lombok.Singular;
 import lombok.Value;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Value
@@ -16,7 +16,7 @@ public class AccountPayableDetailResponse {
     Long supplierId;
     String supplierName;
     String description;
-    LocalDate issueDate;
+    LocalDateTime issueDateTime;
     BigDecimal totalAmount;
     BigDecimal amountPaid;
     AccountPayableStatus status;

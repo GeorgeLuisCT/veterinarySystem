@@ -45,7 +45,7 @@ public class AccountPayablePayment {
     private BigDecimal amount;
 
     @Column(name = "payment_date", nullable = false)
-    private LocalDate paymentDate;
+    private LocalDateTime paymentDateTime;
 
     @Column(length = 250)
     private String notes;
@@ -55,8 +55,8 @@ public class AccountPayablePayment {
 
     @PrePersist
     void prePersist() {
-        if (paymentDate == null) {
-            paymentDate = LocalDate.now();
+        if (paymentDateTime == null) {
+            paymentDateTime = LocalDateTime.now();
         }
         if (createdAt == null) {
             createdAt = LocalDateTime.now();

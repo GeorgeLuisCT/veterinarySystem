@@ -5,7 +5,7 @@ export const registerPaymentSchema = z.object({
     .number({ required_error: "Ingresa el monto" })
     .positive("El monto debe ser mayor a cero"),
   treasuryAccountId: z.number({ required_error: "Selecciona una cuenta" }),
-  paymentDate: z.string().optional(),
+  paymentDateTime: z.string().optional(),
   notes: z.string().trim().optional(),
 });
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { TreasuryAccountType } from "../_types/treasury-account";
+import { TreasuryAccountType } from "../_enums/accounts-enums";
 
 export const treasuryAccountSchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio"),

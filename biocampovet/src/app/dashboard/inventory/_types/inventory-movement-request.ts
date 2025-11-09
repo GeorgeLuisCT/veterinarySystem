@@ -42,6 +42,7 @@ const optionalString = z
   .optional()
   .or(z.literal("").transform(() => undefined));
 
+
 export const purchaseProductSchema = z.object({
   productId: z.number({ required_error: "Selecciona un producto" }).min(1, "Selecciona un producto"),
   batchNumber: z.string({ required_error: "El número de lote es obligatorio" }).trim().min(1, "El número de lote no puede estar vacío"),
@@ -56,7 +57,7 @@ export const purchaseProductSchema = z.object({
   unitCost: unitCostSchema,
 });
 
-export const purchaseCreateSchema = z.object({
+export const purchaseCreateBaseSchema = z.object({
   branchId: z.number({ required_error: "Selecciona una sucursal" }).min(1, "Selecciona una sucursal"),
   supplierId: z.number({ required_error: "Selecciona un proveedor" }).min(1, "Selecciona un proveedor"),
   date: z.string({ required_error: "La fecha de compra es obligatoria" }).min(1, "La fecha de compra es obligatoria"),
@@ -68,7 +69,9 @@ export const purchaseCreateSchema = z.object({
     .positive("El monto debe ser mayor a cero")
     .optional(),
   paymentTreasuryAccountId: z.number().optional(),
-}).superRefine((data, ctx) => {
+});
+
+export const purchaseCreateSchema = purchaseCreateBaseSchema.superRefine((data, ctx) => {
   if (data.payNow) {
     if (!data.paymentAmount) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Ingresa el monto a pagar", path: ["paymentAmount"] });

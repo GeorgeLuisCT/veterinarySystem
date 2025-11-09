@@ -3,8 +3,8 @@ import { PaginatedResponse } from "@/types/paginated-response";
 import {
   AccountMovementResponse,
   TreasuryAccountResponse,
-  TreasuryAccountType,
 } from "../_types/treasury-account";
+import { TreasuryAccountType } from "../_enums/accounts-enums";
 
 export interface TreasuryAccountPayload {
   name: string;

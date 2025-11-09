@@ -112,7 +112,7 @@ public class InventoryMovementService {
     private void registerAccountPayableForPurchase(PurchaseCreateRequest request,
                                                    InventoryMovement movement,
                                                    BigDecimal totalAmount) {
-        LocalDate issueDate = request.getDate() != null ? request.getDate().toLocalDate() : LocalDate.now();
+        LocalDateTime issueDate = request.getDate() != null ? request.getDate() : LocalDateTime.now();
         BigDecimal upfront = shouldRegisterInitialPayment(request) ? request.getPaymentAmount() : null;
         Long treasuryAccountId = shouldRegisterInitialPayment(request) ? request.getPaymentTreasuryAccountId() : null;
 

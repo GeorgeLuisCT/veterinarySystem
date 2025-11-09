@@ -8,22 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.PrePersist;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +35,7 @@ public class AccountPayable {
     private String description;
 
     @Column(name = "issue_date", nullable = false)
-    private LocalDate issueDate;
+    private LocalDateTime issueDateTime;
 
     @Column(name = "total_amount", nullable = false, precision = 14, scale = 2)
     private BigDecimal totalAmount;
@@ -66,6 +52,7 @@ public class AccountPayable {
 
     @Builder.Default
     @OneToMany(mappedBy = "accountPayable", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("paymentDateTime DESC")
     private List<AccountPayablePayment> payments = new ArrayList<>();
 
     @PrePersist

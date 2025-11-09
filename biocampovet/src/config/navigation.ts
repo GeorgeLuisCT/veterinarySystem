@@ -78,7 +78,7 @@ export const navigationConfig = {
       rolesAllowed: ["ROLE_ADMIN", "ROLE_CASHIER", "ROLE_MANAGER", "ROLE_RECEPTIONIST"],
       items: [
         { title: "Nueva Venta", url: "/dashboard/pos/sales/new", rolesAllowed: ["ROLE_CASHIER", "ROLE_RECEPTIONIST"] },
-        { title: "Historial de Ventas", url: "/dashboard/pos/sales/history", rolesAllowed: ["ROLE_ADMIN", "ROLE_MANAGER"] },
+        { title: "Historial De Ventas", url: "/dashboard/pos/sales/history", rolesAllowed: ["ROLE_ADMIN", "ROLE_MANAGER"] },
       ],
     },
      {
@@ -88,7 +88,7 @@ export const navigationConfig = {
       rolesAllowed: ["ROLE_ADMIN", "ROLE_CASHIER", "ROLE_MANAGER"],
       items: [
         { title: "Corte Actual", url: "/dashboard/cashbox/current", rolesAllowed: ["ROLE_CASHIER"] },
-        { title: "Historial de Cierres", url: "/dashboard/cashbox/history", rolesAllowed: ["ROLE_ADMIN", "ROLE_MANAGER"] },
+        { title: "Historial De Cierres", url: "/dashboard/cashbox/history", rolesAllowed: ["ROLE_ADMIN", "ROLE_MANAGER"] },
       ],
     },
     {
@@ -155,8 +155,6 @@ export const navigationConfig = {
       items: [
         { title: "Tesorería", url: "/dashboard/finance/finance", rolesAllowed: ["ROLE_ADMIN"] },
         { title: "Cuentas por Pagar", url: "/dashboard/finance/payable", rolesAllowed: ["ROLE_ADMIN"] },
-        { title: "Gastos", url: "/dashboard/finance/expenses", rolesAllowed: ["ROLE_ADMIN"] },
-        { title: "Traspasos", url: "/dashboard/finance/transfer", rolesAllowed: ["ROLE_ADMIN"] },
       ],
     },
      {
