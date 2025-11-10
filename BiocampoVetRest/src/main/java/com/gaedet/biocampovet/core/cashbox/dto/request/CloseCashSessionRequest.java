@@ -1,6 +1,6 @@
 package com.gaedet.biocampovet.core.cashbox.dto.request;
 
-import com.gaedet.biocampovet.core.finance.enums.CashboxTransferChannel;
+import com.gaedet.biocampovet.core.sales.enums.PaymentMethod;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,7 +31,7 @@ public class CloseCashSessionRequest {
     @AllArgsConstructor
     public static class PaymentTransferAllocation {
         @NotNull
-        private CashboxTransferChannel channel;
+        private PaymentMethod paymentMethod;
         private Long treasuryAccountId;
     }
 }

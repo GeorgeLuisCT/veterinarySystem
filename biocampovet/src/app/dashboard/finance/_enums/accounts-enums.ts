@@ -39,26 +39,3 @@ export const AccountMovementTypeOptions = (
   value,
   label: AccountMovementTypeLabels[value],
 }));
-
-export enum CashboxTransferChannel {
-  CASH = "CASH",
-  YAPE = "YAPE",
-  PLIN = "PLIN",
-  CARD = "CARD",
-  OTHER = "OTHER",
-}
-
-export const CashboxTransferChannelLabels: Record<CashboxTransferChannel, string> = {
-  [CashboxTransferChannel.CASH]: "Efectivo",
-  [CashboxTransferChannel.YAPE]: "Yape",
-  [CashboxTransferChannel.PLIN]: "Plin",
-  [CashboxTransferChannel.CARD]: "Tarjeta",
-  [CashboxTransferChannel.OTHER]: "Otro",
-};
-
-export const CashboxTransferChannelOptions = (
-  Object.values(CashboxTransferChannel) as CashboxTransferChannel[]
-).map((value) => ({
-  value,
-  label: CashboxTransferChannelLabels[value],
-}));

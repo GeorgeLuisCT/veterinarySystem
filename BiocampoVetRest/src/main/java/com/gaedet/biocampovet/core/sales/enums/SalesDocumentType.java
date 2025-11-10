@@ -1,9 +1,19 @@
 package com.gaedet.biocampovet.core.sales.enums;
 
 public enum SalesDocumentType {
-    BOLETA,
-    FACTURA,
-    NOTA_VENTA,
-    NONE
-}
 
+    BOLETA("Boleta"),
+    FACTURA("Factura"),
+    NOTA_VENTA("Nota de Venta"),
+    NONE("Sin Documento");
+
+    private final String label;
+
+    SalesDocumentType(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+}

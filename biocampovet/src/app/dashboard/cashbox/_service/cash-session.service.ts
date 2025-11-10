@@ -12,6 +12,14 @@ import {
   CashSessionSummaryResponse,
 } from "../_types/cash-session-response";
 
+const buildQueryParams = (params: Record<string, unknown>) => {
+  const qp: Record<string, unknown> = {};
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "") qp[k] = v;
+  });
+  return qp;
+};
+
 const CashSessionService = {
   async openSession(payload: OpenCashSessionRequest): Promise<CashSessionSummaryResponse> {
     const response = await api.post<CashSessionSummaryResponse>("/cash-sessions", payload);
@@ -41,8 +49,26 @@ const CashSessionService = {
   },
 
   async listHistory(params: CashSessionHistoryParams): Promise<PaginatedResponse<CashSessionHistoryResponse>> {
+    const {
+      page = 0,
+      size = 20,
+      branchId,
+      cashierId,
+      startDate,
+      endDate
+    } = params;
+
+    const query = buildQueryParams({
+      page,
+      size,
+      branchId,
+      cashierId,
+      startDate,
+      endDate,
+    });
+
     const response = await api.get<PaginatedResponse<CashSessionHistoryResponse>>("/cash-sessions/history", {
-      params,
+      params: query,
     });
     return response.data;
   },

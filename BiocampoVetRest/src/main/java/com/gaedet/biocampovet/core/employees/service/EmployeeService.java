@@ -1,7 +1,6 @@
 package com.gaedet.biocampovet.core.employees.service;
 
 import com.gaedet.biocampovet.core.branches.entity.Branch;
-import com.gaedet.biocampovet.core.branches.repository.BranchRepository;
 import com.gaedet.biocampovet.core.employees.dto.*;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
 import com.gaedet.biocampovet.core.employees.entity.EmployeeBranch;
@@ -17,9 +16,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
@@ -48,6 +47,7 @@ public class EmployeeService {
 
         return EmployeeMapper.toSummary(employee);
     }
+
 
     public EmployeeResponse getEmployee(Long id) {
         Employee employee = employeeRepository.findWithDetailsById(id)
@@ -152,6 +152,7 @@ public class EmployeeService {
         return EmployeeMapper.toSummary(employee);
     }
 
+    @Transactional(readOnly = true)
     public List<EmployeeSummaryResponse> getEmployeesByUserRolesAndBranch(List<RoleName> roleNames, Long branchId) {
         List<Employee> employees = employeeRepository.findByUserRolesAndBranch(roleNames, branchId);
         return employees.stream()

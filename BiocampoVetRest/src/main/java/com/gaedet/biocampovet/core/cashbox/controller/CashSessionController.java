@@ -10,6 +10,7 @@ import com.gaedet.biocampovet.core.cashbox.dto.response.CashSessionSummaryRespon
 import com.gaedet.biocampovet.core.cashbox.service.CashSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/cash-sessions")
@@ -66,17 +68,15 @@ public class CashSessionController {
     @GetMapping("/history")
     public ResponseEntity<PaginatedResponse<CashSessionHistoryResponse>> listHistory(
             @RequestParam(required = false) Long branchId,
+            @RequestParam(required = false) Long cashierId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Page<CashSessionHistoryResponse> paged = cashSessionService.listHistory(branchId, page, size);
-        PaginatedResponse<CashSessionHistoryResponse> response = PaginatedResponse.<CashSessionHistoryResponse>builder()
-                .content(paged.getContent())
-                .totalPages(paged.getTotalPages())
-                .totalElements(paged.getTotalElements())
-                .currentPage(paged.getNumber())
-                .pageSize(paged.getSize())
-                .build();
+        PaginatedResponse<CashSessionHistoryResponse> response = cashSessionService.listHistory(
+                branchId, cashierId, startDate, endDate, page, size
+        );
         return ResponseEntity.ok(response);
     }
 }

@@ -1,5 +1,5 @@
+import { PaymentMethod } from "../../pos/_types/sale-enums";
 import { CashMovementType, CashSessionStatus } from "./cash-session-enums";
-import { CashboxTransferChannel } from "@/app/dashboard/finance/_types/treasury-account";
 
 export interface CashMovementResponse {
   id: number;
@@ -22,7 +22,7 @@ export interface CashSessionSummaryResponse {
   openedAt: string;
   closedAt?: string;
   openingAmount: number;
-  totalCashSales: number;
+  totalSales: number;
   totalIncomeMovements: number;
   totalExpenseMovements: number;
   calculatedClosingAmount: number;
@@ -31,11 +31,23 @@ export interface CashSessionSummaryResponse {
   notes?: string;
 }
 
+export interface CashSessionSalePaymentResponse {
+  paymentId: number;
+  saleId: number;
+  paidAt: string;
+  paymentMethod: PaymentMethod;
+  amountPaid: number;
+  customerName?: string;
+  saleDocumentNumber?: string;
+  saleGrandTotal: number;
+}
+
 export interface CashSessionDetailResponse {
   open: boolean;
   session: CashSessionSummaryResponse | null;
   movements: CashMovementResponse[];
   paymentBreakdown: CashboxPaymentBreakdownResponse[];
+  salePayments: CashSessionSalePaymentResponse[];
 }
 
 export interface CashSessionHistoryResponse {
@@ -54,7 +66,7 @@ export interface CashSessionHistoryResponse {
 }
 
 export interface CashboxPaymentBreakdownResponse {
-  channel: CashboxTransferChannel;
+  paymentMethod: PaymentMethod;
   label: string;
   amount: number;
 }

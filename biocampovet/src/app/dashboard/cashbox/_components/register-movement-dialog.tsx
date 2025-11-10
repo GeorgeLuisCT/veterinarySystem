@@ -1,7 +1,7 @@
+// app/dashboard/pos/_components/register-movement-dialog.tsx
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
@@ -12,8 +12,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { FloatingLabelInput } from "@/components/floating-label-input";
+import { FloatingLabelSelect } from "@/components/floating-label-select";
+import { useForm } from "react-hook-form";
 import { movementSchema, MovementFormValues } from "../_schemas/movement-schema";
 import { CashMovementType } from "../_types/cash-session-enums";
 
@@ -29,6 +31,7 @@ const MOVEMENT_OPTIONS: { value: CashMovementType; label: string }[] = [
 
 export default function RegisterMovementDialog({ onRegister, disabled }: RegisterMovementDialogProps) {
   const [open, setOpen] = useState(false);
+
   const form = useForm<MovementFormValues>({
     resolver: zodResolver(movementSchema),
     defaultValues: {
@@ -37,75 +40,136 @@ export default function RegisterMovementDialog({ onRegister, disabled }: Registe
       reason: "",
       reference: "",
     },
+    mode: "onChange",
   });
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    await onRegister(values);
-    form.reset({ movementType: CashMovementType.INCOME, amount: 0, reason: "", reference: "" });
+    await onRegister({
+      ...values,
+      reason: values.reason.trim(),
+      reference: values.reference?.trim() || "",
+    });
+    form.reset({
+      movementType: CashMovementType.INCOME,
+      amount: 0,
+      reason: "",
+      reference: "",
+    });
     setOpen(false);
   });
+
+  const isSubmitting = form.formState.isSubmitting;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary" disabled={disabled}>
-          Registrar movimiento
-        </Button>
+        <Button variant="secondary" disabled={disabled}>Registrar movimiento</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Movimiento de caja</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Tipo</label>
-              <Select
-                value={form.watch("movementType")}
-                onValueChange={(value) => form.setValue("movementType", value as CashMovementType)}
-              >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona" />
-              </SelectTrigger>
-              <SelectContent>
-                {MOVEMENT_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Monto</label>
-            <Input
-              type="number"
-              min={0.01}
-              step={0.01}
-              {...form.register("amount", { valueAsNumber: true })}
+
+        <Form {...form}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="movementType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FloatingLabelSelect
+                      id="movementType"
+                      label="Tipo"
+                      value={field.value}
+                      onValueChange={(v) => field.onChange(v as CashMovementType)}
+                      options={MOVEMENT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Motivo</label>
-            <Input {...form.register("reason")} />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Referencia (opcional)</label>
-            <Input {...form.register("reference")} />
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                form.reset();
-                setOpen(false);
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit">Guardar</Button>
-          </DialogFooter>
-        </form>
+
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FloatingLabelInput
+                      id="amount"
+                      label="Monto"
+                      type="number"
+                      step="0.01"
+                      value={Number.isNaN(field.value as number) ? "" : String(field.value)}
+                      onChange={(v) => field.onChange(v === "" ? 0 : Number(v))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="reason"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FloatingLabelInput
+                      id="reason"
+                      label="Motivo"
+                      value={field.value}
+                      onChange={(v) => field.onChange(v)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="reference"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FloatingLabelInput
+                      id="reference"
+                      label="Referencia (opcional)"
+                      value={field.value || ""}
+                      onChange={(v) => field.onChange(v)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  form.reset({
+                    movementType: CashMovementType.INCOME,
+                    amount: 0,
+                    reason: "",
+                    reference: "",
+                  });
+                  setOpen(false);
+                }}
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Guardando..." : "Guardar"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

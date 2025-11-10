@@ -34,4 +34,11 @@ public interface SalePaymentRepository extends JpaRepository<SalePayment, Long> 
     );
 
     List<SalePayment> findByCashSessionId(Long cashSessionId);
+
+    @Query("SELECT p FROM SalePayment p " +
+            "JOIN FETCH p.sale s " +
+            "LEFT JOIN FETCH s.customer c " +
+            "WHERE p.cashSession.id = :cashSessionId " +
+            "ORDER BY p.paidAt DESC")
+    List<SalePayment> findAllWithDetailsByCashSessionId(@Param("cashSessionId") Long cashSessionId);
 }

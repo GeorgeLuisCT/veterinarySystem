@@ -56,7 +56,7 @@ public class SalePayment {
     private String notes;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cash_session_id")
+    @JoinColumn(name = "cash_session_id", nullable = false)
     private CashSession cashSession;
 }
 

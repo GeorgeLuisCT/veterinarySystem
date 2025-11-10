@@ -1,8 +1,7 @@
+// app/dashboard/pos/_components/close-session-dialog.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
   DialogContent,
@@ -12,64 +11,66 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { closeSessionSchema, CloseSessionFormValues } from "../_schemas/close-session-schema";
-import { CashboxPaymentBreakdownResponse } from "../_types/cash-session-response";
-import {TreasuryAccountResponse } from "@/app/dashboard/finance/_types/treasury-account";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { FloatingLabelInput } from "@/components/floating-label-input";
+import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { useToast } from "@/hooks/use-toast";
 import { CloseCashSessionRequest } from "../_types/cash-session-request";
-import { CashboxTransferChannel } from "../../finance/_enums/accounts-enums";
+import { closeSessionSchema, CloseSessionFormValues } from "../_schemas/close-session-schema";
+import { CashboxPaymentBreakdownResponse } from "../_types/cash-session-response";
+import { TreasuryAccountResponse } from "@/app/dashboard/finance/_types/treasury-account";
+import { PaymentMethod, PaymentMethodLabels } from "../../pos/_types/sale-enums";
 
-interface CloseSessionDialogProps {
+type Props = {
   onCloseSession: (payload: CloseCashSessionRequest) => Promise<void>;
   disabled?: boolean;
   breakdown: CashboxPaymentBreakdownResponse[];
   accounts: TreasuryAccountResponse[];
-}
-
-const CHANNEL_LABELS: Record<CashboxTransferChannel, string> = {
-  [CashboxTransferChannel.CASH]: "Efectivo",
-  [CashboxTransferChannel.YAPE]: "Yape",
-  [CashboxTransferChannel.PLIN]: "Plin",
-  [CashboxTransferChannel.CARD]: "Tarjeta",
-  [CashboxTransferChannel.OTHER]: "Otros",
 };
 
-export default function CloseSessionDialog({ onCloseSession, disabled, breakdown, accounts }: CloseSessionDialogProps) {
+const PEN = new Intl.NumberFormat("es-PE", {
+  style: "currency",
+  currency: "PEN",
+  minimumFractionDigits: 2,
+});
+
+export default function CloseSessionDialog({
+  onCloseSession,
+  disabled,
+  breakdown,
+  accounts,
+}: Props) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [allocations, setAllocations] = useState<Record<CashboxTransferChannel, number | undefined>>({
-    [CashboxTransferChannel.CASH]: undefined,
-    [CashboxTransferChannel.YAPE]: undefined,
-    [CashboxTransferChannel.PLIN]: undefined,
-    [CashboxTransferChannel.CARD]: undefined,
-    [CashboxTransferChannel.OTHER]: undefined,
-  });
 
   const form = useForm<CloseSessionFormValues>({
     resolver: zodResolver(closeSessionSchema),
     defaultValues: { countedClosingAmount: 0, notes: "" },
+    mode: "onChange",
   });
+
+  const actionableBreakdown = useMemo(
+    () => breakdown.filter((b) => b.amount > 0),
+    [breakdown]
+  );
+
+  const [allocations, setAllocations] = useState<Record<PaymentMethod, number | undefined>>({} as any);
 
   useEffect(() => {
     if (!open) return;
-    setAllocations((prev) => {
-      const next = { ...prev };
-      breakdown.forEach((item) => {
-        if (!next[item.channel]) {
-          next[item.channel] = accounts[0]?.id;
-        }
-      });
-      return next;
+    const initial: Record<PaymentMethod, number | undefined> = {} as any;
+    actionableBreakdown.forEach((b) => {
+      initial[b.paymentMethod] = accounts[0]?.id;
     });
-  }, [open, breakdown, accounts]);
+    setAllocations(initial);
+    form.reset({ countedClosingAmount: 0, notes: "" });
+  }, [open, actionableBreakdown, accounts, form]);
 
-  const actionableBreakdown = useMemo(
-    () => breakdown.filter((item) => item.amount > 0),
-    [breakdown]
+  const accountOptions = useMemo(
+    () => accounts.map((a) => ({ value: String(a.id), label: a.name })),
+    [accounts]
   );
 
   const handleSubmit = form.handleSubmit(async (values) => {
@@ -79,12 +80,11 @@ export default function CloseSessionDialog({ onCloseSession, disabled, breakdown
     }
 
     const transfers = actionableBreakdown.map((item) => ({
-      channel: item.channel,
-      treasuryAccountId: allocations[item.channel],
+      paymentMethod: item.paymentMethod,
+      treasuryAccountId: allocations[item.paymentMethod],
     }));
 
-    const missing = transfers.some((transfer) => !transfer.treasuryAccountId);
-    if (missing) {
+    if (transfers.some((t) => !t.treasuryAccountId)) {
       toast({
         title: "Selecciona una cuenta",
         description: "Cada método con monto debe transferirse a una cuenta de tesorería.",
@@ -95,12 +95,17 @@ export default function CloseSessionDialog({ onCloseSession, disabled, breakdown
 
     await onCloseSession({
       countedClosingAmount: values.countedClosingAmount,
-      notes: values.notes,
-      paymentTransfers: transfers as { channel: CashboxTransferChannel; treasuryAccountId: number }[],
+      notes: values.notes?.trim() || undefined,
+      paymentTransfers: transfers.map((t) => ({
+        paymentMethod: t.paymentMethod,
+        treasuryAccountId: t.treasuryAccountId as number,
+      })),
     });
-    form.reset();
+
     setOpen(false);
   });
+
+  const isSubmitting = form.formState.isSubmitting;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -113,66 +118,108 @@ export default function CloseSessionDialog({ onCloseSession, disabled, breakdown
         <DialogHeader>
           <DialogTitle>Cierre de caja</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Monto contado</Label>
-              <Input type="number" step={0.01} min={0} {...form.register("countedClosingAmount", { valueAsNumber: true })} />
-            </div>
-            <div className="space-y-2">
-              <Label>Notas</Label>
-              <Textarea rows={3} {...form.register("notes")} />
-            </div>
-          </div>
 
-          <div className="space-y-3">
-            <p className="text-sm font-medium">Transferir montos por método</p>
-            <div className="space-y-2 rounded-lg border p-3">
-              {breakdown.map((item) => (
-                <div key={item.channel} className="grid gap-2 sm:grid-cols-[1fr_180px] sm:items-center">
-                  <div>
-                    <p className="text-sm font-semibold">{CHANNEL_LABELS[item.channel]}</p>
-                    <p className="text-sm text-muted-foreground">Total: {item.amount.toFixed(2)}</p>
-                  </div>
-                  <Select
-                    value={allocations[item.channel] ? String(allocations[item.channel]) : undefined}
-                    onValueChange={(value) =>
-                      setAllocations((prev) => ({ ...prev, [item.channel]: Number(value) }))
-                    }
-                    disabled={item.amount <= 0 || !accounts.length}
+        <Form {...form}>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <FormField
+              control={form.control}
+              name="countedClosingAmount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FloatingLabelInput
+                      id="countedClosingAmount"
+                      label="Monto contado"
+                      type="number"
+                      step="0.01"
+                      value={Number.isNaN(field.value as number) ? "" : String(field.value)}
+                      onChange={(v) => field.onChange(v === "" ? 0 : Number(v))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FloatingLabelInput
+                      id="notes"
+                      label="Notas (opcional)"
+                      value={field.value || ""}
+                      onChange={(v) => field.onChange(v)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Transferir montos por método</p>
+              <div className="space-y-3 rounded-2xl border p-3">
+                {actionableBreakdown.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No hay montos por transferir.</p>
+                )}
+
+                {actionableBreakdown.map((item) => (
+                  <div
+                    key={`${item.paymentMethod}-${item.amount}`}
+                    className="grid gap-2 sm:grid-cols-[1fr_220px] sm:items-center"
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona cuenta" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {accounts.map((account) => (
-                        <SelectItem key={account.id} value={String(account.id)}>
-                          {account.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ))}
-            </div>
-          </div>
+                    <div>
+                      <p className="text-sm font-semibold">
+                        {PaymentMethodLabels[item.paymentMethod]}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Total: {PEN.format(item.amount)}
+                      </p>
+                    </div>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                form.reset();
-                setOpen(false);
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={!accounts.length}>
-              Confirmar cierre
-            </Button>
-          </DialogFooter>
-        </form>
+                    <FloatingLabelSelect
+                      id={`alloc-${item.paymentMethod}`}
+                      label="Cuenta de tesorería"
+                      value={
+                        allocations[item.paymentMethod]
+                          ? String(allocations[item.paymentMethod])
+                          : ""
+                      }
+                      onValueChange={(v) =>
+                        setAllocations((prev) => ({
+                          ...prev,
+                          [item.paymentMethod]: v ? Number(v) : undefined,
+                        }))
+                      }
+                      options={accountOptions}
+                      disabled={!accounts.length}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  form.reset({ countedClosingAmount: 0, notes: "" });
+                  setOpen(false);
+                }}
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSubmitting || !accounts.length}>
+                {isSubmitting ? "Confirmando..." : "Confirmar cierre"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

@@ -1,5 +1,5 @@
+import { PaymentMethod } from "../../pos/_types/sale-enums";
 import { CashMovementType } from "./cash-session-enums";
-import { CashboxTransferChannel } from "@/app/dashboard/finance/_types/treasury-account";
 
 export interface OpenCashSessionRequest {
   branchId: number;
@@ -14,7 +14,7 @@ export interface CloseCashSessionRequest {
 }
 
 export interface CashboxTransferAllocation {
-  channel: CashboxTransferChannel;
+  paymentMethod: PaymentMethod;
   treasuryAccountId: number;
 }
 
@@ -28,6 +28,9 @@ export interface RegisterCashMovementRequest {
 
 export interface CashSessionHistoryParams {
   branchId?: number;
+  cashierId?: number;
+  startDate?: string;
+  endDate?: string;
   page?: number;
   size?: number;
 }

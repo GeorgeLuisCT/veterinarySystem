@@ -15,4 +15,6 @@ public class CashSessionDetailResponse {
     List<CashMovementResponse> movements;
     @Singular("breakdownItem")
     List<CashboxPaymentBreakdownResponse> paymentBreakdown;
+
+    List<CashSessionSalePaymentResponse> salePayments;
 }

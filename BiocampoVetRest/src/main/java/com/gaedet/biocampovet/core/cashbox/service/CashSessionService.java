@@ -5,20 +5,18 @@ import com.gaedet.biocampovet.core.branches.repository.BranchRepository;
 import com.gaedet.biocampovet.core.cashbox.dto.request.CloseCashSessionRequest;
 import com.gaedet.biocampovet.core.cashbox.dto.request.OpenCashSessionRequest;
 import com.gaedet.biocampovet.core.cashbox.dto.request.RegisterCashMovementRequest;
-import com.gaedet.biocampovet.core.cashbox.dto.response.CashMovementResponse;
-import com.gaedet.biocampovet.core.cashbox.dto.response.CashSessionDetailResponse;
-import com.gaedet.biocampovet.core.cashbox.dto.response.CashSessionHistoryResponse;
-import com.gaedet.biocampovet.core.cashbox.dto.response.CashSessionSummaryResponse;
-import com.gaedet.biocampovet.core.cashbox.dto.response.CashboxPaymentBreakdownResponse;
+import com.gaedet.biocampovet.core.cashbox.dto.response.*;
 import com.gaedet.biocampovet.core.cashbox.entity.CashSession;
 import com.gaedet.biocampovet.core.cashbox.entity.CashSessionMovement;
 import com.gaedet.biocampovet.core.cashbox.enums.CashMovementType;
 import com.gaedet.biocampovet.core.cashbox.enums.CashSessionStatus;
 import com.gaedet.biocampovet.core.cashbox.repository.CashSessionMovementRepository;
 import com.gaedet.biocampovet.core.cashbox.repository.CashSessionRepository;
+import com.gaedet.biocampovet.core.cashbox.specs.CashSessionSpecs;
 import com.gaedet.biocampovet.core.finance.enums.AccountMovementType;
-import com.gaedet.biocampovet.core.finance.enums.CashboxTransferChannel;
 import com.gaedet.biocampovet.core.finance.service.AccountMovementService;
+import com.gaedet.biocampovet.core.global.PaginatedResponse;
+import com.gaedet.biocampovet.core.sales.entity.Sale;
 import com.gaedet.biocampovet.core.sales.entity.SalePayment;
 import com.gaedet.biocampovet.core.sales.enums.PaymentMethod;
 import com.gaedet.biocampovet.core.sales.repository.SalePaymentRepository;
@@ -29,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,16 +35,12 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static java.math.BigDecimal.ZERO;
 
 @Service
 @RequiredArgsConstructor
@@ -60,13 +55,7 @@ public class CashSessionService {
 
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
     private static final int MONEY_SCALE = 2;
-    private static final Map<CashboxTransferChannel, String> CHANNEL_LABELS = Map.of(
-            CashboxTransferChannel.CASH, "Efectivo",
-            CashboxTransferChannel.YAPE, "Yape",
-            CashboxTransferChannel.PLIN, "Plin",
-            CashboxTransferChannel.CARD, "Tarjeta",
-            CashboxTransferChannel.OTHER, "Otros"
-    );
+    private static final BigDecimal ZERO = BigDecimal.ZERO;
 
     @Transactional
     public CashSessionSummaryResponse openSession(OpenCashSessionRequest request) {
@@ -98,7 +87,7 @@ public class CashSessionService {
     public CashSessionDetailResponse getActiveSession(Long branchId) {
         return cashSessionRepository
                 .findFirstByBranchIdAndStatusOrderByOpenedAtDesc(branchId, CashSessionStatus.OPEN)
-                .map(this::buildDetailResponseOpen)
+                .map(this::buildDetailResponse)
                 .orElseGet(this::buildDetailResponseClosed);
     }
 
@@ -147,8 +136,8 @@ public class CashSessionService {
         BigDecimal calculated = summaryBeforeClose.getCalculatedClosingAmount();
         BigDecimal difference = counted.subtract(calculated).setScale(MONEY_SCALE, ROUNDING_MODE);
 
-        Map<CashboxTransferChannel, BigDecimal> paymentTotals = getPaymentChannelTotals(session.getId());
-        Map<CashboxTransferChannel, Long> transferTargets = normalizeTransferTargets(request.getPaymentTransfers());
+        Map<PaymentMethod, BigDecimal> paymentTotals = getPaymentMethodTotals(session.getId());
+        Map<PaymentMethod, Long> transferTargets = normalizeTransferTargets(request.getPaymentTransfers());
         registerCashboxTransfers(session, paymentTotals, transferTargets);
 
         session.setStatus(CashSessionStatus.CLOSED);
@@ -171,82 +160,101 @@ public class CashSessionService {
     }
 
     @Transactional(readOnly = true)
-    public Page<CashSessionHistoryResponse> listHistory(Long branchId, int page, int size) {
-        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1));
-        Specification<CashSession> spec = (root, query, cb) -> cb.equal(root.get("status"), CashSessionStatus.CLOSED);
-        if (branchId != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("branch").get("id"), branchId));
-        }
-        return cashSessionRepository.findAll(spec, pageable).map(this::buildHistoryResponse);
-    }
+    public PaginatedResponse<CashSessionHistoryResponse> listHistory(
+            Long branchId,
+            Long cashierId,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            int page,
+            int size
+    ) {
+        Specification<CashSession> spec = CashSessionSpecs.byFilters(
+                branchId, cashierId, startDate, endDate
+        );
 
-    @Transactional(readOnly = true)
-    public List<CashSessionHistoryResponse> listHistoryForBranchAndDate(Long branchId, LocalDate date) {
-        LocalDateTime start = date.atStartOfDay();
-        LocalDateTime end = date.atTime(LocalTime.MAX);
-        return cashSessionRepository.findByBranchIdAndOpenedAtBetween(branchId, start, end)
-                .stream()
-                .filter(session -> session.getStatus() == CashSessionStatus.CLOSED)
-                .map(this::buildHistoryResponse)
-                .collect(Collectors.toList());
+        Pageable pageable = PageRequest.of(
+                Math.max(page, 0),
+                Math.max(size, 1),
+                Sort.by("openedAt").descending()
+        );
+
+        Page<CashSession> paged = cashSessionRepository.findAll(spec, pageable);
+
+        Page<CashSessionHistoryResponse> pagedDto = paged.map(this::buildHistoryResponse);
+
+        return PaginatedResponse.<CashSessionHistoryResponse>builder()
+                .content(pagedDto.getContent())
+                .totalPages(pagedDto.getTotalPages())
+                .totalElements(pagedDto.getTotalElements())
+                .currentPage(pagedDto.getNumber())
+                .pageSize(pagedDto.getSize())
+                .build();
     }
 
     private CashSessionDetailResponse buildDetailResponse(CashSession session) {
         CashSessionSummaryResponse summary = buildSummary(session);
+
         List<CashMovementResponse> movements = cashSessionMovementRepository.findByCashSessionId(session.getId())
                 .stream()
                 .map(this::toMovementResponse)
-                .collect(Collectors.toList());
+                .toList();
+
         List<CashboxPaymentBreakdownResponse> breakdown = buildPaymentBreakdown(session.getId());
+
+        List<SalePayment> salePayments = salePaymentRepository.findAllWithDetailsByCashSessionId(session.getId());
+        List<CashSessionSalePaymentResponse> salePaymentDetails = salePayments.stream()
+                .map(this::toSalePaymentResponse)
+                .toList();
 
         return CashSessionDetailResponse.builder()
                 .open(session.getStatus() == CashSessionStatus.OPEN)
                 .session(summary)
                 .movements(movements)
                 .paymentBreakdown(breakdown)
+                .salePayments(salePaymentDetails)
                 .build();
     }
 
-    private Map<CashboxTransferChannel, Long> normalizeTransferTargets(List<CloseCashSessionRequest.PaymentTransferAllocation> allocations) {
-        Map<CashboxTransferChannel, Long> targets = new EnumMap<>(CashboxTransferChannel.class);
+    private Map<PaymentMethod, Long> normalizeTransferTargets(List<CloseCashSessionRequest.PaymentTransferAllocation> allocations) {
+        Map<PaymentMethod, Long> targets = new EnumMap<>(PaymentMethod.class);
         if (allocations == null) {
             return targets;
         }
         allocations.stream()
                 .filter(Objects::nonNull)
                 .forEach(allocation -> {
-                    if (allocation.getChannel() != null) {
-                        targets.put(allocation.getChannel(), allocation.getTreasuryAccountId());
+                    if (allocation.getPaymentMethod() != null) {
+                        targets.put(allocation.getPaymentMethod(), allocation.getTreasuryAccountId());
                     }
                 });
         return targets;
     }
 
     private void registerCashboxTransfers(CashSession session,
-                                          Map<CashboxTransferChannel, BigDecimal> totals,
-                                          Map<CashboxTransferChannel, Long> targets) {
-        totals.forEach((channel, amount) -> {
+                                          Map<PaymentMethod, BigDecimal> totals,
+                                          Map<PaymentMethod, Long> targets) {
+        totals.forEach((method, amount) -> {
             BigDecimal normalized = amount.setScale(MONEY_SCALE, ROUNDING_MODE);
             if (normalized.compareTo(BigDecimal.ZERO) <= 0) {
                 return;
             }
-            Long accountId = targets.get(channel);
+            Long accountId = targets.get(method);
             if (accountId == null) {
-                throw new BadRequestException("Selecciona una cuenta para " + CHANNEL_LABELS.get(channel));
+                throw new BadRequestException("Selecciona una cuenta para " + method.getLabel());
             }
             accountMovementService.registerMovement(
                     accountId,
                     normalized,
                     AccountMovementType.CASHBOX_CLOSING,
-                    "Cierre caja #" + session.getId() + " - " + CHANNEL_LABELS.get(channel),
+                    "Cierre caja #" + session.getId() + " - " + method.getLabel(),
                     LocalDateTime.now(),
                     null
             );
         });
     }
 
-    private Map<CashboxTransferChannel, BigDecimal> getPaymentChannelTotals(Long sessionId) {
-        Map<CashboxTransferChannel, BigDecimal> totals = new EnumMap<>(CashboxTransferChannel.class);
+    private Map<PaymentMethod, BigDecimal> getPaymentMethodTotals(Long sessionId) {
+        Map<PaymentMethod, BigDecimal> totals = new EnumMap<>(PaymentMethod.class);
         salePaymentRepository.sumByCashSessionGrouped(sessionId).forEach(row -> {
             PaymentMethod method = (PaymentMethod) row[0];
             BigDecimal amount = (BigDecimal) row[1];
@@ -254,38 +262,34 @@ public class CashSessionService {
                 return;
             }
             amount = amount.setScale(MONEY_SCALE, ROUNDING_MODE);
-            CashboxTransferChannel channel = CashboxTransferChannel.fromPaymentMethod(method);
-            if (channel == null) {
-                channel = CashboxTransferChannel.OTHER;
-            }
-            totals.merge(channel, amount, BigDecimal::add);
+            totals.merge(method, amount, BigDecimal::add);
         });
 
-        for (CashboxTransferChannel channel : CashboxTransferChannel.values()) {
-            totals.putIfAbsent(channel, BigDecimal.ZERO.setScale(MONEY_SCALE, ROUNDING_MODE));
+        for (PaymentMethod method : PaymentMethod.values()) {
+            totals.putIfAbsent(method, BigDecimal.ZERO.setScale(MONEY_SCALE, ROUNDING_MODE));
         }
         return totals;
     }
 
     private List<CashboxPaymentBreakdownResponse> buildPaymentBreakdown(Long sessionId) {
-        Map<CashboxTransferChannel, BigDecimal> totals = getPaymentChannelTotals(sessionId);
+        Map<PaymentMethod, BigDecimal> totals = getPaymentMethodTotals(sessionId);
         return totals.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .map(entry -> CashboxPaymentBreakdownResponse.builder()
-                        .channel(entry.getKey())
-                        .label(CHANNEL_LABELS.get(entry.getKey()))
+                        .paymentMethod(entry.getKey())
+                        .label(entry.getKey().getLabel())
                         .amount(entry.getValue())
                         .build())
                 .collect(Collectors.toList());
     }
 
     private CashSessionSummaryResponse buildSummary(CashSession session) {
-        BigDecimal totalCashSales = sumCashSales(session.getId());
+        BigDecimal totalSales = sumSales(session.getId());
         BigDecimal totalIncomeMovements = sumMovements(session.getId(), CashMovementType.INCOME);
         BigDecimal totalExpenseMovements = sumMovements(session.getId(), CashMovementType.EXPENSE);
 
         BigDecimal calculated = session.getOpeningAmount()
-                .add(totalCashSales)
+                .add(totalSales)
                 .add(totalIncomeMovements)
                 .subtract(totalExpenseMovements)
                 .setScale(MONEY_SCALE, ROUNDING_MODE);
@@ -306,7 +310,7 @@ public class CashSessionService {
                 .openedAt(session.getOpenedAt())
                 .closedAt(session.getClosedAt())
                 .openingAmount(session.getOpeningAmount())
-                .totalCashSales(totalCashSales)
+                .totalSales(totalSales)
                 .totalIncomeMovements(totalIncomeMovements)
                 .totalExpenseMovements(totalExpenseMovements)
                 .calculatedClosingAmount(calculated)
@@ -344,10 +348,9 @@ public class CashSessionService {
                 .build();
     }
 
-    private BigDecimal sumCashSales(Long sessionId) {
+    private BigDecimal sumSales(Long sessionId) {
         List<SalePayment> payments = salePaymentRepository.findByCashSessionId(sessionId);
         return payments.stream()
-                .filter(payment -> payment.getPaymentMethod() == PaymentMethod.CASH)
                 .map(SalePayment::getAmountPaid)
                 .reduce(ZERO, BigDecimal::add)
                 .setScale(MONEY_SCALE, ROUNDING_MODE);
@@ -379,17 +382,33 @@ public class CashSessionService {
                 .build();
     }
 
-    private CashSessionDetailResponse buildDetailResponseOpen(CashSession session) {
-        return CashSessionDetailResponse.builder()
-                .open(true)
-                .session(buildSummary(session))
-                .movements(
-                        session.getMovements().stream()
-                                .map(this::toMovementResponse)
-                                .toList()
-                )
-                .paymentBreakdown(buildPaymentBreakdown(session.getId()))
-                .build();
+    private CashSessionSalePaymentResponse toSalePaymentResponse(SalePayment payment) {
+        Sale sale = payment.getSale();
+        String customerName = "Cliente General";
+        if (sale.getCustomer() != null) {
+            customerName = sale.getCustomer().getName();
+        }
+
+        String typeLabel = sale.getDocumentType().getLabel();
+        String docNumber = sale.getDocumentNumber();
+        String document;
+
+        if (docNumber != null && !docNumber.isBlank()) {
+            document = typeLabel + " " + docNumber;
+        } else {
+            document = typeLabel;
+        }
+
+        return new CashSessionSalePaymentResponse(
+                payment.getId(),
+                sale.getId(),
+                payment.getPaidAt(),
+                payment.getPaymentMethod(),
+                payment.getAmountPaid(),
+                customerName,
+                document,
+                sale.getGrandTotal()
+        );
     }
 
     private CashSessionDetailResponse buildDetailResponseClosed() {
@@ -398,6 +417,7 @@ public class CashSessionService {
                 .session(null)
                 .movements(java.util.Collections.emptyList())
                 .paymentBreakdown(java.util.Collections.emptyList())
+                .salePayments(java.util.Collections.emptyList())
                 .build();
     }
 }

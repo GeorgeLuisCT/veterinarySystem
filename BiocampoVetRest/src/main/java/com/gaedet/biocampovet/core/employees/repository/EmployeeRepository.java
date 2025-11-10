@@ -71,7 +71,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSp
     SELECT DISTINCT e FROM Employee e
     JOIN User u ON u.employee = e
     JOIN u.roles r
-    JOIN e.employeeBranches eb
+    JOIN FETCH e.employeeBranches eb
     WHERE r.name IN :roleNames
     AND eb.branch.id = :branchId
     AND eb.active = true

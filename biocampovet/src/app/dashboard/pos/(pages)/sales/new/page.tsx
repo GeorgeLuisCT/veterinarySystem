@@ -369,7 +369,7 @@ function PointOfSaleContent() {
         if (finalizeSale) {
           toast({ title: "Venta finalizada", description: `Se generó la venta #${savedSale.id}` });
           handleReset();
-          router.push("/dashboard/pos/history");
+          router.push("/dashboard/pos/sales/new");
         } else {
           toast({ title: "Borrador guardado", description: `Venta #${savedSale.id} creada.` });
           router.push(`/dashboard/pos/sales/new?saleId=${savedSale.id}`);
