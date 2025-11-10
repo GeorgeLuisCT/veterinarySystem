@@ -6,7 +6,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import { EmployeeSummaryResponse } from "../types/employee-summary-response";
 import EmployeeService from "../service/employee-service";
 import { Ban, Eye, Pencil, Trash2 } from "lucide-react";
-import { useEmployeeContext } from "../context/employee-context";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { toast } from "sonner";
 import {
@@ -19,6 +18,8 @@ import {
 import { EmployeeForm } from "../form/employee-form";
 import { EmployeeDetail } from "./employee-detail";
 import { getAaxiosErrorMessage } from "@/helpers/error";
+import { PaginatedResponse } from "@/types/paginated-response";
+import EmployeeFilters, { EmployeeFiltersShape } from "./employee-filters";
 
 enum EmployeePanel {
   View = "view",
@@ -31,19 +32,21 @@ type Props = {
   branchId: number;
 };
 
-type Filters = {
-  q?: string;
-  active: boolean; // alineado con el backend
-};
-
-const DEFAULT_FILTERS: Filters = {
+const DEFAULT_FILTERS: EmployeeFiltersShape = {
   q: undefined,
   active: true,
 };
 
 export default function MainEmployee({ branchId }: Props) {
-  // Context (se asume que guarda la respuesta paginada, como en Animals)
-  const { employees, setEmployees, removeEmployee } = useEmployeeContext();
+  const [employees, setEmployees] = useState<
+    PaginatedResponse<EmployeeSummaryResponse>
+  >({
+    content: [],
+    totalPages: 0,
+    totalElements: 0,
+    pageSize: 10,
+    currentPage: 0,
+  });
 
   const [loading, setLoading] = useState(false);
 
@@ -51,8 +54,7 @@ export default function MainEmployee({ branchId }: Props) {
     useState<EmployeeSummaryResponse | null>(null);
   const [activePanel, setActivePanel] = useState<EmployeePanel | null>(null);
 
-  // Filtros + paginación controlada
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<EmployeeFiltersShape>(DEFAULT_FILTERS);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
 
@@ -114,7 +116,6 @@ export default function MainEmployee({ branchId }: Props) {
           branchId,
           query: filters.q ?? undefined,
         });
-        // Igual que en MainAnimals: guardar la respuesta paginada completa
         setEmployees(response);
       } catch (error: unknown) {
         const message =
@@ -125,15 +126,13 @@ export default function MainEmployee({ branchId }: Props) {
         setLoading(false);
       }
     },
-    [branchId, filters, setEmployees]
+    [branchId, filters]
   );
 
-  // Reset de página cuando cambien filtros o branch
   useEffect(() => {
     setPageIndex(0);
   }, [filters, branchId]);
 
-  // Cargar datos al cambiar página/tamaño/filtros/sucursal
   useEffect(() => {
     fetchEmployees(pageIndex, pageSize);
   }, [fetchEmployees, pageIndex, pageSize]);
@@ -144,12 +143,10 @@ export default function MainEmployee({ branchId }: Props) {
     try {
       await EmployeeService.softDeleteEmployee(selectedEmployee.id, branchId);
       toast.success(
-        `Empleado desactivado correctamente ${
-          branchId ? "en la sucursal actual" : "en todas las sucursales"
+        `Empleado desactivado correctamente ${branchId ? "en la sucursal actual" : "en todas las sucursales"
         }`
       );
       setActivePanel(null);
-      // refrescar la página actual
       fetchEmployees(pageIndex, pageSize);
     } catch (error: unknown) {
       const message =
@@ -166,9 +163,9 @@ export default function MainEmployee({ branchId }: Props) {
     setLoading(true);
     try {
       await EmployeeService.hardDeleteEmployee(selectedEmployee.id);
-      removeEmployee(selectedEmployee.id);
       toast.success("Empleado eliminado correctamente");
       setActivePanel(null);
+      fetchEmployees(pageIndex, pageSize);
     } catch (error: unknown) {
       const message =
         getAaxiosErrorMessage(error) || "Error al eliminar el empleado";
@@ -181,24 +178,24 @@ export default function MainEmployee({ branchId }: Props) {
 
   return (
     <div className="h-full space-y-4">
-      {/* Buscador simple alineado al patrón */}
-      <div className="flex items-center gap-2">
-        <input
-          className="w-full rounded-md border px-3 py-2 text-sm bg-background"
-          placeholder="Buscar por nombre, apellido, cargo o correo…"
-          value={filters.q ?? ""}
-          onChange={(e) =>
-            setFilters((prev) => ({ ...prev, q: e.target.value || undefined }))
-          }
-        />
-      </div>
+      <EmployeeFilters
+        value={filters}
+        onChange={(f) => {
+          setFilters(f);
+          setPageIndex(0);
+        }}
+        onReset={() => {
+          setFilters(DEFAULT_FILTERS);
+          setPageIndex(0);
+        }}
+      />
 
       <DataTable<EmployeeSummaryResponse>
         pageData={employees}
         columns={employeeColumns}
         actions={employeeActions}
-        pageIndex={employees?.currentPage ?? pageIndex}
-        pageSize={employees?.pageSize ?? pageSize}
+        pageIndex={employees.currentPage ?? pageIndex}
+        pageSize={employees.pageSize ?? pageSize}
         onPageIndexChange={setPageIndex}
         onPageSizeChange={(s) => {
           setPageSize(s);
@@ -207,7 +204,6 @@ export default function MainEmployee({ branchId }: Props) {
         loading={loading}
       />
 
-      {/* Editar */}
       <Dialog
         open={activePanel === EmployeePanel.Edit}
         onOpenChange={() => setActivePanel(null)}
@@ -228,7 +224,6 @@ export default function MainEmployee({ branchId }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* Desactivar */}
       <ConfirmationDialog
         open={activePanel === EmployeePanel.Disable}
         onClose={() => setActivePanel(null)}
@@ -251,7 +246,6 @@ export default function MainEmployee({ branchId }: Props) {
         confirmText="Estoy seguro"
       />
 
-      {/* Eliminar */}
       <ConfirmationDialog
         open={activePanel === EmployeePanel.Delete}
         onClose={() => setActivePanel(null)}
@@ -268,7 +262,6 @@ export default function MainEmployee({ branchId }: Props) {
         confirmVariant="destructive"
       />
 
-      {/* Ver */}
       <Dialog
         open={activePanel === EmployeePanel.View}
         onOpenChange={() => setActivePanel(null)}
@@ -281,7 +274,7 @@ export default function MainEmployee({ branchId }: Props) {
                 ? "Visualiza la información completa del empleado en todas las sucursales."
                 : "Visualiza la información completa del empleado en esta sucursal."}
             </DialogDescription>
-          </DialogHeader>
+            _ </DialogHeader>
           {selectedEmployee && (
             <EmployeeDetail employeeId={selectedEmployee.id} />
           )}

@@ -24,11 +24,11 @@ export default function UsersPage() {
   return (
     <DashboardLayoutSection>
       <div className="h-full bg-gray-50 p-4 sm:p-6">
-        <div className="mx-auto flex h-full max-w-8xl flex-col">
-          {/* Header */}
+        <div className="mx-auto flex h-full max-w-8xl flex-col overflow-y-auto">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Usuarios</h1>
+              <h1 className="text-3xl font-bold text-slate-900">
+                Usuarios</h1>
               <p className="mt-1 text-gray-600">
                 Administra tu base de usuarios con registro, edición y control de estado
               </p>
@@ -43,21 +43,22 @@ export default function UsersPage() {
 
           {/* Tabla + filtros */}
           <MainUsers key={branchId} branchId={branchId} />
+          {/* Dialog: Crear usuario (deja tu <UserForm /> aquí si ya lo tienes) */}
+          <Dialog open={openCreate} onOpenChange={setOpenCreate}>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Registrar Usuario</DialogTitle>
+                <DialogDescription>
+                  Completa el formulario para registrar un nuevo usuario en el sistema.
+                </DialogDescription>
+              </DialogHeader>
+              {/* <UserForm setOpen={setOpenCreate} /> */}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
-      {/* Dialog: Crear usuario (deja tu <UserForm /> aquí si ya lo tienes) */}
-      <Dialog open={openCreate} onOpenChange={setOpenCreate}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Registrar Usuario</DialogTitle>
-            <DialogDescription>
-              Completa el formulario para registrar un nuevo usuario en el sistema.
-            </DialogDescription>
-          </DialogHeader>
-          {/* <UserForm setOpen={setOpenCreate} /> */}
-        </DialogContent>
-      </Dialog>
+
     </DashboardLayoutSection>
   );
 }
