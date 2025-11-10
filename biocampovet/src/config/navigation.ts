@@ -130,22 +130,11 @@ export const navigationConfig = {
   // --- SECCIÓN DE ADMINISTRACIÓN (ANTES "PROJECTS") ---
   projects: [
     {
-      title: "Dashboard",
-      url: "/dashboard/overview",
-      icon: LayoutDashboard,
-      rolesAllowed: ["ROLE_ADMIN", "ROLE_MANAGER"],
-    },
-    {
       title: "Reportes",
       url: "/dashboard/reports",
       icon: BarChart3,
       rolesAllowed: ["ROLE_ADMIN", "ROLE_MANAGER"],
-      items: [
-        { title: "Financieros", url: "/dashboard/reports/financial", rolesAllowed: ["ROLE_ADMIN"] },
-        { title: "Ventas", url: "/dashboard/reports/sales", rolesAllowed: ["ROLE_ADMIN", "ROLE_MANAGER"] },
-        { title: "Inventario", url: "/dashboard/reports/inventory", rolesAllowed: ["ROLE_ADMIN"] },
-        { title: "Clínicos", url: "/dashboard/reports/clinical", rolesAllowed: ["ROLE_ADMIN"] },
-      ],
+      items: [],
     },
     {
       title: "Finanzas",
@@ -162,13 +151,6 @@ export const navigationConfig = {
       url: "/dashboard/staff",
       icon: UserCog,
       rolesAllowed: ["ROLE_ADMIN", "ROLE_MANAGER"],
-      items: [],
-    },
-    {
-      title: "Configuración",
-      url: "/dashboard/settings",
-      icon: Settings,
-      rolesAllowed: ["ROLE_ADMIN"],
       items: [],
     },
     {

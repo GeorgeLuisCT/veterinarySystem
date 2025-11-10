@@ -1,0 +1,103 @@
+enum ReportModule {
+  SALES
+  INVENTORY
+  FINANCE
+  CLINIC
+  FIELDWORK
+  CASHBOX
+  CUSTOMERS
+  ANIMALS
+  EMPLOYEES
+  BRANCHES
+  USERS
+  PUBLIC_PORTAL
+}
+
+input ReportFiltersInput {
+  from: String
+  to: String
+  branchIds: [ID!]
+  employeeIds: [ID!]
+  customerIds: [ID!]
+  animalIds: [ID!]
+  zoneIds: [ID!]
+  statuses: [String!]
+  species: [String!]
+  modules: [ReportModule!]
+  includeVoided: Boolean
+  search: String
+}
+
+type ReportFilterState {
+  from: String
+  to: String
+  branchIds: [ID!]
+  employeeIds: [ID!]
+  customerIds: [ID!]
+  animalIds: [ID!]
+  zoneIds: [ID!]
+  statuses: [String!]
+  species: [String!]
+  modules: [ReportModule!]
+  includeVoided: Boolean
+  search: String
+}
+
+type ReportMetric {
+  key: String!
+  label: String!
+  value: Float
+  formattedValue: String
+  unit: String
+  trend: Float
+  trendLabel: String
+}
+
+type KeyValuePair {
+  key: String!
+  value: String!
+}
+
+type ReportBreakdownItem {
+  key: String!
+  label: String!
+  value: Float
+  formattedValue: String
+  unit: String
+  percentage: Float
+  trend: Float
+  metadata: [KeyValuePair!]!
+}
+
+type ReportBreakdownGroup {
+  key: String!
+  title: String!
+  subtitle: String
+  items: [ReportBreakdownItem!]!
+}
+
+type ReportSeriesPoint {
+  key: String!
+  label: String!
+  value: Float!
+}
+
+type ReportCollection {
+  module: ReportModule!
+  title: String!
+  description: String
+  metrics: [ReportMetric!]!
+  breakdowns: [ReportBreakdownGroup!]!
+  timeline: [ReportSeriesPoint!]!
+}
+
+type ReportsDashboard {
+  generatedAt: String!
+  filters: ReportFilterState!
+  collections: [ReportCollection!]!
+}
+
+type Query {
+  reportsDashboard(filters: ReportFiltersInput): ReportsDashboard!
+  reportCollection(module: ReportModule!, filters: ReportFiltersInput): ReportCollection!
+}
