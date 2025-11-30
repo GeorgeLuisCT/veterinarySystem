@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import PaletteSentinel from "@/components/_palette-sentinel";
 
 export const metadata: Metadata = {
-  title: "BiocampoVet | Veterinaria integral y bienestar animal",
+  title: "Veterinaria Coryvet | Veterinaria integral y bienestar animal",
   description: "Clínica veterinaria con atención 24/7, historial clínico digital y solicitud de citas en línea.",
 };
 

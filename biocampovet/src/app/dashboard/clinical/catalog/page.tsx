@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/tabs";
 import ClinicalServicesMain from '../components/clinical-service-main';
 import { PrescriptionTemplatesMain } from '../components/prescription-templates-main';
-import { HealthPlansMain } from '../components/health-plans-main';
 import { LaboratoryTestsMain } from '../components/laboratory-tests-main';
 
 import DashboardLayoutSection from '../../dashboard-layout-section';
@@ -26,7 +25,7 @@ export default function ClinicalCatalogPage() {
                     </div>
 
                     <Tabs defaultValue="services" className="w-full flex-1 h-full">
-                        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-4 sm:w-auto">
+                        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 sm:w-auto">
                             <TabsTrigger value="services">
                                 <Stethoscope className="h-4 w-4 mr-2" />
                                 Servicios y Procedimientos
@@ -39,10 +38,6 @@ export default function ClinicalCatalogPage() {
                                 <Pill className="h-4 w-4 mr-2" />
                                 Plantillas de Recetas
                             </TabsTrigger>
-                            <TabsTrigger value="plans">
-                                <Package className="h-4 w-4 mr-2" />
-                                Planes de Salud
-                            </TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="services" className="mt-4">
@@ -53,9 +48,6 @@ export default function ClinicalCatalogPage() {
                         </TabsContent>
                         <TabsContent value="templates" className="mt-4">
                             <PrescriptionTemplatesMain />
-                        </TabsContent>
-                        <TabsContent value="plans" className="mt-4">
-                            <HealthPlansMain />
                         </TabsContent>
                     </Tabs>
                 </div>

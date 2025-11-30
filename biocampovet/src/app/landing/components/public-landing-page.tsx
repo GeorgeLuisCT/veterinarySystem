@@ -42,48 +42,50 @@ export function PublicLandingPage() {
       .catch(() => setBranches([]));
   }, []);
 
-  const handleLookupAnimals = useCallback(
-    async (payload: LookupContext) => {
-      setAnimalsLoading(true);
-      setLookupFeedback(null);
-      try {
-        const list = await PublicPortalService.findAnimals(
-          payload.documentTypeId,
-          payload.documentNumber,
-        );
-        setAnimals(list);
-        setLookupContext(payload);
-        if (list.length === 0) {
-          setLookupFeedback({
-            tone: "error",
-            text: "No encontramos mascotas activas asociadas a este documento.",
-          });
-        } else {
-          setLookupFeedback({
-            tone: "success",
-            text: "Mascotas encontradas. Elige cuál deseas consultar.",
-          });
-        }
-      } catch (error) {
+  const handleLookupAnimals = useCallback(async (payload: LookupContext) => {
+    setAnimalsLoading(true);
+    setLookupFeedback(null);
+    try {
+      const list = await PublicPortalService.findAnimals(
+        payload.documentTypeId,
+        payload.documentNumber,
+      );
+      setAnimals(list);
+      setLookupContext(payload);
+      if (list.length === 0) {
         setLookupFeedback({
           tone: "error",
-          text: parseErrorMessage(error),
+          text: "No encontramos mascotas activas asociadas a este documento.",
         });
-        setAnimals([]);
-        setLookupContext(null);
-      } finally {
-        setAnimalsLoading(false);
+      } else {
+        setLookupFeedback({
+          tone: "success",
+          text: "Mascotas encontradas. Elige cuál deseas consultar.",
+        });
       }
-    },
-    [],
-  );
+    } catch (error) {
+      setLookupFeedback({
+        tone: "error",
+        text: parseErrorMessage(error),
+      });
+      setAnimals([]);
+      setLookupContext(null);
+    } finally {
+      setAnimalsLoading(false);
+    }
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900/80 to-emerald-950 text-slate-100">
+    // FONDO PASTEL: fuera el azul oscuro
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-white text-slate-700">
+      {/* Header con variante pastel (opcional) */}
       <LandingHeader />
-      <main className="mx-auto flex max-w-8xl flex-col gap-32 px-6 py-24 md:px-10 lg:px-16">
+
+      <main className="mx-auto flex max-w-7xl flex-col gap-24 px-6 py-16 md:px-10 lg:px-16">
+        {/* Sección servicios en tonos claros */}
         <ServicesSection />
 
+        {/* Historial clínico: tarjetas claras y textos gris neutro */}
         <ClinicalHistorySection
           documentTypes={documentTypes}
           animals={animals}
@@ -93,6 +95,7 @@ export function PublicLandingPage() {
           onLookupAnimals={handleLookupAnimals}
         />
 
+        {/* Solicitud de cita en pastel */}
         <AppointmentRequestSection
           documentTypes={documentTypes}
           branches={branches}
@@ -101,11 +104,12 @@ export function PublicLandingPage() {
           onLookupAnimals={handleLookupAnimals}
         />
 
+        {/* Sedes en tarjetas claras */}
         <LocationsSection branches={branches} />
       </main>
+
       <LandingFooter />
     </div>
-
   );
 }
 

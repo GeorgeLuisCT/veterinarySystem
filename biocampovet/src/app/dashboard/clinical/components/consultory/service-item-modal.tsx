@@ -21,9 +21,9 @@ import ClinicalServiceService from "../../service/clinical-service-service";
 import ProductService from "@/app/dashboard/inventory/_service/product-service";
 import { AdministrationRoute, AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
 import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
-import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/products/types/product-quick-search-response";
 import { ClinicalServiceCategory, ClinicalServiceCategoryLabels } from "../../enums/clinical-service-category";
 import { PlusCircle, Trash2 } from "lucide-react";
+import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/_types/product-response";
 
 type CommonProps = {
   id: number;

@@ -75,29 +75,7 @@ export function NavUser({ }: { user: { name: string; email: string; avatar: stri
                   <span className="truncate text-xs">{userInfo?.burden}</span>
                 </div>
               </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Editar Perfil
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Cambiar contraseña
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Configuración
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
+            </DropdownMenuLabel>            
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout}>
               <LogOut />

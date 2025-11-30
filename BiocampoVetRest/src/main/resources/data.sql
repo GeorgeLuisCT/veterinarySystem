@@ -14,20 +14,20 @@ ON CONFLICT (name) DO NOTHING;
 
 -- Seed default company
 INSERT INTO companies (name, industry)
-VALUES ('Veterinaria BioCampoVet', 'Veterinaria')
+VALUES ('Veterinaria y Spa Coryvet', 'Veterinaria')
 ON CONFLICT (name) DO NOTHING;
 
 -- Seed default branches for the company
 INSERT INTO branches (name, location, company_id)
 SELECT 'Primera sucursal', 'Dirección 123', c.id
 FROM companies c
-WHERE c.name = 'Veterinaria BioCampoVet'
+WHERE c.name = 'Veterinaria y Spa Coryvet'
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO branches (name, location, company_id)
 SELECT 'Segunda sucursal', 'Dirección 321', c.id
 FROM companies c
-WHERE c.name = 'Veterinaria BioCampoVet'
+WHERE c.name = 'Veterinaria y Spa Coryvet'
 ON CONFLICT (name) DO NOTHING;
 
 -- Seed document types
@@ -253,7 +253,7 @@ WHERE NOT EXISTS (
 
 -- Seed laboratories
 INSERT INTO laboratories (name, branch_id, contact_name, contact_phone, contact_email, notes)
-SELECT 'Laboratorio Central ' || b.name, b.id, 'Dra. Carolina Ríos', '074-555000', 'laboratorio.central@biocampovet.pe',
+SELECT 'Laboratorio Central ' || b.name, b.id, 'Dra. Carolina Ríos', '074-555000', 'laboratorio.central@coryvet.pe',
        'Laboratorio interno con foco en análisis generales.'
 FROM branches b
 WHERE b.name = 'Primera sucursal'
@@ -262,7 +262,7 @@ WHERE b.name = 'Primera sucursal'
   );
 
 INSERT INTO laboratories (name, branch_id, contact_name, contact_phone, contact_email, notes)
-SELECT 'Laboratorio Especializado ' || b.name, b.id, 'Dr. Julio Vargas', '074-555111', 'laboratorio.especializado@biocampovet.pe',
+SELECT 'Laboratorio Especializado ' || b.name, b.id, 'Dr. Julio Vargas', '074-555111', 'laboratorio.especializado@coryvet.pe',
        'Laboratorio asociado para estudios especializados y cultivos.'
 FROM branches b
 WHERE b.name = 'Segunda sucursal'
