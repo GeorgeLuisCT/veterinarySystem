@@ -5,17 +5,21 @@ import { useParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { getAaxiosErrorMessage } from '@/helpers/error';
 import { HospitalizationResponse, EvolutionNoteResponse, TreatmentScheduleResponse } from '../../types/hospitalization-response';
-import { User, ClipboardList, Stethoscope, Clock, Pill, Thermometer, Droplets, MessageSquare, Save, LogOut, ClipboardPlus } from 'lucide-react';
+import { User, ClipboardList, Stethoscope, Clock, Pill, Thermometer, Droplets, MessageSquare, Save, LogOut, ClipboardPlus, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import HospitalizationService from '../../service/hospitalization-service';
+import { AddTreatmentModal } from '../../components/hospitalization/add-treatment-modal';
+import { CompleteTreatmentModal } from '../../components/hospitalization/complete-treatment-modal';
 
 export default function HospitalizationChartPage() {
     const params = useParams();
     const { toast } = useToast();
     const [hospitalization, setHospitalization] = useState<HospitalizationResponse | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isAddTreatmentModalOpen, setAddTreatmentModalOpen] = useState(false);
+    const [completeTreatmentModal, setCompleteTreatmentModal] = useState<{ open: boolean; scheduleId: number; treatmentName: string } | null>(null);
 
     const hospitalizationId = Number(params.patientId);
 
@@ -76,7 +80,12 @@ export default function HospitalizationChartPage() {
                 {/* Main Column */}
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
-                        <CardHeader><CardTitle>Hoja de Tratamiento - Hoy</CardTitle></CardHeader>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <CardTitle>Hoja de Tratamiento - Hoy</CardTitle>
+                            <Button size="sm" onClick={() => setAddTreatmentModalOpen(true)}>
+                                <PlusCircle className="mr-2 h-4 w-4" /> Agregar Tratamiento
+                            </Button>
+                        </CardHeader>
                         <div className="p-4 overflow-x-auto">
                             <table className="w-full border-collapse text-sm text-center">
                                 <thead>
@@ -86,24 +95,41 @@ export default function HospitalizationChartPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {treatmentSchedules.map(treat => (
-                                        <tr key={treat.id}>
-                                            <td className="border p-2 text-left font-medium">{treat.treatmentName}</td>
-                                            {timeSlots.map(time => {
-                                                // This logic is simplified and needs to be improved
-                                                const isCompleted = treat.isCompleted && new Date(treat.completedAt!).getHours() === parseInt(time);
-                                                return (
-                                                    <td key={time} className="border p-2">
-                                                        {isCompleted ? (
-                                                            <span className="font-bold text-green-600" title={`Realizado por ${treat.completedByEmployeeFullName}`}>✓</span>
-                                                        ) : (
-                                                            <button className="h-6 w-6 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 text-xs">A</button>
-                                                        )}
-                                                    </td>
-                                                );
-                                            })}
-                                        </tr>
-                                    ))}
+                                    {/* Group treatments by name */}
+                                    {Array.from(new Set(treatmentSchedules.map(t => t.treatmentName))).map(treatmentName => {
+                                        const schedules = treatmentSchedules.filter(t => t.treatmentName === treatmentName);
+                                        return (
+                                            <tr key={treatmentName}>
+                                                <td className="border p-2 text-left font-medium">{treatmentName}</td>
+                                                {timeSlots.map(time => {
+                                                    // Find schedule for this time slot (approximate match by hour)
+                                                    const schedule = schedules.find(s => {
+                                                        const scheduleHour = new Date(s.scheduledTime).getHours();
+                                                        const slotHour = parseInt(time.split(':')[0]);
+                                                        return scheduleHour === slotHour;
+                                                    });
+
+                                                    if (!schedule) return <td key={time} className="border p-2 bg-gray-50"></td>;
+
+                                                    return (
+                                                        <td key={time} className="border p-2">
+                                                            {schedule.isCompleted ? (
+                                                                <span className="font-bold text-green-600 cursor-help" title={`Realizado por ${schedule.completedByEmployeeFullName} a las ${new Date(schedule.completedAt!).toLocaleTimeString()}`}>✓</span>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => setCompleteTreatmentModal({ open: true, scheduleId: schedule.id, treatmentName: schedule.treatmentName })}
+                                                                    className="h-6 w-6 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 text-xs font-bold"
+                                                                    title="Administrar"
+                                                                >
+                                                                    A
+                                                                </button>
+                                                            )}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
@@ -147,6 +173,29 @@ export default function HospitalizationChartPage() {
                     </Card>
                 </aside>
             </div>
+
+            {hospitalization && (
+                <AddTreatmentModal
+                    open={isAddTreatmentModalOpen}
+                    onOpenChange={setAddTreatmentModalOpen}
+                    hospitalizationId={hospitalization.id}
+                    onSuccess={(updated) => setHospitalization(updated)}
+                />
+            )}
+
+            {completeTreatmentModal && (
+                <CompleteTreatmentModal
+                    open={completeTreatmentModal.open}
+                    onOpenChange={(open) => !open && setCompleteTreatmentModal(null)}
+                    hospitalizationId={hospitalization.id}
+                    scheduleId={completeTreatmentModal.scheduleId}
+                    treatmentName={completeTreatmentModal.treatmentName}
+                    onSuccess={(updated) => {
+                        setHospitalization(updated);
+                        setCompleteTreatmentModal(null);
+                    }}
+                />
+            )}
         </div>
     );
 }

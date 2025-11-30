@@ -25,15 +25,25 @@ public class LaboratoryRequestSummaryResponse {
     private LabRequestStatus status;
     private LocalDateTime createdAt;
 
+    private String animalSpecies;
+    private String animalBreed;
+
     public static LaboratoryRequestSummaryResponse fromEntity(LaboratoryRequest entity) {
         return LaboratoryRequestSummaryResponse.builder()
                 .id(entity.getId())
                 .animalId(entity.getAnimal().getId())
                 .animalName(entity.getAnimal().getName())
+                .animalSpecies(entity.getAnimal().getSpecies().name())
+                .animalBreed(entity.getAnimal().getBreed())
                 .laboratoryId(entity.getLaboratory().getId())
                 .laboratoryName(entity.getLaboratory().getName())
-                .requestingEmployeeId(entity.getRequestingEmployee() != null ? entity.getRequestingEmployee().getId() : null)
-                .requestingEmployeeFullName(entity.getRequestingEmployee() != null ? entity.getRequestingEmployee().getFirstName() + " " + entity.getRequestingEmployee().getLastName() : null)
+                .requestingEmployeeId(
+                        entity.getRequestingEmployee() != null ? entity.getRequestingEmployee().getId() : null)
+                .requestingEmployeeFullName(
+                        entity.getRequestingEmployee() != null
+                                ? entity.getRequestingEmployee().getFirstName() + " "
+                                        + entity.getRequestingEmployee().getLastName()
+                                : null)
                 .status(entity.getStatus())
                 .createdAt(entity.getCreatedAt())
                 .build();

@@ -5,7 +5,8 @@ import lombok.Getter;
 @Getter
 public enum FrequencyUnit {
     MINUTES("Minutos", "min"),
-    HOURS("Horas", "h");
+    HOURS("Horas", "h"),
+    DAYS("Días", "d");
 
     private final String label;
     private final String abbreviation;

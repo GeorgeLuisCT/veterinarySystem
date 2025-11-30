@@ -65,6 +65,17 @@ export const HospitalizationService = {
     );
     return response.data;
   },
+
+  addTreatmentSchedule: async (
+    hospitalizationId: number,
+    data: CreateTreatmentScheduleRequest
+  ): Promise<HospitalizationResponse> => {
+    const response = await api.post<HospitalizationResponse>(
+      `/hospitalizations/${hospitalizationId}/treatment-schedules`,
+      data
+    );
+    return response.data;
+  },
 };
 
 export default HospitalizationService;

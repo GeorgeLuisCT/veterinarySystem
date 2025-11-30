@@ -156,7 +156,7 @@ export default function DeriveHospitalizationModal({ open, onOpenChange, detail,
   }, [selectedServiceId, serviceItems]);
 
 
-const allowedCauseOptions = useMemo(() => {
+  const allowedCauseOptions = useMemo(() => {
     const byCategory: Record<ClinicalServiceCategory | "DEFAULT", HospitalizationCause[]> = {
       [ClinicalServiceCategory.SURGERY]: [
         HospitalizationCause.PRE_SURGERY,
@@ -182,19 +182,22 @@ const allowedCauseOptions = useMemo(() => {
         HospitalizationCause.CLINICAL_OBSERVATION,
         HospitalizationCause.MEDICATION_MONITORING,
       ],
-      // Fallback
+      [ClinicalServiceCategory.OTHER]: [
+        HospitalizationCause.CLINICAL_OBSERVATION,
+        HospitalizationCause.MEDICATION_MONITORING,
+      ],
       DEFAULT: [
         HospitalizationCause.CLINICAL_OBSERVATION,
         HospitalizationCause.MEDICATION_MONITORING,
       ],
     };
-  
+
     const cat = selectedServiceCategory ?? "DEFAULT";
     const allowed = new Set(byCategory[cat] ?? byCategory.DEFAULT);
-  
+
     return HospitalizationCauseOptions.filter(opt => allowed.has(opt.value));
   }, [selectedServiceCategory]);
-  
+
 
   // Si la causa actual no está permitida, ajusta a una por defecto
   const currentCause = useWatch({ control: form.control, name: "cause" });
@@ -255,7 +258,7 @@ const allowedCauseOptions = useMemo(() => {
           <div className="rounded-xl border bg-muted/40 p-3">
             <div className="text-xs text-muted-foreground">Paciente</div>
             <div className="text-sm font-medium">
-              {detail.summary.animalName ?? "—"}
+              {detail.summary.animalBasicResponse.animalName ?? "—"}
             </div>
           </div>
         </div>

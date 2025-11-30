@@ -18,7 +18,7 @@ import { useCalendar, type Calendar, type CalendarEvent, type CalendarView } fro
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import VisitService from "../services/visit-service";
-import { FieldVisitStatus } from "../enums/field-visit-status";
+import { FieldVisitStatus, FieldVisitStatusLabels } from "../enums/field-visit-status";
 import type { FieldVisitSummaryResponse } from "../types/visit-response";
 
 const DEFAULT_EVENT_COLOR = "#059669";
@@ -96,9 +96,9 @@ export default function FieldCalendarPage() {
     const now = new Date();
     return (Object.values(FieldVisitStatus) as FieldVisitStatus[]).map((status) => ({
       id: getStatusCalendarId(status),
-      name: status,
+      name: FieldVisitStatusLabels[status],
       color: STATUS_COLORS[status] ?? DEFAULT_EVENT_COLOR,
-      description: `Visitas con estado ${status}`,
+      description: `Visitas con estado ${FieldVisitStatusLabels[status]}`,
       isVisible: true,
       type: "other",
       createdAt: now,
@@ -187,7 +187,7 @@ export default function FieldCalendarPage() {
         <FilterModal isOpen={modals.filter} onClose={() => setModals(m => ({ ...m, filter: false }))} />
 
         <div className="flex-1 flex overflow-hidden relative">
-          <CalendarSidebar primaryTitle="Estados" secondaryTitle="" primaryReadOnly secondaryReadOnly />
+          <CalendarSidebar primaryTitle="Estados" secondaryTitle="Estados" showPrimaryCard={false} primaryReadOnly secondaryReadOnly />
           <CalendarMain />
           {isMobile && <MobileNavigation />}
         </div>

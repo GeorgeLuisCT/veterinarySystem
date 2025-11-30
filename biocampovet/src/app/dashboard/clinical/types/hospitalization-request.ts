@@ -68,10 +68,28 @@ export const addEvolutionNoteSchema = z.object({
 
 export type AddEvolutionNoteRequest = z.infer<typeof addEvolutionNoteSchema>;
 
+import { ProductUnitType } from "@/app/dashboard/inventory/_enums/product-unit-type";
+
 export const updateTreatmentScheduleSchema = z.object({
   isCompleted: z.boolean(),
   completedByEmployeeId: z.number().int().min(1).optional().nullable(),
   notes: z.string().optional().nullable(),
+  productId: z.number().int().min(1).optional().nullable(),
+  quantity: z.number().min(0).optional().nullable(),
+  unit: z.nativeEnum(ProductUnitType).optional().nullable(),
 });
 
 export type UpdateTreatmentScheduleRequest = z.infer<typeof updateTreatmentScheduleSchema>;
+
+import { FrequencyUnit } from "../enums/frequency-unit";
+
+export const createTreatmentScheduleSchema = z.object({
+  treatmentName: z.string().min(1, "El nombre del tratamiento es obligatorio."),
+  scheduledTime: z.string().datetime({ message: "Fecha y hora inválidas." }),
+  notes: z.string().optional().nullable(),
+  frequencyValue: z.number().int().min(1).optional().nullable(),
+  frequencyUnit: z.nativeEnum(FrequencyUnit).optional().nullable(),
+  numberOfDoses: z.number().int().min(1).optional().nullable(),
+});
+
+export type CreateTreatmentScheduleRequest = z.infer<typeof createTreatmentScheduleSchema>;

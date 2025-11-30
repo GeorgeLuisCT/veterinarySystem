@@ -39,6 +39,8 @@ export interface LaboratoryRequestSummaryResponse {
     id: number;
     animalId: number;
     animalName: string;
+    animalSpecies: string;
+    animalBreed: string | null;
     laboratoryId: number;
     laboratoryName: string;
     requestingEmployeeId: number | null;

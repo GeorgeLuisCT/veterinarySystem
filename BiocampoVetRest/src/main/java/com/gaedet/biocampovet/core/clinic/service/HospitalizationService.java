@@ -12,7 +12,11 @@ import com.gaedet.biocampovet.core.clinic.repository.*;
 import com.gaedet.biocampovet.core.clinic.specs.HospitalizationSpecification;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
 import com.gaedet.biocampovet.core.employees.repository.EmployeeRepository;
+import com.gaedet.biocampovet.core.employees.repository.EmployeeRepository;
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
+import com.gaedet.biocampovet.core.inventory.dto.KardexRegistrationRequest;
+import com.gaedet.biocampovet.core.inventory.enums.KardexMovementType;
+import com.gaedet.biocampovet.core.inventory.service.KardexService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -43,6 +47,7 @@ public class HospitalizationService {
     private final TreatmentScheduleRepository treatmentScheduleRepository;
     private final AttentionRepository attentionsRepository;
     private final ClinicalServiceRepository clinicalServiceRepository;
+    private final KardexService kardexService;
 
     @Transactional(readOnly = true)
     public PaginatedResponse<HospitalizationSummaryResponse> list(
@@ -71,8 +76,7 @@ public class HospitalizationService {
                 hospitalizationPage.getTotalPages(),
                 hospitalizationPage.getTotalElements(),
                 hospitalizationPage.getNumber(),
-                hospitalizationPage.getSize()
-        );
+                hospitalizationPage.getSize());
     }
 
     @Transactional(readOnly = true)
@@ -96,7 +100,8 @@ public class HospitalizationService {
         Attentions attention = null;
         if (request.getAttentionId() != null) {
             attention = attentionsRepository.findById(request.getAttentionId())
-                    .orElseThrow(() -> new EntityNotFoundException("Attention not found with id: " + request.getAttentionId()));
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Attention not found with id: " + request.getAttentionId()));
             if (!Objects.equals(animal.getId(), attention.getAnimal().getId())) {
                 throw new IllegalArgumentException("Attention animal does not match hospitalization animal.");
             }
@@ -111,7 +116,8 @@ public class HospitalizationService {
         ClinicalService clinicalService = null;
         if (request.getClinicalServiceId() != null) {
             clinicalService = clinicalServiceRepository.findById(request.getClinicalServiceId())
-                    .orElseThrow(() -> new EntityNotFoundException("ClinicalService not found with id: " + request.getClinicalServiceId()));
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "ClinicalService not found with id: " + request.getClinicalServiceId()));
         }
 
         Hospitalization hospitalization = Hospitalization.builder()
@@ -140,7 +146,8 @@ public class HospitalizationService {
                 .orElseThrow(() -> new EntityNotFoundException("Hospitalization not found with id: " + id));
 
         if (!Objects.equals(request.getVersion(), hospitalization.getVersion())) {
-            throw new org.springframework.orm.ObjectOptimisticLockingFailureException(Hospitalization.class, hospitalization.getId());
+            throw new org.springframework.orm.ObjectOptimisticLockingFailureException(Hospitalization.class,
+                    hospitalization.getId());
         }
 
         Map<String, Object> updatedFields = new HashMap<>();
@@ -163,7 +170,8 @@ public class HospitalizationService {
         }
         if (request.getClinicalServiceId() != null) {
             ClinicalService clinicalService = clinicalServiceRepository.findById(request.getClinicalServiceId())
-                    .orElseThrow(() -> new EntityNotFoundException("ClinicalService not found with id: " + request.getClinicalServiceId()));
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "ClinicalService not found with id: " + request.getClinicalServiceId()));
             hospitalization.setClinicalService(clinicalService);
             updatedFields.put("clinicalServiceId", clinicalService.getId());
         }
@@ -174,14 +182,14 @@ public class HospitalizationService {
                 saved.getId(),
                 saved.getVersion(),
                 saved.getStatus(),
-                updatedFields
-        );
+                updatedFields);
     }
 
     @Transactional
     public HospitalizationResponse addEvolutionNote(Long hospitalizationId, AddEvolutionNoteRequest request) {
         Hospitalization hospitalization = hospitalizationRepository.findById(hospitalizationId)
-                .orElseThrow(() -> new EntityNotFoundException("Hospitalization not found with id: " + hospitalizationId));
+                .orElseThrow(
+                        () -> new EntityNotFoundException("Hospitalization not found with id: " + hospitalizationId));
         Employee author = employeeRepository.findById(request.getAuthorId())
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found with id: " + request.getAuthorId()));
 
@@ -198,9 +206,11 @@ public class HospitalizationService {
     }
 
     @Transactional
-    public HospitalizationResponse updateTreatmentSchedule(Long hospitalizationId, Long scheduleId, UpdateTreatmentScheduleRequest request) {
+    public HospitalizationResponse updateTreatmentSchedule(Long hospitalizationId, Long scheduleId,
+            UpdateTreatmentScheduleRequest request) {
         Hospitalization hospitalization = hospitalizationRepository.findById(hospitalizationId)
-                .orElseThrow(() -> new EntityNotFoundException("Hospitalization not found with id: " + hospitalizationId));
+                .orElseThrow(
+                        () -> new EntityNotFoundException("Hospitalization not found with id: " + hospitalizationId));
 
         TreatmentSchedule schedule = treatmentScheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("TreatmentSchedule not found with id: " + scheduleId));
@@ -216,8 +226,38 @@ public class HospitalizationService {
             schedule.setCompletedAt(LocalDateTime.now());
             if (request.getCompletedByEmployeeId() != null) {
                 Employee completedBy = employeeRepository.findById(request.getCompletedByEmployeeId())
-                        .orElseThrow(() -> new EntityNotFoundException("Employee not found with id: " + request.getCompletedByEmployeeId()));
+                        .orElseThrow(() -> new EntityNotFoundException(
+                                "Employee not found with id: " + request.getCompletedByEmployeeId()));
                 schedule.setCompletedBy(completedBy);
+            }
+
+            if (request.getProductId() != null && request.getQuantity() != null && request.getUnit() != null) {
+                Long branchId = hospitalization.getCage().getBranch().getId();
+                Map<Long, java.math.BigDecimal> batchStocks = kardexService
+                        .getStockForProductByBatch(request.getProductId(), branchId);
+
+                java.math.BigDecimal quantityToDeduct = request.getQuantity();
+
+                // Simple FIFO strategy: take from first batch with stock
+                for (Map.Entry<Long, java.math.BigDecimal> entry : batchStocks.entrySet()) {
+                    if (entry.getValue().compareTo(java.math.BigDecimal.ZERO) > 0) {
+                        // For simplicity, we just use the first batch found with stock.
+                        // A more robust implementation would split across batches if needed.
+                        Long batchId = entry.getKey();
+
+                        kardexService.registerMovement(KardexRegistrationRequest.builder()
+                                .productId(request.getProductId())
+                                .branchId(branchId)
+                                .batchId(batchId)
+                                .quantity(quantityToDeduct)
+                                .unitType(request.getUnit())
+                                .type(KardexMovementType.SERVICE_EXIT)
+                                .originId(schedule.getId())
+                                .originType("TreatmentSchedule")
+                                .build());
+                        break; // Deducted from one batch and exit
+                    }
+                }
             }
         } else {
             schedule.setCompletedAt(null);
@@ -225,6 +265,48 @@ public class HospitalizationService {
         }
 
         treatmentScheduleRepository.save(schedule);
+
+        Hospitalization updated = hospitalizationRepository.findById(hospitalizationId).orElseThrow();
+        return HospitalizationMapper.toResponse(updated);
+    }
+
+    @Transactional
+    public HospitalizationResponse addTreatmentSchedule(Long hospitalizationId,
+            CreateTreatmentScheduleRequest request) {
+        Hospitalization hospitalization = hospitalizationRepository.findById(hospitalizationId)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("Hospitalization not found with id: " + hospitalizationId));
+
+        int doses = 1;
+        if (request.getFrequencyValue() != null && request.getFrequencyUnit() != null) {
+            doses = request.getNumberOfDoses() != null ? request.getNumberOfDoses() : 1;
+        }
+
+        LocalDateTime scheduledTime = request.getScheduledTime();
+
+        for (int i = 0; i < doses; i++) {
+            TreatmentSchedule schedule = TreatmentSchedule.builder()
+                    .hospitalization(hospitalization)
+                    .treatmentName(request.getTreatmentName())
+                    .scheduledTime(scheduledTime)
+                    .notes(request.getNotes())
+                    .isCompleted(false)
+                    .build();
+
+            treatmentScheduleRepository.save(schedule);
+
+            if (request.getFrequencyValue() != null && request.getFrequencyUnit() != null) {
+                switch (request.getFrequencyUnit()) {
+                    case HOURS:
+                        scheduledTime = scheduledTime.plusHours(request.getFrequencyValue());
+                        break;
+                    case DAYS:
+                        scheduledTime = scheduledTime.plusDays(request.getFrequencyValue());
+                        break;
+                    // Add other cases if FrequencyUnit has more values
+                }
+            }
+        }
 
         Hospitalization updated = hospitalizationRepository.findById(hospitalizationId).orElseThrow();
         return HospitalizationMapper.toResponse(updated);

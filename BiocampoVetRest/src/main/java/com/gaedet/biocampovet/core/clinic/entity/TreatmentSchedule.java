@@ -7,7 +7,8 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * Define una tarea programada en la hoja de tratamiento de un paciente hospitalizado.
+ * Define una tarea programada en la hoja de tratamiento de un paciente
+ * hospitalizado.
  */
 @Entity
 @Table(name = "treatment_schedules")

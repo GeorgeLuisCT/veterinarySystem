@@ -17,6 +17,7 @@ interface CalendarSidebarProps {
   primaryReadOnly?: boolean
   secondaryReadOnly?: boolean
   showSecondaryCard?: boolean
+  showPrimaryCard?: boolean
 }
 
 export function CalendarSidebar({
@@ -25,6 +26,7 @@ export function CalendarSidebar({
   primaryReadOnly,
   secondaryReadOnly,
   showSecondaryCard = true,
+  showPrimaryCard = true,
 }: CalendarSidebarProps) {
   const {
     currentDate,
@@ -102,7 +104,7 @@ export function CalendarSidebar({
           "bg-card border-r border-border p-4 overflow-y-auto z-50",
           isMobile
             ? "fixed left-0 top-0 bottom-0 w-80 transform transition-transform duration-300 ease-in-out" +
-              (sidebarOpen ? " translate-x-0" : " -translate-x-full")
+            (sidebarOpen ? " translate-x-0" : " -translate-x-full")
             : "w-80 relative",
         )}
       >
@@ -115,39 +117,41 @@ export function CalendarSidebar({
           </div>
         )}
 
-        <Card className="p-4 mb-6 gap-0">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-medium">{resolvedPrimaryTitle}</h3>
-            {!derivedPrimaryReadOnly && (
-              <Button variant="ghost" size="sm" onClick={handleCreateCalendar} className="h-8 w-8 p-0">
-                <Plus className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-          <div className="space-y-2">
-            {calendars.map((calendar) => (
-              <div key={calendar.id} className="flex items-center gap-2 group">
-                <Checkbox
-                  checked={calendar.isVisible}
-                  onCheckedChange={() => toggleCalendarVisibility(calendar.id)}
-                  className="data-[state=checked]:bg-primary"
-                />
-                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: calendar.color }} />
-                <span className="flex-1 text-sm truncate">{calendar.name}</span>
-                {!derivedPrimaryReadOnly && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEditCalendar(calendar)}
-                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <Settings className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        </Card>
+        {showPrimaryCard && (
+          <Card className="p-4 mb-6 gap-0">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-medium">{resolvedPrimaryTitle}</h3>
+              {!derivedPrimaryReadOnly && (
+                <Button variant="ghost" size="sm" onClick={handleCreateCalendar} className="h-8 w-8 p-0">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <div className="space-y-2">
+              {calendars.map((calendar) => (
+                <div key={calendar.id} className="flex items-center gap-2 group">
+                  <Checkbox
+                    checked={calendar.isVisible}
+                    onCheckedChange={() => toggleCalendarVisibility(calendar.id)}
+                    className="data-[state=checked]:bg-primary"
+                  />
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: calendar.color }} />
+                  <span className="flex-1 text-sm truncate">{calendar.name}</span>
+                  {!derivedPrimaryReadOnly && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditCalendar(calendar)}
+                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Settings className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {showSecondaryCard && secondaryCalendars.length > 0 && (
           <Card className="p-4 mb-6 gap-0">

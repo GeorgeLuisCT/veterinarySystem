@@ -30,8 +30,7 @@ public class HospitalizationController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize
-    ) {
+            @RequestParam(defaultValue = "10") int pageSize) {
         PaginatedResponse<HospitalizationSummaryResponse> response = hospitalizationService.list(
                 branchId, animalId, cageId, statuses, startDate, endDate, page, pageSize);
         return ResponseEntity.ok(response);
@@ -43,7 +42,8 @@ public class HospitalizationController {
     }
 
     @PostMapping
-    public ResponseEntity<CageResponse> createHospitalization(@Valid @RequestBody CreateHospitalizationRequest request) {
+    public ResponseEntity<CageResponse> createHospitalization(
+            @Valid @RequestBody CreateHospitalizationRequest request) {
         CageResponse response = hospitalizationService.createHospitalization(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -65,6 +65,14 @@ public class HospitalizationController {
             @PathVariable Long hospitalizationId,
             @PathVariable Long scheduleId,
             @Valid @RequestBody UpdateTreatmentScheduleRequest request) {
-        return ResponseEntity.ok(hospitalizationService.updateTreatmentSchedule(hospitalizationId, scheduleId, request));
+        return ResponseEntity
+                .ok(hospitalizationService.updateTreatmentSchedule(hospitalizationId, scheduleId, request));
+    }
+
+    @PostMapping("/{hospitalizationId}/treatment-schedules")
+    public ResponseEntity<HospitalizationResponse> addTreatmentSchedule(
+            @PathVariable Long hospitalizationId,
+            @Valid @RequestBody CreateTreatmentScheduleRequest request) {
+        return ResponseEntity.ok(hospitalizationService.addTreatmentSchedule(hospitalizationId, request));
     }
 }
