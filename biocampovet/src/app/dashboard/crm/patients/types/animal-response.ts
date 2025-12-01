@@ -1,4 +1,4 @@
-import { CustomerResponse } from "@/app/dashboard/customer/management/types/customer-response";
+import { CustomerResponse } from "../../customers/types/customer-response";
 import { AnimalSex } from "../enums/animal-sex";
 import { AnimalSpecies } from "../enums/animal-species";
 

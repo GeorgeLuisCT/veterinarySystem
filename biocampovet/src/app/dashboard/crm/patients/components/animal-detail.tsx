@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import AnimalService from "../service/animal-service";
 import { AnimalResponse } from "../types/animal-response";
+import { AnimalSpeciesLabels } from "../enums/animal-species";
 
 interface AnimalDetailProps {
   animalId: number;
@@ -58,7 +59,7 @@ export function AnimalDetail({ animalId, onClose }: AnimalDetailProps) {
         <DetailRow
           icon={<Layers className="w-5 h-5" />}
           label="Especie:"
-          value={animal.species?.name || "-"}
+          value={AnimalSpeciesLabels[animal.species] || "-"}
         />
         <DetailRow
           icon={<Tag className="w-5 h-5" />}

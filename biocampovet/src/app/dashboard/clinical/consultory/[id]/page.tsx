@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Save, Send, Loader2, Hospital } from "lucide-react";
 import PatientDetails from "../../components/consultory/patient-details";
 import QuickHistory from "../../components/consultory/quick-history";
@@ -11,19 +11,27 @@ import ClinicalAttentionService from "../../service/clinical-attention-service";
 import { ClinicalAttentionDetailResponse } from "../../types/clinical-attention-response";
 import { useToast } from "@/hooks/use-toast";
 import DeriveHospitalizationModal from "../../components/hospitalization/derive-hospitalization-modal";
+import { useUser } from "@/context/user-context";
+import SalesService from "@/app/dashboard/pos/_service/sales.service";
+import { BillableServiceType, SaleItemKind } from "@/app/dashboard/pos/_types/sale-enums";
+import { CreateSaleRequest, SaleItemRequest } from "@/app/dashboard/pos/_types/sale-request";
+import { getAaxiosErrorMessage } from "@/helpers/error";
 
 export default function ConsultationPage() {
     const params = useParams();
+    const router = useRouter();
     const { id: attentionIdParam } = params;
 
     const [clinicalAttention, setClinicalAttention] = useState<ClinicalAttentionDetailResponse | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [saving, setSaving] = useState<boolean>(false);
+    const [sendingToCash, setSendingToCash] = useState<boolean>(false);
     const [deriveOpen, setDeriveOpen] = useState<boolean>(false);
     const effectRan = useRef(false);
     const formRef = useRef<ConsultationFormHandle>(null);
 
     const { toast } = useToast();
+    const { userInfo } = useUser();
 
     useEffect(() => {
         if (effectRan.current === true) {
@@ -102,6 +110,85 @@ export default function ConsultationPage() {
         }
     };
 
+    const handleFinalizeAndSendToCash = async () => {
+        if (!clinicalAttention) return;
+        const serviceItems = clinicalAttention.serviceItems ?? [];
+        if (serviceItems.length === 0) {
+            toast({
+                title: "No hay servicios para facturar",
+                description: "Agrega al menos un servicio antes de enviar a caja.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const branchId = clinicalAttention.attention?.branchId ?? userInfo?.selectedBranch?.id;
+        const sellerId = userInfo?.userId ?? clinicalAttention.attention?.attendingEmployeeId;
+
+        if (!branchId || !sellerId) {
+            toast({
+                title: "No se pudo determinar la sucursal o el vendedor",
+                description: "Verifica que tengas una sucursal seleccionada y que la atención tenga un responsable.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const saleItems: SaleItemRequest[] = serviceItems.map((item) => {
+            const metadata: Record<string, unknown> = {
+                clinicalAttentionId: clinicalAttention.id,
+                attentionId: clinicalAttention.attention?.id ?? clinicalAttention.attentionId,
+                clinicalServiceId: item.clinicalServiceId,
+                clinicalServiceCategory: item.clinicalServiceCategory,
+            };
+            if (item.notes) metadata.notes = item.notes;
+
+            return {
+                kind: SaleItemKind.SERVICE,
+                serviceType: BillableServiceType.CLINICAL_SERVICE_ITEM,
+                serviceItemId: item.id,
+                unitPrice: item.unitPrice ?? 0,
+                quantity: item.quantity ?? 1,
+                descriptionOverride: item.clinicalServiceName ?? undefined,
+                metadataJson: JSON.stringify(metadata),
+            };
+        });
+
+        const notes = clinicalAttention.attention?.id
+            ? `Generado automáticamente desde la atención clínica #${clinicalAttention.attention.id}`
+            : undefined;
+
+        const payload: CreateSaleRequest = {
+            finalizeSale: false,
+            branchId,
+            sellerId,
+            customerId: undefined,
+            documentType: undefined,
+            documentNumber: undefined,
+            notes,
+            items: saleItems,
+            payments: [],
+        };
+
+        setSendingToCash(true);
+        try {
+            const sale = await SalesService.saveSale(payload);
+            toast({
+                title: "Venta enviada a Caja",
+                description: `Se generó el borrador #${sale.id} con los servicios agregados.`,
+            });
+            router.push(`/dashboard/pos/sales/new?saleId=${sale.id}`);
+        } catch (error) {
+            toast({
+                title: "Error al enviar a Caja",
+                description: getAaxiosErrorMessage(error),
+                variant: "destructive",
+            });
+        } finally {
+            setSendingToCash(false);
+        }
+    };
+
     if (loading) {
         return <div className="p-4">Cargando datos de la atención...</div>;
     }
@@ -134,10 +221,19 @@ export default function ConsultationPage() {
                         </Button>
                         <Button
                             className="bg-green-600 hover:bg-green-700 text-white"
-                            onClick={() => alert("Función de finalizar")}
-                            disabled={saving}
+                            onClick={handleFinalizeAndSendToCash}
+                            disabled={saving || sendingToCash}
                         >
-                            <Send className="h-4 w-4 mr-2" /> Finalizar y Enviar a Caja
+                            {sendingToCash ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Enviando...
+                                </>
+                            ) : (
+                                <>
+                                    <Send className="h-4 w-4 mr-2" /> Finalizar y Enviar a Caja
+                                </>
+                            )}
                         </Button>
                     </div>
                 </div>

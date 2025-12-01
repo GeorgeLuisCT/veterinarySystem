@@ -1,39 +1,39 @@
 "use client";
 
-import { useCallback, useMemo, useState, useEffect, Suspense } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
+import DashboardLayoutSection from "@/app/dashboard/dashboard-layout-section";
+import { ProductQuickSearchResponse, SaleModeSummary } from "@/app/dashboard/inventory/_types/product-response";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form } from "@/components/ui/form";
 import { useUser } from "@/context/user-context";
-import { PosCartItem, usePosCart } from "../../../_hooks/usePosCart";
-import { PaymentEntry, usePaymentCollector } from "../../../_hooks/usePaymentCollector";
-import SalesService from "../../../_service/sales.service";
-import { SaleItemKind, SaleStatus, SalesDocumentType } from "../../../_types/sale-enums";
-import SaleDetailsSection from "../../../_components/sale-details-section";
+import { getAaxiosErrorMessage } from "@/helpers/error";
+import { useToast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { BoxIcon, ClipboardList, PlusCircle, Sparkles } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 import AddProductsSection from "../../../_components/add-products-section";
-import SaleItemsSection from "../../../_components/sale-items-section";
 import OrderSummarySection from "../../../_components/order-summary-section";
+import PendingSalesSheet from "../../../_components/pending-sales-sheet";
+import SaleDetailsSection from "../../../_components/sale-details-section";
+import SaleItemsSection from "../../../_components/sale-items-section";
+import { PaymentEntry, usePaymentCollector } from "../../../_hooks/usePaymentCollector";
+import { PosCartItem, usePosCart } from "../../../_hooks/usePosCart";
+import SalesService from "../../../_service/sales.service";
+import { SaleItemKind, SalesDocumentType, SaleStatus } from "../../../_types/sale-enums";
 import {
-  createSaleRequestSchema,
   CreateSaleRequest,
+  createSaleRequestSchema,
+  FinalizeSaleRequest,
+  finalizeSaleRequestSchema,
   saleFormSchema,
   SaleFormValues,
   SaleItemRequest,
   SalePaymentRequest,
   UpdateSaleRequest,
-  FinalizeSaleRequest,
-  finalizeSaleRequestSchema,
 } from "../../../_types/sale-request";
-import { Form } from "@/components/ui/form";
-import PendingSalesSheet from "../../../_components/pending-sales-sheet";
 import { SaleDetailResponse, SalePaymentResponse, SaleResponse } from "../../../_types/sale-response";
-import { ProductQuickSearchResponse, SaleModeSummary } from "@/app/dashboard/inventory/_types/product-response";
-import DashboardLayoutSection from "@/app/dashboard/dashboard-layout-section";
-import { getAaxiosErrorMessage } from "@/helpers/error";
-import { Box, BoxIcon, ClipboardList, PlusCircle, Sparkles } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type SubmitMode = "draft" | "final";
 

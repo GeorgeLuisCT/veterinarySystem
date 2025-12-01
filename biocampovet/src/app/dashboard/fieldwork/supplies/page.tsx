@@ -15,12 +15,10 @@ export default function FieldSuppliesPage() {
   const [selectedVehicleId, setSelectedVehicleId] = React.useState<number | null>(null);
   const [openTransferFor, setOpenTransferFor] = React.useState<ProductResponse | null>(null);
   const [stockRefreshKey, setStockRefreshKey] = React.useState(0);
-  const [movementsRefreshKey, setMovementsRefreshKey] = React.useState(0);
   const [branchRefreshKey, setBranchRefreshKey] = React.useState(0);
 
   const refreshVehiclePanels = () => {
     setStockRefreshKey((k) => k + 1);
-    setMovementsRefreshKey((k) => k + 1);
   };
 
   const refreshBranchPanel = () => setBranchRefreshKey((k) => k + 1);

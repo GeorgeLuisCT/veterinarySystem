@@ -47,8 +47,11 @@ export default function SurgeryCard({ data }: { data: SurgeryCardData }) {
     const timeInStatus = calculateTimeInStatus(data.startTime, now);
 
     const speciesDetails = useMemo(() => {
-        if (!data.species) return undefined;
-        return (AnimalSpeciesDetails as any)[data.species];
+        if (!data.species || typeof data.species !== 'string') return undefined;
+        if (data.species in AnimalSpeciesDetails) {
+            return AnimalSpeciesDetails[data.species as keyof typeof AnimalSpeciesDetails];
+        }
+        return undefined;
     }, [data.species]);
 
     const SpeciesIcon = speciesDetails?.icon;
@@ -141,7 +144,7 @@ export default function SurgeryCard({ data }: { data: SurgeryCardData }) {
                 </div>
 
                 <div className="text-sm my-2 p-2 bg-gray-50 rounded-md truncate flex items-center gap-2" title={data.reason ?? ""}>
-                <ClipboardList className={`h-5 w-5 text-primary`}/>
+                    <ClipboardList className={`h-5 w-5 text-primary`} />
                     {data.reason ?? "—"}
                 </div>
 

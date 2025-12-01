@@ -28,8 +28,8 @@ export default function TransferDialog({ product, vehicleId, branchId, onClose, 
       try {
         const detail = await ProductService.getProduct(product.id);
         const found = detail.branchStocks.find((s) => s.branchId === branchId) ?? null;
-        setBranchStock(found ? { stockUnits: found.stockUnits, stockFractional: found.stockFractional } : null);
-      } catch {}
+        setBranchStock(found ? { stockUnits: found.stockMainUnit, stockFractional: found.stockBaseUnitRemainder } : null);
+      } catch { }
     })();
   }, [product, branchId]);
 

@@ -1,23 +1,23 @@
 // app/dashboard/grooming/page.tsx
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { PlusCircle, RefreshCcw, Scissors } from "lucide-react";
+import { AnimalBasicResponse } from "@/app/dashboard/crm/patients/types/animal-basic-response";
+import NewAttentionModal from "@/app/dashboard/schedule/components/new-attention-modal";
+import { AttentionStatus, AttentionStatusLabels } from "@/app/dashboard/schedule/enums/attention-status";
+import { AttentionType } from "@/app/dashboard/schedule/enums/attention-type";
+import AttentionService from "@/app/dashboard/schedule/service/attention-service";
+import type { AttentionResponse } from "@/app/dashboard/schedule/types/attention-response";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/context/user-context";
 import { useToast } from "@/hooks/use-toast";
-import { AnimalBasicResponse } from "@/app/dashboard/crm/patients/types/animal-basic-response";
-import AttentionService from "@/app/dashboard/schedule/service/attention-service";
-import { AttentionStatus, AttentionStatusLabels } from "@/app/dashboard/schedule/enums/attention-status";
-import { AttentionType } from "@/app/dashboard/schedule/enums/attention-type";
-import type { AttentionResponse } from "@/app/dashboard/schedule/types/attention-response";
-import NewAttentionModal from "@/app/dashboard/schedule/components/new-attention-modal";
-import { GroomingStatus, GroomingStatusLabels } from "./enums/grooming-status";
-import type { GroomingSessionSummaryResponse } from "./types/grooming-session-response";
-import GroomingFilters, { type GroomingFilters as Filters } from "../clinical/components/grooming/grooming-filters";
-import GroomingSessionService from "./service/grooming-session-service";
+import { PlusCircle, RefreshCcw } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import GroomingCard from "../clinical/components/grooming/grooming-card";
+import GroomingFilters, { type GroomingFilters as Filters } from "../clinical/components/grooming/grooming-filters";
 import DashboardLayoutSection from "../dashboard-layout-section";
+import { GroomingStatus, GroomingStatusLabels } from "./enums/grooming-status";
+import GroomingSessionService from "./service/grooming-session-service";
+import type { GroomingSessionSummaryResponse } from "./types/grooming-session-response";
 
 function formatLocalDate(d: Date): string {
   const y = d.getFullYear();
@@ -129,7 +129,7 @@ export default function GroomingPage() {
       addUnique(inProgressResponse.content);
       setAttendingRoom(mergedAttending);
       setSessions(sessionsResponse.content);
-    } catch (e) {
+    } catch {
       setError("No se pudo cargar la información de peluquería.");
     } finally {
       setLoading(false);

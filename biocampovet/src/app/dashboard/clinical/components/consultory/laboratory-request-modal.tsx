@@ -31,7 +31,6 @@ export function LaboratoryRequestModal({ id, onClose, onAdded }: CommonProps) {
 
     // opciones por fila: rowIndex -> opciones para ese select
     const [testOptionsMap, setTestOptionsMap] = useState<Record<number, { value: string; label: string }[]>>({});
-    const [testNameMap, setTestNameMap] = useState<Record<number, string>>({});
 
     const form = useForm<AddClinicalAttentionLaboratoryRequest>({
         resolver: zodResolver(addClinicalAttentionLaboratorySchema),
@@ -88,7 +87,7 @@ export function LaboratoryRequestModal({ id, onClose, onAdded }: CommonProps) {
             if (form.getValues(`items.${rowIndex}.quantity`) == null) {
                 form.setValue(`items.${rowIndex}.quantity`, 1, { shouldValidate: true });
             }
-            setTestNameMap((prev) => ({ ...prev, [id]: detail.name }));
+
         } catch {
             // si falla, dejamos los campos como estaban
         }
@@ -107,9 +106,9 @@ export function LaboratoryRequestModal({ id, onClose, onAdded }: CommonProps) {
     useEffect(() => {
         replace([]);
         setTestOptionsMap({});
-        setTestNameMap({});
+
         if (laboratoryId) addEmptyRow();
-    }, [laboratoryId, replace]); 
+    }, [laboratoryId, replace]);
 
     const onSubmit = async (values: AddClinicalAttentionLaboratoryRequest) => {
         setSubmitting(true);
@@ -126,15 +125,6 @@ export function LaboratoryRequestModal({ id, onClose, onAdded }: CommonProps) {
         () => laboratories.map((l) => ({ value: String(l.id), label: l.name })),
         [laboratories]
     );
-
-    // Total correcto en tiempo real
-    const items = form.watch("items");
-    const total = useMemo(() => {
-        return (items || []).reduce(
-            (sum: number, it: any) => sum + Number(it.unitPrice || 0) * Number(it.quantity || 0),
-            0
-        );
-    }, [items]);
 
     const hasLab = !!laboratoryId;
 
@@ -193,8 +183,6 @@ export function LaboratoryRequestModal({ id, onClose, onAdded }: CommonProps) {
                                     ) : (
                                         <div className="space-y-3">
                                             {fields.map((row, index) => {
-                                                const testId = form.getValues(`items.${index}.testId`) as number | undefined;
-                                                const name = testId ? testNameMap[Number(testId)] ?? "Prueba" : "Prueba";
                                                 return (
                                                     <div key={row.id} className="grid grid-cols-1 sm:grid-cols-12 gap-3 rounded-lg border p-3">
                                                         {/* Prueba */}

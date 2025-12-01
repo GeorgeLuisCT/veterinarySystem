@@ -1,7 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { AnimalSpecies, AnimalSpeciesLabels } from "@/app/dashboard/crm/patients/enums/animal-species";
+import { AnimalService } from "@/app/dashboard/crm/patients/service/animal-service";
+import type { AnimalQuickSearchResponse } from "@/app/dashboard/crm/patients/types/animal-quick-search-response";
+import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
+import type { Option as MultiSelectOption } from "@/components/floating-label-multi-select";
+import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,19 +15,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { FloatingLabelSelect } from "@/components/floating-label-select";
-import type { Option as MultiSelectOption } from "@/components/floating-label-multi-select";
-import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
-import { AnimalService } from "@/app/dashboard/crm/patients/service/animal-service";
-import type { AnimalQuickSearchResponse } from "@/app/dashboard/crm/patients/types/animal-quick-search-response";
-import { AnimalSpeciesLabels } from "@/app/dashboard/crm/patients/enums/animal-species";
-import { AnimalSpecies } from "@/app/dashboard/crm/patients/enums/animal-species";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { ReminderType, ReminderTypeOptions } from "../../enums/reminder-type";
-import { ReminderCreateRequest } from "../../types/reminder-response";
 import ReminderService from "../../service/reminder-service";
+import { ReminderCreateRequest } from "../../types/reminder-response";
 
 type CreateReminderForm = {
   animalId: string;

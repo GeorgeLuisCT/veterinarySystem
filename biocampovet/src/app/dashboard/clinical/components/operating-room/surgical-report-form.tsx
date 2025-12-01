@@ -1,25 +1,25 @@
 "use client";
 
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowRight, Ban, ClipboardList, FileQuestion, Package, Pill, PlusCircle, Stethoscope, Syringe } from "lucide-react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Syringe, Package, PlusCircle, ClipboardList, Building, Stethoscope, Check, ArrowRight, Ban, Pill, FileQuestion } from "lucide-react";
 
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 
-import SurgicalReportService from "../../service/surgical-report-service";
-import { SurgicalReportDetailResponse } from "../../types/surgical-report-response";
-import { updateSurgicalReportSchema, UpdateSurgicalReportRequest } from "../../types/surgical-report-request";
-import { SurgicalReportStatus, SurgicalReportStatusLabels } from "../../enums/surgical-report-status";
-import { AnestheticPhase, AnestheticPhaseLabels } from "../../enums/anesthetic-phase";
-import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
+import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
+import { AnestheticPhase, AnestheticPhaseLabels } from "../../enums/anesthetic-phase";
 import { FrequencyUnitLabels } from "../../enums/frequency-unit";
+import { SurgicalReportStatus, SurgicalReportStatusLabels } from "../../enums/surgical-report-status";
+import SurgicalReportService from "../../service/surgical-report-service";
+import { UpdateSurgicalReportRequest, updateSurgicalReportSchema } from "../../types/surgical-report-request";
+import { SurgicalReportDetailResponse } from "../../types/surgical-report-response";
 
 import { AddAnestheticDrugModal } from "../../components/operating-room/add-anesthetic-drug-modal";
 import { AddMaterialModal } from "../../components/operating-room/add-material-modal";
@@ -136,13 +136,13 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
 
         const patchField = useCallback(
             async (field: keyof Omit<FormShape, "version">, value: unknown) => {
-                const body: UpdateSurgicalReportRequest = { version: versionRef.current } as UpdateSurgicalReportRequest;
-                (body as any)[field] = value === "" ? null : value;
+                const body: UpdateSurgicalReportRequest = { version: versionRef.current };
+                (body as Record<string, unknown>)[field] = value === "" ? null : value;
                 const res = await SurgicalReportService.patch(reportId, body);
                 versionRef.current = res.version;
                 form.setValue("version", res.version, { shouldDirty: false, shouldTouch: false, shouldValidate: false });
-                if ((res as any).updated && (res as any).updated[field as string] !== undefined) {
-                    form.setValue(field as any, (res as any).updated[field as string], { shouldDirty: false });
+                if (res.updated && res.updated[field as string] !== undefined) {
+                    form.setValue(field, res.updated[field as string] as FormShape[typeof field], { shouldDirty: false });
                 }
                 return res;
             },
@@ -208,7 +208,7 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
             const next = getNextStatus(current ?? null);
             if (!next) return;
             try {
-                const res = await patchField("status", next);
+                await patchField("status", next);
                 form.setValue("status", next, { shouldDirty: false });
                 toast({ description: `Estado actualizado a "${SurgicalReportStatusLabels[next]}".` });
             } catch {
@@ -220,7 +220,6 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
             const confirmed = window.confirm("¿Seguro que deseas marcar este reporte como Cancelado?");
             if (!confirmed) return;
             try {
-                const res = await patchField("status", SurgicalReportStatus.CANCELLED);
                 form.setValue("status", SurgicalReportStatus.CANCELLED, { shouldDirty: false });
                 toast({ description: `Estado actualizado a "${SurgicalReportStatusLabels[SurgicalReportStatus.CANCELLED]}".` });
             } catch {
@@ -232,9 +231,7 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
             detail.status ??
             SurgicalReportStatus.DRAFT) as SurgicalReportStatus;
         const nextStatus = getNextStatus(currentStatus);
-        const isTerminal = currentStatus === SurgicalReportStatus.COMPLETED || currentStatus === SurgicalReportStatus.CANCELLED;
 
-        const anesthesiaEmpty = detail?.anestheticProtocol.length === 0;
         const materialsEmpty = detail?.materialsUsed.length === 0;
         const postOpEmpty = detail?.postOperativeIndications.length === 0;
 
@@ -299,7 +296,7 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormControl>
-                                                {/* @ts-ignore */}
+
                                                 <FloatingLabelSelect
                                                     id="assistantId"
                                                     label="Asistente"
@@ -348,7 +345,7 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormControl>
-                                                {/* @ts-ignore */}
+
                                                 <FloatingLabelSelect
                                                     id="surgeonId"
                                                     label="Cirujano"
@@ -372,7 +369,7 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormControl>
-                                                {/* @ts-ignore */}
+
                                                 <FloatingLabelSelect
                                                     id="anesthesiologistId"
                                                     label="Anestesista"

@@ -227,7 +227,7 @@ function VehicleForm({ vehicle, onCancel, onSuccess }: { vehicle?: VehicleRespon
       active: vehicle.active,
     });
     if (vehicle.assignedVetEmployeeId && vehicle.assignedVetName) {
-      setEmployeeOptions([{ id: vehicle.assignedVetEmployeeId, name: vehicle.assignedVetName, documentNumber: '' } as any]);
+      setEmployeeOptions([{ id: vehicle.assignedVetEmployeeId, fullName: vehicle.assignedVetName, email: '' }]);
     }
     if (vehicle.homeBranchId && vehicle.homeBranchName) {
       setBranchOptions([{ id: vehicle.homeBranchId, name: vehicle.homeBranchName, location: '' }]);
@@ -266,7 +266,7 @@ function VehicleForm({ vehicle, onCancel, onSuccess }: { vehicle?: VehicleRespon
   };
 
   return (
-    <Form {...(form as any)}>
+    <Form {...form}>
       <form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           control={form.control}

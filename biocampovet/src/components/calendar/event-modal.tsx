@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useCalendar } from "./calendar-context"
+import { useCalendar, type CalendarEvent } from "./calendar-context"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -195,7 +195,7 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
       color,
       category: category || undefined,
       isAllDay,
-      recurrence: recurrence as any,
+      recurrence: recurrence as CalendarEvent["recurrence"],
       calendarId: selectedCalendarId,
     }
 

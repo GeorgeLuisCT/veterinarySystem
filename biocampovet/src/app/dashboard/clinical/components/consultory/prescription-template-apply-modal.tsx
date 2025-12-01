@@ -13,9 +13,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/context/user-context";
 import ProductService from "@/app/dashboard/inventory/_service/product-service";
-import { AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
-import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
-import { FrequencyUnitLabels } from "@/app/dashboard/clinical/enums/frequency-unit";
+import { AdministrationRoute, AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
+import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
+import { FrequencyUnit, FrequencyUnitLabels } from "@/app/dashboard/clinical/enums/frequency-unit";
 import { ClinicalAttentionService } from "@/app/dashboard/clinical/service/clinical-attention-service";
 import { ClinicalAttentionDetailResponse } from "@/app/dashboard/clinical/types/clinical-attention-response";
 import {
@@ -172,7 +172,7 @@ export function PrescriptionTemplateApplyModal({ id, onClose, onAdded }: CommonP
     }
     try {
       const results = await ProductService.searchProducts(q, userInfo?.selectedBranch.id);
-      const options = results.map((p: any) => ({ value: String(p.id), label: p.name }));
+      const options = results.map((p) => ({ value: String(p.id), label: p.name }));
       setProductOptionsCache((prev) => ({ ...prev, [index]: options }));
     } catch {
       setProductOptionsCache((prev) => ({ ...prev, [index]: [] }));
@@ -181,7 +181,7 @@ export function PrescriptionTemplateApplyModal({ id, onClose, onAdded }: CommonP
 
   /** Submit */
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const items = values.items.filter((i) => i.include);
+    const items = values.items.filter((i) => i.include && i.productId);
     if (items.length === 0) {
       toast({ description: "No hay ítems seleccionados para aplicar.", variant: "destructive" });
       return;
@@ -191,17 +191,17 @@ export function PrescriptionTemplateApplyModal({ id, onClose, onAdded }: CommonP
       let last: ClinicalAttentionDetailResponse | null = null;
       for (const it of items) {
         const payload = {
-          productId: it.productId ?? undefined,
+          productId: it.productId!,
           administeredAt: it.administeredAt,
           doseAmount: it.doseAmount,
-          doseUnit: (it.doseUnit as any) ?? null,
-          route: (it.route as any) ?? null,
+          doseUnit: it.doseUnit as ProductUnitType | null,
+          route: it.route as AdministrationRoute | null,
           frequencyValue: it.frequencyValue,
-          frequencyUnit: (it.frequencyUnit as any) ?? null,
+          frequencyUnit: it.frequencyUnit as FrequencyUnit | null,
           administeredByEmployeeId: userInfo?.employeeId || null,
           notes: it.notes,
         };
-        last = await ClinicalAttentionService.addMedication(id, payload as any);
+        last = await ClinicalAttentionService.addMedication(id, payload);
       }
       if (last) onAdded(last);
       onClose();

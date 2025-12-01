@@ -6,6 +6,7 @@ import type {
 
 export function mapToCreateRequest(form: SupplierRequest): SupplierCreateRequest {
   const { id, ...rest } = form;
+  void id;
   return rest;
 }
 

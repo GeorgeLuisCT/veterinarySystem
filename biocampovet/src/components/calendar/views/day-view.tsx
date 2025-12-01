@@ -2,12 +2,10 @@
 
 import type React from "react"
 
-import { useState, useRef, useEffect } from "react"
-import { useCalendar } from "../calendar-context"
-import { format, isSameDay, isToday, setHours, setMinutes, getHours, getMinutes } from "date-fns"
+import { format, getHours, getMinutes, isSameDay, isToday, setHours, setMinutes } from "date-fns"
 import { es } from "date-fns/locale"
-import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { useCalendar, type CalendarEvent } from "../calendar-context"
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i) // 24-hour format
 const HOUR_HEIGHT = 80 // pixels per hour
@@ -55,13 +53,13 @@ export function DayView() {
     return getEventsForDay().filter((event) => !event.isAllDay)
   }
 
-  const getStatusColor = (event: any) => {
+  const getStatusColor = (event: CalendarEvent) => {
     const statusCalendarId = event.metadata?.statusCalendarId
     if (!statusCalendarId) return undefined
     return secondaryCalendars.find((calendar) => calendar.id === statusCalendarId)?.color
   }
 
-  const getEventPosition = (event: any) => {
+  const getEventPosition = (event: CalendarEvent) => {
     const startHour = getHours(event.startDate)
     const startMinute = getMinutes(event.startDate)
     const endHour = getHours(event.endDate)
@@ -81,7 +79,7 @@ export function DayView() {
     setIsEventModalOpen(true)
   }
 
-  const handleEventClick = (event: any, e: React.MouseEvent) => {
+  const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
     e.stopPropagation()
     setSelectedEvent(event)
     setIsEventModalOpen(true)
@@ -93,12 +91,6 @@ export function DayView() {
     const hour = getHours(currentTime)
     const minute = getMinutes(currentTime)
     return hour * HOUR_HEIGHT + (minute / 60) * HOUR_HEIGHT
-  }
-
-  const navigateDay = (direction: "prev" | "next") => {
-    const newDate = new Date(currentDate)
-    newDate.setDate(newDate.getDate() + (direction === "next" ? 1 : -1))
-    setCurrentDate(newDate)
   }
 
   const currentTimePosition = getCurrentTimePosition()

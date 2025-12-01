@@ -1,7 +1,7 @@
 import { AnimalSex } from "@/app/dashboard/crm/patients/enums/animal-sex";
 import { AnimalSpecies } from "@/app/dashboard/crm/patients/enums/animal-species";
 import { ClinicalServiceCategory } from "../enums/clinical-service-category";
-import { GroomingStatus } from "../enums/grooming-status";
+import { GroomingStatus } from "../../grooming/enums/grooming-status";
 import { HospitalizationCause } from "../enums/hospitalization-cause";
 import { HospitalizationStatus } from "../enums/hospitalization-status";
 import { LabRequestStatus } from "../enums/lab-request-status";

@@ -18,7 +18,6 @@ import TreasuryAccountService from "../../_services/treasury-account-service";
 import AccountPayableCreateDialog from "../../_components/account-payable-create-dialog";
 import { PlusCircle } from "lucide-react";
 
-const PEN = new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN", minimumFractionDigits: 2 });
 
 export default function AccountsPayablePage() {
   const { toast } = useToast();

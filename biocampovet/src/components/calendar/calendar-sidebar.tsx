@@ -1,6 +1,6 @@
 "use client"
 
-import { useCalendar } from "./calendar-context"
+import { useCalendar, type CalendarEvent, type Calendar } from "./calendar-context"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -48,7 +48,7 @@ export function CalendarSidebar({
 
   const visibleEvents = getVisibleEvents()
 
-  const getStatusColor = (event: any) => {
+  const getStatusColor = (event: CalendarEvent) => {
     const statusCalendarId = event.metadata?.statusCalendarId
     if (!statusCalendarId) return undefined
     return secondaryCalendars.find((calendar) => calendar.id === statusCalendarId)?.color
@@ -83,7 +83,7 @@ export function CalendarSidebar({
     setIsCalendarModalOpen(true)
   }
 
-  const handleEditCalendar = (calendar: any) => {
+  const handleEditCalendar = (calendar: Calendar) => {
     setSelectedCalendar(calendar)
     setIsCalendarModalOpen(true)
   }

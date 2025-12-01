@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
@@ -11,9 +11,9 @@ import {
   addClinicalAttentionSurgicalOrderSchema,
   AddClinicalAttentionSurgicalOrderRequest,
 } from "../../types/clinical-attention-request";
-import { Form, FormControl, FormField, FormItem, FormMessage, FormLabel } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { ClinicalAttentionService } from "../../service/clinical-attention-service";
-import { SurgicalOrderStatus, SurgicalOrderStatusLabels } from "@/app/dashboard/schedule/enums/surgical-order-status";
+import { SurgicalOrderStatus } from "@/app/dashboard/schedule/enums/surgical-order-status";
 import { ClinicalAttentionDetailResponse } from "../../types/clinical-attention-response";
 import { useUser } from "@/context/user-context";
 import ClinicalServiceService from "../../service/clinical-service-service";
@@ -89,11 +89,6 @@ export function SurgicalOrderModal({ id, onClose, onAdded }: CommonProps) {
       setSubmitting(false);
     }
   };
-
-  const statusOptions = useMemo(
-    () => Object.entries(SurgicalOrderStatusLabels).map(([value, label]) => ({ value, label })),
-    []
-  );
 
   const hasRooms = operationRoomOptions.length > 0;
 

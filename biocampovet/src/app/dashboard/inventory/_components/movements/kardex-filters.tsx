@@ -1,17 +1,16 @@
 // app/dashboard/inventory/_components/movements/kardex-filters.tsx
 "use client";
 
-import React from "react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import type { DateRange } from "react-day-picker";
-import { Calendar as CalendarIcon, RefreshCcw, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { ProductQuickSearchResponse } from "../../_types/product-response";
-import type { ProductBatchSearchResponse } from "../../_types/product-batch-response";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Calendar as CalendarIcon, RefreshCcw, XCircle } from "lucide-react";
+import type { DateRange } from "react-day-picker";
 import { SearchPopover } from "../../_components/movements/search-popover";
+import type { ProductBatchSearchResponse } from "../../_types/product-batch-response";
+import type { ProductQuickSearchResponse } from "../../_types/product-response";
 
 const DATE_DISPLAY_FORMAT = "dd/MM/yyyy";
 
@@ -69,8 +68,6 @@ export default function KardexFiltersBar({
   productLoading,
   productGetOptionLabel,
   productGetOptionDescription,
-  productDisabled,
-  // lote
   batchSelected,
   batchOnSelect,
   batchPlaceholder,
@@ -80,8 +77,6 @@ export default function KardexFiltersBar({
   batchLoading,
   batchGetOptionLabel,
   batchGetOptionDescription,
-  batchDisabled,
-  // otros
   dateRange,
   onDateRangeChange,
   onReset,

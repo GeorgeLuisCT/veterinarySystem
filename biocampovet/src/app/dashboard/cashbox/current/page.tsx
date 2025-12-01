@@ -48,7 +48,7 @@ type SummaryItemProps = {
   value: number;
   negative?: boolean;
   highlight?: boolean;
-  icon?: React.ComponentType<any>;
+  icon?: React.ElementType;
 };
 
 function SummaryItem({ label, value, negative, highlight, icon: Icon }: SummaryItemProps) {
@@ -237,14 +237,12 @@ export default function CurrentCashSessionPage() {
               </div>
             </div>
 
-            {/* Loading */}
             {loading && (
               <Card>
                 <CardContent className="py-12 text-center text-muted-foreground">Cargando estado de caja…</CardContent>
               </Card>
             )}
 
-            {/* Sin sesión y sin cierre reciente */}
             {!loading && !detail && !closingSummary && (
               <Card className="border-dashed">
                 <CardContent className="py-10 text-center">
@@ -255,7 +253,6 @@ export default function CurrentCashSessionPage() {
               </Card>
             )}
 
-            {/* Último cierre */}
             {closingSummary && (
               <Card>
                 <CardHeader>
@@ -296,14 +293,12 @@ export default function CurrentCashSessionPage() {
               </Card>
             )}
 
-            {/* Sesión abierta */}
             {detail && totals && (
               <Card>
                 <CardHeader>
                   <CardTitle>Resumen de sesión</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Resumen superior */}
                   <div className="grid gap-4 md:grid-cols-3">
                     <SummaryItem label="Apertura" value={totals.opening} icon={Wallet} />
                     <SalesSummaryCard totalSales={totals.sales} breakdown={detail.paymentBreakdown} />
@@ -314,7 +309,6 @@ export default function CurrentCashSessionPage() {
 
                   <Separator />
 
-                  {/* Movimientos adicionales */}
                   <div>
                     <h2 className="text-lg font-semibold mb-2">Movimientos adicionales</h2>
                     <div className="rounded-xl border overflow-hidden">
@@ -367,7 +361,6 @@ export default function CurrentCashSessionPage() {
 
                   <Separator />
 
-                  {/* Pagos de Ventas */}
                   <div>
                     <div className="mb-2 flex items-center justify-between">
                       <h2 className="text-lg font-semibold">Cobros de Ventas</h2>

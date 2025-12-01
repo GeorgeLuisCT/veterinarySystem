@@ -70,10 +70,10 @@ export default function AccountsPayableTable({
         header: "Estado",
         cell: ({ row }) => {
           const s = row.original.status;
-          const variant =
+          const variant: "default" | "secondary" | "outline" =
             s === AccountPayableStatus.PAID ? "default" : s === AccountPayableStatus.PARTIALLY_PAID ? "secondary" : "outline";
           const label = s === AccountPayableStatus.PAID ? "Pagada" : s === AccountPayableStatus.PARTIALLY_PAID ? "Parcial" : "Pendiente";
-          return <Badge variant={variant as any}>{label}</Badge>;
+          return <Badge variant={variant}>{label}</Badge>;
         },
       },
     ],

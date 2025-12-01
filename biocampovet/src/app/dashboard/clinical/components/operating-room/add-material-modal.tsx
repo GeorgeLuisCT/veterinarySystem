@@ -19,7 +19,8 @@ import ProductService from "@/app/dashboard/inventory/_service/product-service";
 import SurgicalReportService from "../../service/surgical-report-service";
 import { SurgicalReportDetailResponse } from "../../types/surgical-report-response";
 import { useUser } from "@/context/user-context";
-import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
+import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
+import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/_types/product-response";
 
 type Option = { value: string; label: string };
 
@@ -49,7 +50,7 @@ export function AddMaterialModal({ reportId, open, onClose, onAdded }: AddMateri
     defaultValues: {
       productId: undefined,
       quantity: 1,
-      unitType: undefined as unknown as any,
+      unitType: undefined as unknown as ProductUnitType,
     },
     mode: "onChange",
   });
@@ -67,7 +68,7 @@ export function AddMaterialModal({ reportId, open, onClose, onAdded }: AddMateri
     debounceRef.current = window.setTimeout(async () => {
       try {
         const results = await ProductService.searchProducts(q, userInfo?.selectedBranch.id);
-        setProductOptions(results.map((p: any) => ({ value: String(p.id), label: p.name })));
+        setProductOptions(results.map((p: ProductQuickSearchResponse) => ({ value: String(p.id), label: p.name })));
       } catch {
         setProductOptions([]);
       } finally {
@@ -77,7 +78,7 @@ export function AddMaterialModal({ reportId, open, onClose, onAdded }: AddMateri
   };
 
   const closeAndReset = () => {
-    form.reset({ productId: undefined, quantity: 1, unitType: undefined as unknown as any });
+    form.reset({ productId: undefined, quantity: 1, unitType: undefined as unknown as ProductUnitType });
     setProductOptions([]);
     onClose();
   };
@@ -175,7 +176,7 @@ export function AddMaterialModal({ reportId, open, onClose, onAdded }: AddMateri
                             placeholder="Unidad…"
                             options={unitTypeOptions}
                             value={field.value ? String(field.value) : ""}
-                            onValueChange={(v) => field.onChange(v as any)}
+                            onValueChange={(v) => field.onChange(v as ProductUnitType)}
                           />
                         </FormControl>
                         <FormMessage />

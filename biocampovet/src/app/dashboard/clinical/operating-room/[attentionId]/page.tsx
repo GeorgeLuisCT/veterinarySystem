@@ -18,6 +18,7 @@ import SurgicalReportForm, { Option, SurgicalReportFormHandle } from "../../comp
 import { AttentionResponse } from "@/app/dashboard/schedule/types/attention-response";
 import AttentionService from "@/app/dashboard/schedule/service/attention-service";
 import PatientDetails from "../../components/consultory/patient-details";
+import { OperatingRoomResponse } from "@/app/dashboard/branche/types/operating-room-response";
 
 
 const ensureOption = (options: Option[], attentionId: number | null, label: string | null) => {
@@ -117,7 +118,7 @@ export default function SurgicalReportDetailPage() {
         setAnesthetistOptions(ensureOption(mapEmployees(anesthetistsRes ?? []), detail.anesthesiologistId, detail.anesthesiologistFullName));
         setAssistantOptions(ensureOption(mapEmployees(assistantsRes ?? []), detail.assistantId, detail.assistantFullName));
         setOperatingRoomOptions(ensureOption(
-          (roomsRes ?? []).map<Option>((room: any) => ({ value: String(room.id), label: room.name })),
+          (roomsRes ?? []).map<Option>((room: OperatingRoomResponse) => ({ value: String(room.id), label: room.name })),
           detail.operatingRoomId,
           detail.operatingRoomName
         ));
@@ -137,7 +138,7 @@ export default function SurgicalReportDetailPage() {
       toast({ title: "Cambios guardados", description: "El reporte quirúrgico se actualizó correctamente." });
       // ⬇️ CORREGIDO: recargar por attentionId, no por reportId
       await fetchDetail(detail.attentionId);
-    } catch (e) {
+    } catch {
       toast({ variant: "destructive", title: "Error", description: "No se pudieron guardar los cambios." });
     } finally {
       setSaving(false);

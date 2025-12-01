@@ -63,7 +63,7 @@ export function VisitForm({ visitId, onSuccess, onCancel, showStatusField }: Vis
       objective: "",
       companionIds: [],
       ...(isEdit ? { status: FieldVisitStatus.PLANNED as FieldVisitStatus } : {}),
-    } as any,
+    } as Partial<UpdateVisitRequest>,
   });
 
   const [loading, setLoading] = React.useState(isEdit);
@@ -100,7 +100,7 @@ export function VisitForm({ visitId, onSuccess, onCancel, showStatusField }: Vis
           objective: data.objective ?? "",
           status: data.status,
           companionIds: data.companions?.map((c) => c.employeeId) ?? [],
-        } as any);
+        } as UpdateVisitRequest);
         setSelectedCompanions(data.companions ?? []);
         if (data.farmId && data.farmName) {
           setFarmOptions([{ id: data.farmId, name: data.farmName, customerName: undefined, zoneId: data.zoneId ?? null, zoneName: data.zoneName ?? null }]);
@@ -109,7 +109,7 @@ export function VisitForm({ visitId, onSuccess, onCancel, showStatusField }: Vis
           setZoneOptions([{ id: data.zoneId, name: data.zoneName, type: GeoZoneType.SECTOR, parentId: undefined, parentName: undefined, active: true }]);
         }
         if (data.fieldVetId && data.fieldVetName) {
-          setVetOptions([{ id: data.fieldVetId, name: data.fieldVetName, documentNumber: "" } as any]);
+          setVetOptions([{ id: data.fieldVetId, fullName: data.fieldVetName, email: "" }]);
         }
         if (data.vehicleId && data.vehicleName) {
           setVehicleOptions([{ id: data.vehicleId, name: data.vehicleName, licensePlate: undefined, active: true }]);
@@ -178,7 +178,7 @@ export function VisitForm({ visitId, onSuccess, onCancel, showStatusField }: Vis
     }
     const updatedIds = [...currentIds, employee.id];
     form.setValue("companionIds", updatedIds, { shouldDirty: true, shouldValidate: true });
-    setSelectedCompanions((prev) => [...prev, { employeeId: employee.id, employeeName: employee.name }]);
+    setSelectedCompanions((prev) => [...prev, { employeeId: employee.id, employeeName: employee.fullName }]);
     setCompanionSelectValue("");
   };
 
@@ -189,7 +189,7 @@ export function VisitForm({ visitId, onSuccess, onCancel, showStatusField }: Vis
     setSelectedCompanions((prev) => prev.filter((c) => c.employeeId !== employeeId));
   };
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: CreateVisitRequest | UpdateVisitRequest) => {
     setSubmitting(true);
     try {
       const payload: CreateVisitRequest | UpdateVisitRequest = {
@@ -206,7 +206,7 @@ export function VisitForm({ visitId, onSuccess, onCancel, showStatusField }: Vis
   };
 
   return (
-    <Form {...(form as any)}>
+    <Form {...form}>
       <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
         {loading ? (
           <div className="flex items-center justify-center py-10 text-sm text-muted-foreground">
@@ -235,7 +235,7 @@ export function VisitForm({ visitId, onSuccess, onCancel, showStatusField }: Vis
                               return [
                                 ...prev,
                                 {
-                                  id: selected.zoneId,
+                                  id: selected.zoneId as number,
                                   name: selected.zoneName ?? "Zona asociada",
                                   type: GeoZoneType.SECTOR,
                                   parentId: undefined,
@@ -292,7 +292,7 @@ export function VisitForm({ visitId, onSuccess, onCancel, showStatusField }: Vis
                         label="Veterinario/a principal"
                         value={field.value ? String(field.value) : ""}
                         onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
-                        options={vetOptions.map((e) => ({ value: String(e.id), label: `${e.name}${e.documentNumber ? ` *( ${e.documentNumber} )*` : ""}` }))}
+                        options={vetOptions.map((e) => ({ value: String(e.id), label: e.fullName }))}
                         onSearch={handleSearchEmployees}
                         emptyMessage="Sin resultados"
                       />
@@ -368,7 +368,7 @@ export function VisitForm({ visitId, onSuccess, onCancel, showStatusField }: Vis
                     addCompanion(option);
                   }
                 }}
-                options={companionOptions.map((c) => ({ value: String(c.id), label: `${c.name}${c.documentNumber ? ` *( ${c.documentNumber} )*` : ""}` }))}
+                options={companionOptions.map((c) => ({ value: String(c.id), label: c.fullName }))}
                 onSearch={handleSearchCompanions}
                 emptyMessage="Sin resultados"
               />

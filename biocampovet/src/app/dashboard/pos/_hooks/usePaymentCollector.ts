@@ -76,10 +76,14 @@ export function usePaymentCollector(initialPayments: PaymentEntry[] = []) {
 
 
   const toSalePayments = useCallback((): SalePaymentRequest[] => {
-    return payments.map(({ id, paymentId, ...rest }) => ({
-      ...rest,
-      paidAt: rest.paidAt ?? new Date().toISOString(),
-    }));
+    return payments.map(({ id, paymentId, ...rest }) => {
+      void id;
+      void paymentId;
+      return {
+        ...rest,
+        paidAt: rest.paidAt ?? new Date().toISOString(),
+      };
+    });
   }, [payments]);
 
   const findPaymentByClientId = useCallback(

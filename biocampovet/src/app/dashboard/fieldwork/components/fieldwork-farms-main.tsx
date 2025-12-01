@@ -86,7 +86,7 @@ function ZonesTable() {
     page: pageIndex,
     size: pageSize,
     q: q || undefined,
-    type: (type === 'ALL' ? undefined : (type as any)),
+    type: (type === 'ALL' ? undefined : (type as GeoZoneType)),
     active: active === 'ALL' ? undefined : active === 'true',
   }), [pageIndex, pageSize, q, type, active]);
 
@@ -201,7 +201,7 @@ function ZonesTable() {
         confirmVariant='destructive'
         onConfirm={async () => {
           if (!pendingDelete) return;
-          try { await GeoZoneService.delete(pendingDelete.id); } catch (e) { toast({ variant: 'destructive', title: 'Error', description: 'No se pudo eliminar.' }); }
+          try { await GeoZoneService.delete(pendingDelete.id); } catch { toast({ variant: 'destructive', title: 'Error', description: 'No se pudo eliminar.' }); }
           setPendingDelete(null);
           load(params);
         }}
@@ -247,7 +247,7 @@ function FarmsTable() {
 
   const headerRight = (
     <div>
-      <Button onClick={() => { setSelected(null); setActiveModal('create'); }}><PlusCircle className='mr-2 h-4 w-4'/>Nueva granja</Button>
+      <Button onClick={() => { setSelected(null); setActiveModal('create'); }}><PlusCircle className='mr-2 h-4 w-4' />Nueva granja</Button>
     </div>
   );
 
@@ -299,7 +299,7 @@ function FarmsTable() {
         confirmVariant='destructive'
         onConfirm={async () => {
           if (!pendingDelete) return;
-          try { await FarmService.delete(pendingDelete.id); } catch (e) { toast({ variant: 'destructive', title: 'Error', description: 'No se pudo eliminar.' }); }
+          try { await FarmService.delete(pendingDelete.id); } catch { toast({ variant: 'destructive', title: 'Error', description: 'No se pudo eliminar.' }); }
           setPendingDelete(null);
           load(params);
         }}

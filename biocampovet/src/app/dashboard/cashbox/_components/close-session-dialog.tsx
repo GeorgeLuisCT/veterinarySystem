@@ -1,4 +1,3 @@
-// app/dashboard/pos/_components/close-session-dialog.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -56,11 +55,11 @@ export default function CloseSessionDialog({
     [breakdown]
   );
 
-  const [allocations, setAllocations] = useState<Record<PaymentMethod, number | undefined>>({} as any);
+  const [allocations, setAllocations] = useState<Partial<Record<PaymentMethod, number>>>({});
 
   useEffect(() => {
     if (!open) return;
-    const initial: Record<PaymentMethod, number | undefined> = {} as any;
+    const initial: Partial<Record<PaymentMethod, number>> = {};
     actionableBreakdown.forEach((b) => {
       initial[b.paymentMethod] = accounts[0]?.id;
     });

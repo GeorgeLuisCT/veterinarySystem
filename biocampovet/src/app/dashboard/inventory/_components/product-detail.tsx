@@ -13,8 +13,7 @@ import {
     Box,
 } from "lucide-react"
 import ProductService from "../_service/product-service"
-import { ProductResponse } from "../_types/product-response"
-import { ProductSaleModeResponse } from "../_types/product-sale-mode-response"
+import { ProductResponse, SaleModeSummary } from "../_types/product-response"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
@@ -73,7 +72,7 @@ export function ProductDetail({ productId, branchId, onClose }: ProductDetailPro
                 <DetailRow
                     icon={<Layers className="w-5 h-5" />}
                     label="Categoría:"
-                    value={product.category.name}
+                    value={product.categoryResponse.name}
                 />
                 <DetailRow
                     icon={<Package className="w-5 h-5" />}
@@ -83,7 +82,7 @@ export function ProductDetail({ productId, branchId, onClose }: ProductDetailPro
                 <DetailRow
                     icon={<FileText className="w-5 h-5" />}
                     label="Descripción:"
-                    value={product.description}
+                    value={product.description || ""}
                 />
                 <DetailRow
                     icon={<Tag className="w-5 h-5" />}
@@ -97,7 +96,7 @@ export function ProductDetail({ productId, branchId, onClose }: ProductDetailPro
                 />
 
                 <DetailRow
-                    icon={<Box  className="w-5 h-5" />}
+                    icon={<Box className="w-5 h-5" />}
                     label="Presentación:"
                     value={getProductPresentationTypeLabel(product.presentation)}
                 />
@@ -134,10 +133,10 @@ export function ProductDetail({ productId, branchId, onClose }: ProductDetailPro
                     </div>
                     <div className="pl-7 space-y-1">
                         {product.branchStocks.map((s) => (
-                            <div key={s.id} className="flex justify-between">
+                            <div key={s.branchId} className="flex justify-between">
                                 <span className="text-foreground">{s.branchName}</span>
                                 <span className="text-muted-foreground">
-                                    {s.stockUnits} {getProductUnitTypeAbbreviation(product.unitType)} / {s.stockFractional.toFixed(2)}
+                                    {s.stockMainUnit} {getProductUnitTypeAbbreviation(product.unitType)} / {s.stockBaseUnitRemainder.toFixed(2)}
                                 </span>
                             </div>
                         ))}
@@ -154,7 +153,7 @@ export function ProductDetail({ productId, branchId, onClose }: ProductDetailPro
                                     <span>Stock:</span>
                                     <div className="flex justify-between text-muted-foreground font-medium">
                                         <span>
-                                            {stock.stockUnits} {getProductUnitTypeAbbreviation(product.unitType)} / {stock.stockFractional.toFixed(2)}
+                                            {stock.stockMainUnit} {getProductUnitTypeAbbreviation(product.unitType)} / {stock.stockBaseUnitRemainder.toFixed(2)}
                                         </span>
                                     </div>
                                 </div>
@@ -172,7 +171,7 @@ export function ProductDetail({ productId, branchId, onClose }: ProductDetailPro
                         <span>Modos de venta:</span>
                     </div>
 
-                    {product.saleModes.map((m: ProductSaleModeResponse, i) => (
+                    {product.saleModes.map((m: SaleModeSummary, i) => (
                         <div
                             key={i}
                             className="pl-7 grid grid-cols-3 gap-4 text-sm items-center"
@@ -187,7 +186,7 @@ export function ProductDetail({ productId, branchId, onClose }: ProductDetailPro
                                     Contenido:
                                 </span>
                                 <span className="text-muted-foreground whitespace-nowrap overflow-visible ml-1">
-                                    {m.quantityEquivalent} {getProductUnitTypeAbbreviation(m.unitType)}
+                                    {m.relativeQuantity} {getProductUnitTypeAbbreviation(m.unitType)}
                                 </span>
                             </div>
 

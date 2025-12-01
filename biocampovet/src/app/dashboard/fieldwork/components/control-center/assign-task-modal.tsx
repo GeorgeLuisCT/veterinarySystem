@@ -50,7 +50,7 @@ export function AssignTaskModal({ task, open, onOpenChange, onAssigned }: Props)
       companionIds: [],
       scheduledDateTime: "",
       objective: "",
-    } as AssignTaskRequest,
+    } as unknown as AssignTaskRequest,
   });
 
   const [submitting, setSubmitting] = React.useState(false);
@@ -66,7 +66,7 @@ export function AssignTaskModal({ task, open, onOpenChange, onAssigned }: Props)
         companionIds: [],
         scheduledDateTime: "",
         objective: "",
-      } as AssignTaskRequest);
+      } as unknown as AssignTaskRequest);
       setEmployeeOptions([]);
       setVehicleOptions([]);
       setCompanionOptions([]);
@@ -154,7 +154,7 @@ export function AssignTaskModal({ task, open, onOpenChange, onAssigned }: Props)
                       label="Veterinario principal"
                       value={field.value ? String(field.value) : ""}
                       onValueChange={(val) => field.onChange(val ? Number(val) : undefined)}
-                      options={employeeOptions.map((emp) => ({ value: String(emp.id), label: `${emp.name}${emp.documentNumber ? ` *( ${emp.documentNumber} )*` : ""}` }))}
+                      options={employeeOptions.map((emp) => ({ value: String(emp.id), label: `${emp.fullName} ${emp.email ? ` (${emp.email})` : ""}` }))}
                       onSearch={handleSearchEmployees}
                       emptyMessage="Sin resultados"
                     />
@@ -217,7 +217,7 @@ export function AssignTaskModal({ task, open, onOpenChange, onAssigned }: Props)
                       label="Acompañantes"
                       selected={field.value ?? []}
                       onChange={(values) => field.onChange(values)}
-                      options={companionOptions.map((option) => ({ value: option.id, label: `${option.name}${option.documentNumber ? ` *( ${option.documentNumber} )*` : ""}` }))}
+                      options={companionOptions.map((option) => ({ value: option.id, label: `${option.fullName} ${option.email ? ` (${option.email})` : ""}` }))}
                       onSearch={handleSearchCompanions}
                       emptyMessage="Sin resultados"
                     />

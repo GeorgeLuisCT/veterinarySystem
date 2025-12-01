@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Home, MapPin, CalendarClock, User2, Truck, BadgeCheck, PlayCircle, CheckCircle2, Eye, Dot } from "lucide-react";
+import { Home, MapPin, CalendarClock, User2, Truck, PlayCircle, CheckCircle2, Eye, Dot } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

@@ -22,6 +22,7 @@ import ProductService from "@/app/dashboard/inventory/_service/product-service";
 import SurgicalReportService from "../../service/surgical-report-service";
 import { SurgicalReportDetailResponse } from "../../types/surgical-report-response";
 import { useUser } from "@/context/user-context";
+import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/_types/product-response";
 
 type Option = { value: string; label: string };
 
@@ -68,7 +69,7 @@ export function AddAnestheticDrugModal({ reportId, open, onClose, onAdded }: Add
     }
     try {
       const results = await ProductService.searchProducts(q, userInfo?.selectedBranch.id);
-      setProductOptions(results.map((p: any) => ({ value: String(p.id), label: p.name })));
+      setProductOptions(results.map((p: ProductQuickSearchResponse) => ({ value: String(p.id), label: p.name })));
     } catch {
       setProductOptions([]);
     }

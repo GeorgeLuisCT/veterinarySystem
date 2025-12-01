@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { GeoZoneService } from '../services/geo-zone-service';
 import { GeoZoneResponse, GeoZoneSummaryResponse } from '../types/geo-zone-response';
 import { CreateGeoZoneRequest, UpdateGeoZoneRequest, createGeoZoneSchema, updateGeoZoneSchema } from '../types/geo-zone-request';
+import { GeoZoneType } from '../enums/geo-zone-type';
 
 interface Props {
   setOpen: (open: boolean) => void;
@@ -31,7 +32,7 @@ export default function GeoZoneForm({ setOpen, zoneId, onSuccess }: Props) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: '',
-      type: 'SECTOR' as any,
+      type: GeoZoneType.SECTOR,
       parentId: undefined,
       gpsCoordinates: undefined,
       active: true,
@@ -46,7 +47,7 @@ export default function GeoZoneForm({ setOpen, zoneId, onSuccess }: Props) {
         const data = await GeoZoneService.get(zoneId);
         form.reset({
           name: data.name,
-          type: data.type as any,
+          type: data.type as GeoZoneType,
           parentId: data.parentId ?? undefined,
           gpsCoordinates: data.gpsCoordinates ?? undefined,
           active: data.active,
@@ -63,7 +64,7 @@ export default function GeoZoneForm({ setOpen, zoneId, onSuccess }: Props) {
     setParentOptions(resp.content);
   }, []);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: CreateGeoZoneRequest | UpdateGeoZoneRequest) => {
     try {
       setLoading(true);
       const normalized = {
@@ -75,8 +76,8 @@ export default function GeoZoneForm({ setOpen, zoneId, onSuccess }: Props) {
         : await GeoZoneService.create(normalized);
       onSuccess?.(resp);
       setOpen(false);
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Error', description: e?.message ?? 'No se pudo guardar la zona.' });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Error', description: (e as Error)?.message ?? 'No se pudo guardar la zona.' });
     } finally {
       setLoading(false);
     }

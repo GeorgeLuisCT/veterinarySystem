@@ -14,7 +14,7 @@ import { getAaxiosErrorMessage } from "@/helpers/error";
 
 export default function BiosecurityDialog({ open, onOpenChange, visitId, onSuccess }: { open: boolean; onOpenChange: (open: boolean) => void; visitId: number; onSuccess: () => void; }) {
   const { toast } = useToast();
-  const form = useForm<SetBiosecurityRequest>({ resolver: zodResolver(setBiosecuritySchema), defaultValues: { vehicleAndEquipmentCleaned: true, ppeUsed: true, handHygiene: true } as any });
+  const form = useForm<SetBiosecurityRequest>({ resolver: zodResolver(setBiosecuritySchema), defaultValues: { vehicleAndEquipmentCleaned: true, ppeUsed: true, handHygiene: true } });
 
   const onSubmit = async (values: SetBiosecurityRequest) => {
     try { await VisitService.setBiosecurity(visitId, values); onSuccess(); }

@@ -1,8 +1,7 @@
-// app/dashboard/clinical/components/consultory/consultation-card.tsx
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { Clock, Stethoscope, MoveRight, Tags, PawPrint, Eye, MapPin, ClipboardList } from "lucide-react";
+import { Clock, Stethoscope, MoveRight, Tags, PawPrint, Eye, ClipboardList } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -131,7 +130,7 @@ export default function ConsultationCard({ data }: { data: ConsultationCardData 
         </div>
 
         <p className="text-sm my-2 p-2 bg-gray-50 rounded-md truncate flex items-center gap-2" title={data.reason}>
-        <ClipboardList className={`h-5 w-5 text-primary`}/>
+          <ClipboardList className={`h-5 w-5 text-primary`} />
           {data.reason}
         </p>
 

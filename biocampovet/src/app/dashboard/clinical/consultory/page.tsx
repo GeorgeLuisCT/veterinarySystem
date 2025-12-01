@@ -172,7 +172,7 @@ export default function ConsultoryPage() {
   }, [allItems, filters.status]);
 
   const handleCreated = useCallback(
-    (_attention: AttentionResponse) => {
+    () => {
       setIsCreateModalOpen(false);
       fetchData();
     },

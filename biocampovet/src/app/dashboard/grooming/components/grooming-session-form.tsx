@@ -3,7 +3,7 @@
 
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, PathValue } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +12,7 @@ import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CircleDollarSign, Package, User2 } from "lucide-react";
+import { Package, User2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AddGroomingMaterialModal } from "./add-material-modal";
 import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
@@ -79,12 +79,12 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
     const patchField = useCallback(
       async (field: keyof Omit<FormShape, "version">, value: unknown) => {
         const body: UpdateGroomingSessionRequest = { version: versionRef.current } as UpdateGroomingSessionRequest;
-        (body as any)[field] = value === "" ? null : value;
+        (body as Record<string, unknown>)[field] = value === "" ? null : value;
         const res = await GroomingSessionService.patch(sessionId, body);
         versionRef.current = res.version;
         form.setValue("version", res.version, { shouldDirty: false, shouldTouch: false, shouldValidate: false });
-        if ((res as any).updated && (res as any).updated[field as string] !== undefined) {
-          form.setValue(field as any, (res as any).updated[field as string], { shouldDirty: false });
+        if (res.updated && res.updated[field as string] !== undefined) {
+          form.setValue(field, res.updated[field as string] as PathValue<FormShape, typeof field>, { shouldDirty: false });
         }
       },
       [form, sessionId]

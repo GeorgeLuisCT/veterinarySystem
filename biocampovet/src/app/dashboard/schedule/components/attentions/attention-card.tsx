@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { PawPrint, BriefcaseMedical, HelpingHand, TimerIcon, Eye } from "lucide-react";
+import Image from "next/image";
 import { FaUserMd } from "react-icons/fa";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,11 +48,12 @@ export default function AttentionCard({ attention, onAttend, highlightClassName 
       <CardContent className="p-4 flex flex-col gap-4 pb-0">
         <div className="flex items-start gap-4">
           {attention.animalBasicResponse.animalPhotoUrl ? (
-            <img
+            <Image
               src={attention.animalBasicResponse.animalPhotoUrl}
               alt={attention.animalBasicResponse.animalName}
-              className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-              loading="lazy"
+              className="rounded-full object-cover border-2 border-gray-200"
+              width={64}
+              height={64}
             />
           ) : (
             <div className={`w-16 h-16 rounded-full border-2 bg-white flex items-center justify-center ${borderIconClass}`}>
@@ -109,7 +111,7 @@ export default function AttentionCard({ attention, onAttend, highlightClassName 
 
         <div className="mt-auto pt-4 border-t border-gray-100">
           <Button
-          variant={"outline"}
+            variant={"outline"}
             onClick={() => onAttend(attention)}
             className="w-full text-gray-700 font-semibold cursor-pointer"
           >

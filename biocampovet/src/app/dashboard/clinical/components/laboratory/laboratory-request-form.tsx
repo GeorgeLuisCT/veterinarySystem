@@ -1,31 +1,32 @@
 "use client";
 
-import React, {
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  forwardRef,
   useCallback,
+  useImperativeHandle,
   useMemo,
   useRef,
-  forwardRef,
-  useImperativeHandle,
 } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 
 import { useToast } from "@/hooks/use-toast";
 
-import { LaboratoryRequestDetailResponse, LaboratoryRequestItemResponse } from "../../types/laboratory-request-response";
-import { AddResultValuesRequest, resultValueItemSchema } from "../../types/laboratory-request-request";
-import { LaboratoryRequestService } from "../../service/laboratory-request-service";
+import { LabUnitLabels, LabUnitSymbols } from "../../enums/lab-unit";
 import { LabValueType } from "../../enums/lab-value-type";
-import { LabUnit, LabUnitLabels, LabUnitSymbols } from "../../enums/lab-unit";
+import { LaboratoryRequestService } from "../../service/laboratory-request-service";
+import { AddResultValuesRequest, resultValueItemSchema } from "../../types/laboratory-request-request";
+import { LaboratoryRequestDetailResponse, LaboratoryRequestItemResponse } from "../../types/laboratory-request-response";
+import { LaboratoryTestParameterResponse } from "../../types/laboratory-test-response";
 
 export type LaboratoryRequestFormHandle = {
   triggerSaveAll: () => Promise<void>;
@@ -38,9 +39,9 @@ export type ResultInputHandle = {
   getContext(): { itemId: number; parameterId: number };
 };
 
-function useDebounced(fn: (...args: any[]) => void, ms: number) {
+function useDebounced<Args extends unknown[]>(fn: (...args: Args) => void, ms: number) {
   const ref = useRef<NodeJS.Timeout | null>(null);
-  return useCallback((...args: any[]) => {
+  return useCallback((...args: Args) => {
     if (ref.current) clearTimeout(ref.current);
     ref.current = setTimeout(() => fn(...args), ms);
   }, [fn, ms]);
@@ -62,16 +63,7 @@ const parseOptions = (allowedOptions?: string | null) => {
 
 const ResultInput = forwardRef<ResultInputHandle, {
   item: LaboratoryRequestItemResponse;
-  parameter: {
-    id: number;
-    name: string;
-    valueType: LabValueType;
-    unit: LabUnit;
-    allowedOptions: string | null;
-    refMin: number | null;
-    refMax: number | null;
-    decimals: number | null;
-  };
+  parameter: LaboratoryTestParameterResponse;
 }>(({ item, parameter }, ref) => {
   const { toast } = useToast();
 
@@ -414,7 +406,7 @@ const LaboratoryRequestForm = forwardRef<LaboratoryRequestFormHandle, Props>(({ 
                     </div>
 
                     <div className="md:col-span-2">
-                      <ResultInput ref={getSetRef(refKey)} item={item} parameter={param as any} />
+                      <ResultInput ref={getSetRef(refKey)} item={item} parameter={param} />
                     </div>
                   </div>
                 );

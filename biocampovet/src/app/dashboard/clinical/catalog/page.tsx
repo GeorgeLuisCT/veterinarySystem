@@ -1,6 +1,6 @@
 "use client";
 
-import { Pill, Package, Stethoscope, FlaskConical } from 'lucide-react';
+import { Pill, Stethoscope, FlaskConical } from 'lucide-react';
 
 import {
     Tabs,

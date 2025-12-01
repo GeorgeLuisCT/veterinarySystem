@@ -155,7 +155,7 @@ export default function LaboratoryRequestDetailPage() {
     }
 
     const createdAtStr = detail.createdAt ? new Date(detail.createdAt).toLocaleString() : "—";
-    const animalId = (detail as any).animalId ?? (detail as any)?.summary?.animalId ?? null;
+    const animalId = detail.animalId;
     const testsCount = detail.items?.length ?? 0;
     const testsLabel = `${testsCount} ${testsCount === 1 ? "prueba" : "pruebas"} solicitadas`;
 

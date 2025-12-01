@@ -24,7 +24,6 @@ enum InventoryPanel {
 
 type Props = { branchId: number };
 
-const formatStock = (u: number, f: number) => (f > 0 ? `${u} u + ${f}` : `${u} u`);
 
 export default function MainInvetory({ branchId }: Props) {
   const { products, setProducts } = useProductContext();

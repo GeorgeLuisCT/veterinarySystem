@@ -36,6 +36,7 @@ import {
   HospitalizationCause,
   HospitalizationCauseOptions,
 } from "../../enums/hospitalization-cause";
+import { AnimalSpeciesLabels } from "@/app/dashboard/crm/patients/enums/animal-species";
 
 interface Props {
   open: boolean;
@@ -85,7 +86,7 @@ export function NewHospitalizationModal({ open, onOpenChange, cage, onSuccess }:
         );
         const opts: Option[] = response.map((a) => ({
           id: a.id,
-          label: `${a.name} • ${a.ownerName ?? "Sin propietario"} • ${a.speciesName ?? ""}`.trim(),
+          label: `${a.name} • ${a.ownerName ?? "Sin propietario"} • ${AnimalSpeciesLabels[a.species ?? ""]}`.trim(),
         }));
         setAnimalOptions(opts);
       } catch (error) {

@@ -1,23 +1,21 @@
 'use client';
 
-import * as React from "react";
-import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
+import { PlusCircle } from "lucide-react";
+import * as React from "react";
 import DashboardLayoutSection from "../../dashboard-layout-section";
-import { useUser } from "@/context/user-context";
-import { CustomerProvider } from "./context/customer-context";
 import MainCustomers from "./components/main-customers";
+import { CustomerProvider } from "./context/customer-context";
 import { CustomerForm } from "./form/customer-form";
 
 export default function CustomerPage() {
-  const { userInfo } = useUser();
   const [openCreate, setOpenCreate] = React.useState(false);
 
   return (

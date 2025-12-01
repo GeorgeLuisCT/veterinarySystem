@@ -6,13 +6,12 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import ProductService from "@/app/dashboard/inventory/_service/product-service";
-import type { ProductSummaryResponse } from "@/app/dashboard/inventory/products/types/product-summary-response";
 import type { PaginatedResponse } from "@/types/paginated-response";
 import { FloatingLabelInput } from "@/components/floating-label-input";
 import DataTable, { type Action } from "@/components/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
-import type { ProductResponse } from "@/app/dashboard/inventory/_types/product-response";
+import type { ProductResponse, ProductSummaryResponse } from "@/app/dashboard/inventory/_types/product-response";
 
 export default function BranchInventoryCard({ branchId, onAddToVehicle, vehicleSelected, refreshKey }: { branchId: number | null; onAddToVehicle: (product: ProductResponse) => void; vehicleSelected: boolean; refreshKey?: number; }) {
   const { toast } = useToast();
@@ -26,7 +25,7 @@ export default function BranchInventoryCard({ branchId, onAddToVehicle, vehicleS
     if (!branchId) { setPageData(null); return; }
     setLoading(true);
     try {
-      const res = await ProductService.getProducts({ page: pageIndex, size: pageSize, active: true, branchId, query: search || undefined });
+      const res = await ProductService.getProducts({ page: pageIndex, size: pageSize, active: true, branchId, q: search || undefined });
       setPageData(res);
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: getAaxiosErrorMessage(error) ?? "No se pudo obtener el inventario de la sucursal." });

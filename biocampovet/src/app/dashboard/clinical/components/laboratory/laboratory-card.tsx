@@ -45,8 +45,11 @@ export default function LaboratoryCard({ data }: { data: LaboratoryCardData }) {
     const timeInStatus = calculateTimeInStatus(data.createdAt, now);
 
     const speciesDetails = useMemo(() => {
-        if (!data.species) return undefined;
-        return (AnimalSpeciesDetails as any)[data.species];
+        if (!data.species || typeof data.species !== 'string') return undefined;
+        if (data.species in AnimalSpeciesDetails) {
+            return AnimalSpeciesDetails[data.species as keyof typeof AnimalSpeciesDetails];
+        }
+        return undefined;
     }, [data.species]);
 
     const SpeciesIcon = speciesDetails?.icon;

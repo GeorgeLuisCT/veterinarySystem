@@ -57,7 +57,7 @@ const DEFAULTS: FiltersShape = {
 
 const ALL = "__ALL__";
 
-export default function ProductFilters({ branchId, value, onChange, onReset }: Props) {
+export default function ProductFilters({ value, onChange, onReset }: Props) {
   const [state, setState] = React.useState<FiltersShape>({ ...DEFAULTS, ...(value ?? {}) });
   const [categories, setCategories] = React.useState<Category[]>([]);
 
@@ -72,7 +72,8 @@ export default function ProductFilters({ branchId, value, onChange, onReset }: P
   }, [JSON.stringify(value)]);
 
   const apply = (next: FiltersShape) => {
-    const { hasSaleModes: _ignore, ...rest } = next as FiltersShape & { hasSaleModes?: boolean };
+    const { hasSaleModes, ...rest } = next as FiltersShape & { hasSaleModes?: boolean };
+    void hasSaleModes;
     const clean = { ...rest, hasSaleModes: undefined } as FiltersShape;
     setState(clean);
     onChange(clean);
@@ -90,7 +91,7 @@ export default function ProductFilters({ branchId, value, onChange, onReset }: P
   }, [qLocal]);
 
   const toSelectValue = (v?: string | number) => v?.toString() ?? ALL;
-  const fromSelectValue = (v: string) => (v === ALL ? undefined : (v as any));
+  const fromSelectValue = (v: string) => (v === ALL ? undefined : v);
 
   const handleReset = () => {
     apply(DEFAULTS);
@@ -130,7 +131,7 @@ export default function ProductFilters({ branchId, value, onChange, onReset }: P
         </Select>
 
         <Select
-          value={toSelectValue(state.presentation as any)}
+          value={toSelectValue(state.presentation)}
           onValueChange={(val) =>
             setField("presentation", fromSelectValue(val) as ProductPresentationType | undefined)
           }
@@ -149,7 +150,7 @@ export default function ProductFilters({ branchId, value, onChange, onReset }: P
         </Select>
 
         <Select
-          value={toSelectValue(state.unitType as any)}
+          value={toSelectValue(state.unitType)}
           onValueChange={(val) =>
             setField("unitType", fromSelectValue(val) as ProductUnitType | undefined)
           }
@@ -168,7 +169,7 @@ export default function ProductFilters({ branchId, value, onChange, onReset }: P
         </Select>
 
         <Select
-          value={toSelectValue(state.route as any)}
+          value={toSelectValue(state.route)}
           onValueChange={(val) =>
             setField("route", fromSelectValue(val) as AdministrationRoute | undefined)
           }
@@ -196,7 +197,7 @@ export default function ProductFilters({ branchId, value, onChange, onReset }: P
             aria-label="Filtrar activos"
           />
         </div>
-        
+
         <div className="flex items-center gap-2 rounded-lg border px-3 py-2">
           <span className="text-sm text-muted-foreground">Stock bajo</span>
           <Switch

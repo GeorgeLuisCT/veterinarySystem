@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { useCalendar } from "./calendar-context"
+import { useCalendar, type CalendarEvent } from "./calendar-context"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -20,7 +20,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   const categories = useMemo(() => {
-    const cats = new Set(events.map((event) => event.category).filter(Boolean))
+    const cats = new Set(events.map((event) => event.category).filter((c): c is string => !!c))
     return Array.from(cats)
   }, [events])
 
@@ -47,7 +47,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     return filtered.sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
   }, [events, searchQuery, selectedCategory])
 
-  const handleEventClick = (event: any) => {
+  const handleEventClick = (event: CalendarEvent) => {
     setCurrentDate(event.startDate)
     setView("day")
     setSelectedEvent(event)

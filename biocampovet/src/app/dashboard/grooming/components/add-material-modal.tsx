@@ -16,9 +16,9 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/context/user-context";
 import ProductService from "@/app/dashboard/inventory/_service/product-service";
-import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/products/types/product-quick-search-response";
 import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { AddGroomingMaterialRequest } from "../types/grooming-session-request";
+import { ProductQuickSearchResponse } from "../../inventory/_types/product-response";
 
 type Props = {
   sessionId: number;
@@ -58,7 +58,7 @@ const unitOptions = (Object.values(ProductUnitType) as ProductUnitType[]).map((u
   label: ProductUnitTypeLabels[u],
 }));
 
-export function AddGroomingMaterialModal({ sessionId, open, onClose, onSubmit }: Props) {
+export function AddGroomingMaterialModal({ open, onClose, onSubmit }: Props) {
   const { toast } = useToast();
   const { userInfo } = useUser();
   const [productInput, setProductInput] = React.useState("");

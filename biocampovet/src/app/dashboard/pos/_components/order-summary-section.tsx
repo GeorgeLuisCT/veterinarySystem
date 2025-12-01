@@ -1,23 +1,22 @@
 // app/dashboard/pos/_components/order-summary-section.tsx
 "use client";
 
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import TotalsSummary from "./totals-summary";
-import AddPaymentDialog from "./add-payment-dialog";
-import PaymentTable from "./payment-table";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import {
   CheckCircle2,
-  ReceiptText,
-  PlusCircle,
-  Lock,
-  Save,
   CircleDollarSign,
+  Lock,
+  ReceiptText,
+  Save
 } from "lucide-react";
 import { PaymentEntry } from "../_hooks/usePaymentCollector";
+import AddPaymentDialog from "./add-payment-dialog";
+import PaymentTable from "./payment-table";
+import TotalsSummary from "./totals-summary";
 
 type Totals = {
   subtotal: number;

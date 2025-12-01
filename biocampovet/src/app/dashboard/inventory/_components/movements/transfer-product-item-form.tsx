@@ -38,8 +38,8 @@ export function TransferProductItemForm({
 }: TransferProductItemFormProps) {
     const { toast } = useToast();
 
-    const [selectedProduct, setSelectedProduct] = useState<ProductQuickSearchResponse | null>(
-        value ? { id: value.productId, name: value.productName ?? "", sku: value.sku } as any : null
+    const [selectedProduct, setSelectedProduct] = useState<{ id: number; name: string; sku?: string } | null>(
+        value ? { id: value.productId, name: value.productName ?? "", sku: value.sku || undefined } : null
     );
     const [selectedProductId, setSelectedProductId] = useState<string>(value ? String(value.productId) : "");
     const [fullProductDetails, setFullProductDetails] = useState<ProductResponse | null>(null);
@@ -101,7 +101,7 @@ export function TransferProductItemForm({
             unitType,
             productName: selectedProduct?.name ?? "",
             sku: selectedProduct?.sku,
-        } as any;
+        } as TransferProductDraft;
 
         const nextErrors: Record<string, string> = {};
         if (!draft.productId) nextErrors.productId = "Selecciona un producto";
@@ -178,7 +178,7 @@ export function TransferProductItemForm({
                     />
                     {summaryText && (
                         <div className="text-xs text-muted-foreground bg-muted/40 rounded-md px-3 py-1.5" aria-live="polite">{summaryText}</div>
-                      )}
+                    )}
                     {errors.quantity && <p className="text-sm text-destructive" role="alert">{errors.quantity}</p>}
                 </div>
                 <div className="space-y-2 sm:col-span-1">

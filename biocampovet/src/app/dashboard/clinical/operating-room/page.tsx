@@ -1,31 +1,29 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { PlusCircle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/context/user-context";
+import { useToast } from "@/hooks/use-toast";
+import { PlusCircle, RefreshCcw } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { SurgicalReportStatus } from "../enums/surgical-report-status";
 import SurgicalReportService from "../service/surgical-report-service";
 import type { SurgicalReportSummaryResponse } from "../types/surgical-report-response";
-import { SurgicalReportStatus } from "../enums/surgical-report-status";
 
 import { SurgicalOrderStatus } from "../../schedule/enums/surgical-order-status";
 import SurgicalOrderService from "../../schedule/service/surgical-order-service";
 import type { SurgicalOrderResponse } from "../../schedule/types/surgical-order-response";
 
-import AttentionService from "@/app/dashboard/schedule/service/attention-service";
-import type { AttentionResponse } from "@/app/dashboard/schedule/types/attention-response";
 import { AttentionStatus } from "@/app/dashboard/schedule/enums/attention-status";
 import { AttentionType } from "@/app/dashboard/schedule/enums/attention-type";
+import AttentionService from "@/app/dashboard/schedule/service/attention-service";
+import type { AttentionResponse } from "@/app/dashboard/schedule/types/attention-response";
 
-import SurgeryFilters, { type SurgeryFilters as Filters } from "../components/operating-room/surgery-filters";
-import SurgeryCard, { type SurgeryCardData } from "../components/operating-room/surgery-card";
-import SurgicalOrderCard from "../components/operating-room/surgical-order-card";
 import { CreateSurgicalOrderModal } from "../components/operating-room/create-surgical-order-modal";
+import SurgeryCard, { type SurgeryCardData } from "../components/operating-room/surgery-card";
+import SurgeryFilters, { type SurgeryFilters as Filters } from "../components/operating-room/surgery-filters";
+import SurgicalOrderCard from "../components/operating-room/surgical-order-card";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function formatLocalDate(d: Date): string {
@@ -57,7 +55,7 @@ export default function OperatingRoomPage() {
     endDate: today,
   });
 
-  const [search, setSearch] = useState("");
+  const [search] = useState("");
   const [activeTab, setActiveTab] = useState<"board" | "orders">("board");
 
   const [reports, setReports] = useState<SurgicalReportSummaryResponse[]>([]);
@@ -131,12 +129,12 @@ export default function OperatingRoomPage() {
 
   useEffect(() => {
     if (showCreateModal) return;
-  
+
     void fetchAll();
     const i = setInterval(fetchAll, 60000);
     return () => clearInterval(i);
   }, [fetchAll, showCreateModal]);
-  
+
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -175,8 +173,8 @@ export default function OperatingRoomPage() {
         r.status === SurgicalReportStatus.IN_PROGRESS
           ? "En curso"
           : r.status === SurgicalReportStatus.READY_TO_BILL
-          ? "Listo para Facturar"
-          : "Borrador",
+            ? "Listo para Facturar"
+            : "Borrador",
       reportStatus: r.status,
       operatingRoomName: r.operatingRoomName ?? undefined,
     }));
@@ -228,8 +226,8 @@ export default function OperatingRoomPage() {
       const dt = new Date(d);
       const start = new Date(filters.startDate instanceof Date ? filters.startDate : new Date(filters.startDate));
       const end = new Date(filters.endDate instanceof Date ? filters.endDate : new Date(filters.endDate));
-      start.setHours(0,0,0,0);
-      end.setHours(23,59,59,999);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
       return dt.getTime() >= start.getTime() && dt.getTime() <= end.getTime();
     };
 
@@ -285,7 +283,7 @@ export default function OperatingRoomPage() {
           <SurgeryFilters value={filters} onChange={setFilters} />
         </div>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "board" | "orders")} className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="board">Tablero</TabsTrigger>
             <TabsTrigger value="orders">Órdenes</TabsTrigger>

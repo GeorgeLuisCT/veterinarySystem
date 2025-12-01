@@ -1,9 +1,8 @@
 "use client";
 
-import * as React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
+import { FloatingLabelSelect } from "@/components/floating-label-select";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,30 +11,30 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { FloatingLabelSelect } from "@/components/floating-label-select";
-import { FloatingLabelInput } from "@/components/floating-label-input";
-import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
 import { Switch } from "@/components/ui/switch";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
+import * as React from "react";
+import { useForm } from "react-hook-form";
 
-import { useToast } from "@/hooks/use-toast";
-import { getAaxiosErrorMessage } from "@/helpers/error";
-import { useUser } from "@/context/user-context";
+import { BranchService } from "@/app/dashboard/branche/services/branch-service";
+import ClinicalServiceService from "@/app/dashboard/clinical/service/clinical-service-service";
 import AnimalService from "@/app/dashboard/crm/patients/service/animal-service";
 import EmployeeService from "@/app/dashboard/staff/service/employee-service";
-import ClinicalServiceService from "@/app/dashboard/clinical/service/clinical-service-service";
-import { BranchService } from "@/app/dashboard/branche/services/branch-service";
+import { useUser } from "@/context/user-context";
+import { getAaxiosErrorMessage } from "@/helpers/error";
+import { useToast } from "@/hooks/use-toast";
 
-import AttentionService from "../service/attention-service";
-import { AttentionResponse } from "../types/attention-response";
-import {
-  createAttentionSchema,
-  CreateAttentionRequest,
-} from "../types/attention-request";
-import { AttentionType, AttentionTypeOptions } from "../enums/attention-type";
-import { AttentionStatus, AttentionStatusOptions } from "../enums/attention-status";
 import { ClinicalServiceCategory } from "@/app/dashboard/clinical/enums/clinical-service-category";
+import { AttentionStatus, AttentionStatusOptions } from "../enums/attention-status";
+import { AttentionType, AttentionTypeOptions } from "../enums/attention-type";
+import AttentionService from "../service/attention-service";
+import {
+  CreateAttentionRequest,
+  createAttentionSchema,
+} from "../types/attention-request";
+import { AttentionResponse } from "../types/attention-response";
 
 type Option = {
   id: number;
@@ -178,8 +177,8 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
             type === AttentionType.GROOMING
               ? ClinicalServiceCategory.GROOMING
               : type === AttentionType.SURGERY
-              ? ClinicalServiceCategory.SURGERY
-              : undefined,
+                ? ClinicalServiceCategory.SURGERY
+                : undefined,
         });
 
         const filtered = response.content.filter((service) => {
@@ -571,21 +570,21 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
                     control={form.control}
                     name="checkInTime"
                     render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <FloatingLabelDateInput
-                          id="attention-checkInTime"
-                          label="Fecha y hora de registro"
-                          value={field.value ?? ""}
-                          onChange={field.onChange}
-                          disabled={submitting}
-                          mode="datetime"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <FormItem>
+                        <FormControl>
+                          <FloatingLabelDateInput
+                            id="attention-checkInTime"
+                            label="Fecha y hora de registro"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={submitting}
+                            mode="datetime"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}

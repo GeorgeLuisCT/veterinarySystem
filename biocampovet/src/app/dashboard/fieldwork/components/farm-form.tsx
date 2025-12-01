@@ -75,7 +75,7 @@ export default function FarmForm({ setOpen, farmId, onSuccess }: Props) {
     setZoneOptions(resp.content);
   }, []);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: CreateFarmRequest | UpdateFarmRequest) => {
     try {
       setLoading(true);
       const normalized = {
@@ -87,8 +87,8 @@ export default function FarmForm({ setOpen, farmId, onSuccess }: Props) {
         : await FarmService.create(normalized);
       onSuccess?.(resp);
       setOpen(false);
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Error', description: e?.message ?? 'No se pudo guardar la granja.' });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Error', description: (e as Error)?.message ?? 'No se pudo guardar la granja.' });
     } finally {
       setLoading(false);
     }

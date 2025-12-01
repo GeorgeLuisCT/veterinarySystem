@@ -138,8 +138,9 @@ export default function ClinicalServicesMain() {
                                 });
                               } finally {
                                 setPending((st) => {
-                                  const { [pkey]: _, ...rest } = st;
-                                  return rest;
+                                  const newState = { ...st };
+                                  delete newState[pkey];
+                                  return newState;
                                 });
                               }
                             }}

@@ -1,10 +1,9 @@
 "use client";
 
-import * as React from "react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import EmployeeService from "@/app/dashboard/staff/service/employee-service";
+import { FloatingLabelSelect } from "@/components/floating-label-select";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,23 +11,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { FloatingLabelSelect } from "@/components/floating-label-select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
-import AppointmentService from "../service/appointment-service";
-import AttentionService from "../service/attention-service";
-import type { AppointmentDetailResponse } from "../types/appointment-response";
-import { createAttentionFromAppointmentFormSchema, CreateAttentionFromAppointmentForm, CreateAttentionFromAppointmentRequest } from "../types/attention-request";
+import { getAaxiosErrorMessage } from "@/helpers/error";
+import { useToast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { CalendarDays, Clock3, Loader2, MapPin, PawPrint, Scissors, Stethoscope, Syringe, UserRound } from "lucide-react";
+import * as React from "react";
+import { useForm } from "react-hook-form";
 import { AppointmentStatus, AppointmentStatusLabels } from "../enums/appointment-status";
 import { AppointmentType, AppointmentTypeLabels } from "../enums/appointment-type";
 import { AttentionStatus, AttentionStatusLabels } from "../enums/attention-status";
-import { CalendarDays, Clock3, MapPin, PawPrint, Scissors, Stethoscope, Syringe, UserRound, Loader2 } from "lucide-react";
-import { getAaxiosErrorMessage } from "@/helpers/error";
-import { useToast } from "@/hooks/use-toast";
-import EmployeeService from "@/app/dashboard/staff/service/employee-service";
+import AppointmentService from "../service/appointment-service";
+import AttentionService from "../service/attention-service";
+import type { AppointmentDetailResponse } from "../types/appointment-response";
+import { CreateAttentionFromAppointmentForm, createAttentionFromAppointmentFormSchema, CreateAttentionFromAppointmentRequest } from "../types/attention-request";
 
 interface AppointmentDetailModalProps {
   open: boolean;
@@ -336,8 +336,6 @@ export function AppointmentDetailModal({ open, appointmentId, onClose }: Appoint
       ? `${appointment.estimatedDurationMinutes} min`
       : "Sin duración definida";
     const branchName = appointment.branch?.name ?? "Sin sucursal asignada";
-    const branchLocation = appointment.branch?.location?.trim() ?? "";
-    const branchDisplay = branchLocation ? `${branchName} • ${branchLocation}` : branchName;
 
     return (
       <InfoSection title="Programación" icon={CalendarDays} iconClassName="bg-sky-100 text-sky-700">

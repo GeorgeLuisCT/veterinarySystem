@@ -55,8 +55,8 @@ export function ProductItemForm({
 }: ProductItemFormProps) {
   const { toast } = useToast();
 
-  const [selectedProduct, setSelectedProduct] = useState<ProductQuickSearchResponse | null>(
-    value ? { id: value.productId, name: value.productName ?? "", sku: value.sku } as any : null
+  const [selectedProduct, setSelectedProduct] = useState<{ id: number; name: string; sku?: string } | null>(
+    value ? { id: value.productId, name: value.productName ?? "", sku: value.sku || undefined } : null
   );
   const [selectedProductId, setSelectedProductId] = useState<string>(value ? String(value.productId) : "");
   const [fullProductDetails, setFullProductDetails] = useState<ProductResponse | null>(null);
@@ -145,7 +145,7 @@ export function ProductItemForm({
       unitCost: Number(unitCost),
       productName: selectedProduct?.name,
       sku: selectedProduct?.sku,
-    } as any;
+    };
 
     const parsed = purchaseProductSchema.safeParse(draft);
     if (!parsed.success) {

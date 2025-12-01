@@ -2,22 +2,22 @@
 
 import type React from "react"
 
-import { useState, useRef, useEffect } from "react"
-import { useCalendar } from "../calendar-context"
+import { cn } from "@/lib/utils"
 import {
-  format,
-  startOfWeek,
-  endOfWeek,
   eachDayOfInterval,
+  endOfWeek,
+  format,
+  getHours,
+  getMinutes,
   isSameDay,
   isToday,
   setHours,
   setMinutes,
-  getHours,
-  getMinutes,
+  startOfWeek,
 } from "date-fns"
 import { es } from "date-fns/locale"
-import { cn } from "@/lib/utils"
+import { useEffect, useRef, useState } from "react"
+import { useCalendar, type CalendarEvent } from "../calendar-context"
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i) // 24-hour format
 const HOUR_HEIGHT = 60 // pixels per hour
@@ -68,13 +68,13 @@ export function WeekView() {
     return getEventsForDay(day).filter((event) => !event.isAllDay)
   }
 
-  const getStatusColor = (event: any) => {
+  const getStatusColor = (event: CalendarEvent) => {
     const statusCalendarId = event.metadata?.statusCalendarId
     if (!statusCalendarId) return undefined
     return secondaryCalendars.find((calendar) => calendar.id === statusCalendarId)?.color
   }
 
-  const getEventPosition = (event: any) => {
+  const getEventPosition = (event: CalendarEvent) => {
     const startHour = getHours(event.startDate)
     const startMinute = getMinutes(event.startDate)
     const endHour = getHours(event.endDate)
@@ -93,7 +93,7 @@ export function WeekView() {
     setIsEventModalOpen(true)
   }
 
-  const handleEventClick = (event: any, e: React.MouseEvent) => {
+  const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
     e.stopPropagation()
     setSelectedEvent(event)
     setIsEventModalOpen(true)
@@ -114,27 +114,27 @@ export function WeekView() {
         {/* All-day events section */}
         <div className="grid grid-cols-8 border-b border-border">
           <div className="p-2 text-xs text-muted-foreground font-medium border-r border-border">Todo el día</div>
-              {weekDays.map((day) => {
-                const allDayEvents = getAllDayEvents(day)
-                return (
-                  <div key={day.toISOString()} className="p-2 min-h-[60px] border-r border-border last:border-r-0">
-                    <div className="space-y-1">
-                      {allDayEvents.map((event) => {
-                        const statusColor = getStatusColor(event)
-                        return (
-                          <div
-                            key={event.id}
-                            onClick={(e) => handleEventClick(event, e)}
-                            className="text-xs p-1 rounded text-white cursor-pointer hover:opacity-80 truncate font-medium flex items-center gap-1"
-                            style={{
-                              backgroundColor: event.color,
-                              borderLeft: statusColor ? `4px solid ${statusColor}` : undefined,
-                            }}
-                            title={event.title}
-                          >
-                            <span className="truncate">{event.title}</span>
-                            {statusColor && (
-                              <span
+          {weekDays.map((day) => {
+            const allDayEvents = getAllDayEvents(day)
+            return (
+              <div key={day.toISOString()} className="p-2 min-h-[60px] border-r border-border last:border-r-0">
+                <div className="space-y-1">
+                  {allDayEvents.map((event) => {
+                    const statusColor = getStatusColor(event)
+                    return (
+                      <div
+                        key={event.id}
+                        onClick={(e) => handleEventClick(event, e)}
+                        className="text-xs p-1 rounded text-white cursor-pointer hover:opacity-80 truncate font-medium flex items-center gap-1"
+                        style={{
+                          backgroundColor: event.color,
+                          borderLeft: statusColor ? `4px solid ${statusColor}` : undefined,
+                        }}
+                        title={event.title}
+                      >
+                        <span className="truncate">{event.title}</span>
+                        {statusColor && (
+                          <span
                             className="h-2 w-2 rounded-full border border-white/70 flex-shrink-0"
                             style={{ backgroundColor: statusColor }}
                           />
@@ -168,7 +168,7 @@ export function WeekView() {
                   className={cn(
                     "text-lg font-semibold mt-1",
                     isTodayDate &&
-                      "bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mx-auto",
+                    "bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mx-auto",
                   )}
                 >
                   {format(day, "d")}
@@ -200,7 +200,7 @@ export function WeekView() {
               </div>
 
               {/* Day columns */}
-              {weekDays.map((day, dayIndex) => {
+              {weekDays.map((day) => {
                 const timedEvents = getTimedEvents(day)
                 return (
                   <div

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef, useState, forwardRef, useImperativeHandle } from "react";
+import React, { useCallback, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { Pill, Syringe, Beaker, ClipboardPlus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ClinicalAttentionStatus } from "../../enums/clinical-attention-status";
 import { ClinicalAttentionDetailResponse, MedicationAdministrationResponse, ClinicalServiceItemResponse, SurgicalOrderResponse, LaboratoryRequestResponse, ClinicalAttentionPatchResponse } from "../../types/clinical-attention-response";
 import { UpdateClinicalAttentionRequest, updateClinicalAttentionSchema } from "../../types/clinical-attention-request";
 import ClinicalAttentionService from "../../service/clinical-attention-service";
@@ -21,7 +20,7 @@ import { ServiceItemModal } from "./service-item-modal";
 import { SurgicalOrderModal } from "./surgical-order-modal";
 import { LaboratoryRequestModal } from "./laboratory-request-modal";
 import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
-import { AdministrationRouteAbbreviations, AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
+import { AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
 import PrescriptionTemplateApplyModal from "./prescription-template-apply-modal";
 import { ClinicalServiceCategory, ClinicalServiceCategoryLabels } from "../../enums/clinical-service-category";
 import { LabRequestItemStatusLabels } from "../../enums/lab-request-item-status";
@@ -81,13 +80,18 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
       const body: UpdateClinicalAttentionRequest = { version: versionRef.current };
 
       if (value === undefined) return;
-      (body as any)[field] = value === "" ? null : value;
+
+      (body as Record<string, unknown>)[field] = value === "" ? null : value;
 
       const res: ClinicalAttentionPatchResponse = await ClinicalAttentionService.patch(detail.id, body);
       versionRef.current = res.version;
       form.setValue("version", res.version, { shouldDirty: false, shouldTouch: false, shouldValidate: false });
-      if (res.updated && res.updated[field as string] !== undefined) {
-        form.setValue(field as any, res.updated[field as string] as any, { shouldDirty: false });
+
+      if (res.updated) {
+        const updatedValues = res.updated as Record<string, unknown>;
+        if (updatedValues[field] !== undefined) {
+          form.setValue(field, updatedValues[field] as FormShape[typeof field], { shouldDirty: false });
+        }
       }
     },
     [detail, form]
@@ -138,15 +142,7 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
     triggerSaveAll: () => form.handleSubmit(saveAll)(),
   }), [form, saveAll]);
 
-
-  const statusOptions = useMemo(
-    () =>
-      Object.values(ClinicalAttentionStatus).map((v) => ({
-        value: v,
-        label: v.replaceAll("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase()),
-      })),
-    []
-  );
+  // Fix: Eliminado statusOptions que no se usaba
 
   React.useEffect(() => {
     setMedications(detail.medicationAdministrations || []);
@@ -272,8 +268,8 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
                         type="number"
                         value={field.value ?? ""}
                         onChange={(v) => {
-                          const num = v === "" ? null : parseInt(v, 10);
-                          const finalVal = Number.isNaN(num as any) ? null : num;
+                          const parsed = v === "" ? NaN : parseInt(v, 10);
+                          const finalVal = Number.isNaN(parsed) ? null : parsed;
                           field.onChange(finalVal);
                           autosave("heartRate", finalVal);
                         }}
@@ -295,8 +291,8 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
                         type="number"
                         value={field.value ?? ""}
                         onChange={(v) => {
-                          const num = v === "" ? null : parseInt(v, 10);
-                          const finalVal = Number.isNaN(num as any) ? null : num;
+                          const parsed = v === "" ? NaN : parseInt(v, 10);
+                          const finalVal = Number.isNaN(parsed) ? null : parsed;
                           field.onChange(finalVal);
                           autosave("respiratoryRate", finalVal);
                         }}
@@ -414,7 +410,7 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
                 metaRight?: string;
                 timestamp?: number | null;
                 details?: React.ReactNode;
-                tagLabel?: string; // NEW
+                tagLabel?: string;
               }
               | {
                 id: string;
@@ -424,7 +420,7 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
                 metaRight?: string;
                 timestamp?: number | null;
                 details?: React.ReactNode;
-                tagLabel?: string; // NEW
+                tagLabel?: string;
               }
               | {
                 id: string;
@@ -434,7 +430,7 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
                 metaRight?: string;
                 timestamp?: number | null;
                 details?: React.ReactNode;
-                tagLabel?: string; // NEW
+                tagLabel?: string;
               }
               | {
                 id: string;
@@ -444,7 +440,7 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
                 metaRight?: string;
                 timestamp?: number | null;
                 details?: React.ReactNode;
-                tagLabel?: string; // NEW
+                tagLabel?: string;
               };
 
             const entries: Entry[] = [
@@ -480,47 +476,46 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
                   metaRight: m.administeredAt ? new Date(m.administeredAt).toLocaleString() : undefined,
                   timestamp: m.administeredAt ? new Date(m.administeredAt).getTime() : null,
                   details: m.notes ? <div className="text-muted-foreground text-xs">{m.notes}</div> : undefined,
-                  // tagLabel sin cambio -> mostrará "Medicación" por defecto
                 };
               }),
 
               // Servicios
               ...serviceItems.map((s) => {
                 const products =
-                s.products && s.products.length > 0 ? (
-                  <ul className="mt-2 space-y-1">
-                    {s.products.map((p) => {
-                      const pluralizeEs = (label: string, value: number) => {
-                        if (!label) return "";
-                        const n = Number(value);
-                        if (Number.isNaN(n) || n === 1) return label;
-                        if (/[s]$/i.test(label)) return label; // ya en plural
-                        return `${label}s`;
-                      };
-              
-                      const dose =
-                        p.dose != null
-                          ? `${Number(p.dose)} ${pluralizeEs(ProductUnitTypeLabels[p.unit], Number(p.dose))}`.trim()
+                  s.products && s.products.length > 0 ? (
+                    <ul className="mt-2 space-y-1">
+                      {s.products.map((p) => {
+                        const pluralizeEs = (label: string, value: number) => {
+                          if (!label) return "";
+                          const n = Number(value);
+                          if (Number.isNaN(n) || n === 1) return label;
+                          if (/[s]$/i.test(label)) return label;
+                          return `${label}s`;
+                        };
+
+                        const dose =
+                          p.dose != null
+                            ? `${Number(p.dose)} ${pluralizeEs(ProductUnitTypeLabels[p.unit], Number(p.dose))}`.trim()
+                            : "";
+
+                        const route = p.administrationRoute
+                          ? `vía ${AdministrationRouteLabels[p.administrationRoute].toLowerCase()}`
                           : "";
-              
-                      const route = p.administrationRoute
-                        ? `vía ${AdministrationRouteLabels[p.administrationRoute].toLowerCase()}`
-                        : "";
-              
-                      const extras = [dose, route].filter(Boolean).join(" ");
-              
-                      return (
-                        <li key={p.id} className="flex items-center justify-between text-xs">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-medium text-foreground">{p.product.name}</span>
-                            {extras && <span className="text-muted-foreground">{extras}</span>}
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                ) : undefined;
-              
+
+                        const extras = [dose, route].filter(Boolean).join(" ");
+
+                        return (
+                          <li key={p.id} className="flex items-center justify-between text-xs">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-medium text-foreground">{p.product.name}</span>
+                              {extras && <span className="text-muted-foreground">{extras}</span>}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : undefined;
+
 
                 const categoryKey = s.clinicalServiceCategory ?? s.clinicalServiceCategory;
                 const categoryLabel = categoryKey ? ClinicalServiceCategoryLabels[categoryKey] : undefined;
@@ -533,7 +528,7 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
                   metaRight: `${Number(s.subtotal ?? 0).toFixed(2)}`,
                   timestamp: null,
                   details: products,
-                  tagLabel: categoryLabel, // NEW: mostrará "Vacunación", "Desparasitación", etc.
+                  tagLabel: categoryLabel,
                 };
               }),
 
@@ -547,9 +542,8 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
                   title: o.recommendedServiceName ?? "Orden quirúrgica",
                   metaLeft: left || undefined,
                   metaRight: right,
-                  timestamp: o.createdAt ? new Date(o.createdAt as any).getTime() : null,
+                  timestamp: o.createdAt ? new Date(o.createdAt as string).getTime() : null,
                   details: o.notes ? <div className="text-muted-foreground text-xs">{o.notes}</div> : undefined,
-                  // tagLabel sin cambio -> "Orden"
                 };
               }),
 
@@ -578,7 +572,6 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
                   metaRight: l.createdAt ? new Date(l.createdAt).toLocaleString() : undefined,
                   timestamp: l.createdAt ? new Date(l.createdAt).getTime() : null,
                   details: items,
-                  // tagLabel sin cambio -> "Laboratorio"
                 };
               }),
             ];
@@ -608,7 +601,7 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
                 case "MEDICACION":
                   return "Medicación";
                 case "SERVICIO":
-                  return "Servicio"; // fallback si no hay categoría
+                  return "Servicio";
                 case "ORDEN":
                   return "Orden quirúrgica";
                 case "LAB":

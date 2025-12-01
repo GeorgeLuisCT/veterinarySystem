@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import TaskService from "../../services/task-service";
 import type { FieldTaskSummaryResponse, FieldTaskResponse } from "../../types/task-response";
-import type { FieldVisitSummaryResponse } from "../../types/visit-response";
 import { FieldTaskPriority, FieldTaskPriorityLabels } from "../../enums/field-task-priority";
 import { FieldTaskStatus } from "../../enums/field-task-status";
 import { CreateTaskModal } from "./create-task-modal";
@@ -60,7 +59,7 @@ export default function PendingTasksCard() {
     loadPending();
   };
 
-  const onAssigned = async (_visit: FieldVisitSummaryResponse) => {
+  const onAssigned = async () => {
     setSelectedTask(null);
     await loadPending();
     toast({ title: "Visita programada", description: "Se asignó el equipo correctamente." });

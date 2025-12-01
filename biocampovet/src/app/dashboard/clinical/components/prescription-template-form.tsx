@@ -30,7 +30,7 @@ import { FrequencyUnit, FrequencyUnitLabels } from "../enums/frequency-unit";
 import { TimeUnit } from "@/enums/time-unit";
 import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import ProductService from "@/app/dashboard/inventory/_service/product-service";
-import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/products/types/product-quick-search-response";
+import { ProductQuickSearchResponse } from "../../inventory/_types/product-response";
 
 const timeUnitLabels: Record<TimeUnit, string> = {
   [TimeUnit.DAYS]: "Días",

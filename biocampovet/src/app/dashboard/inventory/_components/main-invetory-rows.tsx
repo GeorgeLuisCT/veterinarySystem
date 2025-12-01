@@ -1,15 +1,14 @@
-import { useMemo } from "react";
-import { ColumnDef } from "@tanstack/react-table";
-import { Box, Tag, List } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import type { ProductSummaryResponse, SaleModeSummary } from "../_types/product-response";
-import { getProductUnitTypeLabelByQuantity, ProductUnitType } from "../_enums/product-unit-type";
-import { getProductPresentationTypeLabel, getProductPresentationTypeLabelByQuantity } from "../_enums/product-presentation-type";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ColumnDef } from "@tanstack/react-table";
+import { Box, List, Tag } from "lucide-react";
+import { useMemo } from "react";
 import { AdministrationRouteLabels } from "../_enums/administration-route";
-import { getSaleModeSummaryText } from "../_utils/product-util-labels";
-import { presentationToUnitMap } from "../_helpers/product-mapper";
+import { getProductPresentationTypeLabelByQuantity } from "../_enums/product-presentation-type";
+import { getProductUnitTypeLabelByQuantity } from "../_enums/product-unit-type";
 import { formatPresentation } from "../_helpers/product-formatters";
+import type { ProductSummaryResponse, SaleModeSummary } from "../_types/product-response";
+import { getSaleModeSummaryText } from "../_utils/product-util-labels";
 
 const currency = (n: number | string) =>
     new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN", maximumFractionDigits: 2 }).format(Number(n));

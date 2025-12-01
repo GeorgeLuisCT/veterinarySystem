@@ -212,7 +212,7 @@ export default function AddProductsSection({ branchId, onAddProduct, disabled = 
                         role="option"
                         tabIndex={0}
                         aria-selected={expanded}
-                        aria-expanded={expanded}
+
                         className={`
                           px-3 py-2 flex items-start justify-between gap-3 cursor-pointer
                           focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
@@ -276,10 +276,10 @@ export default function AddProductsSection({ branchId, onAddProduct, disabled = 
                                 const label = mode.baseMode
                                   ? formatPresentation(p)
                                   : getSaleModeSummaryText(
-                                      mode.unitType,
-                                      mode.relativeQuantity,
-                                      p.presentation
-                                    );
+                                    mode.unitType,
+                                    mode.relativeQuantity,
+                                    p.presentation
+                                  );
                                 return (
                                   <Button
                                     key={`${p.id}-${mode.id}`}

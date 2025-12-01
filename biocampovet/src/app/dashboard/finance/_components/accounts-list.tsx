@@ -1,14 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Pencil, Trash2 } from "lucide-react";
-import { TreasuryAccountResponse } from "../_types/treasury-account";
 import { TreasuryAccountType } from "../_enums/accounts-enums";
+import { TreasuryAccountResponse } from "../_types/treasury-account";
 
 type Props = {
   accounts: TreasuryAccountResponse[];
@@ -73,8 +73,8 @@ export function AccountsList({
                   account.type === TreasuryAccountType.CASH
                     ? "Caja"
                     : account.type === TreasuryAccountType.BANK
-                    ? "Banco"
-                    : "Digital";
+                      ? "Banco"
+                      : "Digital";
 
                 return (
                   <Card

@@ -1,7 +1,7 @@
 import { BranchResponse } from "../../branche/types/branch-response";
 import { AdministrationRoute } from "../../inventory/_enums/administration-route";
 import { ProductUnitType } from "../../inventory/_enums/product-unit-type";
-import { ProductSummaryResponse } from "../../inventory/products/types/product-summary-response";
+import { ProductSummaryResponse } from "../../inventory/_types/product-response";
 import { AnimalBasicResponse } from "../../crm/patients/types/animal-basic-response";
 import { SurgicalOrderStatus } from "../../schedule/enums/surgical-order-status";
 import { AttentionSummaryResponse } from "../../schedule/types/attention-response";

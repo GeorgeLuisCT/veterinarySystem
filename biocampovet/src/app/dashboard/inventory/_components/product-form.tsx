@@ -58,7 +58,7 @@ function mapApiResponseToForm(product: ProductResponse): ProductRequest {
       relativeQuantity = mode.relativeQuantity;
     }
     return {
-      id: (mode as any).id,
+      id: mode.id,
       unitType: mode.unitType,
       price: mode.price,
       relativeQuantity: relativeQuantity,

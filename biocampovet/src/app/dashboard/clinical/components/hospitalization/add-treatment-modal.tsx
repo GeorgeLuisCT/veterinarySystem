@@ -241,7 +241,6 @@ export function AddTreatmentModal({ open, onOpenChange, hospitalizationId, onSuc
                                                     id="numberOfDoses"
                                                     label="N° de dosis"
                                                     type="number"
-                                                    min="1"
                                                     value={field.value === null ? "" : String(field.value)}
                                                     onChange={(v) => field.onChange(v === "" ? null : Number(v))}
                                                 />

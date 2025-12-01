@@ -1,22 +1,22 @@
 "use client";
 
-import { JSX, useCallback, useEffect, useMemo, useState } from "react";
-import { format } from "date-fns";
-import { ColumnDef } from "@tanstack/react-table";
-import { Eye, PlusCircle, CalendarDays, Tag, Truck, UserRound, FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import DataTable, { Action } from "@/components/data-table";
-import { toast } from "sonner";
-import type { PaginatedResponse } from "@/types/paginated-response";
-import { getAaxiosErrorMessage } from "@/helpers/error";
-import { useUser } from "@/context/user-context";
-import PurchaseFiltersBar, { PurchaseFilters } from "./movements/purchase-filters";
-import { InventoryMovementSummaryResponse } from "../_types/inventory-movement-summary-response";
-import InventoryMovementService from "../_service/inventory-movement-service";
-import { PurchaseDialog } from "./movements/purchase-dialog";
-import { InventoryMovementType } from "../_enums/inventory-movement-type";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useUser } from "@/context/user-context";
+import { getAaxiosErrorMessage } from "@/helpers/error";
+import type { PaginatedResponse } from "@/types/paginated-response";
+import { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import { CalendarDays, Eye, FileText, PlusCircle, Tag, Truck, UserRound } from "lucide-react";
 import { redirect } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { InventoryMovementType } from "../_enums/inventory-movement-type";
+import InventoryMovementService from "../_service/inventory-movement-service";
+import { InventoryMovementSummaryResponse } from "../_types/inventory-movement-summary-response";
+import { PurchaseDialog } from "./movements/purchase-dialog";
+import PurchaseFiltersBar, { PurchaseFilters } from "./movements/purchase-filters";
 
 const DATE_TIME_DISPLAY_FORMAT = "dd/MM/yyyy HH:mm";
 
@@ -56,17 +56,17 @@ export default function MainInventoryPurchases() {
       },
       ...(!normalizedBranchId
         ? ([
-            {
-              accessorKey: "sourceBranchName",
-              header: "Sucursal",
-              cell: ({ row }) => (
-                <div className="flex items-center gap-2">
-                  <Tag className="h-3.5 w-3.5 text-zinc-500" />
-                  <Badge variant="secondary" className="rounded-full">{row.original.sourceBranchName ?? "—"}</Badge>
-                </div>
-              ),
-            } as ColumnDef<InventoryMovementSummaryResponse>,
-          ] as ColumnDef<InventoryMovementSummaryResponse>[])
+          {
+            accessorKey: "sourceBranchName",
+            header: "Sucursal",
+            cell: ({ row }) => (
+              <div className="flex items-center gap-2">
+                <Tag className="h-3.5 w-3.5 text-zinc-500" />
+                <Badge variant="secondary" className="rounded-full">{row.original.sourceBranchName ?? "—"}</Badge>
+              </div>
+            ),
+          } as ColumnDef<InventoryMovementSummaryResponse>,
+        ] as ColumnDef<InventoryMovementSummaryResponse>[])
         : []),
       {
         accessorKey: "supplierName",

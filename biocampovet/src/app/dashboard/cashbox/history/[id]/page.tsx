@@ -35,8 +35,6 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-// --- INICIO: Componentes de UI (copiados de Caja Actual) ---
-
 const PEN = new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN", minimumFractionDigits: 2 });
 
 type SummaryItemProps = {
@@ -44,7 +42,7 @@ type SummaryItemProps = {
   value: number;
   negative?: boolean;
   highlight?: boolean;
-  icon?: React.ComponentType<any>;
+  icon?: React.ElementType;
 };
 
 function SummaryItem({ label, value, negative, highlight, icon: Icon }: SummaryItemProps) {
@@ -101,7 +99,6 @@ function SalesSummaryCard({
     </div>
   );
 }
-// --- FIN: Componentes de UI ---
 
 export default function CashSessionDetailPage() {
   const { toast } = useToast();

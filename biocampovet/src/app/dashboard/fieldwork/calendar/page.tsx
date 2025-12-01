@@ -23,7 +23,6 @@ import type { FieldVisitSummaryResponse } from "../types/visit-response";
 
 const DEFAULT_EVENT_COLOR = "#059669";
 const DEFAULT_DURATION_MINUTES = 60;
-const MIN_DURATION_MINUTES = 15;
 
 const STATUS_COLORS: Record<FieldVisitStatus, string> = {
   [FieldVisitStatus.PLANNED]: "#2563EB",

@@ -7,7 +7,6 @@ import type { FieldVisitSummaryResponse, FieldVisitListParams } from "../../type
 import type { PaginatedResponse } from "@/types/paginated-response";
 import { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/data-table";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { CalendarClock, Home, Truck, Filter, MapPin, Users } from "lucide-react";

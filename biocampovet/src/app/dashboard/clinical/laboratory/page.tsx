@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 
 import { LaboratoryRequestService } from "../service/laboratory-request-service";
 import { LaboratoryRequestSummaryResponse } from "../types/laboratory-request-response";
-import { LabRequestStatus, LabRequestStatusLabels } from "../enums/lab-request-status";
+import { LabRequestStatusLabels } from "../enums/lab-request-status";
 
 import LaboratoryFilters, { LaboratoryFilters as Filters } from "../components/laboratory/laboratory-filters";
 import LaboratoryCard, { LaboratoryCardData } from "../components/laboratory/laboratory-card";
@@ -47,7 +47,7 @@ export default function LabRequestsPage() {
     const [requests, setRequests] = useState<LaboratoryRequestSummaryResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [search, setSearch] = useState("");
+    const [search] = useState("");
 
     const loadRequests = useCallback(async () => {
         const startDate = toDateParam(filters.startDate);
@@ -65,7 +65,7 @@ export default function LabRequestsPage() {
                 endDate,
             });
             setRequests(resp.content);
-        } catch (error) {
+        } catch {
             toast({ variant: "destructive", title: "Error", description: "Error al cargar las solicitudes." });
         }
     }, [filters.status, filters.startDate, filters.endDate, selectedBranchId, toast]);

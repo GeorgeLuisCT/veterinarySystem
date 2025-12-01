@@ -92,7 +92,7 @@ export function CreateTaskModal({ open, onOpenChange, onCreated }: Props) {
       toast({ title: "Tarea creada", description: "Se registró la planificación en estado pendiente." });
       onCreated(tasks);
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error) {
       toast({ variant: "destructive", title: "Error", description: getAaxiosErrorMessage(error) ?? "No se pudo crear la tarea." });
     } finally {
       setSaving(false);

@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { useCalendar } from "../calendar-context"
+import { useCalendar, type CalendarEvent } from "../calendar-context"
 import {
   format,
   startOfMonth,
@@ -36,7 +36,7 @@ export function MonthView() {
 
   const visibleEvents = getVisibleEvents()
 
-  const getStatusColor = (event: any) => {
+  const getStatusColor = (event: CalendarEvent) => {
     const statusCalendarId = event.metadata?.statusCalendarId
     if (!statusCalendarId) return undefined
     return secondaryCalendars.find((calendar) => calendar.id === statusCalendarId)?.color
@@ -69,7 +69,7 @@ export function MonthView() {
       })
   }
 
-  const handleEventClick = (event: any, e: React.MouseEvent) => {
+  const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
     e.stopPropagation()
     setSelectedEvent(event)
     setIsEventModalOpen(true)
@@ -88,7 +88,7 @@ export function MonthView() {
     setIsEventModalOpen(true)
   }
 
-  const EventItem = ({ event, isCompact = false }: { event: any; isCompact?: boolean }) => {
+  const EventItem = ({ event, isCompact = false }: { event: CalendarEvent; isCompact?: boolean }) => {
     const eventStart = new Date(event.startDate)
     const eventEnd = new Date(event.endDate)
     const durationMinutes = Math.round((eventEnd.getTime() - eventStart.getTime()) / (1000 * 60))
@@ -103,9 +103,8 @@ export function MonthView() {
           isMobile && "min-h-[24px] flex items-center",
         )}
         style={{ backgroundColor: event.color }}
-        title={`${event.title} - ${format(eventStart, "HH:mm", { locale: es })}${
-          durationMinutes > 0 ? ` (${durationMinutes} min)` : ""
-        }`}
+        title={`${event.title} - ${format(eventStart, "HH:mm", { locale: es })}${durationMinutes > 0 ? ` (${durationMinutes} min)` : ""
+          }`}
       >
         <div className="flex items-center gap-1">
           {event.isAllDay ? (
@@ -131,8 +130,7 @@ export function MonthView() {
     )
   }
 
-  const DayMoreEvents = ({ day, events }: { day: Date; events: any[] }) => {
-    const visibleEvents = events.slice(0, isMobile ? 2 : 3)
+  const DayMoreEvents = ({ day, events }: { day: Date; events: CalendarEvent[] }) => {
     const hiddenEvents = events.slice(isMobile ? 2 : 3)
 
     if (hiddenEvents.length === 0) return null
@@ -214,7 +212,7 @@ export function MonthView() {
                   className={cn(
                     "text-xs md:text-sm font-medium transition-colors",
                     isTodayDate &&
-                      "bg-blue-600 text-white rounded-full w-6 h-6 md:w-7 md:h-7 flex items-center justify-center text-xs font-semibold shadow-sm",
+                    "bg-blue-600 text-white rounded-full w-6 h-6 md:w-7 md:h-7 flex items-center justify-center text-xs font-semibold shadow-sm",
                     !isTodayDate && isCurrentMonth && "text-foreground",
                     !isTodayDate && !isCurrentMonth && "text-muted-foreground",
                   )}

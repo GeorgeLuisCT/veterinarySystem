@@ -1,18 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { CalendarClock, ClipboardList, FlaskConical, Loader2, Mail, PawPrint, Phone, Scissors, Search, Tag, User } from "lucide-react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { AnimalSpeciesLabels } from "@/app/dashboard/crm/patients/enums/animal-species";
 import PaginatedList from "@/components/paginated-list";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { CalendarClock, ClipboardList, FlaskConical, Loader2, Mail, PawPrint, Phone, Scissors, Search, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import DashboardLayoutSection from "../../dashboard-layout-section";
 import MedicalHistoryService, { type ClinicalHistoryListParams } from "../service/medical-history-service";
 import type { ClinicalHistoryAnimalSummaryResponse } from "../types/medical-history-response";
-import { AnimalSpeciesLabels } from "@/app/dashboard/crm/patients/enums/animal-species";
-import { cn } from "@/lib/utils";
-import DashboardLayoutSection from "../../dashboard-layout-section";
 
 import MedicalHistoryFilterBar, {
   type FilterState,

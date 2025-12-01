@@ -55,7 +55,7 @@ export default function SupplierFilters({ value, onChange, onReset }: Props) {
   }, [qLocal]);
 
   const toSelectValue = (v?: string) => v ?? ALL;
-  const fromSelectValue = (v: string) => (v === ALL ? undefined : (v as any));
+  const fromSelectValue = (v: string) => (v === ALL ? undefined : v);
 
   const handleReset = () => {
     apply(DEFAULTS);
@@ -76,7 +76,7 @@ export default function SupplierFilters({ value, onChange, onReset }: Props) {
         </div>
 
         <Select
-          value={toSelectValue(state.supplierType as any)}
+          value={toSelectValue(state.supplierType)}
           onValueChange={(val) =>
             setField("supplierType", fromSelectValue(val) as SupplierType | undefined)
           }

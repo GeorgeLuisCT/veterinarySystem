@@ -136,7 +136,7 @@ export default function SalesFilters({ value, onChange, onReset }: Props) {
   }, [docNumLocal, state.documentNumber, apply, state]);
 
   const toSelectValue = (v?: string) => v ?? ALL;
-  const fromSelectValue = (v: string) => (v === ALL ? undefined : (v as any));
+  const fromSelectValue = (v: string) => (v === ALL ? undefined : v);
 
   const handleReset = () => {
     const next = { ...DEFAULTS, branchId: state.branchId };
@@ -169,8 +169,8 @@ export default function SalesFilters({ value, onChange, onReset }: Props) {
 
         {/* Filtro Status */}
         <Select
-          value={toSelectValue(state.status as any)}
-          onValueChange={(val) => setField("status", fromSelectValue(val))}
+          value={toSelectValue(state.status)}
+          onValueChange={(val) => setField("status", fromSelectValue(val) as SaleStatus | undefined)}
         >
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Estado" />
@@ -187,8 +187,8 @@ export default function SalesFilters({ value, onChange, onReset }: Props) {
 
         {/* Filtro Document Type */}
         <Select
-          value={toSelectValue(state.documentType as any)}
-          onValueChange={(val) => setField("documentType", fromSelectValue(val))}
+          value={toSelectValue(state.documentType)}
+          onValueChange={(val) => setField("documentType", fromSelectValue(val) as SalesDocumentType | undefined)}
         >
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Comprobante" />

@@ -1,20 +1,19 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { useCalendar } from "./calendar-context"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { cn } from "@/lib/utils"
+import { addDays, addMonths, addWeeks, format, subDays, subMonths, subWeeks } from "date-fns"
+import { es } from "date-fns/locale"
 import {
   ChevronLeft,
   ChevronRight,
   Menu,
 } from "lucide-react"
-import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from "date-fns"
-import { es } from "date-fns/locale"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import { useCalendar } from "./calendar-context"
 
-import type { ComponentType } from "react"
 import { HeaderAction } from "@/types/header-calendar-actions"
+import type { ComponentType } from "react"
 
 type ViewType = "month" | "week" | "day"
 
@@ -48,7 +47,7 @@ export interface CalendarHeaderProps {
 }
 
 export function CalendarHeader({
-  actions = [],
+
   primaryAction,
   onAction,
   showViewSwitcher = true,
@@ -112,64 +111,6 @@ export function CalendarHeader({
       onAction?.(a.key)
     }
   }
-
-  const DesktopActions = () => (
-    <>
-      {actions
-        .filter((a) => a.desktop !== false)
-        .map((a) => {
-          const Icon = a.icon
-          return (
-            <Button
-              key={a.key}
-              variant="ghost"
-              size="icon"
-              title={a.tooltip ?? a.label ?? a.key}
-              aria-label={a.ariaLabel ?? a.label ?? a.key}
-              onClick={() => trigger(a)}
-              disabled={a.disabled}
-              className="transition-all duration-200 hover:scale-110 active:scale-95 hover:bg-blue-50 dark:hover:bg-blue-950/50"
-            >
-              <Icon className="h-5 w-5" />
-            </Button>
-          )
-        })}
-    </>
-  )
-
-  const MobileMenu = () => (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="transition-all duration-200 hover:scale-105 active:scale-95">
-          {/* Ícono de tres puntos ya lo tienes, puedes cambiarlo si quieres */}
-          {/* Reutilizamos MoreVertical si quieres, pero aquí dejamos sólo el trigger con estilos */}
-          ⋮
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-48 animate-in slide-in-from-top-2 duration-200" align="end">
-        <div className="space-y-1">
-          {actions
-            .filter((a) => a.mobileMenu !== false)
-            .map((a) => {
-              const Icon = a.icon
-              return (
-                <Button
-                  key={a.key}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => trigger(a)}
-                  disabled={a.disabled}
-                  className="w-full justify-start"
-                >
-                  <Icon className="h-4 w-4 mr-2" />
-                  {a.label ?? a.key}
-                </Button>
-              )
-            })}
-        </div>
-      </PopoverContent>
-    </Popover>
-  )
 
   const Title = () => (
     <div className="flex items-center gap-2 md:gap-3">

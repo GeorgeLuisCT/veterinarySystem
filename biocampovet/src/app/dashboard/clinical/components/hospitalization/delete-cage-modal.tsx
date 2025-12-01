@@ -54,7 +54,7 @@ export function DeleteCageModal({ open, onOpenChange, onSuccess, cageToDelete }:
           <DialogTitle>¿Estás seguro?</DialogTitle>
           <DialogDescription>
             Esta acción no se puede deshacer. Esto eliminará permanentemente la jaula{" "}
-            <strong>"{cageToDelete?.name}"</strong>.
+            <strong>&quot;{cageToDelete?.name}&quot;</strong>.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

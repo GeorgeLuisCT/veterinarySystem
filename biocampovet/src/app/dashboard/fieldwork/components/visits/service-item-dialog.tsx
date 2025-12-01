@@ -1,32 +1,31 @@
 "use client";
 
-import * as React from "react";
-import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { FloatingLabelSelect } from "@/components/floating-label-select";
-import { FloatingLabelInput } from "@/components/floating-label-input";
-import { FloatingLabelMultiSelect } from "@/components/floating-label-multi-select";
-import { Textarea } from "@/components/ui/textarea";
-import { AddServiceItemRequest, addServiceItemSchema } from "../../types/visit-request";
-import { useToast } from "@/hooks/use-toast";
-import { getAaxiosErrorMessage } from "@/helpers/error";
-import VisitService from "../../services/visit-service";
 import ClinicalServiceService from "@/app/dashboard/clinical/service/clinical-service-service";
-import { ClinicalServiceQuickSearchResponse } from "@/app/dashboard/clinical/types/clinical-service-response";
-import { EmployeeService } from "@/app/dashboard/staff/service/employee-service";
-import { EmployeeQuickSearchResponse } from "@/app/dashboard/staff/types/employee-quick-search-response";
+import { ClinicalServiceQuickSearchResponse, ClinicalServiceResponse } from "@/app/dashboard/clinical/types/clinical-service-response";
+import { AnimalSpecies, AnimalSpeciesLabels } from "@/app/dashboard/crm/patients/enums/animal-species";
 import AnimalService from "@/app/dashboard/crm/patients/service/animal-service";
 import { AnimalQuickSearchResponse } from "@/app/dashboard/crm/patients/types/animal-quick-search-response";
-import ProductService from "@/app/dashboard/inventory/_service/product-service";
-import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/products/types/product-quick-search-response";
-import { AnimalSpecies, AnimalSpeciesLabels } from "@/app/dashboard/crm/patients/enums/animal-species";
 import { AdministrationRoute, AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
 import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
-import { PlusCircle, Trash2 } from "lucide-react";
+import ProductService from "@/app/dashboard/inventory/_service/product-service";
+import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/_types/product-response";
+import { EmployeeService } from "@/app/dashboard/staff/service/employee-service";
+import { FloatingLabelInput } from "@/components/floating-label-input";
+import { FloatingLabelMultiSelect } from "@/components/floating-label-multi-select";
+import { FloatingLabelSelect } from "@/components/floating-label-select";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/context/user-context";
+import { getAaxiosErrorMessage } from "@/helpers/error";
+import { useToast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { PlusCircle, Trash2 } from "lucide-react";
+import * as React from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import VisitService from "../../services/visit-service";
+import { AddServiceItemRequest, addServiceItemSchema } from "../../types/visit-request";
 
 type Props = {
   open: boolean;
@@ -45,7 +44,7 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
   const [serviceOptions, setServiceOptions] = React.useState<SelectOption[]>([]);
   const [serviceResults, setServiceResults] = React.useState<ClinicalServiceQuickSearchResponse[]>([]);
   const [employeeOptions, setEmployeeOptions] = React.useState<SelectOption[]>([]);
-  const [employeeResults, setEmployeeResults] = React.useState<EmployeeQuickSearchResponse[]>([]);
+
   const [animalOptions, setAnimalOptions] = React.useState<AnimalQuickSearchResponse[]>([]);
   const [productOptionsMap, setProductOptionsMap] = React.useState<Record<number, SelectOption[]>>({});
 
@@ -201,16 +200,14 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
       const trimmed = query.trim();
       if (trimmed.length < 2) {
         setEmployeeOptions([]);
-        setEmployeeResults([]);
+
         return;
       }
       try {
         const results = await EmployeeService.searchEmployees(trimmed, branchId);
-        setEmployeeResults(results);
         setEmployeeOptions(results.map((employee) => ({ value: String(employee.id), label: employee.fullName })));
       } catch (error) {
         setEmployeeOptions([]);
-        setEmployeeResults([]);
         toast({
           variant: "destructive",
           title: "Error al buscar personal",
@@ -278,7 +275,6 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
       setServiceOptions([]);
       setServiceResults([]);
       setEmployeeOptions([]);
-      setEmployeeResults([]);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -300,7 +296,7 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
   const handleAddProduct = React.useCallback(() => {
     const newIndex = productFieldCount;
     appendProduct({
-      productId: undefined,
+      productId: 0,
       dose: 1,
       unit: defaultUnit,
       administrationRoute: defaultRoute,
@@ -323,7 +319,6 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
       setServiceOptions([]);
       setServiceResults([]);
       setEmployeeOptions([]);
-      setEmployeeResults([]);
       replaceProducts([]);
       setProductOptionsMap({});
     }
@@ -412,7 +407,6 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
                         id="quantity"
                         label="Cantidad *"
                         type="number"
-                        min="1"
                         value={field.value === undefined ? "" : String(field.value)}
                         onChange={(value) => field.onChange(value === "" ? undefined : Number(value))}
                       />
@@ -432,7 +426,6 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
                         label="Precio unitario *"
                         type="number"
                         step="0.01"
-                        min="0"
                         value={field.value === undefined ? "" : String(field.value)}
                         onChange={(value) => field.onChange(value === "" ? undefined : Number(value))}
                       />
@@ -534,7 +527,6 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
                                 label="Dosis *"
                                 type="number"
                                 step="0.01"
-                                min="0.01"
                                 value={field.value === undefined ? "" : String(field.value)}
                                 onChange={(value) => field.onChange(value === "" ? undefined : Number(value))}
                               />
@@ -670,7 +662,6 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
                                 id={`groups.${index}.quantity`}
                                 label="Cantidad *"
                                 type="number"
-                                min="1"
                                 value={field.value === undefined ? "" : String(field.value)}
                                 onChange={(value) => field.onChange(value === "" ? undefined : Number(value))}
                               />

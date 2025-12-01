@@ -1,7 +1,8 @@
 // app/dashboard/pos/_components/add-payment-dialog.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -19,18 +19,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import {
+  Banknote,
   CircleDollarSign,
   CreditCard,
-  Smartphone,
   Landmark,
-  Banknote,
-  Receipt,
   MoreHorizontal,
+  Receipt,
+  Smartphone,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { PaymentMethod } from "../_types/sale-enums";
 import { SalePaymentRequest } from "../_types/sale-request";
 
@@ -43,7 +43,7 @@ interface AddPaymentDialogProps {
   disabled?: boolean;
 }
 
-const paymentOptions: { value: PaymentMethod; label: string; icon: React.ComponentType<any> }[] = [
+const paymentOptions: { value: PaymentMethod; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { value: PaymentMethod.CASH, label: "Efectivo", icon: Banknote },
   { value: PaymentMethod.CREDIT_CARD, label: "Tarjeta crédito", icon: CreditCard },
   { value: PaymentMethod.DEBIT_CARD, label: "Tarjeta débito", icon: CreditCard },
@@ -74,11 +74,6 @@ export default function AddPaymentDialog({ totalDue, onAdd, trigger, disabled }:
 
   const overpay = Math.max(amount - totalDue, 0);
   const valid = amount > 0;
-
-  const selectedMethod = useMemo(
-    () => paymentOptions.find((o) => o.value === method),
-    [method]
-  );
 
   const handleConfirm = () => {
     if (!valid) return;

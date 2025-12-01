@@ -22,7 +22,7 @@ const toBackendDate = (date?: Date) =>
     date ? format(date, "yyyy-MM-dd'T'HH:mm:ss") : undefined;
 
 const shallowEqualFilters = (a: FiltersShape, b: FiltersShape) => {
-    const eq = (x: any, y: any) => x === y;
+    const eq = (x: unknown, y: unknown) => x === y;
     const eqDate = (d1?: Date, d2?: Date) =>
         (!d1 && !d2) || (d1 && d2 && d1.getTime() === d2.getTime());
 

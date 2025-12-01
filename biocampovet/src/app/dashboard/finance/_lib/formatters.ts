@@ -1,4 +1,4 @@
-import { AccountMovementType, TreasuryAccountType } from "../_enums/accounts-enums";
+import { TreasuryAccountType } from "../_enums/accounts-enums";
 
 export const PEN = new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN", minimumFractionDigits: 2 });
 export const DATE_TIME = new Intl.DateTimeFormat("es-PE", { dateStyle: "short", timeStyle: "short" });

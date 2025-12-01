@@ -1,30 +1,30 @@
 "use client"
 
-import { useState } from "react"
-import { useAnalytics } from "./analytics-context"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { format } from "date-fns"
+import { Award, BarChart3, Calendar, Clock, Target, TrendingUp, Zap } from "lucide-react"
+import { useState } from "react"
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
   Area,
   AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts"
-import { TrendingUp, Calendar, Clock, Target, Zap, Award, BarChart3 } from "lucide-react"
-import { format } from "date-fns"
+import { useAnalytics } from "./analytics-context"
 
 const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#84CC16"]
 
@@ -142,7 +142,7 @@ export function AnalyticsModal({ isOpen, onClose }: AnalyticsModalProps) {
           <TabsContent value="activity" className="space-y-6">
             {/* Weekly Activity */}
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">This Week's Activity</h3>
+              <h3 className="text-lg font-semibold mb-4">This Week&apos;s Activity</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={analyticsData.weeklyActivity}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -219,7 +219,7 @@ export function AnalyticsModal({ isOpen, onClose }: AnalyticsModalProps) {
               <h3 className="text-lg font-semibold mb-4">Upcoming Busy Days</h3>
               {analyticsData.upcomingBusyDays.length > 0 ? (
                 <div className="space-y-3">
-                  {analyticsData.upcomingBusyDays.map((day, index) => (
+                  {analyticsData.upcomingBusyDays.map((day) => (
                     <div key={day.date} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <span className="font-medium">{day.date}</span>
                       <Badge variant="outline">
@@ -253,7 +253,7 @@ export function AnalyticsModal({ isOpen, onClose }: AnalyticsModalProps) {
                   <h4 className="font-medium">Peak Performance</h4>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  You're most active on {analyticsData.busiestDay}s around{" "}
+                  You&apos;re most active on {analyticsData.busiestDay}s around{" "}
                   {format(new Date().setHours(analyticsData.busiestHour), "h a")}. Schedule important meetings during
                   this time.
                 </p>
@@ -281,7 +281,7 @@ export function AnalyticsModal({ isOpen, onClose }: AnalyticsModalProps) {
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4">Activity Heatmap (Last 90 Days)</h3>
               <div className="grid grid-cols-10 gap-1">
-                {analyticsData.heatmapData.slice(-70).map((day, index) => (
+                {analyticsData.heatmapData.slice(-70).map((day) => (
                   <div
                     key={day.date}
                     className="w-3 h-3 rounded-sm"

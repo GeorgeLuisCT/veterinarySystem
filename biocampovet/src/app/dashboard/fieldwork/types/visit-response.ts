@@ -1,8 +1,8 @@
 import { FieldVisitStatus } from '../enums/field-visit-status';
 import { ProductUnitType } from '@/app/dashboard/inventory/_enums/product-unit-type';
 import { AdministrationRoute } from '@/app/dashboard/inventory/_enums/administration-route';
-import { ProductSummaryResponse } from '@/app/dashboard/inventory/products/types/product-summary-response';
 import { AnimalSpecies } from '@/app/dashboard/crm/patients/enums/animal-species';
+import { ProductSummaryResponse } from '../../inventory/_types/product-response';
 
 export interface FieldVisitCompanionResponse {
   employeeId: number;

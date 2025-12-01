@@ -1,19 +1,19 @@
 "use client";
 
-import { useMemo } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Loader2, RefreshCw, RotateCcw } from "lucide-react";
+import { useMemo } from "react";
 import type { DateRange } from "react-day-picker";
 
 import { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
 import { MultiSelect } from "@/components/multi-select";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { ReportModule, ReportsFiltersState } from "@/types/reporting";
+import { ReportsFiltersState } from "@/types/reporting";
 
 type ReportsFilterCardProps = {
   filters: ReportsFiltersState;
@@ -33,11 +33,6 @@ const STATUS_OPTIONS = [
   { label: "Anulado", value: "VOIDED" },
   { label: "Listo para facturar", value: "READY_TO_BILL" },
 ];
-
-const MODULE_OPTIONS = Object.values(ReportModule).map((module) => ({
-  label: formatModuleLabel(module),
-  value: module,
-}));
 
 export function ReportsFilterCard({
   filters,
@@ -144,11 +139,4 @@ export function ReportsFilterCard({
       </CardContent>
     </Card>
   );
-}
-
-function formatModuleLabel(module: ReportModule) {
-  return module
-    .toLowerCase()
-    .replace("_", " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
 }

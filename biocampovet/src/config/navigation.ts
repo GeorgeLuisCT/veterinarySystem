@@ -9,11 +9,9 @@ import {
   UserCog,
   BarChart3,
   Wallet,
-  LayoutDashboard, // Nuevo icono
-  Settings, // Nuevo icono
-  BookHeart, // Nuevo icono
+  BookHeart,
   Hospital,
-  Scissors, // Nuevo icono
+  Scissors,
 } from "lucide-react";
 
 export const navigationConfig = {
@@ -81,7 +79,7 @@ export const navigationConfig = {
         { title: "Historial De Ventas", url: "/dashboard/pos/sales/history", rolesAllowed: ["ROLE_ADMIN", "ROLE_MANAGER"] },
       ],
     },
-     {
+    {
       title: "Caja",
       url: "/dashboard/cashbox",
       icon: Wallet,
@@ -103,7 +101,7 @@ export const navigationConfig = {
         { title: "Movimientos", url: "/dashboard/inventory/movements", rolesAllowed: ["ROLE_ADMIN", "ROLE_WAREHOUSE"] },
       ],
     },
-    
+
     // --- MÓDULO 4: VETERINARIA DE CAMPO ---
     {
       title: "Veterinaria de Campo",
@@ -146,7 +144,7 @@ export const navigationConfig = {
         { title: "Cuentas por Pagar", url: "/dashboard/finance/payable", rolesAllowed: ["ROLE_ADMIN"] },
       ],
     },
-     {
+    {
       title: "Personal",
       url: "/dashboard/staff",
       icon: UserCog,

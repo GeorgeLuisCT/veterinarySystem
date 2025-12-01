@@ -24,6 +24,7 @@ import { useUser } from "@/context/user-context";
 import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { FrequencyUnitLabels } from "../../enums/frequency-unit";
 import { AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
+import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/_types/product-response";
 
 type Option = { value: string; label: string };
 type Mode = "medication" | "instruction";
@@ -85,7 +86,7 @@ export function AddPostOpIndicationModal({
     }
     try {
       const results = await ProductService.searchProducts(q, userInfo?.selectedBranch.id);
-      setProductOptions(results.map((p: any) => ({ value: String(p.id), label: p.name })));
+      setProductOptions(results.map((p: ProductQuickSearchResponse) => ({ value: String(p.id), label: p.name })));
     } catch {
       setProductOptions([]);
     }

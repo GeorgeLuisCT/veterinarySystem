@@ -155,7 +155,6 @@ export default function SaleDetailsSection({
 
   // --- Errores ---
   const documentTypeErr = errors.documentType?.message as string | undefined;
-  const documentNumberErr = errors.documentNumber?.message as string | undefined;
   const customerIdErr = errors.customerId?.message as string | undefined;
   const notesErr = errors.notes?.message as string | undefined;
 

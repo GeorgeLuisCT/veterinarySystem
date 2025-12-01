@@ -1,22 +1,26 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { FloatingLabelSelect } from "@/components/floating-label-select";
-import { Textarea } from "@/components/ui/textarea";
-import EmployeeService from "@/app/dashboard/staff/service/employee-service";
-import { RoleName } from "@/enums/role-name";
 import { OperatingRoomService } from "@/app/dashboard/branche/services/operating-room-service";
-import { useUser } from "@/context/user-context";
+import { OperatingRoomResponse } from "@/app/dashboard/branche/types/operating-room-response";
 import ClinicalServiceService from "@/app/dashboard/clinical/service/clinical-service-service";
+import { ClinicalServiceQuickSearchResponse } from "@/app/dashboard/clinical/types/clinical-service-response";
 import AnimalService from "@/app/dashboard/crm/patients/service/animal-service";
-import { CreateSurgicalOrderRequest, createSurgicalOrderSchema } from "@/app/dashboard/schedule/types/surgical-order-request";
+import { AnimalSummaryResponse } from "@/app/dashboard/crm/patients/types/animal-summary-response";
 import SurgicalOrderService from "@/app/dashboard/schedule/service/surgical-order-service";
+import { CreateSurgicalOrderRequest, createSurgicalOrderSchema } from "@/app/dashboard/schedule/types/surgical-order-request";
+import EmployeeService from "@/app/dashboard/staff/service/employee-service";
+import { EmployeeSummaryResponse } from "@/app/dashboard/staff/types/employee-summary-response";
+import { FloatingLabelSelect } from "@/components/floating-label-select";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { useUser } from "@/context/user-context";
+import { RoleName } from "@/enums/role-name";
+import { useToast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
 type Option = { value: string; label: string };
 
@@ -37,8 +41,6 @@ export function CreateSurgicalOrderModal({ open, onClose, onCreated }: CreateSur
   const [requestedByOptions, setRequestedByOptions] = useState<Option[]>([]);
   const [operatingRoomOptions, setOperatingRoomOptions] = useState<Option[]>([]);
   const [submitting, setSubmitting] = useState(false);
-
-  const defaultDate = useMemo(() => new Date().toISOString().split("T")[0], []);
 
   const form = useForm<CreateSurgicalOrderRequest>({
     resolver: zodResolver(createSurgicalOrderSchema),
@@ -74,10 +76,10 @@ export function CreateSurgicalOrderModal({ open, onClose, onCreated }: CreateSur
           branchId ? OperatingRoomService.listByBranch(branchId).catch(() => []) : Promise.resolve([]),
         ]);
         if (!active) return;
-        const mapEmployees = (employees: any[]) => employees.map((emp: any) => ({ value: String(emp.id), label: emp.branchNames ? `${emp.firstName} ${emp.lastName} • ${emp.branchNames}` : `${emp.firstName} ${emp.lastName}` }));
+        const mapEmployees = (employees: EmployeeSummaryResponse[]) => employees.map((emp: EmployeeSummaryResponse) => ({ value: String(emp.id), label: emp.branchNames ? `${emp.firstName} ${emp.lastName} • ${emp.branchNames}` : `${emp.firstName} ${emp.lastName}` }));
         setRequestedByOptions(mapEmployees(requestedByRes ?? []));
-        setOperatingRoomOptions((roomsRes ?? []).map((room: any) => ({ value: String(room.id), label: room.branchName ? `${room.branchName} • ${room.name}` : room.name })));
-      } catch (error) {
+        setOperatingRoomOptions((roomsRes ?? []).map((room: OperatingRoomResponse) => ({ value: String(room.id), label: room.branchName ? `${room.branchName} • ${room.name}` : room.name })));
+      } catch {
         toast({ variant: "destructive", title: "Error", description: "No se pudieron cargar las opciones necesarias." });
       } finally {
         if (active) setLoadingOptions(false);
@@ -90,8 +92,8 @@ export function CreateSurgicalOrderModal({ open, onClose, onCreated }: CreateSur
   const searchAnimals = async (q: string) => {
     try {
       const resp = await AnimalService.getAnimals({ query: q, page: 0, size: 20, active: true });
-      setAnimalOptions(resp.content.map((a: any) => ({ value: String(a.id), label: `${a.name} • ${a.customerFullName ?? "Sin propietario"}` })));
-    } catch (error) {
+      setAnimalOptions(resp.content.map((a: AnimalSummaryResponse) => ({ value: String(a.id), label: `${a.name} • ${a.ownerName ?? "Sin propietario"}` })));
+    } catch {
       toast({ variant: "destructive", title: "Error", description: "No se pudieron buscar mascotas." });
     }
   };
@@ -99,8 +101,8 @@ export function CreateSurgicalOrderModal({ open, onClose, onCreated }: CreateSur
   const searchServices = async (q: string) => {
     try {
       const resp = await ClinicalServiceService.quickSearch(q, branchId ?? undefined);
-      setServiceOptions(resp.map((s: any) => ({ value: String(s.id), label: s.name })));
-    } catch (error) {
+      setServiceOptions(resp.map((s: ClinicalServiceQuickSearchResponse) => ({ value: String(s.id), label: s.name })));
+    } catch {
       toast({ variant: "destructive", title: "Error", description: "No se pudieron buscar servicios." });
     }
   };
@@ -119,7 +121,7 @@ export function CreateSurgicalOrderModal({ open, onClose, onCreated }: CreateSur
       toast({ title: "Orden creada", description: "La orden quirúrgica se creó correctamente." });
       onCreated();
       onClose();
-    } catch (error) {
+    } catch {
       toast({ variant: "destructive", title: "Error", description: "No se pudo crear la orden quirúrgica." });
     } finally {
       setSubmitting(false);

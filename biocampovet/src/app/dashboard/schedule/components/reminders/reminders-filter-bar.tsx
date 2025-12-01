@@ -1,21 +1,20 @@
 "use client";
 
-import * as React from "react";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { FloatingLabelInput } from "@/components/floating-label-input";
 import { FloatingLabelMultiSelect } from "@/components/floating-label-multi-select";
-import { Filter, RefreshCcw, Calendar as CalendarIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ReminderType, ReminderTypeOptions } from "../../enums/reminder-type";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarIcon, Filter, RefreshCcw } from "lucide-react";
+import * as React from "react";
 import { ReminderStatus, ReminderStatusOptions } from "../../enums/reminder-status";
+import { ReminderType, ReminderTypeOptions } from "../../enums/reminder-type";
 
 // NUEVOS IMPORTS PARA EL CALENDARIO DE RANGO
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 
 export type FilterState = {
   query: string;
@@ -41,7 +40,7 @@ const parseDate = (dateStr?: string): Date | undefined => {
     const date = parseISO(dateStr); // Asume formato "yyyy-MM-dd"
     if (isNaN(date.getTime())) return undefined;
     return date;
-  } catch (e) {
+  } catch {
     return undefined;
   }
 };

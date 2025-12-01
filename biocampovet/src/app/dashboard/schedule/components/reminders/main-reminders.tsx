@@ -1,6 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { AnimalSpecies, AnimalSpeciesLabels } from "@/app/dashboard/crm/patients/enums/animal-species";
+import DataTable, { type Action } from "@/components/data-table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import type { PaginatedResponse } from "@/types/paginated-response";
+import type { ColumnDef } from "@tanstack/react-table";
+import { differenceInDays, format } from "date-fns";
+import { es } from "date-fns/locale";
 import {
   AlertTriangle,
   CalendarClock,
@@ -12,26 +23,14 @@ import {
   RefreshCcw,
   Trash2,
 } from "lucide-react";
-import { differenceInDays, format } from "date-fns";
-import { es } from "date-fns/locale";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { AnimalSpeciesLabels } from "@/app/dashboard/crm/patients/enums/animal-species";
-import { cn } from "@/lib/utils";
-import { AnimalSpecies } from "@/app/dashboard/crm/patients/enums/animal-species";
-import { useToast } from "@/hooks/use-toast";
-import type { PaginatedResponse } from "@/types/paginated-response";
-import DataTable, { type Action } from "@/components/data-table";
-import type { ColumnDef } from "@tanstack/react-table";
-import RemindersFilterBar, { type FilterState } from "./reminders-filter-bar";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ReminderStatus, ReminderStatusLabels } from "../../enums/reminder-status";
 import { ReminderType, ReminderTypeLabels } from "../../enums/reminder-type";
-import { ReminderListItemResponse, ReminderListParams } from "../../types/reminder-response";
 import ReminderService from "../../service/reminder-service";
+import { ReminderListItemResponse, ReminderListParams } from "../../types/reminder-response";
 import { CreateReminderDialog } from "./create-reminder-dialog";
 import { DeleteReminderDialog } from "./delete-reminder-dialog";
+import RemindersFilterBar, { type FilterState } from "./reminders-filter-bar";
 
 const DEFAULT_FILTERS: FilterState = {
   query: "",

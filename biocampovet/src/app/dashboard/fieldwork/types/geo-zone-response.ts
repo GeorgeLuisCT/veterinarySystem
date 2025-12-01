@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+
 import { GeoZoneType } from '../enums/geo-zone-type';
 
 export interface GeoZoneSummaryResponse {

@@ -51,14 +51,18 @@ public final class SaleMapper {
                 .map(SaleMapper::toPaymentResponse)
                 .collect(Collectors.toList());
 
+        Customer customer = sale.getCustomer();
+        Long customerId = customer != null ? customer.getId() : null;
+        String customerName = customer != null ? customer.getName() : null;
+
         return SaleResponse.builder()
                 .id(sale.getId())
                 .branchId(sale.getBranch().getId())
                 .branchName(sale.getBranch().getName())
                 .sellerId(sale.getSeller().getId())
                 .sellerName(sale.getSeller().getEmployee().getFullName())
-                .customerId(sale.getCustomer().getId())
-                .customerName(sale.getCustomer().getName())
+                .customerId(customerId)
+                .customerName(customerName)
                 .status(sale.getStatus())
                 .documentType(sale.getDocumentType())
                 .documentNumber(sale.getDocumentNumber())
