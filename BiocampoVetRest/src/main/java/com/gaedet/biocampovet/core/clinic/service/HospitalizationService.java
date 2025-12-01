@@ -5,6 +5,7 @@ import com.gaedet.biocampovet.core.animal.repository.AnimalRepository;
 import com.gaedet.biocampovet.core.clinic.dto.*;
 import com.gaedet.biocampovet.core.clinic.entity.*;
 import com.gaedet.biocampovet.core.clinic.enums.AdmissionTiming;
+import com.gaedet.biocampovet.core.clinic.enums.FrequencyUnit;
 import com.gaedet.biocampovet.core.clinic.enums.HospitalizationStatus;
 import com.gaedet.biocampovet.core.clinic.mapper.CageMapper;
 import com.gaedet.biocampovet.core.clinic.mapper.HospitalizationMapper;
@@ -12,10 +13,11 @@ import com.gaedet.biocampovet.core.clinic.repository.*;
 import com.gaedet.biocampovet.core.clinic.specs.HospitalizationSpecification;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
 import com.gaedet.biocampovet.core.employees.repository.EmployeeRepository;
-import com.gaedet.biocampovet.core.employees.repository.EmployeeRepository;
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
 import com.gaedet.biocampovet.core.inventory.dto.KardexRegistrationRequest;
 import com.gaedet.biocampovet.core.inventory.enums.KardexMovementType;
+import com.gaedet.biocampovet.core.inventory.entity.Product;
+import com.gaedet.biocampovet.core.inventory.repository.ProductRepository;
 import com.gaedet.biocampovet.core.inventory.service.KardexService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -48,6 +50,8 @@ public class HospitalizationService {
     private final AttentionRepository attentionsRepository;
     private final ClinicalServiceRepository clinicalServiceRepository;
     private final KardexService kardexService;
+    private final ProductRepository productRepository;
+    private final HospitalizationVitalSignRepository hospitalizationVitalSignRepository;
 
     @Transactional(readOnly = true)
     public PaginatedResponse<HospitalizationSummaryResponse> list(
@@ -229,45 +233,103 @@ public class HospitalizationService {
                         .orElseThrow(() -> new EntityNotFoundException(
                                 "Employee not found with id: " + request.getCompletedByEmployeeId()));
                 schedule.setCompletedBy(completedBy);
+            } else {
+                schedule.setCompletedBy(null);
             }
 
-            if (request.getProductId() != null && request.getQuantity() != null && request.getUnit() != null) {
-                Long branchId = hospitalization.getCage().getBranch().getId();
-                Map<Long, java.math.BigDecimal> batchStocks = kardexService
-                        .getStockForProductByBatch(request.getProductId(), branchId);
+            Long branchId = hospitalization.getCage() != null && hospitalization.getCage().getBranch() != null
+                    ? hospitalization.getCage().getBranch().getId()
+                    : null;
 
-                java.math.BigDecimal quantityToDeduct = request.getQuantity();
+            schedule.getProductUsages().clear();
+            if (request.getProducts() != null) {
+                for (TreatmentScheduleProductUsageRequest productRequest : request.getProducts()) {
+                    Product product = productRepository.findById(productRequest.getProductId())
+                            .orElseThrow(() -> new EntityNotFoundException(
+                                    "Product not found with id: " + productRequest.getProductId()));
+                    TreatmentScheduleProductUsage usage = TreatmentScheduleProductUsage.builder()
+                            .treatmentSchedule(schedule)
+                            .product(product)
+                            .quantity(productRequest.getQuantity())
+                            .unit(productRequest.getUnit())
+                            .build();
+                    schedule.getProductUsages().add(usage);
 
-                // Simple FIFO strategy: take from first batch with stock
-                for (Map.Entry<Long, java.math.BigDecimal> entry : batchStocks.entrySet()) {
-                    if (entry.getValue().compareTo(java.math.BigDecimal.ZERO) > 0) {
-                        // For simplicity, we just use the first batch found with stock.
-                        // A more robust implementation would split across batches if needed.
-                        Long batchId = entry.getKey();
-
-                        kardexService.registerMovement(KardexRegistrationRequest.builder()
-                                .productId(request.getProductId())
-                                .branchId(branchId)
-                                .batchId(batchId)
-                                .quantity(quantityToDeduct)
-                                .unitType(request.getUnit())
-                                .type(KardexMovementType.SERVICE_EXIT)
-                                .originId(schedule.getId())
-                                .originType("TreatmentSchedule")
-                                .build());
-                        break; // Deducted from one batch and exit
-                    }
+                    registerInventoryMovement(branchId, schedule, productRequest);
                 }
             }
         } else {
             schedule.setCompletedAt(null);
             schedule.setCompletedBy(null);
+            schedule.getProductUsages().clear();
         }
 
         treatmentScheduleRepository.save(schedule);
 
         Hospitalization updated = hospitalizationRepository.findById(hospitalizationId).orElseThrow();
         return HospitalizationMapper.toResponse(updated);
+    }
+
+    @Transactional
+    public HospitalizationResponse addVitalSign(Long hospitalizationId, CreateHospitalizationVitalSignRequest request) {
+        Hospitalization hospitalization = hospitalizationRepository.findById(hospitalizationId)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("Hospitalization not found with id: " + hospitalizationId));
+
+        if (request == null || !request.hasAnyMeasurement()) {
+            throw new IllegalArgumentException("Debe registrar al menos una constante vital.");
+        }
+
+        Employee recordedBy = employeeRepository.findById(request.getRecordedByEmployeeId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Employee not found with id: " + request.getRecordedByEmployeeId()));
+
+        LocalDateTime recordedAt = request.getRecordedAt() != null ? request.getRecordedAt() : LocalDateTime.now();
+
+        HospitalizationVitalSign vitalSign = HospitalizationVitalSign.builder()
+                .hospitalization(hospitalization)
+                .recordedBy(recordedBy)
+                .recordedAt(recordedAt)
+                .weightKg(request.getWeightKg())
+                .temperatureCelsius(request.getTemperatureCelsius())
+                .heartRate(request.getHeartRate())
+                .respiratoryRate(request.getRespiratoryRate())
+                .build();
+
+        hospitalizationVitalSignRepository.save(vitalSign);
+
+        Hospitalization updated = hospitalizationRepository.findById(hospitalizationId).orElseThrow();
+        return HospitalizationMapper.toResponse(updated);
+    }
+
+    private void registerInventoryMovement(Long branchId, TreatmentSchedule schedule,
+            TreatmentScheduleProductUsageRequest productRequest) {
+        if (branchId == null) {
+            return;
+        }
+
+        Map<Long, java.math.BigDecimal> batchStocks = kardexService
+                .getStockForProductByBatch(productRequest.getProductId(), branchId);
+
+        java.math.BigDecimal quantityToDeduct = productRequest.getQuantity();
+
+        for (Map.Entry<Long, java.math.BigDecimal> entry : batchStocks.entrySet()) {
+            if (entry.getValue().compareTo(java.math.BigDecimal.ZERO) > 0) {
+                Long batchId = entry.getKey();
+
+                kardexService.registerMovement(KardexRegistrationRequest.builder()
+                        .productId(productRequest.getProductId())
+                        .branchId(branchId)
+                        .batchId(batchId)
+                        .quantity(quantityToDeduct)
+                        .unitType(productRequest.getUnit())
+                        .type(KardexMovementType.SERVICE_EXIT)
+                        .originId(schedule.getId())
+                        .originType("TreatmentSchedule")
+                        .build());
+                break;
+            }
+        }
     }
 
     @Transactional
@@ -296,20 +358,29 @@ public class HospitalizationService {
             treatmentScheduleRepository.save(schedule);
 
             if (request.getFrequencyValue() != null && request.getFrequencyUnit() != null) {
-                switch (request.getFrequencyUnit()) {
-                    case HOURS:
-                        scheduledTime = scheduledTime.plusHours(request.getFrequencyValue());
-                        break;
-                    case DAYS:
-                        scheduledTime = scheduledTime.plusDays(request.getFrequencyValue());
-                        break;
-                    // Add other cases if FrequencyUnit has more values
-                }
+                scheduledTime = incrementScheduledTime(scheduledTime, request.getFrequencyValue(),
+                        request.getFrequencyUnit());
             }
         }
 
         Hospitalization updated = hospitalizationRepository.findById(hospitalizationId).orElseThrow();
         return HospitalizationMapper.toResponse(updated);
+    }
+
+    private LocalDateTime incrementScheduledTime(LocalDateTime base, Integer frequencyValue, FrequencyUnit unit) {
+        if (frequencyValue == null || unit == null) {
+            return base;
+        }
+        switch (unit) {
+            case MINUTES:
+                return base.plusMinutes(frequencyValue);
+            case HOURS:
+                return base.plusHours(frequencyValue);
+            case DAYS:
+                return base.plusDays(frequencyValue);
+            default:
+                return base;
+        }
     }
 
     private static AdmissionTiming getAdmissionTiming(CreateHospitalizationRequest request, Attentions attention) {

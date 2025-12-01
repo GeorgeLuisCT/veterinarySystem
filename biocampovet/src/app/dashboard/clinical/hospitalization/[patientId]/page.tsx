@@ -1,25 +1,80 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { getAaxiosErrorMessage } from '@/helpers/error';
-import { HospitalizationResponse, EvolutionNoteResponse, TreatmentScheduleResponse } from '../../types/hospitalization-response';
-import { User, ClipboardList, Stethoscope, Clock, Pill, Thermometer, Droplets, MessageSquare, Save, LogOut, ClipboardPlus, PlusCircle } from 'lucide-react';
+import { HospitalizationResponse, TreatmentScheduleResponse } from '../../types/hospitalization-response';
+import { ClipboardPlus, LogOut, PlusCircle, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import HospitalizationService from '../../service/hospitalization-service';
 import { AddTreatmentModal } from '../../components/hospitalization/add-treatment-modal';
 import { CompleteTreatmentModal } from '../../components/hospitalization/complete-treatment-modal';
+import { ViewTreatmentModal } from '../../components/hospitalization/view-treatment-modal';
+import { FloatingLabelDateInput } from '@/components/floating-label-date-input';
+import { FloatingLabelInput } from '@/components/floating-label-input';
+import { useUser } from '@/context/user-context';
+import { HospitalizationStatus } from '../../enums/hospitalization-status';
+import { ConfirmationDialog } from '@/components/confirmation-dialog';
+
+const BASE_TIME_SLOTS = [
+    "00:00",
+    "02:00",
+    "04:00",
+    "06:00",
+    "08:00",
+    "10:00",
+    "12:00",
+    "14:00",
+    "16:00",
+    "18:00",
+    "20:00",
+    "22:00",
+];
 
 export default function HospitalizationChartPage() {
     const params = useParams();
     const { toast } = useToast();
+    const { userInfo } = useUser();
     const [hospitalization, setHospitalization] = useState<HospitalizationResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [isAddTreatmentModalOpen, setAddTreatmentModalOpen] = useState(false);
-    const [completeTreatmentModal, setCompleteTreatmentModal] = useState<{ open: boolean; scheduleId: number; treatmentName: string } | null>(null);
+    const [completeTreatmentModal, setCompleteTreatmentModal] = useState<{ open: boolean; schedule: TreatmentScheduleResponse } | null>(null);
+    const [viewTreatmentModal, setViewTreatmentModal] = useState<{ open: boolean; schedule: TreatmentScheduleResponse } | null>(null);
+    const [newEvolutionNote, setNewEvolutionNote] = useState("");
+    const [isSavingEvolutionNote, setIsSavingEvolutionNote] = useState(false);
+    const [vitalForm, setVitalForm] = useState({
+        weightKg: "",
+        temperatureCelsius: "",
+        heartRate: "",
+        respiratoryRate: "",
+    });
+    const [isSavingVitals, setIsSavingVitals] = useState(false);
+    const [isDischarging, setIsDischarging] = useState(false);
+    const [isDischargeDialogOpen, setIsDischargeDialogOpen] = useState(false);
+
+    const toDateKey = useCallback((date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }, []);
+
+    const parseDateKey = useCallback((key: string) => {
+        const [year, month, day] = key.split("-").map(Number);
+        return new Date(year, (month || 1) - 1, day || 1);
+    }, []);
+
+    const [selectedDate, setSelectedDate] = useState(() => toDateKey(new Date()));
+
+    const formatTimeSlot = useCallback((isoDate: string) => {
+        const date = new Date(isoDate);
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        return `${hours}:${minutes}`;
+    }, []);
 
     const hospitalizationId = Number(params.patientId);
 
@@ -44,6 +99,237 @@ export default function HospitalizationChartPage() {
         fetchHospitalization();
     }, [fetchHospitalization]);
 
+    const dayScheduleEntries = useMemo(() => {
+        if (!hospitalization) return [];
+        return hospitalization.treatmentSchedules
+            .map((schedule) => {
+                const scheduledDay = toDateKey(new Date(schedule.scheduledTime));
+                if (scheduledDay === selectedDate) {
+                    return { schedule, timeKey: formatTimeSlot(schedule.scheduledTime) };
+                }
+                if (schedule.completedAt) {
+                    const completedDay = toDateKey(new Date(schedule.completedAt));
+                    if (completedDay === selectedDate) {
+                        return { schedule, timeKey: formatTimeSlot(schedule.completedAt) };
+                    }
+                }
+                return null;
+            })
+            .filter((entry): entry is { schedule: TreatmentScheduleResponse; timeKey: string } => entry !== null);
+    }, [hospitalization, selectedDate, toDateKey, formatTimeSlot]);
+
+    const timeSlots = useMemo(() => {
+        const slotSet = new Set(BASE_TIME_SLOTS);
+        dayScheduleEntries.forEach((entry) => {
+            slotSet.add(entry.timeKey);
+        });
+        return Array.from(slotSet).sort((a, b) => {
+            if (a === b) return 0;
+            return a < b ? -1 : 1;
+        });
+    }, [dayScheduleEntries]);
+
+    const allTreatmentNames = useMemo(() => {
+        if (!hospitalization) return [];
+        return Array.from(new Set(hospitalization.treatmentSchedules.map((schedule) => schedule.treatmentName)));
+    }, [hospitalization]);
+
+    const sortedVitalSigns = useMemo(() => {
+        if (!hospitalization?.vitalSigns) return [];
+        return [...hospitalization.vitalSigns].sort((a, b) => {
+            const dateA = a.recordedAt ?? "";
+            const dateB = b.recordedAt ?? "";
+            if (dateA === dateB) return 0;
+            return dateA > dateB ? -1 : 1;
+        });
+    }, [hospitalization]);
+
+    const latestVitalSign = sortedVitalSigns[0];
+
+    const vitalFormHasValues = Object.values(vitalForm).some((value) => value.trim() !== "");
+
+    const formatVitalValue = (value: number | undefined, suffix: string) => {
+        if (value == null) return "N/A";
+        return `${value}${suffix}`;
+    };
+
+    const hasAnyTreatment = allTreatmentNames.length > 0;
+
+    const selectedDateLabel = useMemo(
+        () =>
+            parseDateKey(selectedDate).toLocaleDateString("es-ES", {
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+            }),
+        [selectedDate, parseDateKey]
+    );
+
+    const shiftSelectedDate = (days: number) => {
+        const current = parseDateKey(selectedDate);
+        current.setDate(current.getDate() + days);
+        setSelectedDate(toDateKey(current));
+    };
+
+    const handleVitalInputChange = (field: keyof typeof vitalForm) => (value: string) => {
+        setVitalForm((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleSaveVitalSigns = async () => {
+        if (!hospitalization) return;
+        if (!userInfo?.employeeId) {
+            toast({
+                variant: "destructive",
+                title: "Sin usuario asignado",
+                description: "No se pudo identificar al colaborador que registra las constantes vitales.",
+            });
+            return;
+        }
+
+        const parseOptionalNumber = (value: string, label: string, { integer }: { integer?: boolean } = {}) => {
+            const trimmed = value.trim();
+            if (!trimmed) return undefined;
+            const parsed = Number(trimmed);
+            if (!Number.isFinite(parsed)) {
+                throw new Error(`Valor inválido para ${label}.`);
+            }
+            if (parsed <= 0) {
+                throw new Error(`${label} debe ser mayor que cero.`);
+            }
+            return integer ? Math.round(parsed) : parsed;
+        };
+
+        let weightKg: number | undefined;
+        let temperatureCelsius: number | undefined;
+        let heartRate: number | undefined;
+        let respiratoryRate: number | undefined;
+
+        try {
+            weightKg = parseOptionalNumber(vitalForm.weightKg, "Peso");
+            temperatureCelsius = parseOptionalNumber(vitalForm.temperatureCelsius, "Temperatura");
+            heartRate = parseOptionalNumber(vitalForm.heartRate, "Frecuencia cardiaca", { integer: true });
+            respiratoryRate = parseOptionalNumber(vitalForm.respiratoryRate, "Frecuencia respiratoria", { integer: true });
+        } catch (validationError) {
+            toast({
+                variant: "destructive",
+                title: "Dato inválido",
+                description: validationError instanceof Error ? validationError.message : "Revisa los valores ingresados.",
+            });
+            return;
+        }
+
+        const hasAnyMeasurement = [weightKg, temperatureCelsius, heartRate, respiratoryRate].some(
+            (value) => value != null
+        );
+
+        if (!hasAnyMeasurement) {
+            toast({
+                title: "Agrega constantes",
+                description: "Registra al menos un valor antes de guardar.",
+            });
+            return;
+        }
+
+        setIsSavingVitals(true);
+        try {
+            const payload = {
+                recordedByEmployeeId: userInfo.employeeId,
+                weightKg,
+                temperatureCelsius,
+                heartRate,
+                respiratoryRate,
+            };
+            const updated = await HospitalizationService.addVitalSigns(hospitalization.id, payload);
+            setHospitalization(updated);
+            setVitalForm({
+                weightKg: "",
+                temperatureCelsius: "",
+                heartRate: "",
+                respiratoryRate: "",
+            });
+            toast({
+                title: "Constantes registradas",
+                description: "Se guardó el nuevo registro de constantes vitales.",
+            });
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: getAaxiosErrorMessage(error) ?? "No se pudieron guardar las constantes vitales.",
+            });
+        } finally {
+            setIsSavingVitals(false);
+        }
+    };
+
+    const handleDischarge = async () => {
+        if (!hospitalization || hospitalization.status === HospitalizationStatus.DISCHARGED) return;
+        setIsDischarging(true);
+        try {
+            await HospitalizationService.patch(hospitalization.id, {
+                version: hospitalization.version,
+                status: HospitalizationStatus.DISCHARGED,
+                dischargeDate: new Date().toISOString(),
+            });
+            const updated = await HospitalizationService.getById(hospitalization.id);
+            setHospitalization(updated);
+            setIsDischargeDialogOpen(false);
+            toast({
+                title: "Paciente dado de alta",
+                description: "Se registró el alta y se liberará la jaula asociada.",
+            });
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "No se pudo dar de alta",
+                description: getAaxiosErrorMessage(error) ?? "Intenta nuevamente en unos segundos.",
+            });
+        } finally {
+            setIsDischarging(false);
+        }
+    };
+
+    const handleSaveEvolutionNote = async () => {
+        if (!hospitalization) return;
+        const trimmedNote = newEvolutionNote.trim();
+        if (!trimmedNote) {
+            toast({
+                title: "Agrega una nota",
+                description: "Escribe el detalle de la evolución antes de guardar.",
+            });
+            return;
+        }
+        if (!userInfo?.employeeId) {
+            toast({
+                variant: "destructive",
+                title: "Sin usuario asignado",
+                description: "No se pudo identificar al colaborador que registra la nota.",
+            });
+            return;
+        }
+        setIsSavingEvolutionNote(true);
+        try {
+            const updated = await HospitalizationService.addEvolutionNote(hospitalization.id, {
+                authorId: userInfo.employeeId,
+                note: trimmedNote,
+            });
+            setHospitalization(updated);
+            setNewEvolutionNote("");
+            toast({
+                title: "Nota registrada",
+                description: "Se agregó la nota de evolución a la hoja.",
+            });
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: getAaxiosErrorMessage(error) ?? "No se pudo guardar la nota.",
+            });
+        } finally {
+            setIsSavingEvolutionNote(false);
+        }
+    };
+
     if (loading) {
         return <div>Cargando...</div>;
     }
@@ -52,13 +338,12 @@ export default function HospitalizationChartPage() {
         return <div>No se encontró la hospitalización.</div>;
     }
 
-    const { animalName, admissionDate, treatmentSchedules, evolutionNotes } = hospitalization;
-
-    const timeSlots = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00', '00:00', '02:00', '04:00', '06:00'];
+    const { animalName, admissionDate, evolutionNotes } = hospitalization;
+    const isDischarged = hospitalization.status === HospitalizationStatus.DISCHARGED;
+    const dischargeButtonLabel = isDischarged ? "Alta registrada" : isDischarging ? "Dando de alta..." : "Dar de Alta";
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
             <div className="p-4 bg-white border-b sticky top-0 z-10">
                 <div className="flex justify-between items-center max-w-screen-xl mx-auto">
                     <div>
@@ -69,22 +354,54 @@ export default function HospitalizationChartPage() {
                         <Button variant="outline" className="text-orange-600 border-orange-300 hover:bg-orange-50">
                             <ClipboardPlus className="h-4 w-4 mr-2" /> Iniciar Reporte Quirúrgico
                         </Button>
-                        <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                            <LogOut className="h-4 w-4 mr-2" /> Dar de Alta
+                        <Button
+                            className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60"
+                            onClick={() => setIsDischargeDialogOpen(true)}
+                            disabled={isDischarging || isDischarged}
+                        >
+                            <LogOut className="h-4 w-4 mr-2" /> {dischargeButtonLabel}
                         </Button>
                     </div>
                 </div>
             </div>
 
             <div className="max-w-screen-xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Main Column */}
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle>Hoja de Tratamiento - Hoy</CardTitle>
-                            <Button size="sm" onClick={() => setAddTreatmentModalOpen(true)}>
-                                <PlusCircle className="mr-2 h-4 w-4" /> Agregar Tratamiento
-                            </Button>
+                        <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <div>
+                                <CardTitle>Hoja de Tratamiento</CardTitle>
+                                <p className="text-sm text-muted-foreground capitalize">{selectedDateLabel}</p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <div className="flex items-center gap-2">
+                                    <Button type="button" variant="outline" size="icon" onClick={() => shiftSelectedDate(-1)} aria-label="Día anterior">
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </Button>
+                                    <div className="min-w-[220px]">
+                                        <FloatingLabelDateInput
+                                            id="treatment-day"
+                                            label="Fecha"
+                                            mode="date"
+                                            value={selectedDate}
+                                            onChange={(value) => {
+                                                if (!value) return;
+                                                const nextValue = value.includes("T") ? value.split("T")[0] : value;
+                                                setSelectedDate(nextValue);
+                                            }}
+                                        />
+                                    </div>
+                                    <Button type="button" variant="outline" size="icon" onClick={() => shiftSelectedDate(1)} aria-label="Día siguiente">
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                    <Button type="button" variant="secondary" size="sm" onClick={() => setSelectedDate(toDateKey(new Date()))}>
+                                        Hoy
+                                    </Button>
+                                </div>
+                                <Button size="sm" onClick={() => setAddTreatmentModalOpen(true)}>
+                                    <PlusCircle className="mr-2 h-4 w-4" /> Agregar Tratamiento
+                                </Button>
+                            </div>
                         </CardHeader>
                         <div className="p-4 overflow-x-auto">
                             <table className="w-full border-collapse text-sm text-center">
@@ -95,41 +412,56 @@ export default function HospitalizationChartPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {/* Group treatments by name */}
-                                    {Array.from(new Set(treatmentSchedules.map(t => t.treatmentName))).map(treatmentName => {
-                                        const schedules = treatmentSchedules.filter(t => t.treatmentName === treatmentName);
-                                        return (
-                                            <tr key={treatmentName}>
-                                                <td className="border p-2 text-left font-medium">{treatmentName}</td>
-                                                {timeSlots.map(time => {
-                                                    // Find schedule for this time slot (approximate match by hour)
-                                                    const schedule = schedules.find(s => {
-                                                        const scheduleHour = new Date(s.scheduledTime).getHours();
-                                                        const slotHour = parseInt(time.split(':')[0]);
-                                                        return scheduleHour === slotHour;
-                                                    });
+                                    {!hasAnyTreatment ? (
+                                        <tr>
+                                            <td colSpan={timeSlots.length + 1} className="border p-4 text-center text-muted-foreground">
+                                                Aún no hay tratamientos programados para esta hospitalización.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        allTreatmentNames.map((treatmentName) => {
+                                            const scheduleEntries = dayScheduleEntries.filter(
+                                                (entry) => entry.schedule.treatmentName === treatmentName
+                                            );
+                                            return (
+                                                <tr key={treatmentName}>
+                                                    <td className="border p-2 text-left font-medium">{treatmentName}</td>
+                                                    {timeSlots.map((time) => {
+                                                        const entry = scheduleEntries.find((s) => s.timeKey === time);
+                                                        const schedule = entry?.schedule;
 
-                                                    if (!schedule) return <td key={time} className="border p-2 bg-gray-50"></td>;
+                                                        if (!schedule) {
+                                                            return <td key={time} className="border p-2 bg-gray-50" />;
+                                                        }
 
-                                                    return (
-                                                        <td key={time} className="border p-2">
-                                                            {schedule.isCompleted ? (
-                                                                <span className="font-bold text-green-600 cursor-help" title={`Realizado por ${schedule.completedByEmployeeFullName} a las ${new Date(schedule.completedAt!).toLocaleTimeString()}`}>✓</span>
-                                                            ) : (
-                                                                <button
-                                                                    onClick={() => setCompleteTreatmentModal({ open: true, scheduleId: schedule.id, treatmentName: schedule.treatmentName })}
-                                                                    className="h-6 w-6 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 text-xs font-bold"
-                                                                    title="Administrar"
-                                                                >
-                                                                    A
-                                                                </button>
-                                                            )}
-                                                        </td>
-                                                    );
-                                                })}
-                                            </tr>
-                                        );
-                                    })}
+                                                        return (
+                                                            <td key={time} className="border p-2">
+                                                                {schedule.isCompleted ? (
+                                                                    <button
+                                                                        type="button"
+                                                                        className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600 hover:bg-green-200"
+                                                                        title="Ver detalles del tratamiento administrado"
+                                                                        onClick={() => setViewTreatmentModal({ open: true, schedule })}
+                                                                    >
+                                                                        <CheckCircle2 className="h-4 w-4" />
+                                                                    </button>
+                                                                ) : (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setCompleteTreatmentModal({ open: true, schedule })}
+                                                                        className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 text-xs font-bold"
+                                                                        title="Registrar administración"
+                                                                    >
+                                                                        A
+                                                                    </button>
+                                                                )}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            );
+                                        })
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -149,14 +481,26 @@ export default function HospitalizationChartPage() {
                                 ))}
                             </div>
                             <div className="mt-4 border-t pt-4">
-                                <Textarea placeholder="Añadir nueva nota de evolución..." className="mb-2" />
-                                <Button size="sm">Guardar Nota</Button>
+                                <Textarea
+                                    placeholder="Añadir nueva nota de evolución..."
+                                    className="mb-2"
+                                    value={newEvolutionNote}
+                                    onChange={(event) => setNewEvolutionNote(event.target.value)}
+                                    disabled={isSavingEvolutionNote}
+                                />
+                                <Button
+                                    size="sm"
+                                    type="button"
+                                    onClick={handleSaveEvolutionNote}
+                                    disabled={isSavingEvolutionNote || !newEvolutionNote.trim()}
+                                >
+                                    {isSavingEvolutionNote ? "Guardando..." : "Guardar Nota"}
+                                </Button>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* Side Column */}
                 <aside className="space-y-6">
                     <Card>
                         <CardHeader><CardTitle>Resumen del Paciente</CardTitle></CardHeader>
@@ -165,10 +509,132 @@ export default function HospitalizationChartPage() {
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader><CardTitle>Constantes Vitales (Último Registro)</CardTitle></CardHeader>
-                        <CardContent className="grid grid-cols-2 gap-4">
-                            <div className="text-center"><Thermometer className="mx-auto h-6 w-6 text-red-500" /><p className="font-bold text-lg">38.7°C</p></div>
-                            <div className="text-center"><Droplets className="mx-auto h-6 w-6 text-blue-500" /><p className="font-bold text-lg">50 ml/hr</p></div>
+                        <CardHeader>
+                            <CardTitle>Constantes Vitales</CardTitle>
+                            <p className="text-sm text-muted-foreground">
+                                {latestVitalSign
+                                    ? `Último registro: ${new Date(latestVitalSign.recordedAt).toLocaleString("es-ES", {
+                                          day: "2-digit",
+                                          month: "short",
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                      })} · ${latestVitalSign.recordedByEmployeeFullName ?? "Sin responsable"}`
+                                    : "Aún no hay registros."}
+                            </p>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {latestVitalSign ? (
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="rounded-lg border p-3 text-center">
+                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Temperatura</p>
+                                        <p className="text-lg font-semibold text-slate-900">
+                                            {formatVitalValue(latestVitalSign.temperatureCelsius, "°C")}
+                                        </p>
+                                    </div>
+                                    <div className="rounded-lg border p-3 text-center">
+                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Peso</p>
+                                        <p className="text-lg font-semibold text-slate-900">
+                                            {formatVitalValue(latestVitalSign.weightKg, " kg")}
+                                        </p>
+                                    </div>
+                                    <div className="rounded-lg border p-3 text-center">
+                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Frecuencia cardiaca</p>
+                                        <p className="text-lg font-semibold text-slate-900">
+                                            {formatVitalValue(latestVitalSign.heartRate, " lpm")}
+                                        </p>
+                                    </div>
+                                    <div className="rounded-lg border p-3 text-center">
+                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Frecuencia respiratoria</p>
+                                        <p className="text-lg font-semibold text-slate-900">
+                                            {formatVitalValue(latestVitalSign.respiratoryRate, " rpm")}
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">
+                                    Registra las primeras constantes para comenzar el seguimiento.
+                                </p>
+                            )}
+                            {sortedVitalSigns.length > 0 && (
+                                <div>
+                                    <p className="text-sm font-medium mb-2">Historial</p>
+                                    <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                                        {sortedVitalSigns.map((vital) => (
+                                            <div key={vital.id} className="rounded-md border p-2 text-sm">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <p className="font-semibold">
+                                                        {new Date(vital.recordedAt).toLocaleString("es-ES", {
+                                                            day: "2-digit",
+                                                            month: "short",
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                        })}
+                                                    </p>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {vital.recordedByEmployeeFullName ?? "Sin responsable"}
+                                                    </span>
+                                                </div>
+                                                <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                                                    <span>Temp.: {formatVitalValue(vital.temperatureCelsius, "°C")}</span>
+                                                    <span>Peso: {formatVitalValue(vital.weightKg, " kg")}</span>
+                                                    <span>FC: {formatVitalValue(vital.heartRate, " lpm")}</span>
+                                                    <span>FR: {formatVitalValue(vital.respiratoryRate, " rpm")}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            <div className="border-t pt-4">
+                                <p className="text-sm font-medium mb-3">Registrar nuevas constantes</p>
+                                <div className="grid gap-3 md:grid-cols-2">
+                                    <FloatingLabelInput
+                                        id="weightKg"
+                                        label="Peso (kg)"
+                                        type="number"
+                                        step="0.1"
+                                        value={vitalForm.weightKg}
+                                        onChange={handleVitalInputChange("weightKg")}
+                                        disabled={isSavingVitals}
+                                    />
+                                    <FloatingLabelInput
+                                        id="temperatureCelsius"
+                                        label="Temperatura (°C)"
+                                        type="number"
+                                        step="0.1"
+                                        value={vitalForm.temperatureCelsius}
+                                        onChange={handleVitalInputChange("temperatureCelsius")}
+                                        disabled={isSavingVitals}
+                                    />
+                                    <FloatingLabelInput
+                                        id="heartRate"
+                                        label="Frecuencia cardiaca (lpm)"
+                                        type="number"
+                                        step="1"
+                                        value={vitalForm.heartRate}
+                                        onChange={handleVitalInputChange("heartRate")}
+                                        disabled={isSavingVitals}
+                                    />
+                                    <FloatingLabelInput
+                                        id="respiratoryRate"
+                                        label="Frecuencia respiratoria (rpm)"
+                                        type="number"
+                                        step="1"
+                                        value={vitalForm.respiratoryRate}
+                                        onChange={handleVitalInputChange("respiratoryRate")}
+                                        disabled={isSavingVitals}
+                                    />
+                                </div>
+                                <Button
+                                    className="mt-3"
+                                    size="sm"
+                                    type="button"
+                                    onClick={handleSaveVitalSigns}
+                                    disabled={isSavingVitals || !vitalFormHasValues}
+                                >
+                                    {isSavingVitals ? "Guardando..." : "Registrar constantes"}
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
                 </aside>
@@ -183,20 +649,37 @@ export default function HospitalizationChartPage() {
                 />
             )}
 
-            {completeTreatmentModal && (
+            <ConfirmationDialog
+                open={isDischargeDialogOpen}
+                onClose={() => setIsDischargeDialogOpen(false)}
+                title="Confirmar alta del paciente"
+                description="Esta acción marcará la hospitalización como dada de alta y liberará la jaula asignada. ¿Deseas continuar?"
+                onConfirm={handleDischarge}
+                confirmText={isDischarging ? "Procesando..." : "Confirmar alta"}
+                confirmVariant="destructive"
+                showTooltip={false}
+            />
+
+            {completeTreatmentModal && hospitalization && (
                 <CompleteTreatmentModal
                     open={completeTreatmentModal.open}
                     onOpenChange={(open) => !open && setCompleteTreatmentModal(null)}
                     hospitalizationId={hospitalization.id}
-                    scheduleId={completeTreatmentModal.scheduleId}
-                    treatmentName={completeTreatmentModal.treatmentName}
+                    schedule={completeTreatmentModal.schedule}
                     onSuccess={(updated) => {
                         setHospitalization(updated);
                         setCompleteTreatmentModal(null);
                     }}
                 />
             )}
+
+            {viewTreatmentModal && (
+                <ViewTreatmentModal
+                    open={viewTreatmentModal.open}
+                    onOpenChange={(open) => !open && setViewTreatmentModal(null)}
+                    schedule={viewTreatmentModal.schedule}
+                />
+            )}
         </div>
     );
 }
-

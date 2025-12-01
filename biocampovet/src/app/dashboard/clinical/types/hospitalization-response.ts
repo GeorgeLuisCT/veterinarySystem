@@ -1,6 +1,7 @@
 import { HospitalizationStatus } from "../enums/hospitalization-status";
 import { AdmissionTiming } from "../enums/admission-timing";
 import { HospitalizationCause } from "../enums/hospitalization-cause";
+import { ProductUnitType } from "@/app/dashboard/inventory/_enums/product-unit-type";
 
 export interface HospitalizationSummaryResponse {
   id: number;
@@ -28,6 +29,14 @@ export interface EvolutionNoteResponse {
   note: string;
 }
 
+export interface TreatmentScheduleProductUsageResponse {
+  id: number;
+  productId: number;
+  productName: string;
+  quantity: number;
+  unit: ProductUnitType;
+}
+
 export interface TreatmentScheduleResponse {
   id: number;
   hospitalizationId: number;
@@ -38,6 +47,19 @@ export interface TreatmentScheduleResponse {
   completedByEmployeeId?: number;
   completedByEmployeeFullName?: string;
   notes?: string;
+  products?: TreatmentScheduleProductUsageResponse[];
+}
+
+export interface HospitalizationVitalSignResponse {
+  id: number;
+  hospitalizationId: number;
+  weightKg?: number;
+  temperatureCelsius?: number;
+  heartRate?: number;
+  respiratoryRate?: number;
+  recordedAt: string;
+  recordedByEmployeeId?: number;
+  recordedByEmployeeFullName?: string;
 }
 
 export interface HospitalizationResponse {
@@ -63,6 +85,7 @@ export interface HospitalizationResponse {
   status: HospitalizationStatus;
   evolutionNotes: EvolutionNoteResponse[];
   treatmentSchedules: TreatmentScheduleResponse[];
+  vitalSigns: HospitalizationVitalSignResponse[];
   version: number;
 }
 

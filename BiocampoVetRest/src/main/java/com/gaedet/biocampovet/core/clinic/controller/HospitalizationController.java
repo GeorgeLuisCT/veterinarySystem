@@ -60,6 +60,12 @@ public class HospitalizationController {
         return ResponseEntity.ok(hospitalizationService.addEvolutionNote(id, request));
     }
 
+    @PostMapping("/{id}/vitals")
+    public ResponseEntity<HospitalizationResponse> addVitalSigns(
+            @PathVariable Long id, @Valid @RequestBody CreateHospitalizationVitalSignRequest request) {
+        return ResponseEntity.ok(hospitalizationService.addVitalSign(id, request));
+    }
+
     @PatchMapping("/{hospitalizationId}/treatment-schedules/{scheduleId}")
     public ResponseEntity<HospitalizationResponse> updateTreatmentSchedule(
             @PathVariable Long hospitalizationId,

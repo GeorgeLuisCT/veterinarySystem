@@ -12,11 +12,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage, FormLabel } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FloatingLabelInput } from "@/components/floating-label-input";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
-import { FrequencyUnitLabels } from "../../enums/frequency-unit";
+import { FrequencyUnit, FrequencyUnitLabels } from "../../enums/frequency-unit";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import {
@@ -25,12 +24,22 @@ import {
 } from "../../types/hospitalization-request";
 import HospitalizationService from "../../service/hospitalization-service";
 import { HospitalizationResponse } from "../../types/hospitalization-response";
+import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
 
 type Props = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     hospitalizationId: number;
     onSuccess: (updated: HospitalizationResponse) => void;
+};
+
+const toLocalDateTimeString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}:00`;
 };
 
 export function AddTreatmentModal({ open, onOpenChange, hospitalizationId, onSuccess }: Props) {
@@ -40,11 +49,11 @@ export function AddTreatmentModal({ open, onOpenChange, hospitalizationId, onSuc
         resolver: zodResolver(createTreatmentScheduleSchema),
         defaultValues: {
             treatmentName: "",
-            scheduledTime: new Date().toISOString(),
+            scheduledTime: toLocalDateTimeString(new Date()),
             notes: "",
             frequencyValue: null,
             frequencyUnit: null,
-            numberOfDoses: null,
+            numberOfDoses: 1,
         },
     });
 
@@ -53,15 +62,66 @@ export function AddTreatmentModal({ open, onOpenChange, hospitalizationId, onSuc
         []
     );
 
+    const watchedScheduledTime = form.watch("scheduledTime");
+    const watchedFrequencyValue = form.watch("frequencyValue");
+    const watchedFrequencyUnit = form.watch("frequencyUnit");
+    const watchedNumberOfDoses = form.watch("numberOfDoses");
+
+    const addInterval = React.useCallback((date: Date, value: number, unit: FrequencyUnit) => {
+        const next = new Date(date);
+        switch (unit) {
+            case FrequencyUnit.MINUTES:
+                next.setMinutes(next.getMinutes() + value);
+                break;
+            case FrequencyUnit.HOURS:
+                next.setHours(next.getHours() + value);
+                break;
+            case FrequencyUnit.DAYS:
+                next.setDate(next.getDate() + value);
+                break;
+            default:
+                break;
+        }
+        return next;
+    }, []);
+
+    const dosePreview = React.useMemo(() => {
+        if (!watchedScheduledTime) return [];
+        const initial = new Date(watchedScheduledTime);
+        if (Number.isNaN(initial.getTime())) return [];
+
+        const hasFrequency = watchedFrequencyValue != null && watchedFrequencyUnit != null;
+        const totalDoses =
+            hasFrequency && watchedNumberOfDoses && watchedNumberOfDoses > 0 ? watchedNumberOfDoses : 1;
+
+        const entries: { index: number; date: Date }[] = [];
+        let current = initial;
+        for (let i = 0; i < totalDoses; i += 1) {
+            entries.push({ index: i + 1, date: new Date(current) });
+            if (hasFrequency) {
+                current = addInterval(current, watchedFrequencyValue as number, watchedFrequencyUnit as FrequencyUnit);
+            }
+        }
+        return entries;
+    }, [watchedScheduledTime, watchedFrequencyValue, watchedFrequencyUnit, watchedNumberOfDoses, addInterval]);
+
+    const formatPreviewDate = (date: Date) =>
+        date.toLocaleString("es-ES", {
+            day: "2-digit",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+
     useEffect(() => {
         if (open) {
             form.reset({
                 treatmentName: "",
-                scheduledTime: new Date().toISOString(),
+                scheduledTime: toLocalDateTimeString(new Date()),
                 notes: "",
                 frequencyValue: null,
                 frequencyUnit: null,
-                numberOfDoses: null,
+                numberOfDoses: 1,
             });
         }
     }, [open, form]);
@@ -94,10 +154,17 @@ export function AddTreatmentModal({ open, onOpenChange, hospitalizationId, onSuc
                             name="treatmentName"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Tratamiento / Medicamento</FormLabel>
+                                    <FormLabel>Descripción del tratamiento</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Ej. Amoxicilina 500mg" {...field} />
+                                        <Textarea
+                                            rows={3}
+                                            placeholder="Ej. 50 ml de Amoxicilina + 30 ml de Solución Hartmann"
+                                            {...field}
+                                        />
                                     </FormControl>
+                                    <p className="text-xs text-muted-foreground">
+                                        Usa este campo para detallar todo el procedimiento o combinación de medicamentos.
+                                    </p>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -107,29 +174,111 @@ export function AddTreatmentModal({ open, onOpenChange, hospitalizationId, onSuc
                             name="scheduledTime"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Fecha y Hora Programada</FormLabel>
                                     <FormControl>
-                                        <Input
-                                            type="datetime-local"
-                                            value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ""}
-                                            onChange={(e) => {
-                                                const date = new Date(e.target.value);
-                                                if (!isNaN(date.getTime())) {
-                                                    field.onChange(date.toISOString());
-                                                }
-                                            }}
+                                        <FloatingLabelDateInput
+                                            id="scheduledTime"
+                                            label="Fecha y hora de la primera dosis"
+                                            mode="datetime"
+                                            value={field.value ?? ""}
+                                            onChange={(value) => field.onChange(value || "")}
                                         />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
+
+                        <fieldset className="rounded-xl border p-3">
+                            <legend className="px-1 text-sm font-medium">Frecuencia (opcional)</legend>
+                            <div className="grid gap-3 sm:grid-cols-3">
+                                <FormField
+                                    control={form.control}
+                                    name="frequencyValue"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Cada</FormLabel>
+                                            <FormControl>
+                                                <FloatingLabelInput
+                                                    id="frequencyValue"
+                                                    label="Valor"
+                                                    type="number"
+                                                    step="1"
+                                                    value={field.value === null ? "" : String(field.value)}
+                                                    onChange={(v) => field.onChange(v === "" ? null : Number(v))}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="frequencyUnit"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Unidad</FormLabel>
+                                            <FormControl>
+                                                <FloatingLabelSelect
+                                                    id="frequencyUnit"
+                                                    label="Unidad"
+                                                    value={field.value ?? ""}
+                                                    options={frequencyUnitOptions}
+                                                    onValueChange={(value) => field.onChange(value || null)}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="numberOfDoses"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Total de dosis</FormLabel>
+                                            <FormControl>
+                                                <FloatingLabelInput
+                                                    id="numberOfDoses"
+                                                    label="N° de dosis"
+                                                    type="number"
+                                                    min="1"
+                                                    value={field.value === null ? "" : String(field.value)}
+                                                    onChange={(v) => field.onChange(v === "" ? null : Number(v))}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <p className="mt-2 text-xs text-muted-foreground">
+                                Define cada cuánto se repite y cuántas dosis se planifican para generar el cronograma.
+                            </p>
+                        </fieldset>
+
+                        {watchedFrequencyUnit && watchedFrequencyValue && dosePreview.length > 1 && (
+                            <div className="rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
+                                <p className="text-sm font-medium text-foreground">Cronograma estimado</p>
+                                <ol className="mt-2 space-y-1 text-foreground">
+                                    {dosePreview.map(({ index, date }) => (
+                                        <li key={index} className="flex items-center justify-between gap-3">
+                                            <span>
+                                                Dosis {index}
+                                                {index === 1 ? " (inicio)" : ""}
+                                            </span>
+                                            <span>{formatPreviewDate(date)}</span>
+                                        </li>
+                                    ))}
+                                </ol>
+                            </div>
+                        )}
+
                         <FormField
                             control={form.control}
                             name="notes"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Notas (Opcional)</FormLabel>
+                                    <FormLabel>Notas del plan (Opcional)</FormLabel>
                                     <FormControl>
                                         <Textarea placeholder="Instrucciones adicionales..." {...field} value={field.value || ""} />
                                     </FormControl>

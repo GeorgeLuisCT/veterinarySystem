@@ -228,6 +228,7 @@ public class ClinicalHistoryDetailResponse {
         private final LocalDateTime completedAt;
         private final String completedBy;
         private final String notes;
+        private final List<TreatmentProductUsageEntry> products;
     }
 
     @Getter
@@ -237,5 +238,15 @@ public class ClinicalHistoryDetailResponse {
         private final LocalDateTime timestamp;
         private final String author;
         private final String note;
+    }
+
+    @Getter
+    @Builder
+    public static class TreatmentProductUsageEntry {
+        private final Long id;
+        private final Long productId;
+        private final String productName;
+        private final java.math.BigDecimal quantity;
+        private final com.gaedet.biocampovet.core.inventory.enums.ProductUnitType unit;
     }
 }

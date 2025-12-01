@@ -33,5 +33,6 @@ public class HospitalizationResponse {
     private HospitalizationStatus status;
     private List<EvolutionNoteResponse> evolutionNotes;
     private List<TreatmentScheduleResponse> treatmentSchedules;
+    private List<HospitalizationVitalSignResponse> vitalSigns;
     private int version;
 }

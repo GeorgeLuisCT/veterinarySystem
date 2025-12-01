@@ -3,10 +3,16 @@ package com.gaedet.biocampovet.core.clinic.mapper;
 import com.gaedet.biocampovet.core.animal.dto.AnimalBasicResponse;
 import com.gaedet.biocampovet.core.animal.mapper.AnimalMapper;
 import com.gaedet.biocampovet.core.branches.entity.Branch;
+import com.gaedet.biocampovet.core.clinic.dto.*;
 import com.gaedet.biocampovet.core.clinic.entity.Cage;
-import com.gaedet.biocampovet.core.clinic.dto.CageRequest;
-import com.gaedet.biocampovet.core.clinic.dto.CageResponse;
+import com.gaedet.biocampovet.core.clinic.entity.EvolutionNote;
 import com.gaedet.biocampovet.core.clinic.entity.Hospitalization;
+import com.gaedet.biocampovet.core.clinic.entity.HospitalizationVitalSign;
+import com.gaedet.biocampovet.core.clinic.entity.TreatmentSchedule;
+
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.Optional;
 
 public class CageMapper {
 
@@ -35,6 +41,30 @@ public class CageMapper {
             brief.setClinicalServiceId(current.getClinicalService() != null ? current.getClinicalService().getId() : null);
             brief.setClinicalServiceName(current.getClinicalService() != null ? current.getClinicalService().getName() : null);
             brief.setAttentionId(current.getAttention() != null ? current.getAttention().getId() : null);
+            if (current.getVitalSigns() != null && !current.getVitalSigns().isEmpty()) {
+                HospitalizationVitalSign latestVitalSign = current.getVitalSigns().get(0);
+                brief.setLatestVitalSign(HospitalizationVitalSignMapper.toResponse(latestVitalSign));
+            }
+
+            if (current.getTreatmentSchedules() != null && !current.getTreatmentSchedules().isEmpty()) {
+                Optional<TreatmentSchedule> nextTreatment = current.getTreatmentSchedules().stream()
+                        .filter(schedule -> !schedule.isCompleted())
+                        .filter(schedule -> schedule.getScheduledTime() != null)
+                        .sorted(Comparator.comparing(TreatmentSchedule::getScheduledTime))
+                        .findFirst();
+                nextTreatment.ifPresent(schedule ->
+                        brief.setNextTreatmentSchedule(toBrief(schedule)));
+            }
+
+            if (current.getEvolutionNotes() != null && !current.getEvolutionNotes().isEmpty()) {
+                EvolutionNote latestNote = current.getEvolutionNotes().stream()
+                        .filter(Objects::nonNull)
+                        .filter(note -> note.getTimestamp() != null)
+                        .max(Comparator.comparing(EvolutionNote::getTimestamp))
+                        .orElse(current.getEvolutionNotes().get(0));
+                brief.setLatestEvolutionNote(EvolutionNoteMapper.toResponse(latestNote));
+            }
+
             response.setCurrentHospitalization(brief);
         }
 
@@ -49,5 +79,13 @@ public class CageMapper {
         cage.setOccupied(false);
         return cage;
     }
-}
 
+    private static TreatmentScheduleBriefResponse toBrief(TreatmentSchedule schedule) {
+        TreatmentScheduleBriefResponse brief = new TreatmentScheduleBriefResponse();
+        brief.setId(schedule.getId());
+        brief.setTreatmentName(schedule.getTreatmentName());
+        brief.setScheduledTime(schedule.getScheduledTime());
+        brief.setCompleted(schedule.isCompleted());
+        return brief;
+    }
+}

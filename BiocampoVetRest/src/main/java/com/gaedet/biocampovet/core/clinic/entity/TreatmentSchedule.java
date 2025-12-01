@@ -1,10 +1,23 @@
 package com.gaedet.biocampovet.core.clinic.entity;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
 import com.gaedet.biocampovet.core.employees.entity.Employee;
 import lombok.*;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Define una tarea programada en la hoja de tratamiento de un paciente
@@ -42,4 +55,8 @@ public class TreatmentSchedule {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    @OneToMany(mappedBy = "treatmentSchedule", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<TreatmentScheduleProductUsage> productUsages = new ArrayList<>();
 }

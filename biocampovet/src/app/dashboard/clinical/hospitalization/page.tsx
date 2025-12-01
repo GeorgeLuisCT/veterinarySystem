@@ -14,6 +14,7 @@ import { HospitalizationCauseDetails } from "@/app/dashboard/clinical/enums/hosp
 import CageService from "@/app/dashboard/clinical/service/cage-service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import { NewHospitalizationModal } from "../components/hospitalization/new-hospitalization-modal";
@@ -31,6 +32,25 @@ import { AnimalSpeciesDetails } from "../../crm/patients/enums/animal-species";
 import { CageSizeLabels } from "../enums/cage-size";
 import { formatAdmissionTime } from "@/utils/farmated-dates";
 
+const truncateText = (value: string, maxLength = 40) => {
+  if (!value) return "";
+  return value.length > maxLength ? `${value.slice(0, maxLength - 1)}…` : value;
+};
+
+const formatDateTime = (value?: string, options?: Intl.DateTimeFormatOptions) => {
+  if (!value) return "";
+  return new Date(value).toLocaleString("es-ES", options ?? {
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const formatMeasurement = (value?: number, unit = "", decimals = 0) => {
+  if (value == null) return "N/A";
+  const fixed = decimals > 0 ? value.toFixed(decimals) : value.toString();
+  return `${fixed}${unit}`;
+};
 
 export default function HospitalizationBoardPage() {
   const { userInfo } = useUser();
@@ -104,6 +124,85 @@ export default function HospitalizationBoardPage() {
     const borderClass = speciesColor ? speciesColor.replace("bg-", "border-") : "border-gray-200";
     const iconClass = speciesColor ? speciesColor.replace("bg-", "text-") : "text-gray-400";
 
+    const latestVitalSign = hosp.latestVitalSign;
+    const nextTreatment = hosp.nextTreatmentSchedule;
+    const latestNote = hosp.latestEvolutionNote;
+
+    const vitalParts = [
+      latestVitalSign?.temperatureCelsius != null ? formatMeasurement(latestVitalSign.temperatureCelsius, "°C", 1) : null,
+      latestVitalSign?.weightKg != null ? formatMeasurement(latestVitalSign.weightKg, " kg", 1) : null,
+    ].filter(Boolean);
+    const vitalSummary = vitalParts.length ? vitalParts.join(" · ") : "Sin registros";
+    const vitalTooltip = latestVitalSign
+      ? [
+          latestVitalSign.temperatureCelsius != null ? `Temperatura: ${formatMeasurement(latestVitalSign.temperatureCelsius, "°C", 1)}` : null,
+          latestVitalSign.weightKg != null ? `Peso: ${formatMeasurement(latestVitalSign.weightKg, " kg", 1)}` : null,
+          latestVitalSign.heartRate != null ? `Frecuencia cardiaca: ${formatMeasurement(latestVitalSign.heartRate, " lpm")}` : null,
+          latestVitalSign.respiratoryRate != null ? `Frecuencia respiratoria: ${formatMeasurement(latestVitalSign.respiratoryRate, " rpm")}` : null,
+          latestVitalSign.recordedAt ? `Registrado: ${formatDateTime(latestVitalSign.recordedAt, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}` : null,
+        ]
+          .filter(Boolean)
+          .join("\n")
+      : "Aún no se registran signos vitales.";
+
+    const nextTreatmentTimeShort = nextTreatment ? formatDateTime(nextTreatment.scheduledTime, { weekday: "short", hour: "2-digit", minute: "2-digit" }) : "";
+    const nextTreatmentSummary = nextTreatment
+      ? `${nextTreatmentTimeShort ? `${nextTreatmentTimeShort} · ` : ""}${truncateText(nextTreatment.treatmentName, 20)}`
+      : "Sin pendientes";
+    const nextTreatmentTooltip = nextTreatment
+      ? `${nextTreatment.treatmentName}${
+          nextTreatment.scheduledTime
+            ? `\nProgramado para ${formatDateTime(nextTreatment.scheduledTime, {
+                weekday: "long",
+                day: "2-digit",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}`
+            : ""
+        }`
+      : "No hay tratamientos pendientes.";
+
+    const latestNoteSummary = latestNote?.note ? truncateText(latestNote.note, 30) : "Sin notas";
+    const latestNoteTooltip = latestNote
+      ? `${latestNote.note}\n— ${latestNote.authorFullName}${
+          latestNote.timestamp
+            ? ` · ${formatDateTime(latestNote.timestamp, {
+                weekday: "long",
+                day: "2-digit",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}`
+            : ""
+        }`
+      : "No hay notas registradas.";
+
+    const renderSummaryButton = (params: {
+      icon: React.ReactNode;
+      title: string;
+      summary: string;
+      tooltip: string;
+    }) => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            type="button"
+            className="flex h-auto flex-col items-center gap-1 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+          >
+            {params.icon}
+            <p className="text-xs font-semibold">{params.title}</p>
+            <span className="text-[11px] leading-tight text-gray-500 text-center">{params.summary}</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs whitespace-pre-wrap text-sm">
+          <p>{params.tooltip}</p>
+        </TooltipContent>
+      </Tooltip>
+    );
+
     return (
       <Card className="flex flex-col overflow-hidden shadow-md bg-white rounded-lg pt-0 border-2">
         <div className={`relative flex items-center justify-between p-3 text-white ${causeDetails.colorClass}`}>
@@ -162,17 +261,28 @@ export default function HospitalizationBoardPage() {
             <p className="text-sm text-gray-500">{formatAdmissionTime(hosp.admissionDate)}</p>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 my-4">
-            <Button variant="outline" size="sm" className="flex-col h-auto py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
-              <HeartPulse className="h-5 w-5 mb-1" />Signos Vitales
-            </Button>
-            <Button variant="outline" size="sm" className="flex-col h-auto py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
-              <Pill className="h-5 w-5 mb-1" />Medicar
-            </Button>
-            <Button variant="outline" size="sm" className="flex-col h-auto py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
-              <ClipboardEdit className="h-5 w-5 mb-1" />Nota
-            </Button>
-          </div>
+          <TooltipProvider delayDuration={150}>
+            <div className="grid grid-cols-3 gap-2 my-4">
+              {renderSummaryButton({
+                icon: <HeartPulse className="h-5 w-5" />,
+                title: "Signos Vitales",
+                summary: vitalSummary,
+                tooltip: vitalTooltip,
+              })}
+              {renderSummaryButton({
+                icon: <Pill className="h-5 w-5" />,
+                title: "Medicar",
+                summary: nextTreatmentSummary,
+                tooltip: nextTreatmentTooltip,
+              })}
+              {renderSummaryButton({
+                icon: <ClipboardEdit className="h-5 w-5" />,
+                title: "Nota",
+                summary: latestNoteSummary,
+                tooltip: latestNoteTooltip,
+              })}
+            </div>
+          </TooltipProvider>
 
           <div className="mt-auto pt-4 border-t border-gray-100">
             <Link href={`/dashboard/clinical/hospitalization/${hosp.id}`} className="w-full">

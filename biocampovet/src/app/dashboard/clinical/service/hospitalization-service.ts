@@ -5,6 +5,8 @@ import {
   UpdateHospitalizationRequest,
   AddEvolutionNoteRequest,
   UpdateTreatmentScheduleRequest,
+  CreateHospitalizationVitalSignRequest,
+  CreateTreatmentScheduleRequest,
   HospitalizationListParams,
 } from "../types/hospitalization-request";
 import {
@@ -72,6 +74,17 @@ export const HospitalizationService = {
   ): Promise<HospitalizationResponse> => {
     const response = await api.post<HospitalizationResponse>(
       `/hospitalizations/${hospitalizationId}/treatment-schedules`,
+      data
+    );
+    return response.data;
+  },
+
+  addVitalSigns: async (
+    hospitalizationId: number,
+    data: CreateHospitalizationVitalSignRequest
+  ): Promise<HospitalizationResponse> => {
+    const response = await api.post<HospitalizationResponse>(
+      `/hospitalizations/${hospitalizationId}/vitals`,
       data
     );
     return response.data;

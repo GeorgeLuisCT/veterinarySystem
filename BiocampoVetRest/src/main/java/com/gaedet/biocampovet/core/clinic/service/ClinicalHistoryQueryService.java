@@ -21,6 +21,7 @@ import com.gaedet.biocampovet.core.clinic.dto.history.ClinicalHistoryDetailRespo
 import com.gaedet.biocampovet.core.clinic.dto.history.ClinicalHistoryDetailResponse.ProcedureType;
 import com.gaedet.biocampovet.core.clinic.dto.history.ClinicalHistoryDetailResponse.ServiceItem;
 import com.gaedet.biocampovet.core.clinic.dto.history.ClinicalHistoryDetailResponse.TreatmentScheduleEntry;
+import com.gaedet.biocampovet.core.clinic.dto.history.ClinicalHistoryDetailResponse.TreatmentProductUsageEntry;
 import com.gaedet.biocampovet.core.clinic.dto.history.ClinicalHistoryDetailResponse.Vitals;
 import com.gaedet.biocampovet.core.clinic.dto.history.ClinicalHistoryDetailResponse.WeightEntry;
 import com.gaedet.biocampovet.core.clinic.dto.history.ClinicalHistoryLatestAttentionProjection;
@@ -35,6 +36,7 @@ import com.gaedet.biocampovet.core.clinic.entity.LaboratoryResultValue;
 import com.gaedet.biocampovet.core.clinic.entity.MedicationAdministration;
 import com.gaedet.biocampovet.core.clinic.entity.SurgicalReport;
 import com.gaedet.biocampovet.core.clinic.entity.TreatmentSchedule;
+import com.gaedet.biocampovet.core.clinic.entity.TreatmentScheduleProductUsage;
 import com.gaedet.biocampovet.core.clinic.enums.ClinicalServiceCategory;
 import com.gaedet.biocampovet.core.clinic.enums.LabUnit;
 import com.gaedet.biocampovet.core.clinic.specs.*;
@@ -588,6 +590,21 @@ public class ClinicalHistoryQueryService {
                 .completedAt(schedule.getCompletedAt())
                 .completedBy(schedule.getCompletedBy() != null ? schedule.getCompletedBy().getFullName() : null)
                 .notes(schedule.getNotes())
+                .products(Optional.ofNullable(schedule.getProductUsages())
+                        .orElseGet(Collections::emptyList)
+                        .stream()
+                        .map(this::toTreatmentProductUsage)
+                        .collect(toList()))
+                .build();
+    }
+
+    private TreatmentProductUsageEntry toTreatmentProductUsage(TreatmentScheduleProductUsage usage) {
+        return TreatmentProductUsageEntry.builder()
+                .id(usage.getId())
+                .productId(usage.getProduct() != null ? usage.getProduct().getId() : null)
+                .productName(usage.getProduct() != null ? usage.getProduct().getName() : null)
+                .quantity(usage.getQuantity())
+                .unit(usage.getUnit())
                 .build();
     }
 

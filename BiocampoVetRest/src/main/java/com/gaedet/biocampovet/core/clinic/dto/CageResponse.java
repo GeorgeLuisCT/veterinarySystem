@@ -1,8 +1,6 @@
 package com.gaedet.biocampovet.core.clinic.dto;
 
 import com.gaedet.biocampovet.core.animal.dto.AnimalBasicResponse;
-import com.gaedet.biocampovet.core.animal.enums.AnimalSex;
-import com.gaedet.biocampovet.core.animal.enums.AnimalSpecies;
 import com.gaedet.biocampovet.core.clinic.enums.AdmissionTiming;
 import com.gaedet.biocampovet.core.clinic.enums.CageSize;
 import com.gaedet.biocampovet.core.clinic.enums.HospitalizationCause;
@@ -39,5 +37,9 @@ public class CageResponse {
         private String clinicalServiceName;
 
         private Long attentionId;
+
+        private HospitalizationVitalSignResponse latestVitalSign;
+        private TreatmentScheduleBriefResponse nextTreatmentSchedule;
+        private EvolutionNoteResponse latestEvolutionNote;
     }
 }

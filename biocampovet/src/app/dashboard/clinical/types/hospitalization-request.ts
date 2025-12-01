@@ -70,26 +70,87 @@ export type AddEvolutionNoteRequest = z.infer<typeof addEvolutionNoteSchema>;
 
 import { ProductUnitType } from "@/app/dashboard/inventory/_enums/product-unit-type";
 
+const treatmentProductUsageSchema = z.object({
+  productId: z
+    .number({ required_error: "Selecciona un producto." })
+    .int("ID de producto inválido.")
+    .min(1, "Producto inválido."),
+  quantity: z
+    .number({ invalid_type_error: "Ingresa una cantidad." })
+    .positive("La cantidad debe ser mayor que cero."),
+  unit: z.nativeEnum(ProductUnitType, { required_error: "Selecciona la unidad." }),
+});
+
+export type TreatmentScheduleProductUsageInput = z.infer<typeof treatmentProductUsageSchema>;
+
 export const updateTreatmentScheduleSchema = z.object({
   isCompleted: z.boolean(),
   completedByEmployeeId: z.number().int().min(1).optional().nullable(),
   notes: z.string().optional().nullable(),
-  productId: z.number().int().min(1).optional().nullable(),
-  quantity: z.number().min(0).optional().nullable(),
-  unit: z.nativeEnum(ProductUnitType).optional().nullable(),
+  products: z.array(treatmentProductUsageSchema).min(1, "Registra al menos un producto utilizado."),
 });
 
 export type UpdateTreatmentScheduleRequest = z.infer<typeof updateTreatmentScheduleSchema>;
 
 import { FrequencyUnit } from "../enums/frequency-unit";
 
-export const createTreatmentScheduleSchema = z.object({
-  treatmentName: z.string().min(1, "El nombre del tratamiento es obligatorio."),
-  scheduledTime: z.string().datetime({ message: "Fecha y hora inválidas." }),
-  notes: z.string().optional().nullable(),
-  frequencyValue: z.number().int().min(1).optional().nullable(),
-  frequencyUnit: z.nativeEnum(FrequencyUnit).optional().nullable(),
-  numberOfDoses: z.number().int().min(1).optional().nullable(),
-});
+export const createHospitalizationVitalSignSchema = z
+  .object({
+    recordedByEmployeeId: z.number().int().min(1),
+    recordedAt: z.string().datetime().optional(),
+    weightKg: z.number().positive().optional(),
+    temperatureCelsius: z.number().positive().optional(),
+    heartRate: z.number().int().positive().optional(),
+    respiratoryRate: z.number().int().positive().optional(),
+  })
+  .refine(
+    (data) =>
+      data.weightKg != null ||
+      data.temperatureCelsius != null ||
+      data.heartRate != null ||
+      data.respiratoryRate != null,
+    {
+      message: "Registra al menos una constante vital.",
+      path: ["weightKg"],
+    }
+  );
+
+export type CreateHospitalizationVitalSignRequest = z.infer<typeof createHospitalizationVitalSignSchema>;
+
+export const createTreatmentScheduleSchema = z
+  .object({
+    treatmentName: z.string().min(1, "La descripción del tratamiento es obligatoria."),
+    scheduledTime: z.string().datetime({ message: "Fecha y hora inválidas." }),
+    notes: z.string().optional().nullable(),
+    frequencyValue: z.number().int().min(1).optional().nullable(),
+    frequencyUnit: z.nativeEnum(FrequencyUnit).optional().nullable(),
+    numberOfDoses: z.number().int().min(1).optional().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    const hasFrequencyValue = data.frequencyValue != null;
+    const hasFrequencyUnit = data.frequencyUnit != null;
+    if (hasFrequencyValue !== hasFrequencyUnit) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Completa el valor y la unidad de la frecuencia.",
+        path: hasFrequencyValue ? ["frequencyUnit"] : ["frequencyValue"],
+      });
+    }
+    if (hasFrequencyValue && hasFrequencyUnit) {
+      if (data.numberOfDoses == null || data.numberOfDoses < 2) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Indica cuántas dosis se programarán (mínimo 2).",
+          path: ["numberOfDoses"],
+        });
+      }
+    } else if (data.numberOfDoses && data.numberOfDoses > 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Para múltiples dosis debes definir la frecuencia.",
+        path: ["frequencyValue"],
+      });
+    }
+  });
 
 export type CreateTreatmentScheduleRequest = z.infer<typeof createTreatmentScheduleSchema>;

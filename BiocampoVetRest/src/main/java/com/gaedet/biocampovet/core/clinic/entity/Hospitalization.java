@@ -74,6 +74,10 @@ public class Hospitalization {
     @OneToMany(mappedBy = "hospitalization", cascade = CascadeType.ALL)
     private List<TreatmentSchedule> treatmentSchedules;
 
+    @OneToMany(mappedBy = "hospitalization", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("recordedAt DESC")
+    private List<HospitalizationVitalSign> vitalSigns;
+
     @AssertTrue(message = "Si admissionTiming es distinto de NONE, debe existir una atención asociada")
     public boolean timingRequiresAttention() {
         if (admissionTiming == null) return false;

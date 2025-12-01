@@ -2,7 +2,10 @@ package com.gaedet.biocampovet.core.clinic.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Getter
 @Setter
@@ -12,7 +15,6 @@ public class UpdateTreatmentScheduleRequest {
     private Long completedByEmployeeId;
     private String notes;
 
-    private Long productId;
-    private java.math.BigDecimal quantity;
-    private com.gaedet.biocampovet.core.inventory.enums.ProductUnitType unit;
+    @Valid
+    private List<TreatmentScheduleProductUsageRequest> products;
 }

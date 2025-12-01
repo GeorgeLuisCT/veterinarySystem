@@ -1,10 +1,12 @@
 package com.gaedet.biocampovet.core.clinic.mapper;
 
-import com.gaedet.biocampovet.core.clinic.entity.Hospitalization;
 import com.gaedet.biocampovet.core.clinic.dto.HospitalizationResponse;
-import java.util.stream.Collectors;
-
 import com.gaedet.biocampovet.core.clinic.dto.HospitalizationSummaryResponse;
+import com.gaedet.biocampovet.core.clinic.entity.Hospitalization;
+import com.gaedet.biocampovet.core.clinic.entity.HospitalizationVitalSign;
+
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 public class HospitalizationMapper {
 
@@ -51,6 +53,16 @@ public class HospitalizationMapper {
             );
         }
 
+        if (h.getVitalSigns() != null) {
+            r.setVitalSigns(
+                    h.getVitalSigns().stream()
+                            .sorted(Comparator.comparing(HospitalizationVitalSign::getRecordedAt,
+                                    Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+                            .map(HospitalizationVitalSignMapper::toResponse)
+                            .collect(Collectors.toList())
+            );
+        }
+
         return r;
     }
 
@@ -73,4 +85,3 @@ public class HospitalizationMapper {
                 .build();
     }
 }
-

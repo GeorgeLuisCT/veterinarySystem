@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
     Dialog,
@@ -22,53 +22,93 @@ import {
     UpdateTreatmentScheduleRequest,
 } from "../../types/hospitalization-request";
 import HospitalizationService from "../../service/hospitalization-service";
-import { HospitalizationResponse } from "../../types/hospitalization-response";
+import { HospitalizationResponse, TreatmentScheduleResponse } from "../../types/hospitalization-response";
 import { useUser } from "@/context/user-context";
 import ProductService from "@/app/dashboard/inventory/_service/product-service";
-import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
+import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
+import { z } from "zod";
+
+type UpdateTreatmentScheduleFormValues = z.input<typeof updateTreatmentScheduleSchema>;
 
 type Props = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     hospitalizationId: number;
-    scheduleId: number;
-    treatmentName: string;
+    schedule: TreatmentScheduleResponse;
     onSuccess: (updated: HospitalizationResponse) => void;
 };
 
-export function CompleteTreatmentModal({ open, onOpenChange, hospitalizationId, scheduleId, treatmentName, onSuccess }: Props) {
+export function CompleteTreatmentModal({ open, onOpenChange, hospitalizationId, schedule, onSuccess }: Props) {
     const { toast } = useToast();
     const { userInfo } = useUser();
-    const [productOptions, setProductOptions] = useState<{ value: string; label: string }[]>([]);
+    const [productOptionsMap, setProductOptionsMap] = useState<Record<string, { value: string; label: string }[]>>({});
 
-    const form = useForm<UpdateTreatmentScheduleRequest>({
-        resolver: zodResolver(updateTreatmentScheduleSchema),
-        defaultValues: {
-            isCompleted: true,
-            completedByEmployeeId: userInfo?.employeeId || null,
-            notes: "",
-            productId: null,
-            quantity: null,
-            unit: null,
+    const buildDefaultValues = React.useCallback(
+        (initialSchedule?: TreatmentScheduleResponse): UpdateTreatmentScheduleFormValues => {
+            const products =
+                initialSchedule?.products && initialSchedule.products.length > 0
+                    ? initialSchedule.products.map((product) => ({
+                        productId: product.productId,
+                        quantity: product.quantity,
+                        unit: product.unit,
+                    }))
+                    : [
+                        {
+                            productId: 0,
+                            quantity: 0,
+                            unit: ProductUnitType.UNIT,
+                        },
+                    ];
+
+            return {
+                isCompleted: true,
+                completedByEmployeeId: userInfo?.employeeId || null,
+                notes: "",
+                products,
+            };
         },
+        [userInfo?.employeeId]
+    );
+
+    const form = useForm<UpdateTreatmentScheduleFormValues>({
+        resolver: zodResolver(updateTreatmentScheduleSchema),
+        defaultValues: buildDefaultValues(schedule),
+    });
+
+    const { fields: productFields, append, remove, replace } = useFieldArray({
+        control: form.control,
+        name: "products",
     });
 
     useEffect(() => {
-        if (open && userInfo?.employeeId) {
+        if (open) {
+            const defaults = buildDefaultValues(schedule);
+            form.reset(defaults);
+            replace(defaults.products);
+            setProductOptionsMap({});
+        }
+    }, [open, schedule, buildDefaultValues, form, replace]);
+
+    useEffect(() => {
+        if (userInfo?.employeeId) {
             form.setValue("completedByEmployeeId", userInfo.employeeId);
         }
-    }, [open, userInfo, form]);
+    }, [userInfo, form]);
 
-    const handleSearchProducts = async (query: string) => {
-        if (query.trim().length < 2) {
-            setProductOptions([]);
+    const handleSearchProducts = async (query: string, fieldId: string) => {
+        const trimmed = query.trim();
+        if (trimmed.length < 2) {
+            setProductOptionsMap((prev) => ({ ...prev, [fieldId]: [] }));
             return;
         }
         try {
-            const results = await ProductService.searchProducts(query.trim(), userInfo?.selectedBranch.id);
-            setProductOptions(results.map((p) => ({ value: String(p.id), label: p.name })));
+            const results = await ProductService.searchProducts(trimmed, userInfo?.selectedBranch.id);
+            setProductOptionsMap((prev) => ({
+                ...prev,
+                [fieldId]: results.map((p) => ({ value: String(p.id), label: p.name })),
+            }));
         } catch {
-            setProductOptions([]);
+            setProductOptionsMap((prev) => ({ ...prev, [fieldId]: [] }));
         }
     };
 
@@ -77,10 +117,30 @@ export function CompleteTreatmentModal({ open, onOpenChange, hospitalizationId, 
         []
     );
 
-    const handleSubmit = async (values: UpdateTreatmentScheduleRequest) => {
+    const scheduledTimeLabel = useMemo(
+        () =>
+            new Date(schedule.scheduledTime).toLocaleString("es-ES", {
+                day: "2-digit",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+            }),
+        [schedule.scheduledTime]
+    );
+
+    const handleSubmit = async (values: UpdateTreatmentScheduleFormValues) => {
+        const payload: UpdateTreatmentScheduleRequest = {
+            isCompleted: true,
+            completedByEmployeeId: values.completedByEmployeeId,
+            notes: values.notes,
+            products: values.products,
+        };
         try {
-            const updated = await HospitalizationService.updateTreatmentSchedule(hospitalizationId, scheduleId, values);
-            toast({ title: "Tratamiento completado", description: "El tratamiento se ha marcado como completado y se ha descontado del inventario." });
+            const updated = await HospitalizationService.updateTreatmentSchedule(hospitalizationId, schedule.id, payload);
+            toast({
+                title: "Tratamiento completado",
+                description: "El tratamiento se ha marcado como completado y se descontó el inventario programado.",
+            });
             onSuccess(updated);
             onOpenChange(false);
         } catch (error) {
@@ -94,75 +154,124 @@ export function CompleteTreatmentModal({ open, onOpenChange, hospitalizationId, 
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>Administrar Tratamiento: {treatmentName}</DialogTitle>
+                    <DialogTitle>Administrar tratamiento</DialogTitle>
                 </DialogHeader>
+                <div className="rounded-lg bg-slate-50 p-3 text-sm space-y-1">
+                    <p className="font-semibold text-slate-900 whitespace-pre-line">{schedule.treatmentName}</p>
+                    <p className="text-slate-600">Programado para {scheduledTimeLabel}</p>
+                    {schedule.notes && (
+                        <p className="text-slate-600 whitespace-pre-line">Notas del plan: {schedule.notes}</p>
+                    )}
+                </div>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                        <p className="text-sm text-muted-foreground">
-                            Selecciona el producto utilizado para descontarlo del inventario.
-                        </p>
+                        <div className="space-y-1">
+                            <p className="text-sm font-medium">Fecha y hora de aplicación</p>
+                            <p className="rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground">
+                                {new Date(schedule.scheduledTime).toLocaleString("es-ES", {
+                                    day: "2-digit",
+                                    month: "short",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                Se registrará en la misma hora programada para asegurar la coherencia de la hoja.
+                            </p>
+                        </div>
 
-                        <FormField
-                            control={form.control}
-                            name="productId"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <FloatingLabelSelect
-                                            id="productId"
-                                            label="Producto *"
-                                            placeholder="Buscar producto..."
-                                            options={productOptions}
-                                            onSearch={handleSearchProducts}
-                                            value={field.value ? String(field.value) : ""}
-                                            onValueChange={(v) => field.onChange(v ? Number(v) : null)}
+                        <div className="space-y-3">
+                            <p className="text-sm font-medium text-slate-800">
+                                Productos aplicados y a descontar del inventario
+                            </p>
+                            {productFields.map((productField, index) => (
+                                <div key={productField.id} className="rounded-xl border p-3 space-y-3">
+                                    <div className="flex items-start justify-between">
+                                        <p className="text-sm font-medium">Producto #{index + 1}</p>
+                                        {productFields.length > 1 && (
+                                            <Button type="button" variant="ghost" size="sm" onClick={() => remove(index)}>
+                                                Quitar
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <div className="grid gap-3 sm:grid-cols-3">
+                                        <FormField
+                                            control={form.control}
+                                            name={`products.${index}.productId`}
+                                            render={({ field }) => (
+                                                <FormItem className="sm:col-span-2">
+                                                    <FormControl>
+                                                        <FloatingLabelSelect
+                                                            id={`products.${index}.productId`}
+                                                            label="Producto *"
+                                                            placeholder="Buscar producto..."
+                                                            options={productOptionsMap[productField.id] ?? []}
+                                                            onSearch={(query) => handleSearchProducts(query, productField.id)}
+                                                            value={field.value ? String(field.value) : ""}
+                                                            onValueChange={(value) => field.onChange(value ? Number(value) : 0)}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
                                         />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="quantity"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <FloatingLabelInput
-                                                id="quantity"
-                                                label="Cantidad *"
-                                                type="number"
-                                                step="0.01"
-                                                value={field.value === null ? "" : String(field.value)}
-                                                onChange={(v) => field.onChange(v === "" ? null : Number(v))}
+                                        <div className="grid gap-3 sm:grid-cols-2">
+                                            <FormField
+                                                control={form.control}
+                                                name={`products.${index}.quantity`}
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <FloatingLabelInput
+                                                                id={`products.${index}.quantity`}
+                                                                label="Cantidad *"
+                                                                type="number"
+                                                                step="0.01"
+                                                                value={!field.value ? "" : String(field.value)}
+                                                                onChange={(v) => field.onChange(v === "" ? 0 : Number(v))}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
                                             />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="unit"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <FloatingLabelSelect
-                                                id="unit"
-                                                label="Unidad *"
-                                                value={field.value ?? ""}
-                                                options={unitOptions}
-                                                onValueChange={(v) => field.onChange(v || null)}
+                                            <FormField
+                                                control={form.control}
+                                                name={`products.${index}.unit`}
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <FloatingLabelSelect
+                                                                id={`products.${index}.unit`}
+                                                                label="Unidad *"
+                                                                value={field.value}
+                                                                options={unitOptions}
+                                                                onValueChange={(value) => field.onChange(value as ProductUnitType)}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
                                             />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() =>
+                                    append({
+                                        productId: 0,
+                                        quantity: 0,
+                                        unit: ProductUnitType.UNIT,
+                                    })
+                                }
+                            >
+                                Agregar otro producto
+                            </Button>
                         </div>
 
                         <FormField
@@ -170,8 +279,9 @@ export function CompleteTreatmentModal({ open, onOpenChange, hospitalizationId, 
                             name="notes"
                             render={({ field }) => (
                                 <FormItem>
+                                    <FormLabel>Notas de aplicación (opcional)</FormLabel>
                                     <FormControl>
-                                        <Textarea placeholder="Notas adicionales (opcional)..." {...field} value={field.value || ""} />
+                                        <Textarea placeholder="Observaciones de esta aplicación..." {...field} value={field.value || ""} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -180,7 +290,7 @@ export function CompleteTreatmentModal({ open, onOpenChange, hospitalizationId, 
 
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                            <Button type="submit">Confirmar y Descontar</Button>
+                            <Button type="submit">Confirmar y descontar</Button>
                         </DialogFooter>
                     </form>
                 </Form>
