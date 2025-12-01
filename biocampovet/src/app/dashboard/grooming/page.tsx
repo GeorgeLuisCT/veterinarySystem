@@ -8,7 +8,7 @@ import { useUser } from "@/context/user-context";
 import { useToast } from "@/hooks/use-toast";
 import { AnimalBasicResponse } from "@/app/dashboard/crm/patients/types/animal-basic-response";
 import AttentionService from "@/app/dashboard/schedule/service/attention-service";
-import { AttentionStatus } from "@/app/dashboard/schedule/enums/attention-status";
+import { AttentionStatus, AttentionStatusLabels } from "@/app/dashboard/schedule/enums/attention-status";
 import { AttentionType } from "@/app/dashboard/schedule/enums/attention-type";
 import type { AttentionResponse } from "@/app/dashboard/schedule/types/attention-response";
 import NewAttentionModal from "@/app/dashboard/schedule/components/new-attention-modal";
@@ -17,6 +17,7 @@ import type { GroomingSessionSummaryResponse } from "./types/grooming-session-re
 import GroomingFilters, { type GroomingFilters as Filters } from "../clinical/components/grooming/grooming-filters";
 import GroomingSessionService from "./service/grooming-session-service";
 import GroomingCard from "../clinical/components/grooming/grooming-card";
+import DashboardLayoutSection from "../dashboard-layout-section";
 
 function formatLocalDate(d: Date): string {
   const y = d.getFullYear();
@@ -62,6 +63,7 @@ export default function GroomingPage() {
 
   const [waitingRoom, setWaitingRoom] = useState<AttentionResponse[]>([]);
   const [sessions, setSessions] = useState<GroomingSessionSummaryResponse[]>([]);
+  const [attendingRoom, setAttendingRoom] = useState<AttentionResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -73,9 +75,25 @@ export default function GroomingPage() {
       const startDateParam = toDateParam(filters.startDate);
       const endDateParam = toDateParam(filters.endDate);
 
-      const [waitingRoomResponse, sessionsResponse] = await Promise.all([
+      const [waitingRoomResponse, inConsultationResponse, inProgressResponse, sessionsResponse] = await Promise.all([
         AttentionService.list({
           status: AttentionStatus.WAITING,
+          type: AttentionType.GROOMING,
+          startDate: startDateParam,
+          endDate: endDateParam,
+          size: 200,
+          branchId: selectedBranchId,
+        }),
+        AttentionService.list({
+          status: AttentionStatus.IN_CONSULTATION,
+          type: AttentionType.GROOMING,
+          startDate: startDateParam,
+          endDate: endDateParam,
+          size: 200,
+          branchId: selectedBranchId,
+        }),
+        AttentionService.list({
+          status: AttentionStatus.IN_PROGRESS,
           type: AttentionType.GROOMING,
           startDate: startDateParam,
           endDate: endDateParam,
@@ -98,6 +116,18 @@ export default function GroomingPage() {
       ]);
 
       setWaitingRoom(waitingRoomResponse.content);
+      const mergedAttending: AttentionResponse[] = [];
+      const seen = new Set<number>();
+      const addUnique = (list: AttentionResponse[]) => {
+        list.forEach((att) => {
+          if (seen.has(att.id)) return;
+          seen.add(att.id);
+          mergedAttending.push(att);
+        });
+      };
+      addUnique(inConsultationResponse.content);
+      addUnique(inProgressResponse.content);
+      setAttendingRoom(mergedAttending);
       setSessions(sessionsResponse.content);
     } catch (e) {
       setError("No se pudo cargar la información de peluquería.");
@@ -113,6 +143,8 @@ export default function GroomingPage() {
   }, [fetchData]);
 
   const allItems: UnifiedCardData[] = useMemo(() => {
+    const sessionAttentionIds = new Set(sessions.map((s) => s.attentionId));
+
     const wr: UnifiedCardData[] = waitingRoom.map((att) => ({
       id: att.id,
       source: "RECEPCION",
@@ -123,6 +155,19 @@ export default function GroomingPage() {
       attentionId: att.id,
       statusLabel: "Sala de Espera",
     }));
+
+    const attending: UnifiedCardData[] = attendingRoom
+      .filter((att) => !sessionAttentionIds.has(att.id))
+      .map((att) => ({
+        id: att.id,
+        source: "GROOMING",
+        animalBasicResponse: att.animalBasicResponse,
+        reason: att.clinicalServiceName ?? "Servicio de peluquería",
+        professionalName: att.attendingEmployeeFullName,
+        startTime: att.checkInTime,
+        attentionId: att.id,
+        statusLabel: att.status ? AttentionStatusLabels[att.status] ?? "En atención" : "En atención",
+      }));
 
     const gs: UnifiedCardData[] = sessions.map((s) => ({
       id: s.id,
@@ -135,7 +180,7 @@ export default function GroomingPage() {
       statusLabel: GroomingStatusLabels[s.status],
     }));
 
-    return [...wr, ...gs].sort((a, b) => {
+    return [...wr, ...attending, ...gs].sort((a, b) => {
       const prioA = a.source === "RECEPCION" ? 0 : 1;
       const prioB = b.source === "RECEPCION" ? 0 : 1;
       if (prioA !== prioB) return prioA - prioB;
@@ -144,7 +189,7 @@ export default function GroomingPage() {
       if (tA !== tB) return tB - tA;
       return (b.attentionId - a.attentionId) || (b.id - a.id);
     });
-  }, [waitingRoom, sessions]);
+  }, [waitingRoom, attendingRoom, sessions]);
 
   const filteredItems = useMemo(() => {
     if (filters.status === "ALL") return allItems;
@@ -169,11 +214,10 @@ export default function GroomingPage() {
   }
 
   return (
-    <div className="h-full bg-gray-50 p-4 sm:p-6">
-      <div className="max-w-screen-2xl mx-auto">
+    <DashboardLayoutSection>
+      <div className="h-screen bg-background flex flex-col overflow-hidden">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Scissors className="h-7 w-7 text-pink-600" />
             <div>
               <h1 className="text-3xl font-bold text-slate-900">Peluquería</h1>
               <p className="text-gray-600 mt-1">Todas las atenciones y sesiones en una sola vista.</p>
@@ -205,8 +249,13 @@ export default function GroomingPage() {
           <div className="text-center text-gray-500 mt-10">No hay registros para los filtros seleccionados.</div>
         )}
 
-        <NewAttentionModal open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} onCreated={handleCreated} />
+        <NewAttentionModal
+          open={isCreateModalOpen}
+          onOpenChange={setIsCreateModalOpen}
+          onCreated={handleCreated}
+          origin="GROOMING"
+        />
       </div>
-    </div>
+    </DashboardLayoutSection>
   );
 }

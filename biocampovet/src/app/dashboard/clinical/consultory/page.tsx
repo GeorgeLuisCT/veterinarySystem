@@ -16,6 +16,7 @@ import ConsultoryFilters, { type ConsultoryFilters as Filters } from "../compone
 import NewAttentionModal from "@/app/dashboard/schedule/components/new-attention-modal";
 import { AnimalBasicResponse } from "../../crm/patients/types/animal-basic-response";
 import { useUser } from "@/context/user-context";
+import DashboardLayoutSection from "../../dashboard-layout-section";
 
 function formatLocalDate(d: Date): string {
   const y = d.getFullYear();
@@ -62,10 +63,10 @@ export default function ConsultoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const {userInfo} = useUser();
+  const { userInfo } = useUser();
   const selectedBranchId = userInfo?.selectedBranch?.id || undefined
 
-  const fetchData = useCallback(async () => { 
+  const fetchData = useCallback(async () => {
 
     console.log(userInfo?.selectedBranch?.id);
     setLoading(true);
@@ -104,7 +105,7 @@ export default function ConsultoryPage() {
     } finally {
       setLoading(false);
     }
-  }, [filters.startDate, filters.endDate,userInfo?.selectedBranch?.id]);
+  }, [filters.startDate, filters.endDate, userInfo?.selectedBranch?.id]);
 
   useEffect(() => {
     fetchData();
@@ -138,10 +139,10 @@ export default function ConsultoryPage() {
         c.status === ClinicalAttentionStatus.OPEN
           ? "En Consulta (Abierta)"
           : c.status === ClinicalAttentionStatus.IN_PROGRESS
-          ? "En Consulta (En progreso)"
-          : c.status === ClinicalAttentionStatus.WAITING_LAB
-          ? "Esperando Exámenes"
-          : "Listo para Facturar",
+            ? "En Consulta (En progreso)"
+            : c.status === ClinicalAttentionStatus.WAITING_LAB
+              ? "Esperando Exámenes"
+              : "Listo para Facturar",
     }));
 
     return [...wr, ...ca].sort((a, b) => {
@@ -153,7 +154,7 @@ export default function ConsultoryPage() {
       if (tA !== tB) return tB - tA;
       return (b.attentionId - a.attentionId) || (b.id - a.id);
     });
-    
+
   }, [waitingRoom, clinicalAttentions]);
 
   const filteredItems = useMemo(() => {
@@ -187,8 +188,8 @@ export default function ConsultoryPage() {
   }
 
   return (
-    <div className="h-full bg-gray-50 p-4 sm:p-6">
-      <div className="max-w-screen-2xl mx-auto">
+    <DashboardLayoutSection>
+      <div className="h-screen bg-background flex flex-col overflow-hidden">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Consultas del Día</h1>
@@ -222,6 +223,6 @@ export default function ConsultoryPage() {
 
         <NewAttentionModal open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} onCreated={handleCreated} />
       </div>
-    </div>
+    </DashboardLayoutSection>
   );
 }

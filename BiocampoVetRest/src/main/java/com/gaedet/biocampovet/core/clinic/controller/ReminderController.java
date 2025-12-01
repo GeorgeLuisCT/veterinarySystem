@@ -3,6 +3,7 @@ package com.gaedet.biocampovet.core.clinic.controller;
 import com.gaedet.biocampovet.core.clinic.dto.reminder.ReminderCreateRequest;
 import com.gaedet.biocampovet.core.clinic.dto.reminder.ReminderListItemResponse;
 import com.gaedet.biocampovet.core.clinic.dto.reminder.ReminderQueryFilters;
+import com.gaedet.biocampovet.core.clinic.dto.reminder.ReminderUpdateStatusRequest;
 import com.gaedet.biocampovet.core.clinic.enums.ReminderStatus;
 import com.gaedet.biocampovet.core.clinic.enums.ReminderType;
 import com.gaedet.biocampovet.core.clinic.service.ReminderService;
@@ -37,8 +38,7 @@ public class ReminderController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueTo,
             @RequestParam(defaultValue = "true") boolean includeManual,
-            @RequestParam(defaultValue = "true") boolean includeAutomatic
-    ) {
+            @RequestParam(defaultValue = "true") boolean includeAutomatic) {
         ReminderQueryFilters filters = ReminderQueryFilters.builder()
                 .query(query)
                 .types(types)
@@ -65,5 +65,14 @@ public class ReminderController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         reminderService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','VETERINARIAN','ASSISTANT','RECEPTIONIST')")
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ReminderListItemResponse> updateStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody ReminderUpdateStatusRequest request) {
+        ReminderListItemResponse response = reminderService.updateStatus(id, request.getStatus());
+        return ResponseEntity.ok(response);
     }
 }

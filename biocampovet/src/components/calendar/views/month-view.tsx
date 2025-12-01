@@ -144,6 +144,7 @@ export function MonthView() {
             variant="ghost"
             size="sm"
             className="h-5 w-full text-xs text-muted-foreground hover:bg-accent p-0 justify-start"
+            onClick={(e) => e.stopPropagation()}
           >
             <MoreHorizontal className="h-3 w-3 mr-1" />+{hiddenEvents.length} más
           </Button>
@@ -153,7 +154,7 @@ export function MonthView() {
             <div className="font-medium text-sm mb-2">
               {format(day, "EEEE d 'de' MMMM", { locale: es })}
             </div>
-            {events.map((event) => (
+            {hiddenEvents.map((event) => (
               <EventItem key={event.id} event={event} />
             ))}
           </div>

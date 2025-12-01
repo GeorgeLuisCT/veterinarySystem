@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { FloatingLabelInput } from "@/components/floating-label-input";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
+import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
 import { Textarea } from "@/components/ui/textarea";
 import type { CreateGroomingAppointmentRequest } from "../../types/appointment-request";
 import ClinicalServiceService from "@/app/dashboard/clinical/service/clinical-service-service";
@@ -128,184 +129,196 @@ export function GroomingAppointmentTab({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
-          {!hasFixedBranch && (
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <fieldset className="rounded-2xl border p-4">
+          <legend className="px-1 text-sm font-semibold">Contexto de la cita</legend>
+          <div className="grid gap-4 md:grid-cols-2">
+            {!hasFixedBranch && (
+              <FormField
+                control={form.control}
+                name="branchId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <FloatingLabelSelect
+                        id="grooming-branchId"
+                        label="Sucursal"
+                        value={field.value ? String(field.value) : ""}
+                        onValueChange={(value) => {
+                          const numericValue = Number(value);
+                          field.onChange(numericValue);
+                          syncBranchBetweenForms(numericValue, "grooming");
+                        }}
+                        options={branchOptions.map((branch) => ({
+                          value: String(branch.id),
+                          label: branch.label,
+                        }))}
+                        disabled={branchesLoading || isSubmitting}
+                        emptyMessage="No se encontraron sucursales."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
-              name="branchId"
+              name="animalId"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
                     <FloatingLabelSelect
-                      id="grooming-branchId"
-                      label="Sucursal"
+                      id="grooming-animalId"
+                      label="Mascota"
                       value={field.value ? String(field.value) : ""}
-                      onValueChange={(value) => {
-                        const numericValue = Number(value);
-                        field.onChange(numericValue);
-                        syncBranchBetweenForms(numericValue, "grooming");
-                      }}
-                      options={branchOptions.map((branch) => ({
-                        value: String(branch.id),
-                        label: branch.label,
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      options={animalOptions.map((animal) => ({
+                        value: String(animal.id),
+                        label: animal.label,
                       }))}
-                      disabled={branchesLoading || isSubmitting}
-                      emptyMessage="No se encontraron sucursales."
+                      onSearch={onSearchAnimals}
+                      disabled={isSubmitting}
+                      emptyMessage="No se encontraron mascotas."
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          )}
+          </div>
+        </fieldset>
 
+        <fieldset className="rounded-2xl border p-4">
+          <legend className="px-1 text-sm font-semibold">Servicio y profesional</legend>
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="clinicalServiceId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FloatingLabelSelect
+                      id="grooming-serviceId"
+                      label="Servicio"
+                      value={field.value ? String(field.value) : ""}
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      options={serviceOptions.map((service) => ({
+                        value: String(service.id),
+                        label: service.label,
+                      }))}
+                      onSearch={handleSearchGroomingServices}
+                      disabled={isSubmitting}
+                      emptyMessage="No se encontraron servicios."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="stylistId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FloatingLabelSelect
+                      id="grooming-stylistId"
+                      label="Estilista responsable"
+                      value={field.value ? String(field.value) : ""}
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      options={stylistOptions.map((employee) => ({
+                        value: String(employee.id),
+                        label: employee.label,
+                      }))}
+                      onSearch={handleSearchStylists}
+                      disabled={isSubmitting}
+                      emptyMessage="No se encontraron profesionales."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </fieldset>
+
+        <fieldset className="rounded-2xl border p-4">
+          <legend className="px-1 text-sm font-semibold">Programación</legend>
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="startDateTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FloatingLabelDateInput
+                      id="grooming-startDateTime"
+                      label="Fecha y hora"
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      disabled={isSubmitting}
+                      mode="datetime"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="estimatedDurationMinutes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FloatingLabelInput
+                      id="grooming-estimatedDurationMinutes"
+                      label="Duración estimada (min)"
+                      type="number"
+                      step={1}
+                      value={field.value ?? ""}
+                      onChange={(value) => {
+                        if (value === "") {
+                          field.onChange(null);
+                        } else {
+                          field.onChange(Number(value));
+                        }
+                      }}
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </fieldset>
+
+        <fieldset className="rounded-2xl border p-4">
+          <legend className="px-1 text-sm font-semibold">Notas adicionales</legend>
           <FormField
             control={form.control}
-            name="animalId"
+            name="ownerSpecialNotes"
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <FloatingLabelSelect
-                    id="grooming-animalId"
-                    label="Mascota"
-                    value={field.value ? String(field.value) : ""}
-                    onValueChange={(value) => field.onChange(Number(value))}
-                    options={animalOptions.map((animal) => ({
-                      value: String(animal.id),
-                      label: animal.label,
-                    }))}
-                    onSearch={onSearchAnimals}
-                    disabled={isSubmitting}
-                    emptyMessage="No se encontraron mascotas."
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="clinicalServiceId"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <FloatingLabelSelect
-                    id="grooming-serviceId"
-                    label="Servicio"
-                    value={field.value ? String(field.value) : ""}
-                    onValueChange={(value) => field.onChange(Number(value))}
-                    options={serviceOptions.map((service) => ({
-                      value: String(service.id),
-                      label: service.label,
-                    }))}
-                    onSearch={handleSearchGroomingServices}
-                    disabled={isSubmitting}
-                    emptyMessage="No se encontraron servicios."
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="stylistId"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <FloatingLabelSelect
-                    id="grooming-stylistId"
-                    label="Estilista responsable"
-                    value={field.value ? String(field.value) : ""}
-                    onValueChange={(value) => field.onChange(Number(value))}
-                    options={stylistOptions.map((employee) => ({
-                      value: String(employee.id),
-                      label: employee.label,
-                    }))}
-                    onSearch={handleSearchStylists}
-                    disabled={isSubmitting}
-                    emptyMessage="No se encontraron profesionales."
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="startDateTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <FloatingLabelInput
-                    id="grooming-startDateTime"
-                    label="Fecha y hora"
-                    type="datetime-local"
+                  <Textarea
+                    id="grooming-ownerSpecialNotes"
+                    placeholder="Notas especiales del propietario (opcional)"
                     value={field.value ?? ""}
-                    onChange={field.onChange}
+                    onChange={(event) => field.onChange(event.target.value)}
                     disabled={isSubmitting}
+                    rows={3}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="estimatedDurationMinutes"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <FloatingLabelInput
-                    id="grooming-estimatedDurationMinutes"
-                    label="Duración estimada (min)"
-                    type="number"
-                    step={1}
-                    value={field.value ?? ""}
-                    onChange={(value) => {
-                      if (value === "") {
-                        field.onChange(null);
-                      } else {
-                        field.onChange(Number(value));
-                      }
-                    }}
-                    disabled={isSubmitting}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="ownerSpecialNotes"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Textarea
-                  id="grooming-ownerSpecialNotes"
-                  placeholder="Notas especiales del propietario (opcional)"
-                  value={field.value ?? ""}
-                  onChange={(event) => field.onChange(event.target.value)}
-                  disabled={isSubmitting}
-                  rows={3}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        </fieldset>
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>

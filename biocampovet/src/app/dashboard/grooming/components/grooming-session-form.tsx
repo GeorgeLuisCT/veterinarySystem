@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { FloatingLabelInput } from "@/components/floating-label-input";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
+import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CircleDollarSign, Package, User2 } from "lucide-react";
@@ -21,13 +22,6 @@ import GroomingSessionService from "../service/grooming-session-service";
 import { GroomingStatusLabels, GroomingStatusOptions } from "../enums/grooming-status";
 
 export type Option = { value: string; label: string };
-
-const toInputDateTime = (v?: string | null) => {
-  if (!v) return "";
-  const s = v.trim();
-  const noZone = s.replace(/([+-]\d{2}:?\d{2}|Z)$/i, "");
-  return noZone.slice(0, 16);
-};
 
 const fromInputDateTime = (v?: string | null) => {
   if (!v || v === "") return null;
@@ -167,11 +161,11 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <FloatingLabelInput
+                      <FloatingLabelDateInput
                         id="startedAt"
                         label="Inicio"
-                        type="datetime-local"
-                        value={toInputDateTime(field.value)}
+                        mode="datetime"
+                        value={field.value ?? ""}
                         onChange={(value) => {
                           const normalized = fromInputDateTime(value ?? null);
                           field.onChange(normalized);
@@ -189,11 +183,11 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <FloatingLabelInput
+                      <FloatingLabelDateInput
                         id="finishedAt"
                         label="Fin"
-                        type="datetime-local"
-                        value={toInputDateTime(field.value)}
+                        mode="datetime"
+                        value={field.value ?? ""}
                         onChange={(value) => {
                           const normalized = fromInputDateTime(value ?? null);
                           field.onChange(normalized);

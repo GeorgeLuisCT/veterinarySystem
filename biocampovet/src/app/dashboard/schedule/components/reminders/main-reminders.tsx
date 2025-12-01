@@ -244,38 +244,101 @@ export default function MainRemindersPage() {
     ];
   }, []);
 
+  const handleWhatsAppSend = useCallback((row: ReminderListItemResponse) => {
+    if (!row.ownerPhone) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Este recordatorio no tiene un número de teléfono asociado.",
+      });
+      return;
+    }
+
+    const message = `Hola! Le recordamos sobre: ${ReminderTypeLabels[row.reminderType]} para ${row.animalName}.\nFecha programada: ${formatDate(row.dueDate)}.\nSaludos desde Veterinaria & Spa Coryvet!`;
+    const encodedMessage = encodeURIComponent(message);
+    const phone = row.ownerPhone.replace(/[^0-9]/g, "");
+    const whatsappUrl = `https://wa.me/${phone}?text=${encodedMessage}`;
+
+    window.open(whatsappUrl, "_blank");
+  }, [toast]);
+
+  const handleEmailSend = useCallback((row: ReminderListItemResponse) => {
+    if (!row.ownerEmail) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Este recordatorio no tiene un correo electrónico asociado.",
+      });
+      return;
+    }
+
+    const subject = `Recordatorio: ${ReminderTypeLabels[row.reminderType]} - ${row.animalName}`;
+    const body = `Estimado/a ${row.ownerName || "propietario"},\n\nLe recordamos sobre: ${ReminderTypeLabels[row.reminderType]} para ${row.animalName}.\nFecha programada: ${formatDate(row.dueDate)}.\n\nSaludos cordiales,\nBiocampoVet`;
+
+    const mailtoUrl = `mailto:${row.ownerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    window.location.href = mailtoUrl;
+  }, [toast]);
+
+  const handleMarkAsCompleted = useCallback(async (row: ReminderListItemResponse) => {
+    if (!row.id) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se puede marcar como completado un recordatorio automático.",
+      });
+      return;
+    }
+
+    try {
+      await ReminderService.updateStatus(row.id, ReminderStatus.COMPLETED);
+      toast({
+        title: "Completado",
+        description: "El recordatorio ha sido marcado como completado.",
+      });
+      loadReminders();
+    } catch (err) {
+      console.error(err);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo actualizar el recordatorio. Intenta nuevamente.",
+      });
+    }
+  }, [toast, loadReminders]);
+
   const actions = useMemo<Action<ReminderListItemResponse>[]>(() => {
     return [
       {
         label: "Enviar WhatsApp",
         type: "direct",
         icon: <MessageSquare className="h-4 w-4" />,
-        onClick: (row: ReminderListItemResponse) => console.log("Enviar WhatsApp", row),
+        onClick: handleWhatsAppSend,
         disabled: (row: ReminderListItemResponse) => row.status !== ReminderStatus.PENDING,
       },
       {
         label: "Enviar email",
         type: "direct",
         icon: <Mail className="h-4 w-4" />,
-        onClick: (row: ReminderListItemResponse) => console.log("Enviar email", row),
+        onClick: handleEmailSend,
         disabled: (row: ReminderListItemResponse) => row.status !== ReminderStatus.PENDING,
       },
       {
         label: "Marcar como concluído",
         type: "dropdown",
         icon: <CheckCircle className="h-4 w-4" />,
-        onClick: (row: ReminderListItemResponse) => console.log("Marcar como concluído", row),
+        onClick: handleMarkAsCompleted,
         disabled: (row: ReminderListItemResponse) => row.status !== ReminderStatus.PENDING,
       },
       {
-        label: "Excluir lembrete",
+        label: "Eliminar recordatorio",
         type: "dropdown",
         icon: <Trash2 className="h-4 w-4" />,
         onClick: (row: ReminderListItemResponse) => setDeleteTarget(row.id),
         disabled: (row: ReminderListItemResponse) => !row.deletable,
       },
     ];
-  }, []);
+  }, [handleWhatsAppSend, handleEmailSend, handleMarkAsCompleted]);
 
   return (
     <>

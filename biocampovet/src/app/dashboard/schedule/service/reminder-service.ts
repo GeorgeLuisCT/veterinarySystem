@@ -66,6 +66,14 @@ export const ReminderService = {
   async delete(id: number): Promise<void> {
     await api.delete(`/reminders/${id}`);
   },
+
+  async updateStatus(id: number, status: string): Promise<ReminderListItemResponse> {
+    const response = await api.patch<ReminderListItemResponse>(
+      `/reminders/${id}/status`,
+      { status }
+    );
+    return response.data;
+  },
 };
 
 export default ReminderService;

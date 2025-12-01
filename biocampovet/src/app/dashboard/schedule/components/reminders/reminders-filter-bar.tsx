@@ -185,7 +185,7 @@ export default function RemindersFilterBar({
             </PopoverContent>
           </Popover>
 
-          <div className="flex items-center gap-2 rounded-lg border px-3 py-2">
+          {/* <div className="flex items-center gap-2 rounded-lg border px-3 py-2">
             <span className="text-sm">Manuales</span>
             <Switch
               checked={state.includeManual}
@@ -201,7 +201,7 @@ export default function RemindersFilterBar({
               onCheckedChange={(v) => setField("includeAutomatic", v)}
               aria-label="Incluir automáticos"
             />
-          </div>
+          </div>*/}
         </div>
 
         <div className="flex items-center gap-2">

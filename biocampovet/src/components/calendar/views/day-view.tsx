@@ -182,15 +182,18 @@ export function DayView() {
             <div className="flex">
               {/* Time column */}
               <div className="w-20 border-r border-border flex-shrink-0">
-                {HOURS.map((hour) => (
-                  <div key={hour} className="relative" style={{ height: HOUR_HEIGHT }}>
-                    <div className="absolute -top-2 left-2 text-sm text-muted-foreground font-medium">
-                      {format(setHours(new Date(), hour), "HH:mm", { locale: es })}
+                {HOURS.map((hour) => {
+                  const labelTime = setMinutes(setHours(new Date(), hour), 0)
+                  return (
+                    <div key={hour} className="relative" style={{ height: HOUR_HEIGHT }}>
+                      <div className="absolute -top-2 left-2 text-sm text-muted-foreground font-medium">
+                        {format(labelTime, "HH:mm", { locale: es })}
+                      </div>
+                      {/* Half-hour line */}
+                      <div className="absolute left-4 right-0 border-t border-border/50" style={{ top: SLOT_HEIGHT }} />
                     </div>
-                    {/* Half-hour line */}
-                    <div className="absolute left-4 right-0 border-t border-border/50" style={{ top: SLOT_HEIGHT }} />
-                  </div>
-                ))}
+                  )
+                })}
               </div>
 
               {/* Day column */}

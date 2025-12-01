@@ -51,7 +51,8 @@ public class ReminderService {
         List<ReminderListItemResponse> combined = Stream.concat(manual.stream(), automatic.stream())
                 .sorted(Comparator.comparing(ReminderListItemResponse::dueDate)
                         .thenComparing(ReminderListItemResponse::automatic)
-                        .thenComparing(ReminderListItemResponse::subject, Comparator.nullsLast(String::compareToIgnoreCase)))
+                        .thenComparing(ReminderListItemResponse::subject,
+                                Comparator.nullsLast(String::compareToIgnoreCase)))
                 .collect(Collectors.toList());
 
         if (size <= 0) {
@@ -75,7 +76,8 @@ public class ReminderService {
     @Transactional
     public ReminderListItemResponse create(ReminderCreateRequest request) {
         Animal animal = animalRepository.findWithDetailsById(request.getAnimalId())
-                .orElseThrow(() -> new EntityNotFoundException("No se encontró el animal con id " + request.getAnimalId()));
+                .orElseThrow(
+                        () -> new EntityNotFoundException("No se encontró el animal con id " + request.getAnimalId()));
 
         Reminder reminder = Reminder.builder()
                 .animal(animal)
@@ -95,19 +97,27 @@ public class ReminderService {
         reminderRepository.delete(reminder);
     }
 
+    @Transactional
+    public ReminderListItemResponse updateStatus(Long id, ReminderStatus status) {
+        Reminder reminder = reminderRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el recordatorio con id " + id));
+
+        reminder.setStatus(status);
+        Reminder updated = reminderRepository.save(reminder);
+        return mapManualReminder(updated);
+    }
+
     private List<ReminderListItemResponse> loadManualReminders(ReminderQueryFilters filters) {
         var specification = ReminderSpecs.withQueryFilters(
                 filters.getQuery(),
                 filters.getTypes(),
                 filters.getStatuses(),
                 filters.getDueFrom(),
-                filters.getDueTo()
-        );
+                filters.getDueTo());
 
         List<Reminder> reminders = reminderRepository.findAll(
                 specification,
-                Sort.by(Sort.Direction.ASC, "dueDate").and(Sort.by("id"))
-        );
+                Sort.by(Sort.Direction.ASC, "dueDate").and(Sort.by("id")));
         return reminders.stream()
                 .map(this::mapManualReminder)
                 .collect(Collectors.toList());
@@ -135,8 +145,7 @@ public class ReminderService {
                 owner != null ? owner.getName() : null,
                 owner != null ? owner.getPhoneNumber() : null,
                 owner != null ? owner.getEmail() : null,
-                null
-        );
+                null);
     }
 
     private List<ReminderListItemResponse> loadAutomaticReminders(ReminderQueryFilters filters) {
@@ -175,7 +184,8 @@ public class ReminderService {
                 continue;
             }
 
-            LocalDate dueDate = calculateDueDate(visitDateTime.toLocalDate(), service.getReminderPeriod(), service.getReminderPeriodUnit());
+            LocalDate dueDate = calculateDueDate(visitDateTime.toLocalDate(), service.getReminderPeriod(),
+                    service.getReminderPeriodUnit());
             if (dueDate == null) {
                 continue;
             }
@@ -202,9 +212,13 @@ public class ReminderService {
             if (normalizedQuery != null && !normalizedQuery.isBlank()) {
                 boolean matches = false;
                 String animalName = animal.getName() != null ? animal.getName().toLowerCase(Locale.ROOT) : "";
-                String ownerName = owner != null && owner.getName() != null ? owner.getName().toLowerCase(Locale.ROOT) : "";
-                String microchip = animal.getMicrochipNumber() != null ? animal.getMicrochipNumber().toLowerCase(Locale.ROOT) : "";
-                if (animalName.contains(normalizedQuery) || ownerName.contains(normalizedQuery) || microchip.contains(normalizedQuery)) {
+                String ownerName = owner != null && owner.getName() != null ? owner.getName().toLowerCase(Locale.ROOT)
+                        : "";
+                String microchip = animal.getMicrochipNumber() != null
+                        ? animal.getMicrochipNumber().toLowerCase(Locale.ROOT)
+                        : "";
+                if (animalName.contains(normalizedQuery) || ownerName.contains(normalizedQuery)
+                        || microchip.contains(normalizedQuery)) {
                     matches = true;
                 }
 
@@ -215,8 +229,13 @@ public class ReminderService {
 
             String branchName = attentionWrapper.getBranch() != null ? attentionWrapper.getBranch().getName() : null;
             String serviceName = service.getName();
-            String subject = formatReminderType(reminderType) + " • " + (serviceName != null ? serviceName : "Servicio clínico");
-            String detail = buildAutomaticDetail(serviceName, attentionWrapper.getAttendingEmployee() != null ? attentionWrapper.getAttendingEmployee().getFullName() : null, visitDateTime.toLocalDate());
+            String subject = formatReminderType(reminderType) + " • "
+                    + (serviceName != null ? serviceName : "Servicio clínico");
+            String detail = buildAutomaticDetail(serviceName,
+                    attentionWrapper.getAttendingEmployee() != null
+                            ? attentionWrapper.getAttendingEmployee().getFullName()
+                            : null,
+                    visitDateTime.toLocalDate());
 
             responses.add(new ReminderListItemResponse(
                     null,
@@ -235,14 +254,14 @@ public class ReminderService {
                     owner != null ? owner.getName() : null,
                     owner != null ? owner.getPhoneNumber() : null,
                     owner != null ? owner.getEmail() : null,
-                    branchName
-            ));
+                    branchName));
         }
 
         return responses;
     }
 
-    private LocalDate calculateDueDate(LocalDate baseDate, Integer period, com.gaedet.biocampovet.core.global.enums.TimeUnit unit) {
+    private LocalDate calculateDueDate(LocalDate baseDate, Integer period,
+            com.gaedet.biocampovet.core.global.enums.TimeUnit unit) {
         if (baseDate == null || period == null || unit == null) {
             return null;
         }

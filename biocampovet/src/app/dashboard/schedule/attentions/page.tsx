@@ -24,7 +24,7 @@ const CARD_EMERGENCY_CLASS = "bg-red-100/70";
 
 const attendUrlByType: Record<AttentionType, (id: number) => string> = {
   [AttentionType.CLINIC]: (id) => `/dashboard/clinical/consultory/${id}`,
-  [AttentionType.GROOMING]: (id) => `/dashboard/grooming/board/${id}`,
+  [AttentionType.GROOMING]: (id) => `/dashboard/grooming/${id}`,
   [AttentionType.SURGERY]: (id) => `/dashboard/clinical/operating-room/${id}`,
 };
 

@@ -15,6 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Button } from "@/components/ui/button";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { FloatingLabelInput } from "@/components/floating-label-input";
+import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
 import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
 
@@ -41,15 +42,18 @@ type Option = {
   label: string;
 };
 
+type NewAttentionModalOrigin = "DEFAULT" | "GROOMING";
+
 interface NewAttentionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated?: (attention: AttentionResponse) => void;
+  origin?: NewAttentionModalOrigin;
 }
 
 const DATE_TIME_INPUT_FORMAT = "yyyy-MM-dd'T'HH:mm";
 
-export function NewAttentionModal({ open, onOpenChange, onCreated }: NewAttentionModalProps) {
+export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEFAULT" }: NewAttentionModalProps) {
   const { toast } = useToast();
   const { userInfo } = useUser();
 
@@ -57,6 +61,10 @@ export function NewAttentionModal({ open, onOpenChange, onCreated }: NewAttentio
   const selectedBranchId = selectedBranch?.id ?? null;
   const hasFixedBranch = selectedBranchId !== null && selectedBranchId !== 0;
   const fixedBranchId = hasFixedBranch ? selectedBranchId : undefined;
+  const lockedType = React.useMemo(() => {
+    if (origin === "GROOMING") return AttentionType.GROOMING;
+    return undefined;
+  }, [origin]);
 
   const [initialLoading, setInitialLoading] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
@@ -71,11 +79,11 @@ export function NewAttentionModal({ open, onOpenChange, onCreated }: NewAttentio
     (): Partial<CreateAttentionRequest> => ({
       branchId: fixedBranchId,
       checkInTime: format(new Date(), DATE_TIME_INPUT_FORMAT),
-      type: AttentionType.CLINIC,
+      type: lockedType ?? AttentionType.CLINIC,
       status: AttentionStatus.WAITING,
       emergency: false,
     }),
-    [fixedBranchId]
+    [fixedBranchId, lockedType]
   );
 
   const form = useForm<CreateAttentionRequest>({
@@ -268,6 +276,11 @@ export function NewAttentionModal({ open, onOpenChange, onCreated }: NewAttentio
   }, [open, form]);
 
   React.useEffect(() => {
+    if (!open || !lockedType) return;
+    form.setValue("type", lockedType, { shouldValidate: true, shouldDirty: false });
+  }, [lockedType, open, form]);
+
+  React.useEffect(() => {
     if (!hasFixedBranch || !fixedBranchId) {
       return;
     }
@@ -369,7 +382,7 @@ export function NewAttentionModal({ open, onOpenChange, onCreated }: NewAttentio
 
   return (
     <Dialog open={open} onOpenChange={handleModalToggle}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="w-[min(95vw,900px)] sm:max-w-3xl rounded-2xl">
         <DialogHeader>
           <DialogTitle>Registrar atención</DialogTitle>
           <DialogDescription>
@@ -384,178 +397,189 @@ export function NewAttentionModal({ open, onOpenChange, onCreated }: NewAttentio
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                {!hasFixedBranch && (
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <fieldset className="rounded-2xl border p-4">
+                <legend className="px-1 text-sm font-semibold">Ubicación y paciente</legend>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {!hasFixedBranch && (
+                    <FormField
+                      control={form.control}
+                      name="branchId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <FloatingLabelSelect
+                              id="attention-branchId"
+                              label="Sucursal"
+                              value={field.value ? String(field.value) : ""}
+                              onValueChange={(value) => field.onChange(Number(value))}
+                              options={branchOptions.map((branch) => ({
+                                value: String(branch.id),
+                                label: branch.label,
+                              }))}
+                              disabled={branchesLoading || submitting}
+                              emptyMessage="No se encontraron sucursales."
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
                   <FormField
                     control={form.control}
-                    name="branchId"
+                    name="animalId"
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
                           <FloatingLabelSelect
-                            id="attention-branchId"
-                            label="Sucursal"
+                            id="attention-animalId"
+                            label="Mascota"
                             value={field.value ? String(field.value) : ""}
                             onValueChange={(value) => field.onChange(Number(value))}
-                            options={branchOptions.map((branch) => ({
-                              value: String(branch.id),
-                              label: branch.label,
+                            options={animalOptions.map((animal) => ({
+                              value: String(animal.id),
+                              label: animal.label,
                             }))}
-                            disabled={branchesLoading || submitting}
-                            emptyMessage="No se encontraron sucursales."
+                            onSearch={handleSearchAnimals}
+                            disabled={submitting}
+                            emptyMessage="No se encontraron mascotas."
                           />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                )}
+                </div>
+              </fieldset>
 
-                <FormField
-                  control={form.control}
-                  name="animalId"
-                  render={({ field }) => (
+              <fieldset className="rounded-2xl border p-4">
+                <legend className="px-1 text-sm font-semibold">Clasificación</legend>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <FloatingLabelSelect
+                            id="attention-type"
+                            label="Tipo de atención"
+                            value={field.value ?? ""}
+                            onValueChange={(value) => field.onChange(value as AttentionType)}
+                            options={AttentionTypeOptions.map((option) => ({
+                              value: option.value,
+                              label: option.label,
+                            }))}
+                            disabled={submitting || !!lockedType}
+                            emptyMessage="No se encontraron tipos disponibles."
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <FloatingLabelSelect
+                            id="attention-status"
+                            label="Estado"
+                            value={field.value ?? ""}
+                            onValueChange={(value) => field.onChange(value as AttentionStatus)}
+                            options={AttentionStatusOptions.map((option) => ({
+                              value: option.value,
+                              label: option.label,
+                            }))}
+                            disabled={submitting}
+                            emptyMessage="No se encontraron estados."
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </fieldset>
+
+              <fieldset className="rounded-2xl border p-4">
+                <legend className="px-1 text-sm font-semibold">Profesionales y servicio</legend>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="attendingEmployeeId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <FloatingLabelSelect
+                            id="attention-attendingEmployeeId"
+                            label="Profesional responsable"
+                            value={field.value ? String(field.value) : ""}
+                            onValueChange={(value) => field.onChange(Number(value))}
+                            options={employeeOptions.map((employee) => ({
+                              value: String(employee.id),
+                              label: employee.label,
+                            }))}
+                            onSearch={handleSearchEmployees}
+                            disabled={submitting || !branchId}
+                            emptyMessage={
+                              branchId ? "No se encontraron profesionales." : "Seleccione primero una sucursal."
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="clinicalServiceId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <FloatingLabelSelect
+                            id="attention-clinicalServiceId"
+                            label="Servicio"
+                            value={field.value ? String(field.value) : ""}
+                            onValueChange={(value) => field.onChange(Number(value))}
+                            options={serviceOptions.map((service) => ({
+                              value: String(service.id),
+                              label: service.label,
+                            }))}
+                            onSearch={handleSearchServices}
+                            disabled={submitting}
+                            emptyMessage="No se encontraron servicios."
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </fieldset>
+
+              <fieldset className="rounded-2xl border p-4">
+                <legend className="px-1 text-sm font-semibold">Registro y prioridad</legend>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="checkInTime"
+                    render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <FloatingLabelSelect
-                          id="attention-animalId"
-                          label="Mascota"
-                          value={field.value ? String(field.value) : ""}
-                          onValueChange={(value) => field.onChange(Number(value))}
-                          options={animalOptions.map((animal) => ({
-                            value: String(animal.id),
-                            label: animal.label,
-                          }))}
-                          onSearch={handleSearchAnimals}
-                          disabled={submitting}
-                          emptyMessage="No se encontraron mascotas."
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <FloatingLabelSelect
-                          id="attention-type"
-                          label="Tipo de atención"
-                          value={field.value ?? ""}
-                          onValueChange={(value) => field.onChange(value as AttentionType)}
-                          options={AttentionTypeOptions.map((option) => ({
-                            value: option.value,
-                            label: option.label,
-                          }))}
-                          disabled={submitting}
-                          emptyMessage="No se encontraron tipos disponibles."
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <FloatingLabelSelect
-                          id="attention-status"
-                          label="Estado"
-                          value={field.value ?? ""}
-                          onValueChange={(value) => field.onChange(value as AttentionStatus)}
-                          options={AttentionStatusOptions.map((option) => ({
-                            value: option.value,
-                            label: option.label,
-                          }))}
-                          disabled={submitting}
-                          emptyMessage="No se encontraron estados."
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="attendingEmployeeId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <FloatingLabelSelect
-                          id="attention-attendingEmployeeId"
-                          label="Profesional responsable"
-                          value={field.value ? String(field.value) : ""}
-                          onValueChange={(value) => field.onChange(Number(value))}
-                          options={employeeOptions.map((employee) => ({
-                            value: String(employee.id),
-                            label: employee.label,
-                          }))}
-                          onSearch={handleSearchEmployees}
-                          disabled={submitting || !branchId}
-                          emptyMessage={
-                            branchId ? "No se encontraron profesionales." : "Seleccione primero una sucursal."
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="clinicalServiceId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <FloatingLabelSelect
-                          id="attention-clinicalServiceId"
-                          label="Servicio"
-                          value={field.value ? String(field.value) : ""}
-                          onValueChange={(value) => field.onChange(Number(value))}
-                          options={serviceOptions.map((service) => ({
-                            value: String(service.id),
-                            label: service.label,
-                          }))}
-                          onSearch={handleSearchServices}
-                          disabled={submitting}
-                          emptyMessage="No se encontraron servicios."
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="checkInTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <FloatingLabelInput
+                        <FloatingLabelDateInput
                           id="attention-checkInTime"
                           label="Fecha y hora de registro"
-                          type="datetime-local"
                           value={field.value ?? ""}
                           onChange={field.onChange}
                           disabled={submitting}
+                          mode="datetime"
                         />
                       </FormControl>
                       <FormMessage />
@@ -563,27 +587,28 @@ export function NewAttentionModal({ open, onOpenChange, onCreated }: NewAttentio
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="emergency"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-md border border-border px-3 py-2">
-                      <div className="space-y-0.5">
-                        <span className="text-sm font-medium text-foreground">Emergencia</span>
-                        <p className="text-xs text-muted-foreground">
-                          Activa esta opción si la atención requiere prioridad.
-                        </p>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value ?? false}
-                          onCheckedChange={(checked) => field.onChange(checked)}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
+                  <FormField
+                    control={form.control}
+                    name="emergency"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between rounded-2xl border border-dashed border-border/80 px-3 py-2">
+                        <div className="space-y-0.5">
+                          <span className="text-sm font-medium text-foreground">Emergencia</span>
+                          <p className="text-xs text-muted-foreground">
+                            Activa esta opción si la atención requiere prioridad.
+                          </p>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value ?? false}
+                            onCheckedChange={(checked) => field.onChange(checked)}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </fieldset>
 
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => handleModalToggle(false)} disabled={submitting}>

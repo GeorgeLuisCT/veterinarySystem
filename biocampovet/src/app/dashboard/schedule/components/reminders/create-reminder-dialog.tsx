@@ -152,7 +152,6 @@ export function CreateReminderDialog({ open, onOpenChange, onCreated }: Props) {
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="reminder-animal">Paciente</Label>
             <FloatingLabelSelect
               id="reminder-animal"
               label="Selecciona un paciente"
@@ -166,7 +165,6 @@ export function CreateReminderDialog({ open, onOpenChange, onCreated }: Props) {
             />
           </div>
           <div>
-            <Label htmlFor="reminder-type">Tipo</Label>
             <FloatingLabelSelect
               id="reminder-type"
               label="Tipo de recordatorio"
@@ -184,7 +182,6 @@ export function CreateReminderDialog({ open, onOpenChange, onCreated }: Props) {
             />
           </div>
           <div>
-            <Label htmlFor="reminder-date">Fecha objetivo</Label>
             <FloatingLabelDateInput
               id="reminder-date"
               label="Fecha prevista"
@@ -196,7 +193,6 @@ export function CreateReminderDialog({ open, onOpenChange, onCreated }: Props) {
             />
           </div>
           <div>
-            <Label htmlFor="reminder-notes">Notas internas</Label>
             <Input
               id="reminder-notes"
               placeholder="Opcional (por ahora sólo uso interno)"

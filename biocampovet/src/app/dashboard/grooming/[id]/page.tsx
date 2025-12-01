@@ -12,9 +12,10 @@ import EmployeeService from "@/app/dashboard/staff/service/employee-service";
 import { RoleName } from "@/enums/role-name";
 import { EmployeeSummaryResponse } from "@/app/dashboard/staff/types/employee-summary-response";
 import { GroomingSessionDetailResponse } from "../types/grooming-session-response";
-import GroomingSessionForm, {Option, GroomingSessionFormHandle } from "../components/grooming-session-form";
+import GroomingSessionForm, { Option, GroomingSessionFormHandle } from "../components/grooming-session-form";
 import GroomingSessionService from "../service/grooming-session-service";
 import { GroomingStatusLabels } from "../enums/grooming-status";
+import PatientDetails from "../../clinical/components/consultory/patient-details";
 
 const ensureOption = (options: Option[], id: number | null, label: string | null) => {
   if (!id || !label) return options;
@@ -131,7 +132,7 @@ export default function GroomingSessionDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="sticky top-0 z-10 border-b bg-white p-4 shadow-sm">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="mx-auto flex max-w-screen-2xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
             <Link href="/dashboard/grooming" className="inline-flex">
               <Button variant="outline" size="sm">
@@ -142,7 +143,7 @@ export default function GroomingSessionDetailPage() {
             <div>
               <h1 className="text-2xl font-bold text-slate-900">Sesión #{detail.id}</h1>
               <p className="text-sm text-muted-foreground">
-                Paciente: <span className="font-semibold text-pink-600">{detail.summary.animalName}</span> • Atención #{detail.attentionId}
+                Paciente: <span className="font-semibold text-pink-600">{detail.summary.animalBasicResponse.animalName}</span> • Atención #{detail.attentionId}
               </p>
             </div>
           </div>
@@ -151,22 +152,30 @@ export default function GroomingSessionDetailPage() {
             <Button variant="outline" onClick={() => attentionId && fetchDetail(attentionId)} disabled={loading}>
               <Loader2 className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Actualizar
             </Button>
-            <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={handleSaveAll} disabled={saving}>
+            <Button variant="default" className="text-white " onClick={handleSaveAll} disabled={saving}>
               {saving ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</>) : (<><Save className="mr-2 h-4 w-4" /> Guardar cambios</>)}
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
-        <GroomingSessionForm
-          ref={formRef}
-          sessionId={detail.id}
-          detail={detail}
-          setDetail={setDetail}
-          employeeOptions={employeeOptions}
-          employeesLoading={optionsLoading}
-        />
+      <div className="mx-auto max-w-screen-2xl space-y-6 px-4 py-6 sm:px-6">
+        <div className="flex flex-col gap-4 lg:flex-row">
+          <PatientDetails
+            animalId={detail.summary.animalBasicResponse.animalId}
+            className="w-full lg:basis-[30%] lg:shrink-0"
+          />
+          <div className="flex-1 rounded-2xl border border-border/50 bg-white p-4 shadow-sm">
+            <GroomingSessionForm
+              ref={formRef}
+              sessionId={detail.id}
+              detail={detail}
+              setDetail={setDetail}
+              employeeOptions={employeeOptions}
+              employeesLoading={optionsLoading}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

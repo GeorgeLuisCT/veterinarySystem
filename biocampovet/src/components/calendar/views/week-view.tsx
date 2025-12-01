@@ -19,7 +19,7 @@ import {
 import { es } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 
-const HOURS = Array.from({ length: 18 }, (_, i) => i + 6) // 6 AM to 11 PM
+const HOURS = Array.from({ length: 24 }, (_, i) => i) // 24-hour format
 const HOUR_HEIGHT = 60 // pixels per hour
 
 export function WeekView() {
@@ -42,7 +42,7 @@ export function WeekView() {
   useEffect(() => {
     if (scrollContainerRef.current) {
       const currentHour = getHours(currentTime)
-      const scrollTop = Math.max(0, (currentHour - 6) * HOUR_HEIGHT - 100)
+      const scrollTop = Math.max(0, currentHour * HOUR_HEIGHT - 100)
       scrollContainerRef.current.scrollTop = scrollTop
     }
   }, [])
@@ -80,7 +80,7 @@ export function WeekView() {
     const endHour = getHours(event.endDate)
     const endMinute = getMinutes(event.endDate)
 
-    const top = (startHour - 6) * HOUR_HEIGHT + (startMinute / 60) * HOUR_HEIGHT
+    const top = startHour * HOUR_HEIGHT + (startMinute / 60) * HOUR_HEIGHT
     const height = ((endHour - startHour) * 60 + (endMinute - startMinute)) * (HOUR_HEIGHT / 60)
 
     return { top: Math.max(0, top), height: Math.max(20, height) }
@@ -102,9 +102,7 @@ export function WeekView() {
   const getCurrentTimePosition = () => {
     const hour = getHours(currentTime)
     const minute = getMinutes(currentTime)
-    if (hour < 6 || hour > 23) return null
-
-    return (hour - 6) * HOUR_HEIGHT + (minute / 60) * HOUR_HEIGHT
+    return hour * HOUR_HEIGHT + (minute / 60) * HOUR_HEIGHT
   }
 
   const currentTimePosition = getCurrentTimePosition()
@@ -189,13 +187,16 @@ export function WeekView() {
             <div className="grid grid-cols-8 h-full">
               {/* Time column */}
               <div className="border-r border-border">
-                {HOURS.map((hour) => (
-                  <div key={hour} className="relative border-b border-border" style={{ height: HOUR_HEIGHT }}>
-                    <div className="absolute -top-2 left-2 text-xs text-muted-foreground font-medium">
-                      {format(setHours(new Date(), hour), "HH:mm", { locale: es })}
+                {HOURS.map((hour) => {
+                  const labelTime = setMinutes(setHours(new Date(), hour), 0)
+                  return (
+                    <div key={hour} className="relative border-b border-border" style={{ height: HOUR_HEIGHT }}>
+                      <div className="absolute -top-2 left-2 text-xs text-muted-foreground font-medium">
+                        {format(labelTime, "HH:mm", { locale: es })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
 
               {/* Day columns */}
