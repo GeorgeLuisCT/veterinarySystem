@@ -29,10 +29,12 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CustomUserDetailsService userDetailsService) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+            CustomUserDetailsService userDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
     }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -52,8 +54,7 @@ public class SecurityConfig {
                         .antMatchers("/api/supervisor/**").hasAuthority(RoleName.ROLE_SUPERVISOR.name())
                         .antMatchers("/api/warehouse/**").hasAuthority(RoleName.ROLE_WAREHOUSE.name())
                         .antMatchers("/api/cashier/**").hasAuthority(RoleName.ROLE_CASHIER.name())
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -63,9 +64,8 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "http://192.168.75.17:3000",
-                "http://192.168.1.8:3000",
-                "https://biocampovet.gaedet.com"));
+                "http://localhost:8090",
+                "https://coryvet.gaedet.com"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

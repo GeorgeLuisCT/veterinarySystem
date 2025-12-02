@@ -64,7 +64,7 @@ export function TransferProductItemForm({
     const [quantity, setQuantity] = useState<string>(value ? String(value.quantity) : "1");
     const [unitType, setUnitType] = useState<ProductUnitType>(value?.unitType ?? ProductUnitType.UNIT);
     const [selectedBatch, setSelectedBatch] = useState<ProductBatchSearchResponse | null>(
-        value?.batchId != null
+        value && value.batchId != null
             ? {
                 id: value.batchId,
                 batchNumber: value.batchNumber ?? "",

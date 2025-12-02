@@ -67,11 +67,11 @@ export function AdjustmentProductItemForm({
   const [selectedBatch, setSelectedBatch] = useState<ProductBatchSearchResponse | null>(
     value?.batchId != null
       ? {
-          id: value.batchId,
-          batchNumber: value.batchNumber,
-          expirationDate: null,
-          productId: value.productId,
-        }
+        id: value.batchId,
+        batchNumber: value.batchNumber ?? "",
+        expirationDate: null,
+        productId: value.productId,
+      }
       : null
   );
   const [selectedBatchValue, setSelectedBatchValue] = useState<string>(
@@ -208,20 +208,20 @@ export function AdjustmentProductItemForm({
           label={productLoading ? "Producto (buscando…)" : "Producto *"}
           aria-label="Producto"
           value={selectedProductId}
-      onValueChange={(v) => {
-        setSelectedProductId(v);
-        const id = v ? parseInt(v) : undefined;
-        const found = productOptions.find((p) => p.id === id) || (selectedProduct && selectedProduct.id === id ? selectedProduct : null);
-        const nextProduct = found ?? null;
-        const productChanged = nextProduct?.id !== selectedProduct?.id;
-        setSelectedProduct(nextProduct);
-        if (productChanged) {
-          setSelectedBatch(null);
-          setSelectedBatchValue(BATCH_EMPTY_VALUE);
-          setBatchOptions([]);
-          cancelBatchSearch();
-        }
-      }}
+          onValueChange={(v) => {
+            setSelectedProductId(v);
+            const id = v ? parseInt(v) : undefined;
+            const found = productOptions.find((p) => p.id === id) || (selectedProduct && selectedProduct.id === id ? selectedProduct : null);
+            const nextProduct = found ?? null;
+            const productChanged = nextProduct?.id !== selectedProduct?.id;
+            setSelectedProduct(nextProduct);
+            if (productChanged) {
+              setSelectedBatch(null);
+              setSelectedBatchValue(BATCH_EMPTY_VALUE);
+              setBatchOptions([]);
+              cancelBatchSearch();
+            }
+          }}
           options={productSelectOptions}
           onSearch={(q) => {
             const query = q?.trim() ?? "";
@@ -271,8 +271,8 @@ export function AdjustmentProductItemForm({
               !selectedProduct
                 ? "Lote (selecciona producto)"
                 : batchLoading
-                ? "Lote (buscando…)"
-                : "Lote (opcional)"
+                  ? "Lote (buscando…)"
+                  : "Lote (opcional)"
             }
             aria-label="Lote"
             value={selectedBatchValue}

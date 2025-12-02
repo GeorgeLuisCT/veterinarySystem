@@ -1,18 +1,17 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { PlusCircle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/context/user-context";
-import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+import { RefreshCcw } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { LabRequestStatusLabels } from "../enums/lab-request-status";
 import { LaboratoryRequestService } from "../service/laboratory-request-service";
 import { LaboratoryRequestSummaryResponse } from "../types/laboratory-request-response";
-import { LabRequestStatusLabels } from "../enums/lab-request-status";
 
-import LaboratoryFilters, { LaboratoryFilters as Filters } from "../components/laboratory/laboratory-filters";
 import LaboratoryCard, { LaboratoryCardData } from "../components/laboratory/laboratory-card";
+import LaboratoryFilters, { LaboratoryFilters as Filters } from "../components/laboratory/laboratory-filters";
 
 function formatLocalDate(d: Date): string {
     const y = d.getFullYear();
@@ -27,7 +26,6 @@ function toDateParam(v?: string | Date | null): string | undefined {
 }
 
 export default function LabRequestsPage() {
-    const router = useRouter();
     const { toast } = useToast();
     const { userInfo } = useUser();
     const selectedBranchId = userInfo?.selectedBranch?.id || undefined;

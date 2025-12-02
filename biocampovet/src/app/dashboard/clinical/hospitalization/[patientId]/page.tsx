@@ -1,23 +1,23 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
-import { getAaxiosErrorMessage } from '@/helpers/error';
-import { HospitalizationResponse, TreatmentScheduleResponse } from '../../types/hospitalization-response';
-import { ClipboardPlus, LogOut, PlusCircle, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { ConfirmationDialog } from '@/components/confirmation-dialog';
+import { FloatingLabelDateInput } from '@/components/floating-label-date-input';
+import { FloatingLabelInput } from '@/components/floating-label-input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import HospitalizationService from '../../service/hospitalization-service';
+import { useUser } from '@/context/user-context';
+import { getAaxiosErrorMessage } from '@/helpers/error';
+import { useToast } from '@/hooks/use-toast';
+import { CheckCircle2, ChevronLeft, ChevronRight, LogOut, PlusCircle } from 'lucide-react';
+import { useParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AddTreatmentModal } from '../../components/hospitalization/add-treatment-modal';
 import { CompleteTreatmentModal } from '../../components/hospitalization/complete-treatment-modal';
 import { ViewTreatmentModal } from '../../components/hospitalization/view-treatment-modal';
-import { FloatingLabelDateInput } from '@/components/floating-label-date-input';
-import { FloatingLabelInput } from '@/components/floating-label-input';
-import { useUser } from '@/context/user-context';
 import { HospitalizationStatus } from '../../enums/hospitalization-status';
-import { ConfirmationDialog } from '@/components/confirmation-dialog';
+import HospitalizationService from '../../service/hospitalization-service';
+import { HospitalizationResponse, TreatmentScheduleResponse } from '../../types/hospitalization-response';
 
 const BASE_TIME_SLOTS = [
     "00:00",

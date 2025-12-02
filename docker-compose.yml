@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # 1. Base de Datos
+  database:
+    image: postgres:15-alpine
+    container_name: biocampo_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal_net
+
+  # 2. Backend (Spring Boot)
+  backend:
+    build:
+      context: ./BiocampoVetRest
+      dockerfile: Dockerfile
+    container_name: biocampo_api
+    restart: always
+    environment:
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+    depends_on:
+      - database
+    networks:
+      - internal_net
+
+  # 3. Frontend (Next.js)
+  frontend:
+    build:
+      context: ./biocampovet
+      dockerfile: Dockerfile
+      args:
+        # En producción, Nginx maneja la ruta /api, así que la URL es el mismo dominio
+        NEXT_PUBLIC_API_URL: https://biocampo.gaedet.com/api
+    container_name: biocampo_web
+    restart: always
+    networks:
+      - internal_net
+
+  # 4. TU NGINX (El Portero del Proyecto)
+  project_nginx:
+    image: nginx:alpine
+    container_name: biocampo_nginx_gateway
+    restart: always
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - internal_net
+      - web-public # Se conecta a la red pública para que NPM lo vea
+    expose:
+      - "80" # No usamos ports, solo exponemos internamente a la red de Docker
+
+volumes:
+  postgres_data:
+
+
+networks:
+  web-public:
+    external: true
+  internal_net:
+    driver: bridge
