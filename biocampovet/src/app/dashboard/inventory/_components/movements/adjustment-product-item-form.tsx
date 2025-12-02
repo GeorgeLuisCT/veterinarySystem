@@ -2,8 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { ProductQuickSearchResponse, ProductResponse } from "../../_types/product-response";
+import type { ProductBatchSearchResponse } from "../../_types/product-batch-response";
 import { ProductUnitType, getProductUnitTypeLabel } from "../../_enums/product-unit-type";
 import ProductService from "../../_service/product-service";
+import InventoryMovementService from "../../_service/inventory-movement-service";
+import { useDebouncedSearch } from "./use-debounced-search";
 import type { AdjustmentProductDraft } from "./types";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { FloatingLabelInput } from "@/components/floating-label-input";
@@ -13,6 +16,19 @@ import { getAaxiosErrorMessage } from "@/helpers/error";
 import { ProductPresentationType } from "../../_enums/product-presentation-type";
 import { getMovementSummaryText } from "../../_utils/product-util-labels";
 import { AdjustmentType, AdjustmentTypeLabels } from "../../_enums/adjustment-type";
+
+const BATCH_EMPTY_VALUE = "none";
+const formatBatchExpiration = (value?: string | null) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString("es-PE");
+};
+const formatBatchLabel = (batch: Pick<ProductBatchSearchResponse, "id" | "batchNumber" | "expirationDate">) => {
+  const base = batch.batchNumber?.trim() || `ID ${batch.id}`;
+  const expiration = formatBatchExpiration(batch.expirationDate);
+  return expiration ? `${base} · Vence ${expiration}` : base;
+};
 
 interface AdjustmentProductItemFormProps {
   index: number;
@@ -48,7 +64,19 @@ export function AdjustmentProductItemForm({
 
   const [quantity, setQuantity] = useState<string>(value ? String(value.quantity) : "1");
   const [unitType, setUnitType] = useState<ProductUnitType>(value?.unitType ?? ProductUnitType.UNIT);
-  const [batchId, setBatchId] = useState<string>(value?.batchId != null ? String(value.batchId) : "");
+  const [selectedBatch, setSelectedBatch] = useState<ProductBatchSearchResponse | null>(
+    value?.batchId != null
+      ? {
+          id: value.batchId,
+          batchNumber: value.batchNumber,
+          expirationDate: null,
+          productId: value.productId,
+        }
+      : null
+  );
+  const [selectedBatchValue, setSelectedBatchValue] = useState<string>(
+    value?.batchId != null ? String(value.batchId) : BATCH_EMPTY_VALUE
+  );
   const [adjustmentType, setAdjustmentType] = useState<AdjustmentType>(value?.adjustmentType ?? AdjustmentType.ENTRY);
   const [reason, setReason] = useState<string>(value?.reason ?? "");
 
@@ -61,6 +89,34 @@ export function AdjustmentProductItemForm({
     }
     return list;
   }, [productOptions, selectedProduct]);
+
+  const {
+    options: batchOptions,
+    setOptions: setBatchOptions,
+    loading: batchLoading,
+    search: searchBatch,
+    cancel: cancelBatchSearch,
+  } = useDebouncedSearch<ProductBatchSearchResponse>(async (query) => {
+    if (!selectedProduct?.id) return [];
+    return InventoryMovementService.searchBatches({
+      productId: selectedProduct.id,
+      query,
+    });
+  });
+
+  const batchSelectOptions = useMemo(() => {
+    const opts = batchOptions.map((batch) => ({
+      value: String(batch.id),
+      label: formatBatchLabel(batch),
+    }));
+    if (selectedBatch && !batchOptions.some((b) => b.id === selectedBatch.id)) {
+      opts.unshift({
+        value: String(selectedBatch.id),
+        label: formatBatchLabel(selectedBatch),
+      });
+    }
+    return [{ value: BATCH_EMPTY_VALUE, label: "Sin lote (opcional)" }, ...opts];
+  }, [batchOptions, selectedBatch]);
 
   useEffect(() => {
     let cancelled = false;
@@ -99,7 +155,8 @@ export function AdjustmentProductItemForm({
   useEffect(() => {
     const draft: AdjustmentProductDraft = {
       productId: selectedProduct?.id as number | undefined,
-      batchId: batchId === "" ? undefined : Number(batchId),
+      batchId: selectedBatch?.id,
+      batchNumber: selectedBatch?.batchNumber,
       quantity: Number(quantity),
       unitType,
       adjustmentType,
@@ -117,7 +174,7 @@ export function AdjustmentProductItemForm({
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length === 0) onChange(index, draft);
-  }, [selectedProduct, batchId, quantity, unitType, adjustmentType, reason]);
+  }, [selectedProduct, selectedBatch, quantity, unitType, adjustmentType, reason]);
 
   const summaryText = useMemo(() => {
     if (!fullProductDetails || productDetailsLoading) return null;
@@ -135,8 +192,8 @@ export function AdjustmentProductItemForm({
       fullProductDetails.presentation as ProductPresentationType
     );
 
-    return batchId ? `${base} · Lote ID: ${batchId}` : base;
-  }, [fullProductDetails, productDetailsLoading, unitType, quantity, batchId]);
+    return selectedBatch ? `${base} · Lote: ${selectedBatch.batchNumber ?? selectedBatch.id}` : base;
+  }, [fullProductDetails, productDetailsLoading, unitType, quantity, selectedBatch]);
 
   return (
     <fieldset className="rounded-2xl border p-4 space-y-4" aria-labelledby={`adjustment-prod-legend-${index}`}>
@@ -151,12 +208,20 @@ export function AdjustmentProductItemForm({
           label={productLoading ? "Producto (buscando…)" : "Producto *"}
           aria-label="Producto"
           value={selectedProductId}
-          onValueChange={(v) => {
-            setSelectedProductId(v);
-            const id = v ? parseInt(v) : undefined;
-            const found = productOptions.find((p) => p.id === id) || (selectedProduct && selectedProduct.id === id ? selectedProduct : null);
-            setSelectedProduct(found ?? null);
-          }}
+      onValueChange={(v) => {
+        setSelectedProductId(v);
+        const id = v ? parseInt(v) : undefined;
+        const found = productOptions.find((p) => p.id === id) || (selectedProduct && selectedProduct.id === id ? selectedProduct : null);
+        const nextProduct = found ?? null;
+        const productChanged = nextProduct?.id !== selectedProduct?.id;
+        setSelectedProduct(nextProduct);
+        if (productChanged) {
+          setSelectedBatch(null);
+          setSelectedBatchValue(BATCH_EMPTY_VALUE);
+          setBatchOptions([]);
+          cancelBatchSearch();
+        }
+      }}
           options={productSelectOptions}
           onSearch={(q) => {
             const query = q?.trim() ?? "";
@@ -200,16 +265,46 @@ export function AdjustmentProductItemForm({
         </div>
 
         <div className="space-y-2 sm:col-span-1">
-          <FloatingLabelInput
+          <FloatingLabelSelect
             id={`batchId-${index}`}
-            label="ID de lote (opcional)"
-            type="number"
-            aria-label="ID de lote"
-            value={batchId}
-            onChange={(v) => setBatchId(v)}
-            disabled={!!disabled}
+            label={
+              !selectedProduct
+                ? "Lote (selecciona producto)"
+                : batchLoading
+                ? "Lote (buscando…)"
+                : "Lote (opcional)"
+            }
+            aria-label="Lote"
+            value={selectedBatchValue}
+            onValueChange={(v) => {
+              setSelectedBatchValue(v);
+              if (v === BATCH_EMPTY_VALUE) {
+                setSelectedBatch(null);
+                return;
+              }
+              const parsed = Number(v);
+              if (Number.isNaN(parsed)) {
+                setSelectedBatch(null);
+                return;
+              }
+              const found =
+                batchOptions.find((b) => b.id === parsed) ||
+                (selectedBatch && selectedBatch.id === parsed ? selectedBatch : null);
+              setSelectedBatch(found ?? null);
+            }}
+            options={batchSelectOptions}
+            onSearch={(q) => {
+              const query = q?.trim() ?? "";
+              if (!selectedProduct?.id) return;
+              if (query) searchBatch(query);
+              else {
+                cancelBatchSearch();
+                setBatchOptions([]);
+              }
+            }}
+            emptyMessage={selectedProduct ? "No se encontraron lotes." : "Selecciona un producto primero."}
+            disabled={!!disabled || !selectedProduct}
           />
-          {errors.batchId && <p className="text-sm text-destructive" role="alert">{errors.batchId}</p>}
         </div>
 
         <div className="space-y-2 sm:col-span-1">

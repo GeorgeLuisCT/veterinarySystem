@@ -34,7 +34,7 @@ export function AccountFormDialog({
 
   useEffect(() => {
     if (open) form.reset(defaults);
-  }, [open, defaults, form]);
+  }, [open, defaults, form.reset]);
 
   const handleSubmit = form.handleSubmit(async (values) => {
     await onSubmit({

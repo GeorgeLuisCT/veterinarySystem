@@ -63,7 +63,7 @@ export default function TransferDialog({ open, onOpenChange, onSubmit }: Props) 
         } finally {
             setLoadingAccounts(false);
         }
-    }, [form, toast]);
+    }, [form.setValue, toast]);
 
     useEffect(() => {
         if (open) {
@@ -76,7 +76,7 @@ export default function TransferDialog({ open, onOpenChange, onSubmit }: Props) 
             });
             loadAccounts();
         }
-    }, [open, form, loadAccounts]);
+    }, [open, form.reset, loadAccounts]);
 
     const handleSubmit = form.handleSubmit(async (values) => {
         await onSubmit({

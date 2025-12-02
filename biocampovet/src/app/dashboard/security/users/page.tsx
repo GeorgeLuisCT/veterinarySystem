@@ -14,12 +14,18 @@ import {
 import DashboardLayoutSection from "../../dashboard-layout-section";
 import MainUsers from "./main-users";
 import { useUser } from "@/context/user-context";
+import { UserForm } from "./components/user-form";
 
 export default function UsersPage() {
   const { userInfo } = useUser();
   const branchId = userInfo?.selectedBranch?.id ?? 0;
 
   const [openCreate, setOpenCreate] = React.useState(false);
+  const [refreshKey, setRefreshKey] = React.useState(0);
+
+  const handleCreated = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
 
   return (
     <DashboardLayoutSection>
@@ -42,8 +48,7 @@ export default function UsersPage() {
           </div>
 
           {/* Tabla + filtros */}
-          <MainUsers key={branchId} branchId={branchId} />
-          {/* Dialog: Crear usuario (deja tu <UserForm /> aquí si ya lo tienes) */}
+          <MainUsers key={branchId} branchId={branchId} refreshKey={refreshKey} />
           <Dialog open={openCreate} onOpenChange={setOpenCreate}>
             <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
@@ -52,7 +57,10 @@ export default function UsersPage() {
                   Completa el formulario para registrar un nuevo usuario en el sistema.
                 </DialogDescription>
               </DialogHeader>
-              {/* <UserForm setOpen={setOpenCreate} /> */}
+              <UserForm
+                setOpen={setOpenCreate}
+                onCreated={handleCreated}
+              />
             </DialogContent>
           </Dialog>
         </div>

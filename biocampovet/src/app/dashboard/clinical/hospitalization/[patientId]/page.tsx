@@ -351,9 +351,6 @@ export default function HospitalizationChartPage() {
                         <p className="text-sm text-gray-600">Paciente: <span className="font-semibold text-blue-600">{animalName}</span></p>
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="outline" className="text-orange-600 border-orange-300 hover:bg-orange-50">
-                            <ClipboardPlus className="h-4 w-4 mr-2" /> Iniciar Reporte Quirúrgico
-                        </Button>
                         <Button
                             className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60"
                             onClick={() => setIsDischargeDialogOpen(true)}
@@ -514,11 +511,11 @@ export default function HospitalizationChartPage() {
                             <p className="text-sm text-muted-foreground">
                                 {latestVitalSign
                                     ? `Último registro: ${new Date(latestVitalSign.recordedAt).toLocaleString("es-ES", {
-                                          day: "2-digit",
-                                          month: "short",
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                      })} · ${latestVitalSign.recordedByEmployeeFullName ?? "Sin responsable"}`
+                                        day: "2-digit",
+                                        month: "short",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    })} · ${latestVitalSign.recordedByEmployeeFullName ?? "Sin responsable"}`
                                     : "Aún no hay registros."}
                             </p>
                         </CardHeader>

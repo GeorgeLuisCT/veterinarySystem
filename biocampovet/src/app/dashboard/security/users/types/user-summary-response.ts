@@ -8,4 +8,5 @@ export interface UserSummaryResponse {
   phoneNumber: string;
   burden: string;
   branchNames: string;
+  active: boolean;
 }

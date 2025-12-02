@@ -70,7 +70,11 @@ export default function MainSupplier() {
           );
         },
       },
-      { accessorKey: "contactPhone", header: "Teléfono" },
+      {
+        accessorKey: "phone",
+        header: "Teléfono",
+        cell: ({ row }) => row.original.phone ?? "—",
+      },
       { accessorKey: "email", header: "Correo" },
       {
         accessorKey: "supplierType",

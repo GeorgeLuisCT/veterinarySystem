@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Pencil, Trash2 } from "lucide-react";
 import { TreasuryAccountType } from "../_enums/accounts-enums";
 import { TreasuryAccountResponse } from "../_types/treasury-account";
+import { PEN } from "../_lib/formatters";
 
 type Props = {
   accounts: TreasuryAccountResponse[];
@@ -115,11 +116,7 @@ export function AccountsList({
                           <div className="text-right">
                             <div className="text-[10px] text-muted-foreground leading-none">Saldo</div>
                             <div className="text-sm font-semibold leading-tight">
-                              {new Intl.NumberFormat("es-PE", {
-                                style: "currency",
-                                currency: "PEN",
-                                minimumFractionDigits: 2,
-                              }).format(account.currentBalance)}
+                              {PEN.format(account.currentBalance)}
                             </div>
                           </div>
                         </div>

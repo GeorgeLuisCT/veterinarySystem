@@ -31,8 +31,8 @@ public class UserMapper {
                 employee.getEmail(),
                 employee.getPhoneNumber(),
                 employee.getBurden(),
-                branchNames
+                branchNames,
+                user.isActive()
         );
     }
 }
-

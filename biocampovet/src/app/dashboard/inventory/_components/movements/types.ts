@@ -16,7 +16,8 @@ export interface TransferProductDraft {
   productId: number;
   productName: string;
   sku?: string | null;
-  batchId: number;
+  batchId?: number;
+  batchNumber?: string;
   quantity: number;
   unitType: ProductUnitType;
 }
@@ -25,7 +26,8 @@ export interface AdjustmentProductDraft {
   productId: number;
   productName: string;
   sku?: string | null;
-  batchId: number;
+  batchId?: number;
+  batchNumber?: string;
   quantity: number;
   unitType: ProductUnitType;
   adjustmentType: AdjustmentType;

@@ -8,18 +8,21 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Button } from "@/components/ui/button";
 import { FloatingLabelInput } from "@/components/floating-label-input";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
+import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
 import { Textarea } from "@/components/ui/textarea";
 import { ClinicalAttentionService } from "../../service/clinical-attention-service";
 import ProductService from "@/app/dashboard/inventory/_service/product-service";
+import type { ProductResponse } from "@/app/dashboard/inventory/_types/product-response";
 import {
   addClinicalAttentionMedicationSchema,
   AddClinicalAttentionMedicationRequest,
 } from "../../types/clinical-attention-request";
 import { ClinicalAttentionDetailResponse } from "../../types/clinical-attention-response";
 import { AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
-import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
+import { ProductUnitType, ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
 import { FrequencyUnitLabels } from "../../enums/frequency-unit";
 import { useUser } from "@/context/user-context";
+import { useToast } from "@/hooks/use-toast";
 
 type CommonProps = {
   id: number;
@@ -29,8 +32,11 @@ type CommonProps = {
 
 export function MedicationModal({ id, onClose, onAdded }: CommonProps) {
   const { userInfo } = useUser();
+  const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const [productOptions, setProductOptions] = useState<{ value: string; label: string }[]>([]);
+  const [selectedProductDetails, setSelectedProductDetails] = useState<ProductResponse | null>(null);
+  const [productDetailsLoading, setProductDetailsLoading] = useState(false);
 
   const form = useForm<AddClinicalAttentionMedicationRequest>({
     resolver: zodResolver(addClinicalAttentionMedicationSchema),
@@ -53,6 +59,63 @@ export function MedicationModal({ id, onClose, onAdded }: CommonProps) {
       form.setValue("administeredByEmployeeId", userInfo.employeeId);
     }
   }, [userInfo, form]);
+
+  const selectedProductId = form.watch("productId");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchProductDetails(productId: number) {
+      setProductDetailsLoading(true);
+      setSelectedProductDetails(null);
+      try {
+        const details = await ProductService.getProduct(productId);
+        if (cancelled) return;
+        setSelectedProductDetails(details);
+        const availableUnits: ProductUnitType[] = details.saleModes?.length
+          ? details.saleModes.map((mode) => mode.unitType)
+          : [details.unitType];
+        const currentUnit = form.getValues("doseUnit");
+        if (!currentUnit || !availableUnits.includes(currentUnit)) {
+          const defaultUnit =
+            details.saleModes?.find((mode) => mode.baseMode)?.unitType ?? availableUnits[0] ?? null;
+          form.setValue("doseUnit", defaultUnit ?? null, { shouldValidate: true });
+        }
+        const availableRoutes = details.administrationRoutes ?? [];
+        const currentRoute = form.getValues("route");
+        if (!currentRoute || !availableRoutes.includes(currentRoute)) {
+          form.setValue("route", availableRoutes[0] ?? null, { shouldValidate: true });
+        }
+      } catch {
+        if (cancelled) return;
+        toast({
+          variant: "destructive",
+          title: "No se pudo cargar el producto",
+          description: "Intenta seleccionar nuevamente el producto.",
+        });
+        setSelectedProductDetails(null);
+        form.setValue("doseUnit", null, { shouldValidate: true });
+        form.setValue("route", null, { shouldValidate: true });
+      } finally {
+        if (!cancelled) setProductDetailsLoading(false);
+      }
+    }
+
+    if (!selectedProductId) {
+      setSelectedProductDetails(null);
+      setProductDetailsLoading(false);
+      form.setValue("doseUnit", null, { shouldValidate: true });
+      form.setValue("route", null, { shouldValidate: true });
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    fetchProductDetails(selectedProductId);
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedProductId, form, toast]);
 
   const handleSearchProducts = async (query: string) => {
     if (query.trim().length < 2) {
@@ -78,18 +141,33 @@ export function MedicationModal({ id, onClose, onAdded }: CommonProps) {
     }
   };
 
-  const routeOptions = useMemo(
-    () => Object.entries(AdministrationRouteLabels).map(([value, label]) => ({ value, label })),
-    []
-  );
-  const unitOptions = useMemo(
-    () => Object.entries(ProductUnitTypeLabels).map(([value, label]) => ({ value, label })),
-    []
-  );
   const frequencyUnitOptions = useMemo(
     () => Object.entries(FrequencyUnitLabels).map(([value, label]) => ({ value, label })),
     []
   );
+  const doseUnitOptions = useMemo(() => {
+    if (!selectedProductDetails) return [];
+    const saleModeOptions = selectedProductDetails.saleModes?.length
+      ? selectedProductDetails.saleModes.map((mode) => ({
+          value: mode.unitType,
+          label: ProductUnitTypeLabels[mode.unitType] || mode.unitType,
+        }))
+      : [];
+    if (saleModeOptions.length > 0) return saleModeOptions;
+    return [
+      {
+        value: selectedProductDetails.unitType,
+        label: ProductUnitTypeLabels[selectedProductDetails.unitType] || selectedProductDetails.unitType,
+      },
+    ];
+  }, [selectedProductDetails]);
+  const routeOptions = useMemo(() => {
+    if (!selectedProductDetails?.administrationRoutes?.length) return [];
+    return selectedProductDetails.administrationRoutes.map((route) => ({
+      value: route,
+      label: AdministrationRouteLabels[route] || route,
+    }));
+  }, [selectedProductDetails]);
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -133,12 +211,12 @@ export function MedicationModal({ id, onClose, onAdded }: CommonProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <FloatingLabelInput
+                    <FloatingLabelDateInput
                       id="administeredAt"
                       label="Fecha y hora de administración *"
-                      type="datetime-local"
-                      value={field.value}
-                      onChange={(v) => field.onChange(v)}
+                      value={field.value ?? ""}
+                      onChange={(v) => field.onChange(v || "")}
+                      mode="datetime"
                     />
                   </FormControl>
                   <FormMessage />
@@ -177,10 +255,17 @@ export function MedicationModal({ id, onClose, onAdded }: CommonProps) {
                       <FormControl>
                         <FloatingLabelSelect
                           id="doseUnit"
-                          label="Unidad *"
+                          label={
+                            !selectedProductId
+                              ? "Unidad (selecciona producto)"
+                              : productDetailsLoading
+                                ? "Unidad (cargando…)"
+                                : "Unidad *"
+                          }
                           value={field.value ?? ""}
-                          options={unitOptions}
+                          options={doseUnitOptions}
                           onValueChange={(v) => field.onChange(v || null)}
+                          disabled={!selectedProductId || productDetailsLoading || doseUnitOptions.length === 0}
                         />
                       </FormControl>
                       <FormMessage />
@@ -195,10 +280,19 @@ export function MedicationModal({ id, onClose, onAdded }: CommonProps) {
                       <FormControl>
                         <FloatingLabelSelect
                           id="route"
-                          label="Vía *"
+                          label={
+                            !selectedProductId
+                              ? "Vía (selecciona producto)"
+                              : productDetailsLoading
+                                ? "Vía (cargando…)"
+                                : routeOptions.length === 0
+                                  ? "Vía (no configurada)"
+                                  : "Vía *"
+                          }
                           value={field.value ?? ""}
                           options={routeOptions}
                           onValueChange={(v) => field.onChange(v || null)}
+                          disabled={!selectedProductId || productDetailsLoading || routeOptions.length === 0}
                         />
                       </FormControl>
                       <FormMessage />

@@ -144,10 +144,6 @@ export default function LabRequestsPage() {
                             <RefreshCcw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
                             {refreshing ? "Actualizando..." : "Actualizar"}
                         </Button>
-                        <Button onClick={() => router.push("/dashboard/clinical/laboratory/new")} className="gap-2">
-                            <PlusCircle className="h-4 w-4" />
-                            Nueva Solicitud
-                        </Button>
                     </div>
                 </div>
 

@@ -15,7 +15,7 @@ import { ClinicalAttentionDetailResponse, MedicationAdministrationResponse, Clin
 import { UpdateClinicalAttentionRequest, updateClinicalAttentionSchema } from "../../types/clinical-attention-request";
 import ClinicalAttentionService from "../../service/clinical-attention-service";
 import { FloatingLabelInput } from "@/components/floating-label-input";
-import { MedicationModal } from "./add- medication-modal";
+import { MedicationModal } from "./add-medication-modal";
 import { ServiceItemModal } from "./service-item-modal";
 import { SurgicalOrderModal } from "./surgical-order-modal";
 import { LaboratoryRequestModal } from "./laboratory-request-modal";

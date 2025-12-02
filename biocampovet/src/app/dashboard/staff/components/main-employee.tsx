@@ -20,6 +20,7 @@ import { EmployeeDetail } from "./employee-detail";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import { PaginatedResponse } from "@/types/paginated-response";
 import EmployeeFilters, { EmployeeFiltersShape } from "./employee-filters";
+import { Badge } from "@/components/ui/badge";
 
 enum EmployeePanel {
   View = "view",
@@ -68,11 +69,27 @@ export default function MainEmployee({ branchId }: Props) {
       { accessorKey: "firstName", header: "Nombre" },
       { accessorKey: "lastName", header: "Apellido" },
       { accessorKey: "email", header: "Correo" },
+      { accessorKey: "phoneNumber", header: "Teléfono" },
       { accessorKey: "burden", header: "Cargo" },
+      {
+        id: "status",
+        header: "Estado",
+        cell: ({ row }) => (
+          <Badge
+            variant="outline"
+            className={row.original.active ? "text-emerald-700" : "text-zinc-500"}
+          >
+            {row.original.active ? "Activo" : "Inactivo"}
+          </Badge>
+        ),
+      },
     ];
 
     if (branchId === 0) {
-      columns.push({ accessorKey: "branchNames", header: "Disponible en" });
+      columns.splice(columns.length - 1, 0, {
+        accessorKey: "branchNames",
+        header: "Disponible en",
+      });
     }
 
     return columns;

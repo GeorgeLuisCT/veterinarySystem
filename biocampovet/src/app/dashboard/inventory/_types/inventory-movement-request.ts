@@ -84,7 +84,10 @@ export const purchaseCreateSchema = purchaseCreateBaseSchema.superRefine((data, 
 
 export const transferProductSchema = z.object({
   productId: z.number({ required_error: "Selecciona un producto" }).min(1, "Selecciona un producto"),
-  batchId: z.number({ required_error: "Selecciona un lote" }).min(1, "Selecciona un lote válido"),
+  batchId: z
+    .number({ required_error: "Selecciona un lote" })
+    .min(1, "Selecciona un lote válido")
+    .optional(),
   quantity: positiveQuantity,
   unitType: z.nativeEnum(ProductUnitType, { required_error: "La unidad es obligatoria" }),
 });
@@ -109,7 +112,10 @@ export const transferCreateSchema = transferCreateBaseSchema.superRefine((data, 
 
 export const adjustmentProductSchema = z.object({
   productId: z.number({ required_error: "Selecciona un producto" }).min(1, "Selecciona un producto"),
-  batchId: z.number({ required_error: "Selecciona un lote" }).min(1, "Selecciona un lote válido"),
+  batchId: z
+    .number({ required_error: "Selecciona un lote" })
+    .min(1, "Selecciona un lote válido")
+    .optional(),
   quantity: positiveQuantity,
   unitType: z.nativeEnum(ProductUnitType, { required_error: "La unidad es obligatoria" }),
   adjustmentType: z.nativeEnum(AdjustmentType, { required_error: "Selecciona el tipo de ajuste" }),

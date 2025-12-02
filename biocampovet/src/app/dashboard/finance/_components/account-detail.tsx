@@ -16,13 +16,15 @@ import { DATE_TIME, PEN } from "../_lib/formatters";
 import TreasuryAccountService from "../_services/treasury-account-service";
 import type { PaginatedResponse } from "@/types/paginated-response";
 import { AccountMovementTypeLabels, TreasuryAccountTypeLabels } from "../_enums/accounts-enums";
+import { useToast } from "@/hooks/use-toast";
+import { getAaxiosErrorMessage } from "@/helpers/error";
 
 export function AccountDetail({
   account,
   onRegisterMovement,
   refreshSignal,
 }: {
-  account: TreasuryAccountResponse | null;
+  account: TreasuryAccountResponse;
   onRegisterMovement: (payload: ManualMovementFormValues) => Promise<void> | void;
   refreshSignal?: number;
 }) {
@@ -30,6 +32,7 @@ export function AccountDetail({
   const [loading, setLoading] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
+  const { toast } = useToast();
 
   const form = useForm<ManualMovementFormValues>({
     resolver: zodResolver(manualMovementSchema),
@@ -38,21 +41,25 @@ export function AccountDetail({
   });
 
   const fetchMovements = useCallback(async () => {
-    if (!account?.id) {
-      setPageData(null);
-      return;
-    }
     setLoading(true);
     try {
       const res = await TreasuryAccountService.getMovements(account.id, { page: pageIndex, size: pageSize });
       setPageData(res);
-      if (typeof res.pageSize === "number" && res.pageSize !== pageSize) {
-        setPageSize(res.pageSize);
-      }
+    } catch (error) {
+      setPageData(null);
+      toast({
+        title: "No se pudieron cargar los movimientos",
+        description: getAaxiosErrorMessage(error) ?? "Intenta nuevamente",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
-  }, [account?.id, pageIndex, pageSize]);
+  }, [account.id, pageIndex, pageSize, toast]);
+
+  useEffect(() => {
+    setPageIndex(0);
+  }, [account.id]);
 
   useEffect(() => {
     fetchMovements();
@@ -62,7 +69,7 @@ export function AccountDetail({
     if (refreshSignal !== undefined) {
       fetchMovements();
     }
-  }, [refreshSignal]);
+  }, [fetchMovements, refreshSignal]);
 
   const submit = form.handleSubmit(async (values) => {
     await onRegisterMovement({
@@ -123,101 +130,95 @@ export function AccountDetail({
   return (
     <div className="space-y-6 flex flex-row gap-4">
       <div className="w-full max-w-xl">
-        {account ? (
-          <div className="space-y-4">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="font-medium">Detalles de la cuenta</p>
+          </div>
+          <div className="rounded-lg border bg-muted/30 p-4">
             <div className="flex items-center justify-between">
-              <p className="font-medium">Detalles de la cuenta</p>
-            </div>
-            <div className="rounded-lg border bg-muted/30 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Saldo actual</p>
-                  <p className="text-2xl font-semibold">{PEN.format(account.currentBalance)}</p>
-                </div>
-                <Badge>{TreasuryAccountTypeLabels[account.type]}</Badge>
+              <div>
+                <p className="text-sm text-muted-foreground">Saldo actual</p>
+                <p className="text-2xl font-semibold">{PEN.format(account.currentBalance)}</p>
               </div>
-              {account.description && <p className="mt-2 text-sm text-muted-foreground">{account.description}</p>}
+              <Badge>{TreasuryAccountTypeLabels[account.type]}</Badge>
             </div>
-
-            <Form {...form}>
-              <form onSubmit={submit} className="rounded-lg border p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium">Registrar movimiento manual</p>
-                  <div className="flex gap-2 text-xs">
-                    <Button
-                      type="button"
-                      variant={form.watch("income") ? "default" : "outline"}
-                      onClick={() => form.setValue("income", true, { shouldValidate: true })}
-                      disabled={isSubmitting}
-                    >
-                      Ingreso
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={!form.watch("income") ? "default" : "outline"}
-                      onClick={() => form.setValue("income", false, { shouldValidate: true })}
-                      disabled={isSubmitting}
-                    >
-                      Egreso
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <Label>Monto</Label>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            inputMode="decimal"
-                            value={Number.isNaN(field.value as number) ? "" : field.value}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              field.onChange(v === "" ? 0 : Number(v));
-                            }}
-                            disabled={isSubmitting}
-                          />
-                        </FormControl>
-                        <p className="text-xs text-muted-foreground">
-                          Se registrará como {form.watch("income") ? "ingreso" : "egreso"}.
-                        </p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <Label>Descripción</Label>
-                        <FormControl>
-                          <Input placeholder="Ej. Ajuste manual" {...field} disabled={isSubmitting} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Registrando..." : "Guardar movimiento"}
-                </Button>
-              </form>
-            </Form>
+            {account.description && <p className="mt-2 text-sm text-muted-foreground">{account.description}</p>}
           </div>
-        ) : (
-          <div className="rounded-lg border bg-muted/30 p-6 text-center text-muted-foreground">
-            Selecciona una cuenta para ver el detalle.
-          </div>
-        )}
+
+          <Form {...form}>
+            <form onSubmit={submit} className="rounded-lg border p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="font-medium">Registrar movimiento manual</p>
+                <div className="flex gap-2 text-xs">
+                  <Button
+                    type="button"
+                    variant={form.watch("income") ? "default" : "outline"}
+                    onClick={() => form.setValue("income", true, { shouldValidate: true })}
+                    disabled={isSubmitting}
+                  >
+                    Ingreso
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={!form.watch("income") ? "default" : "outline"}
+                    onClick={() => form.setValue("income", false, { shouldValidate: true })}
+                    disabled={isSubmitting}
+                  >
+                    Egreso
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label>Monto</Label>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          inputMode="decimal"
+                          value={Number.isNaN(field.value as number) ? "" : field.value}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            field.onChange(v === "" ? 0 : Number(v));
+                          }}
+                          disabled={isSubmitting}
+                        />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground">
+                        Se registrará como {form.watch("income") ? "ingreso" : "egreso"}.
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label>Descripción</Label>
+                      <FormControl>
+                        <Input placeholder="Ej. Ajuste manual" {...field} disabled={isSubmitting} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Registrando..." : "Guardar movimiento"}
+              </Button>
+            </form>
+          </Form>
+        </div>
       </div>
 
       <div className="flex-1 space-y-3">

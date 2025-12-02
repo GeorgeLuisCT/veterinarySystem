@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { PaymentMethod } from "../_types/sale-enums";
 import { SalePaymentRequest } from "../_types/sale-request";
+import { normalizeToIsoString } from "../_utils/date";
 
 export interface PaymentEntry extends SalePaymentRequest {
   id: string;
@@ -79,9 +80,10 @@ export function usePaymentCollector(initialPayments: PaymentEntry[] = []) {
     return payments.map(({ id, paymentId, ...rest }) => {
       void id;
       void paymentId;
+      const paidAt = normalizeToIsoString(rest.paidAt);
       return {
         ...rest,
-        paidAt: rest.paidAt ?? new Date().toISOString(),
+        paidAt,
       };
     });
   }, [payments]);

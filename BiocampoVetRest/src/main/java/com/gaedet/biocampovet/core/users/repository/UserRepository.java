@@ -55,7 +55,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
         e.email AS email,
         e.phone_number AS phoneNumber,
         e.burden AS burden,
-        STRING_AGG(DISTINCT b.name, ', ') AS branchNames
+        STRING_AGG(DISTINCT b.name, ', ') AS branchNames,
+        u.is_active AS active
     FROM users u
     JOIN employees e ON u.employee_id = e.id
     LEFT JOIN user_roles ur ON u.id = ur.user_id
@@ -63,7 +64,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     LEFT JOIN branches b ON eb.branch_id = b.id
     WHERE u.is_active = :isActive
       AND (:branchId IS NULL OR :branchId = 0 OR b.id = :branchId)
-    GROUP BY u.id, u.username, e.first_name, e.last_name, e.email, e.phone_number, e.burden
+      AND (
+          :query IS NULL OR
+          LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%')) OR
+          LOWER(e.first_name) LIKE LOWER(CONCAT('%', :query, '%')) OR
+          LOWER(e.last_name) LIKE LOWER(CONCAT('%', :query, '%')) OR
+          LOWER(e.email) LIKE LOWER(CONCAT('%', :query, '%')) OR
+          LOWER(COALESCE(e.phone_number, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+      )
+    GROUP BY u.id, u.username, e.first_name, e.last_name, e.email, e.phone_number, e.burden, u.is_active
     """,
             countQuery = """
     SELECT COUNT(DISTINCT u.id)
@@ -73,9 +82,20 @@ public interface UserRepository extends JpaRepository<User, Long> {
     LEFT JOIN branches b ON eb.branch_id = b.id
     WHERE u.is_active = :isActive
       AND (:branchId IS NULL OR :branchId = 0 OR b.id = :branchId)
+      AND (
+          :query IS NULL OR
+          LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%')) OR
+          LOWER(e.first_name) LIKE LOWER(CONCAT('%', :query, '%')) OR
+          LOWER(e.last_name) LIKE LOWER(CONCAT('%', :query, '%')) OR
+          LOWER(e.email) LIKE LOWER(CONCAT('%', :query, '%')) OR
+          LOWER(COALESCE(e.phone_number, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+      )
     """,
             nativeQuery = true)
-    Page<Object[]> findRawUserSummaries(@Param("branchId") Long branchId, @Param("isActive") boolean isActive, Pageable pageable);
+    Page<Object[]> findRawUserSummaries(@Param("branchId") Long branchId,
+                                        @Param("isActive") boolean isActive,
+                                        @Param("query") String query,
+                                        Pageable pageable);
 
 
     Boolean existsByUsername(String username);

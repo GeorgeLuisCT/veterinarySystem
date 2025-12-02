@@ -26,7 +26,7 @@ export interface SupplierSummaryResponse {
   id: number;
   name: string;
   ruc: string;
-  contactPhone?: string;
+  phone?: string;
   email?: string;
   supplierType: SupplierType;
   active: boolean;

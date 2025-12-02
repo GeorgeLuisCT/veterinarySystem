@@ -275,7 +275,7 @@ public class SaleService {
         BigDecimal paidTotal = ZERO;
 
         for (SalePaymentRequest paymentRequest : paymentRequests) {
-            SalePayment payment = mapSalePayment(sale, branch, paymentRequest, finalizeSale);
+            SalePayment payment = mapSalePayment(sale, branch, paymentRequest);
             sale.getPayments().add(payment);
             paidTotal = paidTotal.add(payment.getAmountPaid());
         }
@@ -299,7 +299,7 @@ public class SaleService {
         return SaleMapper.toResponse(savedSale);
     }
 
-    private SalePayment mapSalePayment(Sale sale, Branch branch, SalePaymentRequest paymentRequest, boolean linkToCashSession) {
+    private SalePayment mapSalePayment(Sale sale, Branch branch, SalePaymentRequest paymentRequest) {
         BigDecimal amount = paymentRequest.getAmount().setScale(MONEY_SCALE, ROUNDING_MODE);
         PaymentMethod method = paymentRequest.getMethod();
         LocalDateTime paidAt = paymentRequest.getPaidAt() != null ? paymentRequest.getPaidAt() : LocalDateTime.now();
@@ -313,12 +313,10 @@ public class SaleService {
                 .notes(paymentRequest.getNotes())
                 .build();
 
-        if (linkToCashSession) {
-            CashSession cashSession = cashSessionRepository
-                    .findFirstByBranchIdAndCashierIdAndStatus(branch.getId(), sale.getSeller().getId(), CashSessionStatus.OPEN)
-                    .orElse(null);
-            payment.setCashSession(cashSession);
-        }
+        CashSession cashSession = cashSessionRepository
+                .findFirstByBranchIdAndCashierIdAndStatus(branch.getId(), sale.getSeller().getId(), CashSessionStatus.OPEN)
+                .orElseThrow(() -> new BadRequestException("No existe una caja abierta para registrar pagos en esta sucursal."));
+        payment.setCashSession(cashSession);
 
         return payment;
     }
@@ -422,8 +420,7 @@ public class SaleService {
         SalePayment payment = mapSalePayment(
                 sale,
                 sale.getBranch(),
-                paymentRequest,
-                false
+                paymentRequest
         );
 
         sale.getPayments().add(payment);
@@ -472,7 +469,7 @@ public class SaleService {
 
         if (request.getPayments() != null) {
             for (SalePaymentRequest paymentRequest : request.getPayments()) {
-                SalePayment payment = mapSalePayment(sale, branch, paymentRequest, true);
+                SalePayment payment = mapSalePayment(sale, branch, paymentRequest);
                 sale.getPayments().add(payment);
             }
         }

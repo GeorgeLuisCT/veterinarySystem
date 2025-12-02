@@ -6,5 +6,5 @@ export interface EmployeeSummaryResponse {
     phoneNumber: string;
     burden: string;
     branchNames: string;
-    isActive: boolean;
-} 
+    active: boolean;
+}

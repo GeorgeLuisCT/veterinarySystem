@@ -9,7 +9,8 @@ public record UserSummaryResponse(
         String email,
         String phoneNumber,
         String burden,
-        String branchNames
+        String branchNames,
+        boolean active
 ) {
     public static UserSummaryResponse fromNativeRow(Object[] row) {
         return new UserSummaryResponse(
@@ -20,9 +21,9 @@ public record UserSummaryResponse(
                 (String) row[4],                     // email
                 (String) row[5],                     // phoneNumber
                 (String) row[6],                     // burden
-                (String) row[7]                      // branchNames
+                (String) row[7],                     // branchNames
+                row[8] instanceof Boolean b ? b : Boolean.TRUE
         );
     }
 }
-
 

@@ -34,6 +34,8 @@ import {
   UpdateSaleRequest,
 } from "../../../_types/sale-request";
 import { SaleDetailResponse, SalePaymentResponse, SaleResponse } from "../../../_types/sale-response";
+import { normalizeToIsoString } from "../../../_utils/date";
+import { printSaleTicket } from "../../../_utils/print-sale-ticket";
 
 type SubmitMode = "draft" | "final";
 
@@ -65,6 +67,7 @@ function PointOfSaleContent() {
   const [itemsError, setItemsError] = useState<string | undefined>(undefined);
   const [paymentsError, setPaymentsError] = useState<string | undefined>(undefined);
   const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
+  const [blockedSaleId, setBlockedSaleId] = useState<number | null>(null);
 
   const isEditing = useMemo(() => sale?.status === SaleStatus.DRAFT, [sale]);
   const isFinalized = useMemo(() => !!sale && sale.status !== SaleStatus.DRAFT, [sale]);
@@ -83,6 +86,32 @@ function PointOfSaleContent() {
     setItemsError(undefined);
     setPaymentsError(undefined);
   }, []);
+
+  const handleReset = useCallback((options?: { preserveBlocked?: boolean }) => {
+    setSale(null);
+    cart.resetCart();
+    paymentCollector.resetPayments();
+    form.reset(DEFAULT_FORM_VALUES);
+    clearSectionErrors();
+    if (!options?.preserveBlocked) {
+      setBlockedSaleId(null);
+    }
+    router.push("/dashboard/pos/sales/new");
+  }, [cart, paymentCollector, form, clearSectionErrors, router]);
+
+  const handleTicketPrint = useCallback(
+    (completedSale: SaleResponse) => {
+      const printed = printSaleTicket(completedSale);
+      if (!printed) {
+        toast({
+          title: "No se pudo abrir el comprobante",
+          description: "Permite las ventanas emergentes para imprimir el ticket.",
+          variant: "destructive",
+        });
+      }
+    },
+    [toast]
+  );
 
   const syncFromSale = useCallback(
     (updatedSale: SaleResponse, resetForm = false) => {
@@ -113,18 +142,18 @@ function PointOfSaleContent() {
         paymentId: p.id,
         amount: p.amount,
         method: p.method,
-        paidAt: p.paidAt,
-        reference: p.reference,
-        notes: p.notes,
+        paidAt: normalizeToIsoString(p.paidAt),
+        reference: p.reference ?? undefined,
+        notes: p.notes ?? undefined,
       }));
       paymentCollector.setPayments(mappedPayments);
 
       if (resetForm) {
         form.reset({
           documentType: updatedSale.documentType,
-          documentNumber: updatedSale.documentNumber,
+          documentNumber: updatedSale.documentNumber ?? "",
           customerId: updatedSale.customerId,
-          notes: updatedSale.notes,
+          notes: updatedSale.notes ?? "",
         });
       }
 
@@ -139,41 +168,46 @@ function PointOfSaleContent() {
       try {
         const data = await SalesService.getSale(id);
         if (data.status !== SaleStatus.DRAFT) {
-          toast({ title: "Venta no editable", description: "Esta venta ya ha sido procesada.", variant: "destructive" });
-          router.push("/dashboard/pos/sales/history");
+          if (blockedSaleId !== id) {
+            /*  toast({
+                title: "Venta no editable",
+                description: "Esta venta ya ha sido procesada. Revisa el historial para verla.",
+                variant: "destructive",
+              });*/
+            setBlockedSaleId(id);
+            handleReset({ preserveBlocked: true });
+            return;
+          }
           return;
         }
         syncFromSale(data, true);
         toast({ title: "Borrador cargado", description: `Venta #${data.id} lista para editar.` });
       } catch {
         toast({ title: "Error al cargar la venta", description: "No se pudo obtener el detalle de la venta.", variant: "destructive" });
-        setSale(null);
-        router.push("/dashboard/pos/sales/history");
+        setBlockedSaleId(id);
       } finally {
         setSubmitting(false);
       }
     },
-    [syncFromSale, toast, router]
+    [syncFromSale, toast, handleReset, blockedSaleId]
   );
-
-  const handleReset = useCallback(() => {
-    setSale(null);
-    cart.resetCart();
-    paymentCollector.resetPayments();
-    form.reset(DEFAULT_FORM_VALUES);
-    clearSectionErrors();
-    router.push("/dashboard/pos/sales/new");
-  }, [cart, paymentCollector, form, clearSectionErrors, router]);
 
   useEffect(() => {
     const id = Number(searchParams.get("saleId") ?? 0);
     if (id > 0) {
-      if (sale?.id !== id) loadSale(id);
-    } else if (sale) {
-      handleReset();
+      if (blockedSaleId === id) return;
+      if (sale?.id !== id && !submitting) loadSale(id);
+    } else {
+      if (blockedSaleId !== null) {
+        setBlockedSaleId(null);
+        return;
+      }
+      if (sale) {
+        handleReset();
+      }
     }
     setIsInitialLoadDone(true);
-  }, [loadSale, handleReset, searchParams, sale]);
+  }, [loadSale, handleReset, searchParams, sale, blockedSaleId, submitting]);
 
   const handleHeaderUpdate = useCallback(
     async (values: SaleFormValues) => {
@@ -368,6 +402,7 @@ function PointOfSaleContent() {
         const savedSale = await SalesService.saveSale(parsed.data);
         if (finalizeSale) {
           toast({ title: "Venta finalizada", description: `Se generó la venta #${savedSale.id}` });
+          handleTicketPrint(savedSale);
           handleReset();
           router.push("/dashboard/pos/sales/new");
         } else {
@@ -382,7 +417,7 @@ function PointOfSaleContent() {
         setSubmitting(false);
       }
     },
-    [branchId, sellerId, cart, paymentCollector, handleReset, router, toast, clearSectionErrors, form]
+    [branchId, sellerId, cart, paymentCollector, handleReset, router, toast, clearSectionErrors, form, handleTicketPrint]
   );
 
   const handleFinalizeSale = useCallback(async () => {
@@ -393,38 +428,54 @@ function PointOfSaleContent() {
     }
     clearSectionErrors();
     setSubmitting(true);
-    const payload: FinalizeSaleRequest = { payments: paymentCollector.toSalePayments() };
+    const payload: FinalizeSaleRequest = { payments: [] };
+    console.log("[POS] Finalize payload", payload);
     const parsed = finalizeSaleRequestSchema.safeParse(payload);
     if (!parsed.success) {
+      console.error("[POS] Finalize validation error", parsed.error.flatten());
       setPaymentsError("Error al validar los pagos para finalizar.");
       setSubmitting(false);
       return;
     }
     try {
       const finalizedSale = await SalesService.finalizeSale(sale.id, parsed.data);
+      console.log("[POS] Finalize response", finalizedSale);
       toast({ title: "Venta finalizada", description: `Se procesó la venta #${finalizedSale.id}` });
+      handleTicketPrint(finalizedSale);
       handleReset();
       router.push("/dashboard/pos/sales/new");
     } catch (err: unknown) {
+      console.error("[POS] Finalize request failed", err);
       toast({ title: "Error al finalizar la venta", description: getAaxiosErrorMessage(err), variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
-  }, [sale, paymentCollector, handleReset, router, toast, clearSectionErrors]);
+  }, [sale, paymentCollector, handleReset, router, toast, clearSectionErrors, handleTicketPrint]);
 
-  const onSubmitFinal = form.handleSubmit(async (values) => {
-    if (isEditing && sale) {
-      await handleFinalizeSale();
-    } else {
-      await handleCreateSale("final", values);
+  const onSubmitFinal = form.handleSubmit(
+    async (values) => {
+      console.log("[POS] Submit final clicked", { isEditing, saleId: sale?.id });
+      if (isEditing && sale) {
+        await handleFinalizeSale();
+      } else {
+        await handleCreateSale("final", values);
+      }
+    },
+    (errors) => {
+      console.error("[POS] Final form validation errors", errors);
     }
-  });
+  );
 
-  const onSubmitDraft = form.handleSubmit(async (values) => {
-    if (!isEditing) {
-      await handleCreateSale("draft", values);
+  const onSubmitDraft = form.handleSubmit(
+    async (values) => {
+      if (!isEditing) {
+        await handleCreateSale("draft", values);
+      }
+    },
+    (errors) => {
+      console.error("[POS] Draft form validation errors", errors);
     }
-  });
+  );
 
   const totalDue = useMemo(() => cart.totals.grandTotal, [cart.totals]);
   const isBusy = submitting || isUpdatingHeader;
@@ -457,7 +508,7 @@ function PointOfSaleContent() {
 
         <div className="flex items-center gap-2">
           <PendingSalesSheet branchId={branchId} />
-          <Button onClick={handleReset} className="gap-2">
+          <Button onClick={() => handleReset()} className="gap-2">
             <PlusCircle className="h-4 w-4" />
             Nueva Venta
           </Button>

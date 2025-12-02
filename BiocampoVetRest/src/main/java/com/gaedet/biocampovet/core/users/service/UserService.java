@@ -2,29 +2,33 @@ package com.gaedet.biocampovet.core.users.service;
 
 import com.gaedet.biocampovet.core.branches.dto.BranchResponse;
 import com.gaedet.biocampovet.core.branches.entity.Branch;
-import com.gaedet.biocampovet.core.branches.entity.Company;
 import com.gaedet.biocampovet.core.employees.entity.Employee;
 import com.gaedet.biocampovet.core.employees.entity.EmployeeBranch;
 import com.gaedet.biocampovet.core.global.PaginatedResponse;
+import com.gaedet.biocampovet.core.users.dto.UserDetailResponse;
 import com.gaedet.biocampovet.core.users.dto.UserInfoResponse;
 import com.gaedet.biocampovet.core.users.dto.UserSummaryResponse;
+import com.gaedet.biocampovet.core.users.entity.Role;
 import com.gaedet.biocampovet.core.users.entity.User;
+import com.gaedet.biocampovet.core.users.mapper.UserMapper;
 import com.gaedet.biocampovet.core.users.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
 
     @Transactional(readOnly = true)
@@ -76,11 +80,46 @@ public class UserService {
         return dto;
     }
 
-    public PaginatedResponse<UserSummaryResponse> getAllUsers(Long branchId, boolean isActive, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Object[]> rawPage = userRepository.findRawUserSummaries(branchId, isActive, pageable);
+    @Transactional(readOnly = true)
+    public UserDetailResponse getUserDetail(Long userId) {
+        User user = userRepository.findAuthBundleById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Page<UserSummaryResponse> resultPage = rawPage.map(UserSummaryResponse::fromNativeRow);
+        Employee employee = user.getEmployee();
+
+        return UserDetailResponse.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .active(user.isActive())
+                .roles(user.getRoles().stream()
+                        .map(Role::getName)
+                        .collect(Collectors.toSet()))
+                .employeeId(employee.getId())
+                .firstName(employee.getFirstName())
+                .lastName(employee.getLastName())
+                .email(employee.getEmail())
+                .phoneNumber(employee.getPhoneNumber())
+                .burden(employee.getBurden())
+                .branches(employee.getEmployeeBranches().stream()
+                        .map(eb -> {
+                            Branch branch = eb.getBranch();
+                            return new BranchResponse(branch.getId(), branch.getName(), branch.getLocation());
+                        })
+                        .collect(Collectors.toSet()))
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public PaginatedResponse<UserSummaryResponse> getAllUsers(Long branchId,
+                                                              boolean isActive,
+                                                              int page,
+                                                              int size,
+                                                              String query) {
+        Pageable pageable = PageRequest.of(page, size);
+        String normalizedQuery = StringUtils.hasText(query) ? query.trim() : null;
+        Page<Object[]> rawPage = userRepository.findRawUserSummaries(branchId, isActive, normalizedQuery, pageable);
+
+        var resultPage = rawPage.map(UserSummaryResponse::fromNativeRow);
 
         return PaginatedResponse.<UserSummaryResponse>builder()
                 .content(resultPage.getContent())
@@ -89,5 +128,32 @@ public class UserService {
                 .currentPage(resultPage.getNumber())
                 .pageSize(resultPage.getSize())
                 .build();
+    }
+
+    @Transactional
+    public UserSummaryResponse updateUserStatus(Long userId, boolean active) {
+        User user = userRepository.findAuthBundleById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setActive(active);
+        User saved = userRepository.save(user);
+        return userMapper.toSummary(saved);
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = userRepository.findAuthBundleById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Employee employee = user.getEmployee();
+        boolean hasActiveAssignments = employee != null &&
+                employee.getEmployeeBranches().stream()
+                        .anyMatch(EmployeeBranch::isActive);
+
+        if (hasActiveAssignments) {
+            throw new IllegalStateException("No se puede eliminar el usuario porque el empleado asociado tiene sucursales activas.");
+        }
+
+        userRepository.deleteById(userId);
     }
 }

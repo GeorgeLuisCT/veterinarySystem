@@ -224,11 +224,17 @@ export default function TreasuryAccountsPage() {
 
             <Card>
               <CardContent className="pb-8">
-                <AccountDetail
-                  account={selectedAccount}
-                  onRegisterMovement={handleRegisterMovement}
-                  refreshSignal={detailRefresh}
-                />
+                {selectedAccount ? (
+                  <AccountDetail
+                    account={selectedAccount}
+                    onRegisterMovement={handleRegisterMovement}
+                    refreshSignal={detailRefresh}
+                  />
+                ) : (
+                  <div className="rounded-lg border bg-muted/30 p-6 text-center text-muted-foreground">
+                    Selecciona una cuenta para ver el detalle.
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
