@@ -4,7 +4,7 @@ services:
   # 1. Base de Datos
   database:
     image: postgres:15-alpine
-    container_name: biocampo_db
+    container_name: veterinarysystem_db
     restart: always
     environment:
       POSTGRES_DB: ${DB_NAME}
@@ -18,9 +18,9 @@ services:
   # 2. Backend (Spring Boot)
   backend:
     build:
-      context: ./BiocampoVetRest
+      context: ./VeterinarySystemRest
       dockerfile: Dockerfile
-    container_name: biocampo_api
+    container_name: veterinarysystem_api
     restart: always
     environment:
       DB_HOST: database
@@ -38,12 +38,12 @@ services:
   # 3. Frontend (Next.js)
   frontend:
     build:
-      context: ./biocampovet
+      context: ./VeterinarySystemFront
       dockerfile: Dockerfile
       args:
         # En producción, Nginx maneja la ruta /api, así que la URL es el mismo dominio
-        NEXT_PUBLIC_API_URL: https://biocampo.gaedet.com/api
-    container_name: biocampo_web
+        NEXT_PUBLIC_API_URL: https://veterinarysystem.gaedet.com/api
+    container_name: veterinarysystem_web
     restart: always
     networks:
       - internal_net
@@ -51,7 +51,7 @@ services:
   # 4. TU NGINX (El Portero del Proyecto)
   project_nginx:
     image: nginx:alpine
-    container_name: biocampo_nginx_gateway
+    container_name: veterinarysystem_nginx_gateway
     restart: always
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
