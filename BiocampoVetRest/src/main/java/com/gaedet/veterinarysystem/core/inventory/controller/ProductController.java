@@ -1,0 +1,98 @@
+package com.gaedet.veterinarysystem.core.inventory.controller;
+
+import com.gaedet.veterinarysystem.core.global.PaginatedResponse;
+import com.gaedet.veterinarysystem.core.inventory.dto.*;
+
+import com.gaedet.veterinarysystem.core.inventory.enums.AdministrationRoute;
+import com.gaedet.veterinarysystem.core.inventory.enums.ProductPresentationType;
+import com.gaedet.veterinarysystem.core.inventory.enums.ProductUnitType;
+import com.gaedet.veterinarysystem.core.inventory.service.ProductService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import lombok.RequiredArgsConstructor;
+
+import javax.validation.Valid;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/products")
+@RequiredArgsConstructor
+public class ProductController {
+    private final ProductService productService;
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PostMapping("/create")
+    public ResponseEntity<ProductSummaryResponse> createProduct(@Valid @RequestBody ProductCreateRequest request) {
+        return ResponseEntity.ok(productService.createProduct(request));
+    }
+
+    @GetMapping("/get")
+    public ResponseEntity<ProductResponse> getProduct(@RequestParam Long id) {
+        return ResponseEntity.ok(productService.getProduct(id));
+    }
+
+    @PostMapping("/by-ids")
+    public ResponseEntity<List<ProductResponse>> getProductsByIds(@RequestBody List<Long> ids) {
+        return ResponseEntity.ok(productService.getProducts(ids));
+    }
+
+    @GetMapping
+    public ResponseEntity<PaginatedResponse<ProductSummaryResponse>> list(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long branchId,
+            @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false) ProductPresentationType presentation,
+            @RequestParam(required = false) ProductUnitType unitType,
+            @RequestParam(required = false) AdministrationRoute route,
+            @RequestParam(required = false) Boolean hasSaleModes,
+            @RequestParam(required = false) Boolean availableOnly,
+            @RequestParam(required = false) Boolean minStockAlertOnly
+    ) {
+        var resp = productService.list(
+                page, size, q, categoryId, branchId, active, presentation, unitType, route, hasSaleModes, availableOnly, minStockAlertOnly
+        );
+        return ResponseEntity.ok(resp);
+    }
+
+    @GetMapping("/quick-search")
+    public ResponseEntity<List<ProductQuickSearchResponse>> searchProductsByName(@RequestParam String name,
+                                                                      @RequestParam(required = false) Long branchId) {
+        return ResponseEntity.ok(productService.searchProductsByName(name, branchId));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PutMapping("/update")
+    public ResponseEntity<ProductSummaryResponse> updateProduct(@RequestBody @Valid ProductUpdateRequest request) {
+        return ResponseEntity.ok(productService.updateProduct(request));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @DeleteMapping("/soft-delete")
+    public ResponseEntity<Map<String, String>> softDeleteProduct(@RequestParam Long id,
+                                                                 @RequestParam(required = false) Long branchId) {
+
+        productService.softDeleteProduct(id, branchId);
+        return ResponseEntity.ok(Map.of("message", "Producto desavilitado correctamente"));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @DeleteMapping("/hard-delete")
+    public ResponseEntity<Map<String, String>> hardDeleteProduct(@RequestParam Long id) {
+        productService.hardDeleteProduct(id);
+        return ResponseEntity.ok(Map.of("message", "Producto eliminado permanentemente"));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PutMapping("/restore")
+    public ResponseEntity<ProductSummaryResponse> activateProduct(@RequestParam Long id,
+                                                                  @RequestParam(required = false) Long branchId) {
+        ProductSummaryResponse response = productService.restoreProduct(id, branchId);
+        return ResponseEntity.ok(response);
+    }
+}
