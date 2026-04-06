@@ -18,7 +18,7 @@ services:
   # 2. Backend (Spring Boot)
   backend:
     build:
-      context: ./VeterinarySystemRest
+      context: ./veterinarySystemRest
       dockerfile: Dockerfile
     container_name: veterinarysystem_api
     restart: always
@@ -38,7 +38,7 @@ services:
   # 3. Frontend (Next.js)
   frontend:
     build:
-      context: ./VeterinarySystemFront
+      context: ./veterinarysystemfront
       dockerfile: Dockerfile
       args:
         # En producción, Nginx maneja la ruta /api, así que la URL es el mismo dominio
