@@ -56,6 +56,11 @@ public class GroomingSession {
     @Column(name = "charged_price", precision = 12, scale = 2)
     private BigDecimal chargedPrice;
 
+    /** Detalle de venta (sale_details.id) con el que se cobró este ítem; null = pendiente de cobro. */
+    @Column(name = "sale_detail_id")
+    private Long saleDetailId;
+
+
     @Column(columnDefinition = "TEXT")
     private String behaviorNotes;
 

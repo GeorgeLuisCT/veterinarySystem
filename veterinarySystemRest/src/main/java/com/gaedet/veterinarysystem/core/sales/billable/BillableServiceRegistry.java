@@ -42,4 +42,11 @@ public class BillableServiceRegistry {
         }
         adapter.markAsUnbilled(itemId);
     }
+
+    public List<BillableServiceItem> listPending(Long branchId, Long attentionId, Long patientId, String query) {
+        String normalizedQuery = (query == null || query.isBlank()) ? null : query.trim();
+        return adapters.values().stream()
+                .flatMap(adapter -> adapter.listPending(branchId, attentionId, patientId, normalizedQuery).stream())
+                .toList();
+    }
 }

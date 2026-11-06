@@ -226,7 +226,8 @@ public class SaleService {
 
     @Transactional(readOnly = true)
     public List<BillableServiceItem> listBillableItems(Long branchId, Long attentionId, Long patientId, String query) {
-        return List.of();
+        // Cargos pendientes de cobro: servicios clínicos listos para facturar, exámenes y peluquería terminada
+        return billableServiceRegistry.listPending(branchId, attentionId, patientId, query);
     }
 
     private SaleResponse buildAndPersistSale(
@@ -776,12 +777,6 @@ public class SaleService {
             SaleItemRequest item,
             List<PendingServiceMark> serviceMarks
     ) {
-        BigDecimal quantity = item.getQuantity().setScale(3, ROUNDING_MODE);
-        BigDecimal unitPrice = item.getUnitPrice().setScale(MONEY_SCALE, ROUNDING_MODE);
-        BigDecimal lineSubtotal = unitPrice.multiply(quantity).setScale(MONEY_SCALE, ROUNDING_MODE);
-        BigDecimal taxAmount = calculateTax(lineSubtotal, item.getTaxRate(), item.getTaxAmount());
-        String description = item.getDescriptionOverride();
-
         BillableServiceType serviceType = item.getServiceType();
         Long serviceItemId = item.getServiceItemId();
         if (serviceType == null || serviceItemId == null) {
@@ -789,6 +784,15 @@ public class SaleService {
         }
 
         BillableServiceItem billableItem = billableServiceRegistry.fetchItem(serviceType, serviceItemId);
+
+        // El precio y la cantidad de un servicio ya prestado los define el sistema (no el cliente HTTP)
+        BigDecimal quantity = (billableItem.getQuantity() != null ? billableItem.getQuantity() : item.getQuantity())
+                .setScale(3, ROUNDING_MODE);
+        BigDecimal unitPrice = (billableItem.getUnitPrice() != null ? billableItem.getUnitPrice() : item.getUnitPrice())
+                .setScale(MONEY_SCALE, ROUNDING_MODE);
+        BigDecimal lineSubtotal = unitPrice.multiply(quantity).setScale(MONEY_SCALE, ROUNDING_MODE);
+        BigDecimal taxAmount = calculateTax(lineSubtotal, item.getTaxRate(), item.getTaxAmount());
+        String description = item.getDescriptionOverride();
 
         if (billableItem.getBranchId() != null && !Objects.equals(billableItem.getBranchId(), branch.getId())) {
             throw new BadRequestException("El servicio seleccionado pertenece a otra sucursal");

@@ -84,4 +84,24 @@ public interface GroomingSessionRepository extends JpaRepository<GroomingSession
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to
     );
+
+    /** Sesiones de peluquería terminadas (listas para entregar) con precio y sin cobrar. */
+    @org.springframework.data.jpa.repository.Query("""
+        select gs from GroomingSession gs
+        join fetch gs.attention att
+        join fetch att.animal animal
+        where gs.saleDetailId is null
+          and gs.status = com.gaedet.veterinarysystem.core.clinic.enums.GroomingStatus.READY_FOR_PICKUP
+          and gs.chargedPrice is not null and gs.chargedPrice > 0
+          and (:branchId is null or att.branch.id = :branchId)
+          and (:attentionId is null or att.id = :attentionId)
+          and (:patientId is null or animal.id = :patientId)
+          and (:q is null or lower(animal.name) like lower(concat('%', :q, '%')))
+        order by gs.finishedAt desc, gs.id
+    """)
+    java.util.List<GroomingSession> findBillable(
+            @org.springframework.data.repository.query.Param("branchId") Long branchId,
+            @org.springframework.data.repository.query.Param("attentionId") Long attentionId,
+            @org.springframework.data.repository.query.Param("patientId") Long patientId,
+            @org.springframework.data.repository.query.Param("q") String q);
 }

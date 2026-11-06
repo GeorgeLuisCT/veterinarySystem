@@ -50,6 +50,11 @@ public class LaboratoryRequestItem {
     @Column(precision = 14, scale = 2, nullable = false)
     private BigDecimal subtotal;
 
+    /** Detalle de venta (sale_details.id) con el que se cobró este ítem; null = pendiente de cobro. */
+    @Column(name = "sale_detail_id")
+    private Long saleDetailId;
+
+
     @OneToMany(mappedBy = "requestItem", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<LaboratoryResultValue> results = new HashSet<>();
