@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import com.gaedet.veterinarysystem.exeption.BadRequestException;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +50,7 @@ public class HospitalizationService {
     private final TreatmentScheduleRepository treatmentScheduleRepository;
     private final AttentionRepository attentionsRepository;
     private final ClinicalServiceRepository clinicalServiceRepository;
-    private final KardexService kardexService;
+    private final com.gaedet.veterinarysystem.core.inventory.service.InventoryConsumptionService inventoryConsumptionService;
     private final ProductRepository productRepository;
     private final HospitalizationVitalSignRepository hospitalizationVitalSignRepository;
 
@@ -223,6 +224,12 @@ public class HospitalizationService {
             throw new IllegalArgumentException("Treatment schedule does not belong to the specified hospitalization.");
         }
 
+        // Si el tratamiento ya estaba administrado, primero se devuelve lo consumido: así marcar/desmarcar
+        // o re-guardar no duplica ni pierde stock.
+        if (schedule.isCompleted()) {
+            inventoryConsumptionService.restore("TreatmentSchedule", schedule.getId());
+        }
+
         schedule.setCompleted(request.getIsCompleted());
         schedule.setNotes(request.getNotes());
 
@@ -255,7 +262,13 @@ public class HospitalizationService {
                             .build();
                     schedule.getProductUsages().add(usage);
 
-                    registerInventoryMovement(branchId, schedule, productRequest);
+                    if (branchId == null) {
+                        throw new BadRequestException("La hospitalización no tiene jaula/sucursal para descontar inventario");
+                    }
+                    // Descuento FEFO por lotes; falla de forma explícita si no hay stock suficiente
+                    inventoryConsumptionService.consume(productRequest.getProductId(), branchId,
+                            productRequest.getQuantity(), productRequest.getUnit(),
+                            "TreatmentSchedule", schedule.getId());
                 }
             }
         } else {
@@ -300,36 +313,6 @@ public class HospitalizationService {
 
         Hospitalization updated = hospitalizationRepository.findById(hospitalizationId).orElseThrow();
         return HospitalizationMapper.toResponse(updated);
-    }
-
-    private void registerInventoryMovement(Long branchId, TreatmentSchedule schedule,
-            TreatmentScheduleProductUsageRequest productRequest) {
-        if (branchId == null) {
-            return;
-        }
-
-        Map<Long, java.math.BigDecimal> batchStocks = kardexService
-                .getStockForProductByBatch(productRequest.getProductId(), branchId);
-
-        java.math.BigDecimal quantityToDeduct = productRequest.getQuantity();
-
-        for (Map.Entry<Long, java.math.BigDecimal> entry : batchStocks.entrySet()) {
-            if (entry.getValue().compareTo(java.math.BigDecimal.ZERO) > 0) {
-                Long batchId = entry.getKey();
-
-                kardexService.registerMovement(KardexRegistrationRequest.builder()
-                        .productId(productRequest.getProductId())
-                        .branchId(branchId)
-                        .batchId(batchId)
-                        .quantity(quantityToDeduct)
-                        .unitType(productRequest.getUnit())
-                        .type(KardexMovementType.SERVICE_EXIT)
-                        .originId(schedule.getId())
-                        .originType("TreatmentSchedule")
-                        .build());
-                break;
-            }
-        }
     }
 
     @Transactional
