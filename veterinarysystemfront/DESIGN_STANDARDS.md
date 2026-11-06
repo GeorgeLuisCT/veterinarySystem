@@ -56,12 +56,13 @@ Reglas cortas; si una pantalla las rompe, se corrige la pantalla, no la regla.
 |---|---|
 | Una tarea, ≤ 5 campos | `Dialog` pequeño (`max-w-lg`) |
 | 6–10 campos | `Dialog` con secciones (`FormSection`) |
-| > 10 campos o filas repetibles (productos, grupos…) | `Dialog` con `Tabs` (pie fijo con Guardar) o página propia |
+| > 10 campos o filas repetibles (productos, grupos…) | `Dialog` con `Tabs` (pie fijo con Guardar) o página propia. Las tabs se mantienen para partir un formulario |
+| Elegir un tipo excluyente (tipo de cita, medicamento/instrucción) | `SegmentedControl` (botones), no Tabs. Solo en estos casos de elección |
 | Confirmaciones | `ConfirmationDialog`; **nunca un modal sobre otro modal** |
 | Formulario largo | `FormSection` por bloque; lo opcional/avanzado con `collapsible` |
 | Información extensa (consulta, detalle) | `CollapsibleSection` con resumen a la derecha ("Completo", "3 registros") |
 | Datos clave de un detalle | `SummaryPanel` + `SummaryItem` (una sola superficie suave con icono, etiqueta y valor destacado; descripción en el pie). `DescriptionList` para pares secundarios |
 | Registros homogéneos con ≥ 4 atributos | Tabla (`DataTable`); cards solo para tableros operativos |
 
-Componentes en `components/page/`: `PageContainer`, `PageHeader`, `PageSection`, `CollapsibleSection`, `FormSection`, `DescriptionList`, `FilterBar`, `status-tone`.
+Componentes en `components/page/`: `SegmentedControl`, `SummaryPanel`, `PageContainer`, `PageHeader`, `PageSection`, `CollapsibleSection`, `FormSection`, `DescriptionList`, `FilterBar`, `status-tone`.
 Pilotos de referencia: consulta clínica (`consultation-form.tsx`), `fieldwork/.../service-item-dialog.tsx`, detalle de movimiento de inventario.

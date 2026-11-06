@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import AppointmentService from "../service/appointment-service";
@@ -35,6 +35,7 @@ import { GroomingAppointmentTab } from "./new-appointment-modal/grooming-appoint
 import { SurgicalAppointmentTab } from "./new-appointment-modal/surgical-appointment-tab";
 import type { Option } from "./types";
 import { AnimalSpeciesLabels } from "../../crm/patients/enums/animal-species";
+import { SegmentedControl } from "@/components/page/segmented-control";
 
 type NewAppointmentModalTab = "clinical" | "grooming" | "surgical";
 
@@ -394,20 +395,17 @@ export function NewAppointmentModal({ open, onOpenChange, onCreated, initialDate
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as NewAppointmentModalTab)}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="clinical">
-              <Stethoscope className="mr-2 h-4 w-4" />
-              Clínica
-            </TabsTrigger>
-            <TabsTrigger value="grooming">
-              <Scissors className="mr-2 h-4 w-4" />
-              Peluquería
-            </TabsTrigger>
-            <TabsTrigger value="surgical">
-              <Syringe className="mr-2 h-4 w-4" />
-              Cirugía
-            </TabsTrigger>
-          </TabsList>
+          <SegmentedControl<NewAppointmentModalTab>
+            aria-label="Tipo de cita"
+            value={activeTab}
+            onChange={setActiveTab}
+            className="mb-4"
+            options={[
+              { value: "clinical", label: "Clínica", icon: Stethoscope },
+              { value: "grooming", label: "Peluquería", icon: Scissors },
+              { value: "surgical", label: "Cirugía", icon: Syringe },
+            ]}
+          />
           <TabsContent value="clinical">
             {initialLoading ? (
               <div className="flex h-40 items-center justify-center">

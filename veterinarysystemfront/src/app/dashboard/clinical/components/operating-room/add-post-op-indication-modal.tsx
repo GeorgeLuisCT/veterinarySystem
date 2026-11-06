@@ -10,7 +10,7 @@ import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { FloatingLabelInput } from "@/components/floating-label-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 
 import {
@@ -25,6 +25,7 @@ import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-
 import { FrequencyUnitLabels } from "../../enums/frequency-unit";
 import { AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
 import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/_types/product-response";
+import { SegmentedControl } from "@/components/page/segmented-control";
 
 type Option = { value: string; label: string };
 type Mode = "medication" | "instruction";
@@ -136,10 +137,16 @@ export function AddPostOpIndicationModal({
         </DialogHeader>
 
         <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)} className="mt-1">
-          <TabsList className="grid w-full grid-cols-2 rounded-full">
-            <TabsTrigger value="medication" className="rounded-full">Medicamento</TabsTrigger>
-            <TabsTrigger value="instruction" className="rounded-full">Instrucción</TabsTrigger>
-          </TabsList>
+          <SegmentedControl<Mode>
+            aria-label="Tipo de indicación"
+            value={mode}
+            onChange={setMode}
+            className="mb-3"
+            options={[
+              { value: "medication", label: "Medicamento" },
+              { value: "instruction", label: "Instrucción" },
+            ]}
+          />
 
           <Form {...form}>
             <form className="mt-4 space-y-4" onSubmit={form.handleSubmit(onSubmit)} noValidate autoComplete="off">
