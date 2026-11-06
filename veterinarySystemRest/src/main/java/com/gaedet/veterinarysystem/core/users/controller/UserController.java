@@ -59,13 +59,13 @@ public class UserController {
     @PatchMapping("/{userId}/status")
     public ResponseEntity<UserSummaryResponse> updateStatus(@PathVariable Long userId,
                                                             @Valid @RequestBody UserStatusUpdateRequest request) {
-        return ResponseEntity.ok(userService.updateUserStatus(userId, request.getActive()));
+        return ResponseEntity.ok(userService.updateUserStatus(userId, request.getActive(), jwtTokenProvider.getUserId()));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{userId}")
     public ResponseEntity<Map<String, String>> deleteUser(@PathVariable Long userId) {
-        userService.deleteUser(userId);
+        userService.deleteUser(userId, jwtTokenProvider.getUserId());
         return ResponseEntity.ok(Map.of("message", "Usuario eliminado correctamente"));
     }
 }

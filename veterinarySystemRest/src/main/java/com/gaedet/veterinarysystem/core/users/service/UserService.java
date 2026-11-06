@@ -133,8 +133,19 @@ public class UserService {
 
     @Transactional
     public UserSummaryResponse updateUserStatus(Long userId, boolean active) {
+        return updateUserStatus(userId, active, null);
+    }
+
+    /** @param actorUserId quien ejecuta la acción (no puede desactivarse a sí mismo ni al último administrador) */
+    @Transactional
+    public UserSummaryResponse updateUserStatus(Long userId, boolean active, Long actorUserId) {
         User user = userRepository.findAuthBundleById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        if (!active) {
+            assertNotSelf(userId, actorUserId, "desactivar");
+            assertNotLastAdmin(user, "desactivar");
+        }
 
         user.setActive(active);
         User saved = userRepository.save(user);
@@ -143,8 +154,16 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long userId) {
+        deleteUser(userId, null);
+    }
+
+    @Transactional
+    public void deleteUser(Long userId, Long actorUserId) {
         User user = userRepository.findAuthBundleById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        assertNotSelf(userId, actorUserId, "eliminar");
+        assertNotLastAdmin(user, "eliminar");
 
         Employee employee = user.getEmployee();
         boolean hasActiveAssignments = employee != null &&
@@ -156,5 +175,19 @@ public class UserService {
         }
 
         userRepository.deleteById(userId);
+    }
+
+    private void assertNotSelf(Long userId, Long actorUserId, String action) {
+        if (actorUserId != null && actorUserId.equals(userId)) {
+            throw new IllegalStateException("No puedes " + action + " tu propio usuario");
+        }
+    }
+
+    private void assertNotLastAdmin(User user, String action) {
+        boolean isAdmin = user.isActive() && user.getRoles().stream()
+                .anyMatch(r -> r.getName() == com.gaedet.veterinarysystem.core.users.enums.RoleName.ROLE_ADMIN);
+        if (isAdmin && userRepository.countActiveAdmins() <= 1) {
+            throw new IllegalStateException("No se puede " + action + " al único administrador activo del sistema");
+        }
     }
 }
