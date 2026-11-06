@@ -49,3 +49,19 @@ Reglas cortas; si una pantalla las rompe, se corrige la pantalla, no la regla.
 ## 5. Botones
 
 - Una sola acción primaria por zona (`variant="default"`); el resto `outline`/`ghost`. Nada de `bg-emerald-600 …` a mano: para "guardar" se usa el primario.
+
+## 6. Densidad de información: modales, formularios, detalle
+
+| Situación | Patrón |
+|---|---|
+| Una tarea, ≤ 5 campos | `Dialog` pequeño (`max-w-lg`) |
+| 6–10 campos | `Dialog` con secciones (`FormSection`) |
+| > 10 campos o filas repetibles (productos, grupos…) | `Dialog` con `Tabs` (pie fijo con Guardar) o página propia |
+| Confirmaciones | `ConfirmationDialog`; **nunca un modal sobre otro modal** |
+| Formulario largo | `FormSection` por bloque; lo opcional/avanzado con `collapsible` |
+| Información extensa (consulta, detalle) | `CollapsibleSection` con resumen a la derecha ("Completo", "3 registros") |
+| Pares etiqueta/valor | `DescriptionList` + `DescriptionItem` (no cards sueltas) |
+| Registros homogéneos con ≥ 4 atributos | Tabla (`DataTable`); cards solo para tableros operativos |
+
+Componentes en `components/page/`: `PageContainer`, `PageHeader`, `PageSection`, `CollapsibleSection`, `FormSection`, `DescriptionList`, `FilterBar`, `status-tone`.
+Pilotos de referencia: consulta clínica (`consultation-form.tsx`), `fieldwork/.../service-item-dialog.tsx`, detalle de movimiento de inventario.

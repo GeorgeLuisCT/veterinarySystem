@@ -11,6 +11,8 @@ type PageHeaderProps = {
   /** Si se indica, muestra un enlace "volver" sobre el título (pantallas de detalle). */
   backHref?: string;
   backLabel?: string;
+  /** Alternativa a backHref cuando se vuelve con router.back() u otra lógica. */
+  onBack?: () => void;
   /** Chips/badges bajo el título (estado, fecha, etc.). */
   meta?: React.ReactNode;
   className?: string;
@@ -26,12 +28,23 @@ export function PageHeader({
   actions,
   backHref,
   backLabel = "Volver",
+  onBack,
   meta,
   className,
 }: PageHeaderProps) {
   return (
     <header className={cn("flex flex-wrap items-start justify-between gap-3", className)}>
       <div className="min-w-0 flex-1 basis-80 space-y-1">
+        {onBack && !backHref && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {backLabel}
+          </button>
+        )}
         {backHref && (
           <Link
             href={backHref}

@@ -248,7 +248,7 @@ export default function ConsultationPage() {
                     ref={formRef}
                     detail={clinicalAttention}
                     setDetail={setClinicalAttention}
-                    className="sm:basis-[72%] sm:min-w-0 w-full flex flex-col gap-4"
+                    className="sm:basis-[72%] sm:min-w-0 w-full flex flex-col"
                 />
                 <QuickHistory
                     animalId={clinicalAttention?.attention.animalId}

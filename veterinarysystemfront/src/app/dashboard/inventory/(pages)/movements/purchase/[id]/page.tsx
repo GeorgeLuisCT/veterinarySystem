@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
-import { ArrowLeft, CalendarDays, Building2, Factory, UserRound, FileText } from "lucide-react";
+import { ArrowLeft, CalendarDays } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
+import { PageHeader } from "@/components/page/page-header";
+import { PageSection } from "@/components/page/page-section";
+import { DescriptionList, DescriptionItem } from "@/components/page/description-list";
 
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import { InventoryMovementResponse } from "@/app/dashboard/inventory/_types/inventory-movement-response";
@@ -99,11 +101,7 @@ export default function PurchaseDetailPage() {
             Volver
           </Button>
         </div>
-        <Card>
-          <CardContent className="py-6">
-            <p className="text-sm text-muted-foreground">No se encontró la compra.</p>
-          </CardContent>
-        </Card>
+        <p className="text-sm text-muted-foreground">No se encontró la compra.</p>
       </div>
     );
   }
@@ -125,141 +123,84 @@ export default function PurchaseDetailPage() {
   return (
     <DashboardLayoutSection>
       <PageContainer>
-        <div className="space-y-5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                className="gap-2"
-                onClick={goBack}
-                aria-label="Regresar a la lista de compras"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Volver
-              </Button>
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-                Detalle de compra #{movement.id}
-              </h1>
-            </div>
+        <div className="space-y-4">
+          <PageHeader
+            title={`Detalle de compra #${movement.id}`}
+            onBack={goBack}
+            meta={
+              <>
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  {formatDate(movement.date, true)}
+                </Badge>
+              </>
+            }
+          />
 
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <CalendarDays className="h-3.5 w-3.5" />
-              {formatDate(movement.date, true)}
-            </Badge>
-          </div>
+          <DescriptionList cols={3}>
+            <DescriptionItem label="Sucursal de ingreso">
+              {movement.targetBranch?.name ?? "—"}
+            </DescriptionItem>
+            <DescriptionItem label="Proveedor">{movement.supplier?.name ?? "—"}</DescriptionItem>
+            <DescriptionItem label="Registrado por">{employeeDisplay}</DescriptionItem>
+            <DescriptionItem label="Descripción" className="sm:col-span-full">
+              {movement.description?.trim() || "—"}
+            </DescriptionItem>
+          </DescriptionList>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-muted/60">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Sucursal de ingreso
-                </CardTitle>
-                <CardDescription>Destino del stock</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-base font-medium">{movement.targetBranch?.name ?? "-"}</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-muted/60">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Factory className="h-4 w-4" />
-                  Proveedor
-                </CardTitle>
-                <CardDescription>Origen de la compra</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-base font-medium">{movement.supplier?.name ?? "-"}</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-muted/60">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <UserRound className="h-4 w-4" />
-                  Registrado por
-                </CardTitle>
-                <CardDescription>Responsable</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-base font-medium">{employeeDisplay}</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="border-muted/60">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Descripción
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-sm text-muted-foreground">{movement.description?.trim() || "—"}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-muted/60">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold">Productos comprados</CardTitle>
-              <CardDescription>Detalle de ítems y costos</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="rounded-md border overflow-hidden">
-                <div className="max-h-[60vh] overflow-auto">
-                  <Table>
-                    <TableHeader className="sticky top-0 bg-background z-10">
-                      <TableRow>
-                        <TableHead>Producto</TableHead>
-                        <TableHead className="text-right">Cantidad</TableHead>
-                        <TableHead>Unidad</TableHead>
-                        <TableHead className="text-right">Costo unitario</TableHead>
-                        <TableHead>Lote</TableHead>
-                        <TableHead>Vencimiento</TableHead>
-                        <TableHead className="text-right">Subtotal</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {movement.products?.map((item) => {
-                        const qty = Number(item.quantity ?? 0);
-                        const unitCost = Number(item.unitCost ?? 0);
-                        const subtotal = qty * unitCost;
-                        return (
-                          <TableRow key={item.id} className="hover:bg-muted/30">
-                            <TableCell className="min-w-56">{item.product.name}</TableCell>
-                            <TableCell className="text-right">{qty}</TableCell>
-                            <TableCell>{ProductUnitTypeLabels[item.unitType]}</TableCell>
-                            <TableCell className="text-right">
-                              {unitCost ? currency.format(unitCost) : "—"}
-                            </TableCell>
-                            <TableCell>{item.batch?.batchNumber ?? "—"}</TableCell>
-                            <TableCell>{formatDate(item.batch?.expirationDate)}</TableCell>
-                            <TableCell className="text-right font-medium">
-                              {subtotal ? currency.format(subtotal) : "—"}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-                <div className="flex justify-end border-t bg-muted/20">
-                  <div className="w-full md:w-80 p-4 space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Total ítems</span>
-                      <span className="font-medium">{movement.products?.length ?? 0}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-base">
-                      <span className="font-medium">Total de la compra</span>
-                      <span className="font-semibold">{currency.format(purchaseTotal)}</span>
-                    </div>
+          <PageSection title="Productos comprados" description="Detalle de ítems y costos">
+            <div className="rounded-md border overflow-hidden">
+              <div className="max-h-[60vh] overflow-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead>Producto</TableHead>
+                      <TableHead className="text-right">Cantidad</TableHead>
+                      <TableHead>Unidad</TableHead>
+                      <TableHead className="text-right">Costo unitario</TableHead>
+                      <TableHead>Lote</TableHead>
+                      <TableHead>Vencimiento</TableHead>
+                      <TableHead className="text-right">Subtotal</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {movement.products?.map((item) => {
+                      const qty = Number(item.quantity ?? 0);
+                      const unitCost = Number(item.unitCost ?? 0);
+                      const subtotal = qty * unitCost;
+                      return (
+                        <TableRow key={item.id} className="hover:bg-muted/30">
+                          <TableCell className="min-w-56">{item.product.name}</TableCell>
+                          <TableCell className="text-right">{qty}</TableCell>
+                          <TableCell>{ProductUnitTypeLabels[item.unitType]}</TableCell>
+                          <TableCell className="text-right">
+                            {unitCost ? currency.format(unitCost) : "—"}
+                          </TableCell>
+                          <TableCell>{item.batch?.batchNumber ?? "—"}</TableCell>
+                          <TableCell>{formatDate(item.batch?.expirationDate)}</TableCell>
+                          <TableCell className="text-right font-medium">
+                            {subtotal ? currency.format(subtotal) : "—"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="flex justify-end border-t bg-muted/20">
+                <div className="w-full md:w-80 p-4 space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Total ítems</span>
+                    <span className="font-medium">{movement.products?.length ?? 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-base">
+                    <span className="font-medium">Total de la compra</span>
+                    <span className="font-semibold">{currency.format(purchaseTotal)}</span>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </PageSection>
         </div>
       </PageContainer>
     </DashboardLayoutSection>
