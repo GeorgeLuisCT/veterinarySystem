@@ -209,14 +209,14 @@ export function CalendarSidebar({
                   }}
                   className={cn(
                     "h-8 w-8 p-0 text-xs relative",
-                    isToday && "bg-blue-600 text-white hover:bg-blue-700",
+                    isToday && "bg-primary text-primary-foreground hover:bg-primary/90",
                     isSelected && !isToday && "bg-accent",
                     !isSameMonth(day, currentDate) && "text-muted-foreground",
                   )}
                 >
                   {format(day, "d")}
                   {hasEvents && (
-                    <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />
+                    <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
                   )}
                 </Button>
               )

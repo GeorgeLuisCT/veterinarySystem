@@ -272,7 +272,7 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
         {isLoading && !showSuccess && (
           <div className="absolute inset-0 bg-background/80 rounded-lg flex items-center justify-center z-40">
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               <span className="text-sm text-muted-foreground">
                 {selectedEvent ? "Updating event..." : "Creating event..."}
               </span>
@@ -291,13 +291,13 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
           <TabsList className="grid w-full grid-cols-2 bg-muted/50">
             <TabsTrigger
               value="details"
-              className="transition-all duration-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              className="transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               Event Details
             </TabsTrigger>
             <TabsTrigger
               value="options"
-              className="transition-all duration-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              className="transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               Options
             </TabsTrigger>
@@ -337,7 +337,7 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter event title"
                 className={cn(
-                  "transition-all duration-200 focus:ring-2 focus:ring-blue-500/20",
+                  "transition-all duration-200 focus:ring-2",
                   errors.title && "border-red-500 focus:ring-red-500/20",
                 )}
               />
@@ -430,8 +430,8 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
                     key={cat.name}
                     variant={category === cat.name ? "default" : "outline"}
                     className={cn(
-                      "cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95",
-                      category === cat.name && "bg-blue-600 hover:bg-blue-700 shadow-sm",
+                      "cursor-pointer transition-all duration-200",
+                      category === cat.name && "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
                     )}
                     onClick={() => {
                       setCategory(category === cat.name ? "" : cat.name)
@@ -454,7 +454,7 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
                     type="button"
                     onClick={() => setColor(colorOption.value)}
                     className={cn(
-                      "w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 active:scale-95",
+                      "w-8 h-8 rounded-full border-2 transition-all duration-200",
                       "relative overflow-hidden",
                       color === colorOption.value
                         ? "border-foreground scale-110 shadow-sm"
@@ -532,7 +532,7 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
                     variant="outline"
                     size="sm"
                     onClick={handleDuplicate}
-                    className="transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-sm bg-transparent"
+                    className="transition-all duration-200 hover:shadow-sm bg-transparent"
                   >
                     <Copy className="h-4 w-4 mr-2" />
                     Duplicate
@@ -543,7 +543,7 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
                     onClick={handleDelete}
                     className={cn(
                       "text-destructive hover:text-destructive bg-transparent transition-all duration-200",
-                      "hover:scale-105 active:scale-95 hover:bg-red-50 dark:hover:bg-red-950/20 hover:shadow-sm",
+                      " hover:bg-red-50 dark:hover:bg-red-950/20 hover:shadow-sm",
                     )}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
@@ -559,7 +559,7 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
           <Button
             variant="outline"
             onClick={handleClose}
-            className="transition-all duration-200 hover:scale-105 active:scale-95 bg-transparent"
+            className="transition-all duration-200 bg-transparent"
             disabled={isLoading}
           >
             Cancel
@@ -568,8 +568,8 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
             onClick={handleSave}
             disabled={!title.trim() || !selectedCalendarId || isLoading}
             className={cn(
-              "bg-blue-600 hover:bg-blue-700 transition-all duration-200 hover:scale-105 active:scale-95",
-              "shadow-sm hover:shadow-xl hover:shadow-blue-500/25",
+              "bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200",
+              "shadow-sm",
               "relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700",
             )}
           >

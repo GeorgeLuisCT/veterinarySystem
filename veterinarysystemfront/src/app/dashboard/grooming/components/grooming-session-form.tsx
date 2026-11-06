@@ -351,7 +351,7 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
                 <p className="text-sm text-muted-foreground">No se registraron materiales.</p>
               ) : (
                 detail.materialsUsed.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between rounded-lg border bg-card p-3 shadow-sm">
+                  <div key={m.id} className="flex items-center justify-between  shadow-sm">
                     <div>
                       <p className="font-semibold text-foreground">{m.productName ?? m.unregisteredProductName ?? "Material"}</p>
                       <p className="text-xs text-muted-foreground">

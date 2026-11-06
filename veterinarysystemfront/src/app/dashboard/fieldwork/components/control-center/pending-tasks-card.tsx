@@ -2,10 +2,13 @@
 
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import TaskService from "../../services/task-service";
@@ -26,6 +29,7 @@ import {
   ChevronRight,
   SendHorizonal,
 } from "lucide-react";
+import { PageSection } from "@/components/page/page-section";
 
 export default function PendingTasksCard() {
   const { toast } = useToast();
@@ -66,17 +70,17 @@ export default function PendingTasksCard() {
   };
 
   const priorityClasses = {
-    [FieldTaskPriority.URGENT]: "bg-red-200/70 text-destructive ring-1 ring-red-300",
+    [FieldTaskPriority.URGENT]: "bg-destructive text-destructive-foreground",
     [FieldTaskPriority.HIGH]: "bg-danger-soft text-danger-strong",
     [FieldTaskPriority.MEDIUM]: "bg-warning-soft text-warning-strong",
-    [FieldTaskPriority.LOW]: "bg-muted text-muted-foreground ring-1 ring-border",
+    [FieldTaskPriority.LOW]: "bg-muted text-muted-foreground",
   } as const satisfies Record<FieldTaskPriority, string>;
 
   const leftBarClasses = {
-    [FieldTaskPriority.URGENT]: "bg-red-700",
-    [FieldTaskPriority.HIGH]: "bg-red-500",
-    [FieldTaskPriority.MEDIUM]: "bg-amber-500",
-    [FieldTaskPriority.LOW]: "bg-zinc-400",
+    [FieldTaskPriority.URGENT]: "bg-destructive",
+    [FieldTaskPriority.HIGH]: "bg-destructive/60",
+    [FieldTaskPriority.MEDIUM]: "bg-warning",
+    [FieldTaskPriority.LOW]: "bg-muted-foreground/40",
   } as const satisfies Record<FieldTaskPriority, string>;
 
   const priorityOrder: Record<FieldTaskPriority, number> = {
@@ -88,13 +92,19 @@ export default function PendingTasksCard() {
 
   const fmt = (iso?: string | null) =>
     iso
-      ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso))
+      ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(
+          new Date(iso)
+        )
       : null;
 
   const groups = React.useMemo(() => {
     const byZone = new Map<
       string,
-      { zoneName: string; tasks: FieldTaskSummaryResponse[]; counts: Record<FieldTaskPriority, number> }
+      {
+        zoneName: string;
+        tasks: FieldTaskSummaryResponse[];
+        counts: Record<FieldTaskPriority, number>;
+      }
     >();
 
     for (const t of pendingTasks) {
@@ -117,7 +127,12 @@ export default function PendingTasksCard() {
     }
 
     return Array.from(byZone.values()).sort((a, b) => {
-      for (const p of [FieldTaskPriority.URGENT, FieldTaskPriority.HIGH, FieldTaskPriority.MEDIUM, FieldTaskPriority.LOW]) {
+      for (const p of [
+        FieldTaskPriority.URGENT,
+        FieldTaskPriority.HIGH,
+        FieldTaskPriority.MEDIUM,
+        FieldTaskPriority.LOW,
+      ]) {
         const diff = b.counts[p] - a.counts[p];
         if (diff !== 0) return diff;
       }
@@ -175,14 +190,19 @@ export default function PendingTasksCard() {
   );
 
   return (
-    <Card className="h-full gap-2 overflow-y-auto">
-      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <CardTitle className="flex items-center gap-2">Tareas por Asignar</CardTitle>
-          <p className="text-sm text-muted-foreground">Planificaciones sin equipo asignado, agrupadas por zona.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="ghost" onClick={loadPending} disabled={loading} className="gap-1">
+    <PageSection
+      title="Tareas por asignar"
+      description="Planificaciones sin equipo asignado, agrupadas por zona."
+      className="h-full overflow-y-auto"
+      actions={
+        <>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={loadPending}
+            disabled={loading}
+            className="gap-1"
+          >
             <RefreshCw className="size-4" />
             Actualizar
           </Button>
@@ -194,12 +214,10 @@ export default function PendingTasksCard() {
             <AlertTriangle className="size-4" />
             Crear Tarea Urgente
           </Button>
-        </div>
-      </CardHeader>
-
-      <Separator />
-
-      <CardContent className="py-0 px-2">
+        </>
+      }
+    >
+      <div>
         {loading ? (
           <div className="space-y-2 p-4">
             {[...Array(3)].map((_, i) => (
@@ -241,7 +259,7 @@ export default function PendingTasksCard() {
                   <AccordionItem
                     key={group.zoneName + idx}
                     value={group.zoneName + idx}
-                    className="rounded-lg border-primary bg-card border-t-0 border-x-0"
+                    className="border-b"
                   >
                     <AccordionTrigger className="px-0 py-2 hover:no-underline">
                       <ZoneHeader name={group.zoneName} counts={group.counts} total={total} />
@@ -261,7 +279,10 @@ export default function PendingTasksCard() {
                               />
                               <div className="flex w-full items-center gap-4 pl-2">
                                 <div className="flex min-w-0 flex-1 items-center gap-3">
-                                  <Badge variant="secondary" className={priorityClasses[task.priority]}>
+                                  <Badge
+                                    variant="secondary"
+                                    className={priorityClasses[task.priority]}
+                                  >
                                     {FieldTaskPriorityLabels[task.priority]}
                                   </Badge>
 
@@ -302,7 +323,12 @@ export default function PendingTasksCard() {
                                 </div>
 
                                 <div className="flex shrink-0 items-center">
-                                  <Button size="sm" variant="secondary" className="gap-1 cursor-pointer" onClick={() => setSelectedTask(task)}>
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    className="gap-1 cursor-pointer"
+                                    onClick={() => setSelectedTask(task)}
+                                  >
                                     <SendHorizonal className="size-4" />
                                     Asignar
                                   </Button>
@@ -319,7 +345,7 @@ export default function PendingTasksCard() {
             </Accordion>
           </div>
         )}
-      </CardContent>
+      </div>
 
       <CreateTaskModal open={createOpen} onOpenChange={setCreateOpen} onCreated={onCreated} />
       <AssignTaskModal
@@ -328,6 +354,6 @@ export default function PendingTasksCard() {
         onOpenChange={(open) => !open && setSelectedTask(null)}
         onAssigned={onAssigned}
       />
-    </Card>
+    </PageSection>
   );
 }

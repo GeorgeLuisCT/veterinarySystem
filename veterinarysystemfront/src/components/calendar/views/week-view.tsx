@@ -158,7 +158,7 @@ export function WeekView() {
                 key={day.toISOString()}
                 className={cn(
                   "p-3 text-center border-r border-border last:border-r-0",
-                  isTodayDate && "bg-blue-50 dark:bg-blue-950/20",
+                  isTodayDate && "bg-primary/10",
                 )}
               >
                 <div className="text-xs text-muted-foreground font-medium">
@@ -168,7 +168,7 @@ export function WeekView() {
                   className={cn(
                     "text-lg font-semibold mt-1",
                     isTodayDate &&
-                    "bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mx-auto",
+                    "bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center mx-auto",
                   )}
                 >
                   {format(day, "d")}

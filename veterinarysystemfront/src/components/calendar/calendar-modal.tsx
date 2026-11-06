@@ -211,7 +211,7 @@ export function CalendarModal() {
                     className={`w-8 h-8 rounded-full border-2 transition-all ${
                       formData.color === color
                         ? "border-gray-900 dark:border-border scale-110"
-                        : "border-border hover:scale-105"
+                        : "border-border"
                     }`}
                     style={{ backgroundColor: color }}
                     onClick={() => setFormData((prev) => ({ ...prev, color }))}

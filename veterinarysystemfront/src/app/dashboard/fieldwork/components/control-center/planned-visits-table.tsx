@@ -239,7 +239,7 @@ export default function PlannedVisitsTable() {
   );
 
   return (
-    <div className="h-full rounded-lg border bg-card p-4 shadow-sm overflow-auto">
+    <div className="h-full overflow-auto">
       <DataTable<FieldVisitSummaryResponse>
         pageData={pageData}
         columns={columns}

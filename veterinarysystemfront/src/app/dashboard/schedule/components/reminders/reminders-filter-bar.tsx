@@ -119,7 +119,7 @@ export default function RemindersFilterBar({
   };
 
   return (
-    <div className="w-full rounded-lg border bg-card p-3">
+    <div className="w-full">
       <div className="flex flex-wrap items-center gap-3">
         <div className="inline-flex items-center gap-2 rounded-full border bg-muted/40 px-3 py-1.5 text-sm text-muted-foreground">
           <Filter className="h-4 w-4" />

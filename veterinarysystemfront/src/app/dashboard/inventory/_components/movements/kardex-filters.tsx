@@ -84,7 +84,7 @@ export default function KardexFiltersBar({
   loading,
 }: KardexFiltersBarProps) {
   return (
-    <div className="w-full overflow-x-auto rounded-lg border bg-card p-3">
+    <div className="w-full overflow-x-auto">
       <div className="flex min-w-max flex-wrap items-center gap-3">
         <div className="flex items-center gap-2 w-80">
           <SearchPopover

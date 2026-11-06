@@ -127,7 +127,7 @@ export default function CashHistoryFilters({ value, onChange, onReset }: Props) 
   };
 
   return (
-    <div className="w-full overflow-x-auto rounded-lg border bg-card p-3">
+    <div className="w-full overflow-x-auto">
       <div className="flex min-w-max flex-wrap items-center gap-3">
         {/* Filtro Cajero */}
         <Select

@@ -16,7 +16,11 @@ import { breadcrumbMap } from "@/config/navigation";
 
 export default function DashboardContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const breadcrumb = breadcrumbMap[pathname] || { title: "Dashboard" };
+  // Rutas anidadas (detalle, sub-pantallas) heredan el breadcrumb de la ruta padre más específica.
+  const matchedKey = Object.keys(breadcrumbMap)
+    .filter((key) => pathname === key || pathname.startsWith(key + "/"))
+    .sort((a, b) => b.length - a.length)[0];
+  const breadcrumb = (matchedKey && breadcrumbMap[matchedKey]) || { title: "Dashboard" };
 
   return (
     <SidebarProvider>

@@ -5,7 +5,6 @@ import { ColumnDef } from '@tanstack/react-table';
 import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import DataTable from '@/components/data-table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ConfirmationDialog } from '@/components/confirmation-dialog';
@@ -32,21 +31,15 @@ type TabKey = 'zones' | 'farms';
 export default function FieldworkFarmsMain() {
   const [tab, setTab] = React.useState<TabKey>('zones');
   return (
-    <Card className='h-full'>
-      <CardHeader className='flex items-center justify-between flex-row'>
-        <div>
-          <CardTitle>Gestión de Zonas y Granjas</CardTitle>
-          <CardDescription>Administra zonas geográficas y unidades de producción.</CardDescription>
-        </div>
+    <div className='flex h-full flex-col gap-3'>
         <div className='inline-flex rounded-md border'>
           <Button variant={tab === 'zones' ? 'default' : 'ghost'} className='rounded-r-none' onClick={() => setTab('zones')}>Zonas</Button>
           <Button variant={tab === 'farms' ? 'default' : 'ghost'} className='rounded-l-none' onClick={() => setTab('farms')}>Granjas</Button>
         </div>
-      </CardHeader>
-      <CardContent>
+        
         {tab === 'zones' ? <ZonesTable /> : <FarmsTable />}
-      </CardContent>
-    </Card>
+      
+      </div>
   );
 }
 

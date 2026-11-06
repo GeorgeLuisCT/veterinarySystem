@@ -10,7 +10,7 @@
 
 :root {
   --radius: 0.5rem;
-  --background: oklch(0.985 0 0);
+  --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.8);
 
   --card: oklch(1 0 0);
@@ -65,7 +65,7 @@
   --chart-4: oklch(0.56 0.09 260);
   --chart-5: oklch(0.68 0.11 235);
 
-  --sidebar: oklch(1 0 0);
+  --sidebar: oklch(0.968 0.028 150);
   --sidebar-foreground: oklch(0.141 0.005 285.8);
   --sidebar-primary: oklch(0.72 0.18 200);
   --sidebar-primary-foreground: oklch(0.17 0.02 200);
@@ -209,6 +209,7 @@
 }
 
 /* Lienzo de la aplicación: color plano (el nombre se conserva por compatibilidad) */
+/* Lienzo del contenido: blanco plano (la barra lateral lleva el tono de color) */
 .bg-app-gradient {
-  background-color: color-mix(in oklab, var(--muted) 55%, var(--background));
+  background-color: var(--background);
 }

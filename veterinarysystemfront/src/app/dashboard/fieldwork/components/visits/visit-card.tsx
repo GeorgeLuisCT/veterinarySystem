@@ -9,8 +9,9 @@ import type { FieldVisitSummaryResponse } from "@/app/dashboard/fieldwork/types/
 import {
   FieldVisitStatus,
   FieldVisitStatusLabels,
-  getFieldVisitStatusStyles,
+  getFieldVisitStatusTone,
 } from "@/app/dashboard/fieldwork/enums/field-visit-status";
+import { toneBorderLeft } from "@/components/page/status-tone";
 
 interface VisitCardProps {
   visit: FieldVisitSummaryResponse;
@@ -21,10 +22,10 @@ interface VisitCardProps {
 
 export default function VisitCard({ visit, onView, onStart, onComplete }: VisitCardProps) {
   const dt = new Date(visit.scheduledDateTime);
-  const statusInfo = getFieldVisitStatusStyles(visit.status);
+  const tone = getFieldVisitStatusTone(visit.status);
 
   return (
-    <Card className={`relative overflow-hidden rounded-lg border-2 border-l-8 bg-card ${statusInfo.borderClass}`}>
+    <Card className={`relative gap-0 overflow-hidden rounded-lg border border-l-4 py-0 ${toneBorderLeft[tone]}`}>
       <CardContent className="p-3">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 flex items-center gap-3">
@@ -42,7 +43,7 @@ export default function VisitCard({ visit, onView, onStart, onComplete }: VisitC
               </span>
             </div>
 
-            <Badge className={`hidden sm:inline-flex text-xs ${statusInfo.badgeClass}`}>
+            <Badge variant={tone} className="hidden text-xs sm:inline-flex">
               {FieldVisitStatusLabels[visit.status]}
             </Badge>
           </div>
@@ -68,7 +69,7 @@ export default function VisitCard({ visit, onView, onStart, onComplete }: VisitC
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted-foreground">
-          <Badge className={`sm:hidden text-[10px] ${statusInfo.badgeClass}`}>
+          <Badge variant={tone} className="text-[10px] sm:hidden">
             {FieldVisitStatusLabels[visit.status]}
           </Badge>
 

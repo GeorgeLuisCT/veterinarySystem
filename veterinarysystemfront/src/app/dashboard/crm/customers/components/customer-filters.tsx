@@ -54,7 +54,7 @@ export default function CustomerFilters({ value, onChange, onReset }: Props) {
   };
 
   return (
-    <div className="w-full overflow-x-auto rounded-lg border bg-card p-3">
+    <div className="w-full overflow-x-auto">
       <div className="flex min-w-max items-center gap-3">
         {/* Buscador */}
         <div className="relative w-[260px]">

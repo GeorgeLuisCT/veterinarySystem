@@ -24,7 +24,9 @@ Reglas cortas; si una pantalla las rompe, se corrige la pantalla, no la regla.
 
 | Elemento | Regla |
 |---|---|
-| Card | `rounded-lg border bg-card shadow-xs` (ya es el default de `ui/card`). No añadir sombras ni bordes de grosor >1px |
+| Fondo | Contenido **blanco** plano. El tono de color vive solo en la barra lateral (`--sidebar`) |
+| Cajas | **Menos cards.** Filtros: fila plana (`FilterBar`), sin caja. Tablas: su propio borde, nunca dentro de un `Card`. Secciones: `PageSection` (título + contenido, sin caja). Nunca card dentro de card |
+| Card | Solo para un bloque autónomo y pequeño (resumen, formulario, tarjeta de un ítem de lista). `rounded-lg border`, sin sombra |
 | Radio | Contenedores `rounded-lg`; controles `rounded-md`; solo avatares/chips `rounded-full`. **Prohibido** `rounded-xl/2xl/3xl` |
 | Sombras | Solo `shadow-xs`/`shadow-sm`. Prohibido `shadow-md+` y `shadow-[...]` |
 | Efectos | Prohibido `backdrop-blur`, degradados (`bg-gradient-*`) y `ring-1` decorativos |
