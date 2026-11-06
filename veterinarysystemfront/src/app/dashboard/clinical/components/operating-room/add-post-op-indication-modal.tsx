@@ -174,8 +174,8 @@ export function AddPostOpIndicationModal({
                   )}
                 />
 
-                <fieldset className="rounded-lg border p-3">
-                  <legend className="px-1 text-sm font-medium">Dosis</legend>
+                <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                  <legend className="mb-3 text-sm font-semibold text-foreground">Dosis</legend>
                   <div className="grid gap-3 sm:grid-cols-12">
                     <div className="sm:col-span-4">
                       <FormField
@@ -241,8 +241,8 @@ export function AddPostOpIndicationModal({
                   </div>
                 </fieldset>
 
-                <fieldset className="rounded-lg border p-3">
-                  <legend className="px-1 text-sm font-medium">Frecuencia</legend>
+                <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                  <legend className="mb-3 text-sm font-semibold text-foreground">Frecuencia</legend>
                   <div className="grid gap-3 sm:grid-cols-12">
                     <div className="sm:col-span-6">
                       <FormField
@@ -291,8 +291,8 @@ export function AddPostOpIndicationModal({
               </TabsContent>
 
               <TabsContent value="instruction">
-                <fieldset className="rounded-lg border p-3">
-                  <legend className="px-1 text-sm font-medium">Instrucción</legend>
+                <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                  <legend className="mb-3 text-sm font-semibold text-foreground">Instrucción</legend>
                   <FormField
                     control={form.control}
                     name="nonDrugInstruction"

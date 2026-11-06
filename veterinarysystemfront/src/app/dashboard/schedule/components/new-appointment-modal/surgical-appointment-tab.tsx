@@ -305,8 +305,8 @@ export function SurgicalAppointmentTab({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <fieldset className="rounded-lg border p-4">
-          <legend className="px-1 text-sm font-semibold">Contexto de la cita</legend>
+        <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+          <legend className="mb-3 text-sm font-semibold text-foreground">Contexto de la cita</legend>
           <div className="grid gap-4 md:grid-cols-2">
             {!hasFixedBranch && (
               <FormField
@@ -365,8 +365,8 @@ export function SurgicalAppointmentTab({
           </div>
         </fieldset>
 
-        <fieldset className="rounded-lg border p-4">
-          <legend className="px-1 text-sm font-semibold">Orden y servicio</legend>
+        <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+          <legend className="mb-3 text-sm font-semibold text-foreground">Orden y servicio</legend>
           <div className="grid gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
@@ -433,8 +433,8 @@ export function SurgicalAppointmentTab({
           </div>
         </fieldset>
 
-        <fieldset className="rounded-lg border p-4">
-          <legend className="px-1 text-sm font-semibold">Equipo y programación</legend>
+        <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+          <legend className="mb-3 text-sm font-semibold text-foreground">Equipo y programación</legend>
           <div className="grid gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
@@ -540,8 +540,8 @@ export function SurgicalAppointmentTab({
           </div>
         </fieldset>
 
-        <fieldset className="rounded-lg border p-4">
-          <legend className="px-1 text-sm font-semibold">Detalles adicionales</legend>
+        <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+          <legend className="mb-3 text-sm font-semibold text-foreground">Detalles adicionales</legend>
           <div className="grid gap-4 md:grid-cols-2">
             <FormField
               control={form.control}

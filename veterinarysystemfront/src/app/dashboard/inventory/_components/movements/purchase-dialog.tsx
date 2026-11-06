@@ -216,8 +216,8 @@ export function PurchaseDialog({ open, onOpenChange, branchOptions, defaultBranc
           <DialogDescription id="purchase-desc">Completa los campos requeridos para registrar la compra.</DialogDescription>
         </DialogHeader>
 
-        <fieldset className="rounded-lg border p-4">
-          <legend className="px-1 text-sm font-semibold">Datos de la compra</legend>
+        <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+          <legend className="mb-3 text-sm font-semibold text-foreground">Datos de la compra</legend>
           <PurchaseForm
             form={form}
             branchOptions={branchOptions}

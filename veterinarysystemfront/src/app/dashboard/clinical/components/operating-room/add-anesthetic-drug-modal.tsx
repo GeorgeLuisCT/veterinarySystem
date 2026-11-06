@@ -102,8 +102,8 @@ export function AddAnestheticDrugModal({ reportId, open, onClose, onAdded }: Add
         <Form {...form}>
           <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)} noValidate>
             {/* Producto y Fase */}
-            <fieldset className="rounded-lg border p-3">
-              <legend className="px-1 text-sm font-medium">Producto y fase</legend>
+            <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+              <legend className="mb-3 text-sm font-semibold text-foreground">Producto y fase</legend>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <FormField
@@ -149,8 +149,8 @@ export function AddAnestheticDrugModal({ reportId, open, onClose, onAdded }: Add
             </fieldset>
 
             {/* Dosis */}
-            <fieldset className="rounded-lg border p-3">
-              <legend className="px-1 text-sm font-medium">Dosis</legend>
+            <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+              <legend className="mb-3 text-sm font-semibold text-foreground">Dosis</legend>
               <div className="grid gap-3 sm:grid-cols-3">
                 <FormField
                   control={form.control}

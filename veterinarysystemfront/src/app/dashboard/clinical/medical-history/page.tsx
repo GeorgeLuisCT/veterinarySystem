@@ -33,6 +33,7 @@ import MedicalHistoryFilterBar, {
 } from "./components/medical-history-filter-bar";
 import { PageContainer } from "@/components/page/page-container";
 
+import { PageHeader } from "@/components/page/page-header";
 type PaginationState = {
   page: number;
   size: number;
@@ -102,28 +103,25 @@ export default function MedicalHistoryPage() {
   return (
     <DashboardLayoutSection>
       <PageContainer>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
-              <PawPrint className="h-6 w-6 text-primary" /> Historial clínico de pacientes
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Consulta el resumen clínico de cada animal y accede al detalle de visitas,
-              procedimientos y exámenes.
-            </p>
-          </div>
-          <Button variant="outline" onClick={fetchAnimals} disabled={isRefreshing} size="sm">
-            {isRefreshing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Actualizando
-              </>
-            ) : (
-              <>
-                <Search className="mr-2 h-4 w-4" /> Refrescar
-              </>
-            )}
-          </Button>
-        </div>
+        <PageHeader
+          title="Historial clínico de pacientes"
+          description="Consulta el resumen clínico de cada animal y accede al detalle de visitas, procedimientos y exámenes."
+          actions={
+            <>
+              <Button variant="outline" onClick={fetchAnimals} disabled={isRefreshing} size="sm">
+                {isRefreshing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Actualizando
+                  </>
+                ) : (
+                  <>
+                    <Search className="mr-2 h-4 w-4" /> Refrescar
+                  </>
+                )}
+              </Button>
+            </>
+          }
+        />
 
         <MedicalHistoryFilterBar
           value={filters}

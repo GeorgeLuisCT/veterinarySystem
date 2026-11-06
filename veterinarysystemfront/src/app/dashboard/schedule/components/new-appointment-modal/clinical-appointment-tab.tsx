@@ -133,8 +133,8 @@ export function ClinicalAppointmentTab({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <fieldset className="rounded-lg border p-4">
-          <legend className="px-1 text-sm font-semibold">Contexto de la cita</legend>
+        <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+          <legend className="mb-3 text-sm font-semibold text-foreground">Contexto de la cita</legend>
           <div className="grid gap-4 md:grid-cols-2">
             {!hasFixedBranch && (
               <FormField
@@ -193,8 +193,8 @@ export function ClinicalAppointmentTab({
           </div>
         </fieldset>
 
-        <fieldset className="rounded-lg border p-4">
-          <legend className="px-1 text-sm font-semibold">Servicio y profesional</legend>
+        <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+          <legend className="mb-3 text-sm font-semibold text-foreground">Servicio y profesional</legend>
           <div className="grid gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
@@ -248,8 +248,8 @@ export function ClinicalAppointmentTab({
           </div>
         </fieldset>
 
-        <fieldset className="rounded-lg border p-4">
-          <legend className="px-1 text-sm font-semibold">Programación</legend>
+        <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+          <legend className="mb-3 text-sm font-semibold text-foreground">Programación</legend>
           <div className="grid gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
@@ -300,8 +300,8 @@ export function ClinicalAppointmentTab({
           </div>
         </fieldset>
 
-        <fieldset className="rounded-lg border p-4">
-          <legend className="px-1 text-sm font-semibold">Observaciones</legend>
+        <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+          <legend className="mb-3 text-sm font-semibold text-foreground">Observaciones</legend>
           <div className="grid gap-4 md:grid-cols-2">
             <FormField
               control={form.control}

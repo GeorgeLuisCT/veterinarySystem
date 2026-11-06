@@ -20,6 +20,7 @@ import { GroomingSessionDetailResponse } from "../types/grooming-session-respons
 import { AddGroomingMaterialRequest, UpdateGroomingSessionRequest, updateGroomingSessionSchema } from "../types/grooming-session-request";
 import GroomingSessionService from "../service/grooming-session-service";
 import { GroomingStatusLabels, GroomingStatusOptions } from "../enums/grooming-status";
+import { PageSection } from "@/components/page/page-section";
 
 export type Option = { value: string; label: string };
 
@@ -150,11 +151,8 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
     return (
       <Form {...form}>
         <form className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Detalles de la sesión</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <PageSection title="Detalles de la sesión">
+<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <FormField
                 control={form.control}
                 name="startedAt"
@@ -273,14 +271,11 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
                   {detail.assignedProfessionalFullName ?? "Sin asignar"}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+</PageSection>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Notas de comportamiento</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <PageSection title="Notas de comportamiento">
+<div>
               <FormField
                 control={form.control}
                 name="behaviorNotes"
@@ -303,14 +298,11 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
+            </div>
+</PageSection>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Observaciones clínicas</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <PageSection title="Observaciones clínicas">
+<div>
               <FormField
                 control={form.control}
                 name="clinicalObservations"
@@ -333,8 +325,8 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
+            </div>
+</PageSection>
 
           <Card>
             <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

@@ -153,8 +153,8 @@ export function ServiceItemModal({ id, onClose, onAdded, category }: CommonProps
         <Form {...form}>
           <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)} noValidate>
             {/* DATOS DEL SERVICIO */}
-            <fieldset className="rounded-lg border p-4">
-              <legend className="px-1 text-sm font-medium">Datos del servicio</legend>
+            <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+              <legend className="mb-3 text-sm font-semibold text-foreground">Datos del servicio</legend>
 
               <FormField
                 control={form.control}
@@ -260,8 +260,8 @@ export function ServiceItemModal({ id, onClose, onAdded, category }: CommonProps
 
             {/* PRODUCTOS DEL SERVICIO — solo si hay servicio */}
             {hasService && (
-              <fieldset className="rounded-lg border p-4">
-                <legend className="px-1 text-sm font-medium">Productos usados</legend>
+              <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                <legend className="mb-3 text-sm font-semibold text-foreground">Productos usados</legend>
 
                 <div className="mb-3 flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">

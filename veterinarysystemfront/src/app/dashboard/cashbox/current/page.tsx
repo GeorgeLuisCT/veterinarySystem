@@ -8,7 +8,7 @@ import { useUser } from "@/context/user-context";
 
 import DashboardLayoutSection from "../../dashboard-layout-section";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -38,20 +38,11 @@ import { CashMovementType } from "../_types/cash-session-enums";
 import { PaymentMethodLabels } from "../../pos/_types/sale-enums";
 import { MovementFormValues } from "../_schemas/movement-schema";
 
-import {
-  Wallet,
-  ArrowUpRight,
-  ArrowDownRight,
-  Coins,
-  Calculator,
-  Receipt,
-  ExternalLink,
-  CalendarClock,
-  User2,
-} from "lucide-react";
+import { Wallet, ArrowUpRight, ArrowDownRight, Coins, Calculator, Receipt, ExternalLink, CalendarClock, User2 } from "lucide-react";
 import { PageContainer } from "@/components/page/page-container";
 
 import { PageHeader } from "@/components/page/page-header";
+import { PageSection } from "@/components/page/page-section";
 type SummaryItemProps = {
   label: string;
   value: number;
@@ -280,11 +271,8 @@ export default function CurrentCashSessionPage() {
           )}
 
           {closingSummary && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Último cierre</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4 sm:grid-cols-2">
+            <PageSection title="Último cierre">
+<div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <p className="text-sm text-muted-foreground">Abierta</p>
                   <p className="font-medium">
@@ -325,16 +313,13 @@ export default function CurrentCashSessionPage() {
                     <p className="font-normal">{closingSummary.notes}</p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+</PageSection>
           )}
 
           {detail && totals && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Resumen de sesión</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            <PageSection title="Resumen de sesión">
+<div className="space-y-6">
                 <div className="grid gap-4 md:grid-cols-3">
                   <SummaryItem label="Apertura" value={totals.opening} icon={Wallet} />
                   <SalesSummaryCard totalSales={totals.sales} breakdown={detail.paymentBreakdown} />
@@ -502,8 +487,8 @@ export default function CurrentCashSessionPage() {
                     </Table>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+</PageSection>
           )}
         </div>
       </PageContainer>

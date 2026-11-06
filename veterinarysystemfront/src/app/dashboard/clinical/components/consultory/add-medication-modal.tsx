@@ -225,8 +225,8 @@ export function MedicationModal({ id, onClose, onAdded }: CommonProps) {
             />
 
             {/* Dosis */}
-            <fieldset className="rounded-lg border p-3">
-              <legend className="px-1 text-sm font-medium">Dosis</legend>
+            <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+              <legend className="mb-3 text-sm font-semibold text-foreground">Dosis</legend>
               <div className="grid gap-3 sm:grid-cols-3">
                 <FormField
                   control={form.control}
@@ -303,8 +303,8 @@ export function MedicationModal({ id, onClose, onAdded }: CommonProps) {
             </fieldset>
 
             {/* Frecuencia */}
-            <fieldset className="rounded-lg border p-3">
-              <legend className="px-1 text-sm font-medium">Frecuencia</legend>
+            <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+              <legend className="mb-3 text-sm font-semibold text-foreground">Frecuencia</legend>
               <div className="grid gap-3 sm:grid-cols-2">
                 <FormField
                   control={form.control}

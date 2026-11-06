@@ -2,7 +2,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardLayoutSection from "@/app/dashboard/dashboard-layout-section";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
@@ -26,6 +25,8 @@ import TreasuryAccountService from "../../_services/treasury-account-service";
 import AccountPayableCreateDialog from "../../_components/account-payable-create-dialog";
 import { PlusCircle } from "lucide-react";
 import { PageHeader } from "@/components/page/page-header";
+import { PageContainer } from "@/components/page/page-container";
+import { PageSection } from "@/components/page/page-section";
 
 export default function AccountsPayablePage() {
   const { toast } = useToast();
@@ -152,93 +153,84 @@ export default function AccountsPayablePage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="h-full overflow-y-auto p-4 sm:p-6">
-        <div className="mx-auto flex h-full w-full max-w-screen-2xl flex-col gap-4">
-          <PageHeader
-            title="Cuentas por pagar"
-            description="Registra obligaciones con proveedores y controla los pagos desde tus cuentas de tesorería."
-            actions={
-              <>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button onClick={() => setCreateOpen(true)}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Nueva cuenta por pagar
-                  </Button>
-                </div>
-              </>
-            }
+      <PageContainer>
+        <PageHeader
+          title="Cuentas por pagar"
+          description="Registra obligaciones con proveedores y controla los pagos desde tus cuentas de tesorería."
+          actions={
+            <>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button onClick={() => setCreateOpen(true)}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Nueva cuenta por pagar
+                </Button>
+              </div>
+            </>
+          }
+        />
+
+        <div className="flex flex-col gap-4 flex-1">
+          <AccountsPayableFilters
+            value={filters}
+            onChange={(f) => {
+              setFilters(f);
+              setPageIndex(0);
+            }}
+            onReset={() => {
+              setFilters({});
+              setPageIndex(0);
+            }}
           />
 
-          <div className="flex flex-col gap-4 flex-1">
-            <AccountsPayableFilters
-              value={filters}
-              onChange={(f) => {
-                setFilters(f);
-                setPageIndex(0);
-              }}
-              onReset={() => {
-                setFilters({});
-                setPageIndex(0);
-              }}
-            />
+          <div className="flex flex-col md:flex-row gap-4 flex-1">
+            <PageSection
+              title="Listado"
+              description="Selecciona una fila para ver el detalle y registrar pagos."
+            >
+              <div className="flex-1">
+                <AccountsPayableTable
+                  pageData={pageData}
+                  loading={loadingList}
+                  pageIndex={pageIndex}
+                  pageSize={pageSize}
+                  onPageIndexChange={setPageIndex}
+                  onPageSizeChange={(s) => {
+                    setPageSize(s);
+                    setPageIndex(0);
+                  }}
+                  onRowClick={(row) => loadDetail(row.id)}
+                />
+              </div>
+            </PageSection>
 
-            <div className="flex flex-col md:flex-row gap-4 flex-1">
-              <Card className="h-full w-full md:w-3/5 flex flex-col">
-                <CardHeader>
-                  <CardTitle>Listado</CardTitle>
-                  <CardDescription>
-                    Selecciona una fila para ver el detalle y registrar pagos.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <AccountsPayableTable
-                    pageData={pageData}
-                    loading={loadingList}
-                    pageIndex={pageIndex}
-                    pageSize={pageSize}
-                    onPageIndexChange={setPageIndex}
-                    onPageSizeChange={(s) => {
-                      setPageSize(s);
-                      setPageIndex(0);
-                    }}
-                    onRowClick={(row) => loadDetail(row.id)}
-                  />
-                </CardContent>
-              </Card>
-
-              <Card className="h-full w-full md:w-2/5">
-                <CardHeader>
-                  <CardTitle>Detalle</CardTitle>
-                  <CardDescription>Pagos registrados y saldo pendiente.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <AccountPayableDetailCard
-                    detail={selected}
-                    loading={detailLoading}
-                    outstanding={outstanding}
-                    onRegisterPayment={() => setPaymentOpen(true)}
-                    canRegisterPayment={treasuryAccounts.length > 0}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-            <div />
-            <AccountPayableCreateDialog
-              open={createOpen}
-              onOpenChange={setCreateOpen}
-              onSubmit={handleCreate}
-            />
-
-            <RegisterPaymentDialog
-              open={paymentOpen && Boolean(selected)}
-              onOpenChange={setPaymentOpen}
-              outstanding={outstanding}
-              accounts={treasuryAccounts}
-              onSubmit={handleRegisterPayment}
-            />
+            <PageSection title="Detalle" description="Pagos registrados y saldo pendiente.">
+              <div>
+                <AccountPayableDetailCard
+                  detail={selected}
+                  loading={detailLoading}
+                  outstanding={outstanding}
+                  onRegisterPayment={() => setPaymentOpen(true)}
+                  canRegisterPayment={treasuryAccounts.length > 0}
+                />
+              </div>
+            </PageSection>
           </div>
+          <div />
+          <AccountPayableCreateDialog
+            open={createOpen}
+            onOpenChange={setCreateOpen}
+            onSubmit={handleCreate}
+          />
+
+          <RegisterPaymentDialog
+            open={paymentOpen && Boolean(selected)}
+            onOpenChange={setPaymentOpen}
+            outstanding={outstanding}
+            accounts={treasuryAccounts}
+            onSubmit={handleRegisterPayment}
+          />
         </div>
-      </div>
+      </PageContainer>
     </DashboardLayoutSection>
   );
 }

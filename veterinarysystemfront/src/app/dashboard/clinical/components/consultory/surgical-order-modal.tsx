@@ -105,8 +105,8 @@ export function SurgicalOrderModal({ id, onClose, onAdded }: CommonProps) {
         <Form {...form}>
           <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)} noValidate>
             {/* Datos de la orden */}
-            <fieldset className="rounded-lg border p-5">
-              <legend className="px-2 text-sm font-medium text-muted-foreground">Datos de la orden</legend>
+            <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+              <legend className="mb-3 text-sm font-semibold text-foreground">Datos de la orden</legend>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 {/* Servicio recomendado */}
@@ -165,8 +165,8 @@ export function SurgicalOrderModal({ id, onClose, onAdded }: CommonProps) {
             </fieldset>
 
             {/* Observaciones */}
-            <fieldset className="rounded-lg border p-5">
-              <legend className="px-2 text-sm font-medium text-muted-foreground">Observaciones</legend>
+            <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+              <legend className="mb-3 text-sm font-semibold text-foreground">Observaciones</legend>
               <FormField
                 control={form.control}
                 name="notes"

@@ -173,8 +173,8 @@ export function TransferDialog({ open, onOpenChange, defaultSourceBranchId, onCr
           <DialogDescription>Desplaza stock entre sucursales.</DialogDescription>
         </DialogHeader>
 
-        <fieldset className="rounded-lg border p-4">
-          <legend className="px-1 text-sm font-semibold">Datos de la transferencia</legend>
+        <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+          <legend className="mb-3 text-sm font-semibold text-foreground">Datos de la transferencia</legend>
           <TransferForm
             form={form}
             sourceOptions={sourceOptions}

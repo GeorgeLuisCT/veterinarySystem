@@ -42,6 +42,7 @@ import { Progress } from "@/components/ui/progress";
 
 import { PageHeader } from "@/components/page/page-header";
 import { PageContainer } from "@/components/page/page-container";
+import { PageSection } from "@/components/page/page-section";
 // Helper para estilos de Badge (de tu código original)
 const getStatusStyle = (
   status: SaleStatus
@@ -211,11 +212,8 @@ export default function SalesDetailPage() {
         {/* Columna Izquierda (Principal) */}
         <div className="space-y-6 flex flex-col">
           {/* Detalles de la Venta (Inspirado en SaleDetailsSection) */}
-          <Card className="surface-card">
-            <CardHeader>
-              <CardTitle className="text-lg">Información General</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <PageSection title="Información General">
+<div>
               <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-4">
                 <InfoItem
                   icon={FileText}
@@ -242,18 +240,12 @@ export default function SalesDetailPage() {
                   />
                 </div>
               </dl>
-            </CardContent>
-          </Card>
+            </div>
+</PageSection>
 
           {/* Tabla de Detalles (Inspirado en SaleItemsSection) */}
-          <Card className="surface-card flex-1">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5" />
-                Artículos de la Venta ({sale.details.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          <PageSection title={<span className="inline-flex items-center gap-2"><ShoppingCart className="h-5 w-5" /> Artículos de la Venta ({sale.details.length})</span>}>
+<div>
               <div className="overflow-hidden rounded-md border">
                 <Table>
                   <TableHeader className="bg-muted/50">
@@ -330,8 +322,8 @@ export default function SalesDetailPage() {
                   </TableBody>
                 </Table>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+</PageSection>
         </div>
 
         {/* Columna Derecha (Barra Lateral) (Inspirado en OrderSummarySection) */}

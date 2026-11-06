@@ -20,6 +20,7 @@ import { AnimalBasicResponse } from "../../crm/patients/types/animal-basic-respo
 import { useUser } from "@/context/user-context";
 import DashboardLayoutSection from "../../dashboard-layout-section";
 import { PageHeader } from "@/components/page/page-header";
+import { PageContainer } from "@/components/page/page-container";
 
 function formatLocalDate(d: Date): string {
   const y = d.getFullYear();
@@ -191,7 +192,7 @@ export default function ConsultoryPage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="flex h-full flex-col gap-4 overflow-y-auto p-4 sm:p-6">
+      <PageContainer>
         <PageHeader
           title="Consultas del Día"
           description="Todas las atenciones clínicas en una sola vista."
@@ -232,7 +233,7 @@ export default function ConsultoryPage() {
           onOpenChange={setIsCreateModalOpen}
           onCreated={handleCreated}
         />
-      </div>
+      </PageContainer>
     </DashboardLayoutSection>
   );
 }

@@ -21,6 +21,7 @@ import NewAttentionModal from "../components/new-attention-modal";
 import { AttentionStatus } from "../enums/attention-status";
 import { PageContainer } from "@/components/page/page-container";
 
+import { PageHeader } from "@/components/page/page-header";
 const CARD_EMERGENCY_CLASS = "bg-red-100/70";
 
 const attendUrlByType: Record<AttentionType, (id: number) => string> = {
@@ -185,17 +186,17 @@ export default function AttentionsPage() {
   return (
     <DashboardLayoutSection>
       <PageContainer>
-        <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Recepción</h1>
-            <p className="text-sm text-muted-foreground">
-              Gestiona las recepciones en curso y revisa el flujo de pacientes.
-            </p>
-          </div>
-          <Button onClick={() => openCreateModal()}>
-            <PlusCircle className="mr-2 h-4 w-4" /> Nueva Recepción
-          </Button>
-        </div>
+        <PageHeader
+          title="Recepción"
+          description="Gestiona las recepciones en curso y revisa el flujo de pacientes."
+          actions={
+            <>
+              <Button onClick={() => openCreateModal()}>
+                <PlusCircle className="mr-2 h-4 w-4" /> Nueva Recepción
+              </Button>
+            </>
+          }
+        />
 
         <PaginatedCardList
           pageData={pageData}

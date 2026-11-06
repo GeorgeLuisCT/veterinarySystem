@@ -28,6 +28,8 @@ import SurgicalOrderCard from "../components/operating-room/surgical-order-card"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/page/page-header";
+import { PageContainer } from "@/components/page/page-container";
+import DashboardLayoutSection from "@/app/dashboard/dashboard-layout-section";
 
 function formatLocalDate(d: Date): string {
   const y = d.getFullYear();
@@ -272,8 +274,8 @@ export default function OperatingRoomPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto p-4 sm:p-6">
-      <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-4">
+    <DashboardLayoutSection>
+      <PageContainer>
         <PageHeader
           title="Sala de Operaciones"
           description="Reportes quirúrgicos, atenciones y órdenes en una sola vista."
@@ -341,23 +343,23 @@ export default function OperatingRoomPage() {
             )}
           </TabsContent>
         </Tabs>
-      </div>
 
-      {showCreateModal && (
-        <CreateSurgicalOrderModal
-          open={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onCreated={() => {
-            setShowCreateModal(false);
-            Promise.all([loadReports(), loadOrders(), loadWaiting()]).then(() => {
-              toast({
-                title: "Tablero actualizado",
-                description: "La nueva orden/reporte está disponible.",
+        {showCreateModal && (
+          <CreateSurgicalOrderModal
+            open={showCreateModal}
+            onClose={() => setShowCreateModal(false)}
+            onCreated={() => {
+              setShowCreateModal(false);
+              Promise.all([loadReports(), loadOrders(), loadWaiting()]).then(() => {
+                toast({
+                  title: "Tablero actualizado",
+                  description: "La nueva orden/reporte está disponible.",
+                });
               });
-            });
-          }}
-        />
-      )}
-    </div>
+            }}
+          />
+        )}
+      </PageContainer>
+    </DashboardLayoutSection>
   );
 }

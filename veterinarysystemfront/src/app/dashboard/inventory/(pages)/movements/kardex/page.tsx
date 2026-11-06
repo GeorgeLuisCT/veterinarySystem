@@ -24,6 +24,7 @@ import KardexFiltersBar from "../../../_components/movements/kardex-filters";
 import DashboardLayoutSection from "@/app/dashboard/dashboard-layout-section";
 import { PageContainer } from "@/components/page/page-container";
 
+import { PageHeader } from "@/components/page/page-header";
 const DATE_TIME_FORMAT = "dd/MM/yyyy HH:mm";
 const DATE_FORMAT = "dd/MM/yyyy";
 const toBackendDate = (date?: Date) => (date ? format(date, "yyyy-MM-dd") : undefined);
@@ -249,14 +250,10 @@ export default function KardexPage() {
     <DashboardLayoutSection>
       <PageContainer>
         <div className="flex h-full flex-col gap-5">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">Historial de Kardex</h1>
-              <p className="text-sm text-muted-foreground">
-                Consulta el historial detallado de movimientos por producto.
-              </p>
-            </div>
-          </div>
+          <PageHeader
+            title="Historial de Kardex"
+            description="Consulta el historial detallado de movimientos por producto."
+          />
 
           <KardexFiltersBar
             dateRange={dateRange}

@@ -1,7 +1,7 @@
 "use client";
 
 import { Activity, Download, LineChart, Microscope } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import type {
   ClinicalHistoryWeightEntry,
 } from "../../types/medical-history-response";
 import { LabRequestStatusLabels } from "../../enums/lab-request-status";
+import { PageSection } from "@/components/page/page-section";
 
 const EmptyState = ({ icon: Icon, message }: { icon: React.ComponentType<{ className?: string }>; message: string }) => (
   <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
@@ -117,14 +118,8 @@ function WeightHistoryTab({ weightHistory }: { weightHistory: ClinicalHistoryWei
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <LineChart className="h-5 w-5" />
-          Evolución del peso
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <PageSection title={<span className="inline-flex items-center gap-2"><LineChart className="h-5 w-5" /> Evolución del peso</span>}>
+<div>
         <ul className="divide-y">
           {weightHistory
             .slice()
@@ -141,8 +136,8 @@ function WeightHistoryTab({ weightHistory }: { weightHistory: ClinicalHistoryWei
               </li>
             ))}
         </ul>
-      </CardContent>
-    </Card>
+      </div>
+</PageSection>
   );
 }
 
@@ -154,14 +149,8 @@ export default function DiagnosticsAndFollowUpTabs({
   weightHistory: ClinicalHistoryWeightEntry[];
 }) {
   return (
-    <Card className="col-span-full">
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Microscope className="h-5 w-5" />
-          Diagnóstico y seguimiento
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <PageSection title={<span className="inline-flex items-center gap-2"><Microscope className="h-5 w-5" /> Diagnóstico y seguimiento</span>}>
+<div>
         <Tabs defaultValue="labs">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="labs">Laboratorio</TabsTrigger>
@@ -174,7 +163,7 @@ export default function DiagnosticsAndFollowUpTabs({
             <WeightHistoryTab weightHistory={weightHistory} />
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
+      </div>
+</PageSection>
   );
 }

@@ -250,8 +250,8 @@ export function ProductForm({ open, setOpen, productId }: ProductFormProps) {
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <fieldset className="rounded-lg border p-4">
-                <legend className="px-1 text-sm font-semibold">Identificación</legend>
+              <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                <legend className="mb-3 text-sm font-semibold text-foreground">Identificación</legend>
                 <div className="grid gap-4 sm:grid-cols-3">
                   <FormField
                     control={form.control}
@@ -313,8 +313,8 @@ export function ProductForm({ open, setOpen, productId }: ProductFormProps) {
                 </div>
               </fieldset>
 
-              <fieldset className="rounded-lg border p-4">
-                <legend className="px-1 text-sm font-semibold">Presentación y Medidas</legend>
+              <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                <legend className="mb-3 text-sm font-semibold text-foreground">Presentación y Medidas</legend>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
@@ -415,8 +415,8 @@ export function ProductForm({ open, setOpen, productId }: ProductFormProps) {
                 </div>
               </fieldset>
 
-              <fieldset className="rounded-lg border p-4">
-                <legend className="px-1 text-sm font-semibold">Disponibilidad y Aplicación</legend>
+              <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                <legend className="mb-3 text-sm font-semibold text-foreground">Disponibilidad y Aplicación</legend>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}
@@ -482,8 +482,8 @@ export function ProductForm({ open, setOpen, productId }: ProductFormProps) {
                 )}
               </fieldset>
 
-              <fieldset className="rounded-lg border p-4">
-                <legend className="px-1 text-sm font-semibold">Otros modos de venta</legend>
+              <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                <legend className="mb-3 text-sm font-semibold text-foreground">Otros modos de venta</legend>
                 <ProductSaleModeForm
                   control={form.control}
                   baseUnitType={form.watch("unitType")}

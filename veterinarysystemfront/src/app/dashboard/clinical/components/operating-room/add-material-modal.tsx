@@ -110,8 +110,8 @@ export function AddMaterialModal({ reportId, open, onClose, onAdded }: AddMateri
         <Form {...form}>
           <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)} noValidate autoComplete="off">
             {/* Bloque único: Producto / Cantidad / Unidad */}
-            <fieldset className="rounded-lg border p-3">
-              <legend className="px-1 text-sm font-medium">Material</legend>
+            <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+              <legend className="mb-3 text-sm font-semibold text-foreground">Material</legend>
 
               <div className="grid gap-3 sm:grid-cols-12">
                 {/* Producto */}

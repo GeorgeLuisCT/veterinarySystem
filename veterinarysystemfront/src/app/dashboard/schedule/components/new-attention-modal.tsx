@@ -397,8 +397,8 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <fieldset className="rounded-lg border p-4">
-                <legend className="px-1 text-sm font-semibold">Ubicación y paciente</legend>
+              <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                <legend className="mb-3 text-sm font-semibold text-foreground">Ubicación y paciente</legend>
                 <div className="grid gap-4 md:grid-cols-2">
                   {!hasFixedBranch && (
                     <FormField
@@ -453,8 +453,8 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
                 </div>
               </fieldset>
 
-              <fieldset className="rounded-lg border p-4">
-                <legend className="px-1 text-sm font-semibold">Clasificación</legend>
+              <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                <legend className="mb-3 text-sm font-semibold text-foreground">Clasificación</legend>
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
                     control={form.control}
@@ -506,8 +506,8 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
                 </div>
               </fieldset>
 
-              <fieldset className="rounded-lg border p-4">
-                <legend className="px-1 text-sm font-semibold">Profesionales y servicio</legend>
+              <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                <legend className="mb-3 text-sm font-semibold text-foreground">Profesionales y servicio</legend>
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
                     control={form.control}
@@ -563,8 +563,8 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
                 </div>
               </fieldset>
 
-              <fieldset className="rounded-lg border p-4">
-                <legend className="px-1 text-sm font-semibold">Registro y prioridad</legend>
+              <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                <legend className="mb-3 text-sm font-semibold text-foreground">Registro y prioridad</legend>
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
                     control={form.control}

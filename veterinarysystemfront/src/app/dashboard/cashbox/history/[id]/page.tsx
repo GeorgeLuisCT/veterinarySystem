@@ -6,7 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
 import DashboardLayoutSection from "../../../dashboard-layout-section";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -27,23 +27,11 @@ import {
 import { CashMovementType } from "../../_types/cash-session-enums";
 import { PaymentMethodLabels } from "../../../pos/_types/sale-enums";
 
-import {
-  Wallet,
-  ArrowUpRight,
-  ArrowDownRight,
-  Coins,
-  Calculator,
-  Receipt,
-  ExternalLink,
-  CalendarClock,
-  User2,
-  ArrowLeft,
-  Banknote,
-  AlertTriangle,
-} from "lucide-react";
+import { Wallet, ArrowUpRight, ArrowDownRight, Coins, Calculator, Receipt, ExternalLink, CalendarClock, User2, ArrowLeft, Banknote, AlertTriangle } from "lucide-react";
 import { PageContainer } from "@/components/page/page-container";
 
 import { PageHeader } from "@/components/page/page-header";
+import { PageSection } from "@/components/page/page-section";
 const PEN = new Intl.NumberFormat("es-PE", {
   style: "currency",
   currency: "PEN",
@@ -199,11 +187,8 @@ export default function CashSessionDetailPage() {
           )}
 
           {detail && totals && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Resumen de sesión</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            <PageSection title="Resumen de sesión">
+<div className="space-y-6">
                 <div className="grid gap-4 md:grid-cols-3">
                   <SummaryItem label="Apertura" value={totals.opening} icon={Wallet} />
                   <SalesSummaryCard totalSales={totals.sales} breakdown={detail.paymentBreakdown} />
@@ -435,8 +420,8 @@ export default function CashSessionDetailPage() {
                     </Table>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+</PageSection>
           )}
         </div>
       </PageContainer>

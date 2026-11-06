@@ -163,8 +163,8 @@ export function LaboratoryRequestModal({ id, onClose, onAdded }: CommonProps) {
                         />
 
                         {/* Ítems / Pruebas */}
-                        <fieldset className="rounded-lg border p-4">
-                            <legend className="px-1 text-sm font-medium">Pruebas</legend>
+                        <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                            <legend className="mb-3 text-sm font-semibold text-foreground">Pruebas</legend>
 
                             {!hasLab ? (
                                 <p className="text-sm text-muted-foreground">Primero selecciona un laboratorio para agregar pruebas.</p>

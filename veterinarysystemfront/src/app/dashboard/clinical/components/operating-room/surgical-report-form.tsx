@@ -28,6 +28,7 @@ import { AddPostOpIndicationModal } from "../../components/operating-room/add-po
 // ⬇️ Usa el componente con fecha+hora
 import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
+import { PageSection } from "@/components/page/page-section";
 
 export type Option = { value: string; label: string };
 
@@ -239,11 +240,8 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
             <div className={className}>
                 <Form {...form}>
                     <form className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Detalles de la cirugía</CardTitle>
-                            </CardHeader>
-                            <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        <PageSection title="Detalles de la cirugía">
+<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 {/* ⬇️ INICIO (fecha y hora) */}
                                 <FormField
                                     control={form.control}
@@ -433,8 +431,8 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                                 </div>
 
 
-                            </CardContent>
-                        </Card>
+                            </div>
+</PageSection>
 
                         <Card>
                             <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -679,11 +677,8 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
 
 
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Monitoreo</CardTitle>
-                            </CardHeader>
-                            <CardContent>
+                        <PageSection title="Monitoreo">
+<div>
                                 <FormField
                                     control={form.control}
                                     name="monitoring"
@@ -706,14 +701,11 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                                         </FormItem>
                                     )}
                                 />
-                            </CardContent>
-                        </Card>
+                            </div>
+</PageSection>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Hallazgos</CardTitle>
-                            </CardHeader>
-                            <CardContent>
+                        <PageSection title="Hallazgos">
+<div>
                                 <FormField
                                     control={form.control}
                                     name="findings"
@@ -736,14 +728,11 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                                         </FormItem>
                                     )}
                                 />
-                            </CardContent>
-                        </Card>
+                            </div>
+</PageSection>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Descripción de la técnica quirúrgica</CardTitle>
-                            </CardHeader>
-                            <CardContent>
+                        <PageSection title="Descripción de la técnica quirúrgica">
+<div>
                                 <FormField
                                     control={form.control}
                                     name="surgicalTechniqueDescription"
@@ -766,8 +755,8 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                                         </FormItem>
                                     )}
                                 />
-                            </CardContent>
-                        </Card>
+                            </div>
+</PageSection>
                     </form>
 
                     {openAnestheticDrug && (

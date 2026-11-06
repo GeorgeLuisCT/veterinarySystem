@@ -24,6 +24,7 @@ import { GroomingStatus, GroomingStatusLabels } from "./enums/grooming-status";
 import GroomingSessionService from "./service/grooming-session-service";
 import type { GroomingSessionSummaryResponse } from "./types/grooming-session-response";
 import { PageHeader } from "@/components/page/page-header";
+import { PageContainer } from "@/components/page/page-container";
 
 function formatLocalDate(d: Date): string {
   const y = d.getFullYear();
@@ -230,7 +231,7 @@ export default function GroomingPage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="flex h-full flex-col gap-4 overflow-y-auto p-4 sm:p-6">
+      <PageContainer>
         <PageHeader
           title="Peluquería"
           description="Todas las atenciones y sesiones en una sola vista."
@@ -272,7 +273,7 @@ export default function GroomingPage() {
           onCreated={handleCreated}
           origin="GROOMING"
         />
-      </div>
+      </PageContainer>
     </DashboardLayoutSection>
   );
 }

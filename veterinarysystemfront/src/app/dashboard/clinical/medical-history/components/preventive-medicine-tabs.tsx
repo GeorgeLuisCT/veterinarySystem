@@ -1,7 +1,7 @@
 "use client";
 
 import { Bug, MonitorCog, Scissors, ShieldCheck } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import type {
@@ -10,6 +10,7 @@ import type {
   ClinicalHistoryPreventiveEvent,
 } from "../../types/medical-history-response";
 import { ClinicalServiceCategory, ClinicalServiceCategoryLabels } from "../../enums/clinical-service-category";
+import { PageSection } from "@/components/page/page-section";
 
 const EmptyState = ({ icon: Icon, message }: { icon: React.ComponentType<{ className?: string }>; message: string }) => (
   <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
@@ -117,11 +118,8 @@ export default function PreventiveMedicineTabs({ preventiveCare }: { preventiveC
   const deworming = preventiveCare.deworming.filter((item) => item.category === ClinicalServiceCategory.DEWORMING);
 
   return (
-    <Card className="col-span-1">
-      <CardHeader>
-        <CardTitle className="text-lg">Medicina preventiva</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <PageSection title="Medicina preventiva">
+<div>
         <Tabs defaultValue="vaccinesAndDeworming">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="vaccinesAndDeworming">
@@ -147,7 +145,7 @@ export default function PreventiveMedicineTabs({ preventiveCare }: { preventiveC
             <GroomingList entries={preventiveCare.groomingSessions} />
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
+      </div>
+</PageSection>
   );
 }
