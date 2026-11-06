@@ -10,6 +10,8 @@ import java.util.Optional;
 
 @Repository
 public interface ProductVehicleStockRepository extends JpaRepository<ProductVehicleStock, Long> {
+    /** Con bloqueo de fila: dos consumos simultáneos no pueden dejar el stock del vehículo en negativo. */
+    @org.springframework.data.jpa.repository.Lock(javax.persistence.LockModeType.PESSIMISTIC_WRITE)
     Optional<ProductVehicleStock> findByVehicle_IdAndProduct_Id(Long vehicleId, Long productId);
 
 
