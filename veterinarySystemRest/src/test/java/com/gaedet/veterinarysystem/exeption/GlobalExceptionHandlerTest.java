@@ -30,8 +30,14 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/t/stock")
         void stock() { throw new InsufficientStockException("Sin stock"); }
 
+        @GetMapping("/t/state")
+        void state() { throw new IllegalStateException("La cita ya está completada"); }
+
+        @GetMapping("/t/lock")
+        void lock() { throw new javax.persistence.OptimisticLockException("version"); }
+
         @GetMapping("/t/boom")
-        void boom() { throw new IllegalStateException("detalle interno"); }
+        void boom() { throw new UnsupportedOperationException("detalle interno"); }
     }
 
     private MockMvc mvc;
@@ -63,6 +69,17 @@ class GlobalExceptionHandlerTest {
     @Test
     void insufficientStockIs400() throws Exception {
         mvc.perform(get("/t/stock")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void businessStateViolationIs409WithItsMessage() throws Exception {
+        mvc.perform(get("/t/state")).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("La cita ya está completada"));
+    }
+
+    @Test
+    void optimisticLockIs409() throws Exception {
+        mvc.perform(get("/t/lock")).andExpect(status().isConflict());
     }
 
     @Test

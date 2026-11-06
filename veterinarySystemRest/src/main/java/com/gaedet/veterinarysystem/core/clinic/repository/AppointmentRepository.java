@@ -40,4 +40,24 @@ public interface AppointmentRepository extends
             "surgicalDetail.operatingRoom"
     })
     Optional<Appointment> findWithDetailsById(Long id);
+
+    /** Citas vigentes (no canceladas/completadas/ausentes) en una ventana de tiempo, para detectar cruces. */
+    @org.springframework.data.jpa.repository.Query("""
+        select a from Appointment a
+        left join a.surgicalDetail sd
+        where a.status not in (
+                com.gaedet.veterinarysystem.core.clinic.enums.AppointmentStatus.CANCELED,
+                com.gaedet.veterinarysystem.core.clinic.enums.AppointmentStatus.COMPLETED,
+                com.gaedet.veterinarysystem.core.clinic.enums.AppointmentStatus.NO_SHOW)
+          and a.startDateTime >= :from and a.startDateTime < :to
+          and ((:employeeId is not null and a.assignedEmployee.id = :employeeId)
+            or (:animalId is not null and a.animal.id = :animalId)
+            or (:roomId is not null and sd.operatingRoom.id = :roomId))
+    """)
+    List<Appointment> findActiveCandidates(
+            @org.springframework.data.repository.query.Param("employeeId") Long employeeId,
+            @org.springframework.data.repository.query.Param("animalId") Long animalId,
+            @org.springframework.data.repository.query.Param("roomId") Long roomId,
+            @org.springframework.data.repository.query.Param("from") java.time.LocalDateTime from,
+            @org.springframework.data.repository.query.Param("to") java.time.LocalDateTime to);
 }

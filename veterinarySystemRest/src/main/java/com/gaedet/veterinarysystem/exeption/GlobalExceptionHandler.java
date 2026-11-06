@@ -143,8 +143,15 @@ public class GlobalExceptionHandler {
                 "Uno o más valores violan restricciones de la base de datos (duplicado o referencia inexistente)");
     }
 
+    /** Reglas de negocio que dependen del estado actual (p. ej. "la cita ya está completada"). */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
+        logger.warn("Estado inválido: {}", ex.getMessage());
+        return body(HttpStatus.CONFLICT, "Operación no permitida", ex.getMessage());
+    }
+
     @ExceptionHandler({OptimisticLockingFailureException.class, PessimisticLockingFailureException.class,
-            CannotAcquireLockException.class})
+            CannotAcquireLockException.class, javax.persistence.OptimisticLockException.class})
     public ResponseEntity<Map<String, String>> handleConcurrency(Exception ex) {
         logger.warn("Conflicto de concurrencia: {}", ex.getMessage());
         return body(HttpStatus.CONFLICT, "Conflicto de concurrencia",
