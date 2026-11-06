@@ -22,6 +22,7 @@ import java.util.List;
 public class LaboratoryItemBillableAdapter implements BillableServiceAdapter {
 
     private final LaboratoryRequestItemRepository itemRepository;
+    private final ClinicalAttentionBillingCloser billingCloser;
 
     @Override
     public BillableServiceType supportsType() {
@@ -52,12 +53,16 @@ public class LaboratoryItemBillableAdapter implements BillableServiceAdapter {
             throw new BadRequestException("El examen #" + itemId + " ya fue cobrado en otra venta");
         }
         item.setSaleDetailId(saleDetailId);
+        billingCloser.onBillingChanged(item.getLaboratoryRequest().getClinicalAttention());
     }
 
     @Override
     @Transactional
     public void markAsUnbilled(Long itemId) {
-        itemRepository.findById(itemId).ifPresent(item -> item.setSaleDetailId(null));
+        itemRepository.findById(itemId).ifPresent(item -> {
+            item.setSaleDetailId(null);
+            billingCloser.onBillingChanged(item.getLaboratoryRequest().getClinicalAttention());
+        });
     }
 
     @Override

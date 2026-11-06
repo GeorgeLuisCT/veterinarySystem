@@ -25,6 +25,7 @@ public class ClinicalServiceItemBillableAdapter implements BillableServiceAdapte
 
     private final ClinicalServiceItemRepository clinicalServiceItemRepository;
     private final ObjectMapper objectMapper;
+    private final ClinicalAttentionBillingCloser billingCloser;
 
     @Override
     public BillableServiceType supportsType() {
@@ -80,12 +81,16 @@ public class ClinicalServiceItemBillableAdapter implements BillableServiceAdapte
             throw new BadRequestException("El servicio clínico #" + itemId + " ya fue cobrado en otra venta");
         }
         item.setSaleDetailId(saleDetailId);
+        billingCloser.onBillingChanged(item.getClinicalAttention());
     }
 
     @Override
     @Transactional
     public void markAsUnbilled(Long itemId) {
-        clinicalServiceItemRepository.findById(itemId).ifPresent(item -> item.setSaleDetailId(null));
+        clinicalServiceItemRepository.findById(itemId).ifPresent(item -> {
+            item.setSaleDetailId(null);
+            billingCloser.onBillingChanged(item.getClinicalAttention());
+        });
     }
 
     @Override

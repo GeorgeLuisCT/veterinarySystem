@@ -62,7 +62,7 @@ class BillableAdaptersTest {
     }
 
     private ClinicalServiceItemBillableAdapter clinicalAdapter() {
-        return new ClinicalServiceItemBillableAdapter(clinicalItemRepository, new ObjectMapper());
+        return new ClinicalServiceItemBillableAdapter(clinicalItemRepository, new ObjectMapper(), new ClinicalAttentionBillingCloser());
     }
 
     @Test
