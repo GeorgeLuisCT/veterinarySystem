@@ -95,11 +95,15 @@ public class HospitalizationService {
     public CageResponse createHospitalization(CreateHospitalizationRequest request) {
         Animal animal = animalRepository.findById(request.getAnimalId())
                 .orElseThrow(() -> new EntityNotFoundException("Animal not found with id: " + request.getAnimalId()));
-        Cage cage = cageRepository.findById(request.getCageId())
+        Cage cage = cageRepository.findByIdForUpdate(request.getCageId())
                 .orElseThrow(() -> new EntityNotFoundException("Cage not found with id: " + request.getCageId()));
 
         if (cage.isOccupied()) {
-            throw new IllegalStateException("Cage is already occupied.");
+            throw new IllegalStateException("La jaula ya está ocupada.");
+        }
+
+        if (hospitalizationRepository.existsByAnimalIdAndStatusNotIn(animal.getId(), FINAL_STATUSES)) {
+            throw new IllegalStateException("El paciente ya tiene una hospitalización vigente.");
         }
 
         Attentions attention = null;
@@ -157,9 +161,15 @@ public class HospitalizationService {
 
         Map<String, Object> updatedFields = new HashMap<>();
 
+        assertActive(hospitalization);
+
         if (request.getDischargeDate() != null) {
             hospitalization.setDischargeDate(request.getDischargeDate());
             updatedFields.put("dischargeDate", request.getDischargeDate());
+            // Indicar fecha de alta equivale a dar el alta
+            if (request.getStatus() == null) {
+                request.setStatus(HospitalizationStatus.DISCHARGED);
+            }
         }
         if (request.getAdmissionNotes() != null) {
             hospitalization.setAdmissionNotes(request.getAdmissionNotes());
@@ -181,6 +191,19 @@ public class HospitalizationService {
             updatedFields.put("clinicalServiceId", clinicalService.getId());
         }
 
+        // Alta o cancelación: se registra la fecha de salida y se LIBERA la jaula para nuevos ingresos
+        if (FINAL_STATUSES.contains(hospitalization.getStatus())) {
+            if (hospitalization.getDischargeDate() == null) {
+                hospitalization.setDischargeDate(LocalDateTime.now());
+                updatedFields.put("dischargeDate", hospitalization.getDischargeDate());
+            }
+            Cage cage = hospitalization.getCage();
+            if (cage != null && cage.isOccupied()) {
+                cage.setOccupied(false);
+                cageRepository.save(cage);
+            }
+        }
+
         Hospitalization saved = hospitalizationRepository.save(hospitalization);
 
         return new HospitalizationPatchResponse(
@@ -195,6 +218,7 @@ public class HospitalizationService {
         Hospitalization hospitalization = hospitalizationRepository.findById(hospitalizationId)
                 .orElseThrow(
                         () -> new EntityNotFoundException("Hospitalization not found with id: " + hospitalizationId));
+        assertActive(hospitalization);
         Employee author = employeeRepository.findById(request.getAuthorId())
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found with id: " + request.getAuthorId()));
 
@@ -216,6 +240,8 @@ public class HospitalizationService {
         Hospitalization hospitalization = hospitalizationRepository.findById(hospitalizationId)
                 .orElseThrow(
                         () -> new EntityNotFoundException("Hospitalization not found with id: " + hospitalizationId));
+
+        assertActive(hospitalization);
 
         TreatmentSchedule schedule = treatmentScheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("TreatmentSchedule not found with id: " + scheduleId));
@@ -288,6 +314,7 @@ public class HospitalizationService {
         Hospitalization hospitalization = hospitalizationRepository.findById(hospitalizationId)
                 .orElseThrow(
                         () -> new EntityNotFoundException("Hospitalization not found with id: " + hospitalizationId));
+        assertActive(hospitalization);
 
         if (request == null || !request.hasAnyMeasurement()) {
             throw new IllegalArgumentException("Debe registrar al menos una constante vital.");
@@ -321,6 +348,7 @@ public class HospitalizationService {
         Hospitalization hospitalization = hospitalizationRepository.findById(hospitalizationId)
                 .orElseThrow(
                         () -> new EntityNotFoundException("Hospitalization not found with id: " + hospitalizationId));
+        assertActive(hospitalization);
 
         int doses = 1;
         if (request.getFrequencyValue() != null && request.getFrequencyUnit() != null) {
@@ -378,5 +406,17 @@ public class HospitalizationService {
             throw new IllegalArgumentException("When admission timing is NONE, attention must be null.");
         }
         return timing;
+    }
+
+    private static final java.util.Set<HospitalizationStatus> FINAL_STATUSES =
+            java.util.Set.of(HospitalizationStatus.DISCHARGED, HospitalizationStatus.CANCELLED);
+
+    /** Una hospitalización con alta o cancelada es un registro histórico: no admite cambios ni nuevos cargos. */
+    private void assertActive(Hospitalization hospitalization) {
+        if (FINAL_STATUSES.contains(hospitalization.getStatus())) {
+            throw new IllegalStateException("La hospitalización ya fue "
+                    + (hospitalization.getStatus() == HospitalizationStatus.DISCHARGED ? "dada de alta" : "cancelada")
+                    + " y no admite cambios");
+        }
     }
 }
