@@ -34,6 +34,9 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class PublicPortalService {
 
+    /** Mismo mensaje para documento inexistente, inactivo o de otro tipo: no permite averiguar qué clientes existen. */
+    private static final String NOT_FOUND_MESSAGE = "No encontramos un cliente con los datos proporcionados.";
+
     private final CustomerRepository customerRepository;
     private final DocumentTypeRepository documentTypeRepository;
     private final AnimalRepository animalRepository;
@@ -121,11 +124,11 @@ public class PublicPortalService {
                 .orElseThrow(() -> new BadRequestException("No encontramos un cliente con los datos proporcionados."));
 
         if (!customer.isActive()) {
-            throw new BadRequestException("El cliente se encuentra inactivo. Comunícate con la clínica.");
+            throw new BadRequestException(NOT_FOUND_MESSAGE);
         }
 
         if (customer.getDocumentType() == null || !customer.getDocumentType().getId().equals(documentType.getId())) {
-            throw new BadRequestException("El tipo de documento no coincide con el registrado para el cliente.");
+            throw new BadRequestException(NOT_FOUND_MESSAGE);
         }
 
         return customer;

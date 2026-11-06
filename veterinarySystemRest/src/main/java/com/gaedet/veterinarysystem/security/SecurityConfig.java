@@ -83,6 +83,9 @@ public class SecurityConfig {
                         .antMatchers(HttpMethod.POST, "/api/sales/*/void").hasAnyAuthority(ADMIN, MANAGER)
                         .antMatchers("/api/sales/**").hasAnyAuthority(ADMIN, MANAGER, CASHIER, RECEPTIONIST)
 
+                        // Reportes (GraphQL)
+                        .antMatchers("/api/reports/**").hasAnyAuthority(ADMIN, MANAGER)
+
                         // Veterinaria de campo
                         .antMatchers("/api/fieldwork/**", "/api/farms/**", "/api/geo-zones/**")
                             .hasAnyAuthority(ADMIN, MANAGER, VETERINARIAN)

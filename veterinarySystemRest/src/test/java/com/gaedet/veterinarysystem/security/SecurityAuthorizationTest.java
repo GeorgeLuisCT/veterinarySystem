@@ -103,4 +103,15 @@ class SecurityAuthorizationTest {
         assertEquals(403, status(get("/api/clinical-attentions/1").with(as("ROLE_WAREHOUSE"))));
         assertNotEquals(403, status(get("/api/clinical-attentions/1").with(as("ROLE_VETERINARIAN"))));
     }
+
+    @Test
+    @DisplayName("Reportes: GraphQL publicado en /api/reports/graphql (lo que consume el frontend) y solo admin/gerente")
+    void reportsEndpointIsReachableAndRestricted() throws Exception {
+        assertEquals(403, status(post("/api/reports/graphql").with(as("ROLE_CASHIER"))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"query\":\"{ __typename }\"}")));
+        int adminStatus = status(post("/api/reports/graphql").with(as("ROLE_ADMIN"))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"query\":\"{ __typename }\"}"));
+        assertNotEquals(404, adminStatus, "la ruta GraphQL no está publicada");
+        assertNotEquals(403, adminStatus);
+    }
 }
