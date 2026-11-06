@@ -65,4 +65,8 @@ public interface AttentionRepository extends
     Optional<Attentions> findWithDetailsById(Long id);
 
     Optional<Attentions> findByAppointmentId(Long appointmentId);
+
+    /** ¿El paciente ya tiene una recepción abierta de ese tipo (distinta de FINISHED)? */
+    boolean existsByAnimalIdAndTypeAndStatusNot(Long animalId, com.gaedet.veterinarysystem.core.clinic.enums.AttentionType type,
+                                                com.gaedet.veterinarysystem.core.clinic.enums.AttentionsStatus status);
 }
