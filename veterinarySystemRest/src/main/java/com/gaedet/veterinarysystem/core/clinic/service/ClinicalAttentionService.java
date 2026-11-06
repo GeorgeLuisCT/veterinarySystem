@@ -71,6 +71,7 @@ public class ClinicalAttentionService {
     private final BranchRepository branchRepository;
     private final LaboratoryRepository laboratoryRepository;
     private final OperatingRoomRepository operatingRoomRepository;
+    private final com.gaedet.veterinarysystem.core.inventory.service.InventoryConsumptionService inventoryConsumptionService;
 
     @Transactional
     public ClinicalAttentionCreatedResponse create(CreateClinicalAttentionRequest request) {
@@ -216,6 +217,12 @@ public class ClinicalAttentionService {
 
         MedicationAdministration saved = medicationAdministrationRepository.save(medication);
         clinicalAttention.getMedicationAdministrations().add(saved);
+
+        // El medicamento administrado sale del inventario de la sucursal de la atención (FEFO)
+        if (request.getDoseAmount() != null && request.getDoseAmount().signum() > 0) {
+            inventoryConsumptionService.consume(product.getId(), attentionBranchId(clinicalAttention),
+                    request.getDoseAmount(), request.getDoseUnit(), "MedicationAdministration", saved.getId());
+        }
 
         return ClinicalAttentionMapper.toDetail(clinicalAttention);
     }
@@ -469,6 +476,11 @@ public class ClinicalAttentionService {
     private Branch resolveBranchOrNull(ClinicalAttention clinicalAttention) {
         Attentions attention = clinicalAttention.getAttention();
         return attention != null ? attention.getBranch() : null;
+    }
+
+    private Long attentionBranchId(ClinicalAttention clinicalAttention) {
+        Attentions attention = clinicalAttention.getAttention();
+        return attention != null && attention.getBranch() != null ? attention.getBranch().getId() : null;
     }
 
     private Animal resolveAnimal(ClinicalAttention clinicalAttention) {
