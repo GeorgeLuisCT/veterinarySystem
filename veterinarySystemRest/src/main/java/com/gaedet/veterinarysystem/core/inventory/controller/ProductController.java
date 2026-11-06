@@ -81,7 +81,7 @@ public class ProductController {
         return ResponseEntity.ok(Map.of("message", "Producto desavilitado correctamente"));
     }
 
-    @PreAuthorize("hasAnyRole(\'ADMIN\', \'MANAGER\')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @DeleteMapping("/hard-delete")
     public ResponseEntity<Map<String, String>> hardDeleteProduct(@RequestParam Long id) {
         productService.hardDeleteProduct(id);

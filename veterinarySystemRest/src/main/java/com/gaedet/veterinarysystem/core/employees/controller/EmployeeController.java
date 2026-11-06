@@ -67,7 +67,7 @@ public class EmployeeController {
         return ResponseEntity.ok(Map.of("message", "Empleado desactivado correctamente"));
     }
 
-    @PreAuthorize("hasAnyRole(\'ADMIN\', \'MANAGER\')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @DeleteMapping("/hard-delete")
     public ResponseEntity<Map<String, String>> hardDeleteEmployee(@RequestParam Long id) {
         employeeService.hardDeleteEmployee(id);

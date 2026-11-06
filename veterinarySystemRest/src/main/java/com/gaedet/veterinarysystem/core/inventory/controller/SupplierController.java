@@ -61,7 +61,7 @@ public class SupplierController {
         return ResponseEntity.ok(Map.of("message", "Proveedor desactivado correctamente"));
     }
 
-    @PreAuthorize("hasAnyRole(\'ADMIN\', \'MANAGER\')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @DeleteMapping("/hard-delete")
     public ResponseEntity<Map<String, String>> hardDeleteSupplier(@RequestParam Long id) {
         supplierService.hardDeleteSupplier(id);

@@ -60,7 +60,7 @@ public class CustomerController {
         return ResponseEntity.ok(Map.of("message", "Cliente deshabilitado correctamente"));
     }
 
-    @PreAuthorize("hasAnyRole(\'ADMIN\', \'MANAGER\')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @DeleteMapping("/hard-delete")
     public ResponseEntity<Map<String, String>> hardDeleteCustomer(@RequestParam Long id) {
         customerService.hardDeleteCustomer(id);

@@ -63,7 +63,7 @@ public class AnimalController {
         return ResponseEntity.ok(Map.of("message", "Animal deshabilitado correctamente"));
     }
 
-    @PreAuthorize("hasAnyRole(\'ADMIN\', \'MANAGER\')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @DeleteMapping("/hard-delete")
     public ResponseEntity<Map<String, String>> hardDeleteAnimal(@RequestParam Long id) {
         animalService.hardDeleteAnimal(id);
