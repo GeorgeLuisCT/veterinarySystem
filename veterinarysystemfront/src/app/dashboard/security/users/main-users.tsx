@@ -74,7 +74,7 @@ export default function MainUsers({ branchId, refreshKey = 0 }: Props) {
         cell: ({ row }) => {
           const active = row.original.active;
           return (
-            <Badge variant="outline" className={active ? "text-success-strong" : "text-muted-foreground"}>
+            <Badge variant={active ? "success" : "neutral"}>
               {active ? "Activo" : "Inactivo"}
             </Badge>
           );

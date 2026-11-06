@@ -31,7 +31,7 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <header className={cn("flex flex-wrap items-start justify-between gap-3", className)}>
-      <div className="min-w-0 space-y-1">
+      <div className="min-w-0 flex-1 basis-80 space-y-1">
         {backHref && (
           <Link
             href={backHref}
@@ -45,7 +45,7 @@ export function PageHeader({
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
         {meta && <div className="flex flex-wrap items-center gap-2 pt-1">{meta}</div>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      {actions && <div className="ml-auto flex flex-wrap items-center gap-2">{actions}</div>}
     </header>
   );
 }

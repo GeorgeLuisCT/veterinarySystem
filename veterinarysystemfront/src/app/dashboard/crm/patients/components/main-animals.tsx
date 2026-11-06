@@ -65,7 +65,7 @@ export default function MainAnimals() {
         cell: ({ row }) => {
           const active = row.original.isActive ?? true;
           return (
-            <Badge variant="outline" className={active ? "text-success-strong" : "text-muted-foreground"}>
+            <Badge variant={active ? "success" : "neutral"}>
               {active ? "Activo" : "Inactivo"}
             </Badge>
           );
