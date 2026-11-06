@@ -195,7 +195,7 @@ export function TransferProductItemForm({
 
 
     return (
-        <fieldset className="rounded-2xl border p-4 space-y-4" aria-labelledby={`transfer-prod-legend-${index}`}>
+        <fieldset className="rounded-lg border p-4 space-y-4" aria-labelledby={`transfer-prod-legend-${index}`}>
             <legend id={`transfer-prod-legend-${index}`} className="px-1 text-sm font-semibold flex items-center justify-between gap-2">
                 <span>Producto #{index + 1}</span>
                 <Button type="button" variant="ghost" className="h-8" onClick={() => onRemove(index)} aria-label={`Eliminar producto ${index + 1}`}>Eliminar</Button>

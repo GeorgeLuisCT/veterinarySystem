@@ -127,7 +127,7 @@ export function AddPostOpIndicationModal({
 
   return (
     <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : undefined)}>
-      <DialogContent className="w-[min(92vw,840px)] max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-2xl">
+      <DialogContent className="w-[min(92vw,840px)] max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-2xl">
         <DialogHeader className="space-y-1">
           <DialogTitle className="text-xl">Agregar indicación post operatoria</DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -167,7 +167,7 @@ export function AddPostOpIndicationModal({
                   )}
                 />
 
-                <fieldset className="rounded-xl border p-3">
+                <fieldset className="rounded-lg border p-3">
                   <legend className="px-1 text-sm font-medium">Dosis</legend>
                   <div className="grid gap-3 sm:grid-cols-12">
                     <div className="sm:col-span-4">
@@ -234,7 +234,7 @@ export function AddPostOpIndicationModal({
                   </div>
                 </fieldset>
 
-                <fieldset className="rounded-xl border p-3">
+                <fieldset className="rounded-lg border p-3">
                   <legend className="px-1 text-sm font-medium">Frecuencia</legend>
                   <div className="grid gap-3 sm:grid-cols-12">
                     <div className="sm:col-span-6">
@@ -284,7 +284,7 @@ export function AddPostOpIndicationModal({
               </TabsContent>
 
               <TabsContent value="instruction">
-                <fieldset className="rounded-xl border p-3">
+                <fieldset className="rounded-lg border p-3">
                   <legend className="px-1 text-sm font-medium">Instrucción</legend>
                   <FormField
                     control={form.control}

@@ -77,7 +77,7 @@ export default function MainEmployee({ branchId }: Props) {
         cell: ({ row }) => (
           <Badge
             variant="outline"
-            className={row.original.active ? "text-emerald-700" : "text-zinc-500"}
+            className={row.original.active ? "text-success-strong" : "text-muted-foreground"}
           >
             {row.original.active ? "Activo" : "Inactivo"}
           </Badge>

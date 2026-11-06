@@ -36,7 +36,7 @@ export function SimpleDataTable<T extends Identifiable>({
 }: DataTableProps<T>) {
   if (data.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-muted-foreground">
         {emptyIcon && <div className="mb-4 text-gray-300">{emptyIcon}</div>}
         <p>{emptyMessage}</p>
       </div>

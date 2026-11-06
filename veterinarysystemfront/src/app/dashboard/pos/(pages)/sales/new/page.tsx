@@ -1,7 +1,10 @@
 "use client";
 
 import DashboardLayoutSection from "@/app/dashboard/dashboard-layout-section";
-import { ProductQuickSearchResponse, SaleModeSummary } from "@/app/dashboard/inventory/_types/product-response";
+import {
+  ProductQuickSearchResponse,
+  SaleModeSummary,
+} from "@/app/dashboard/inventory/_types/product-response";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
@@ -9,7 +12,7 @@ import { useUser } from "@/context/user-context";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BoxIcon, ClipboardList, PlusCircle, Sparkles } from "lucide-react";
+import { BoxIcon, PlusCircle, Sparkles } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -33,10 +36,16 @@ import {
   SalePaymentRequest,
   UpdateSaleRequest,
 } from "../../../_types/sale-request";
-import { SaleDetailResponse, SalePaymentResponse, SaleResponse } from "../../../_types/sale-response";
+import {
+  SaleDetailResponse,
+  SalePaymentResponse,
+  SaleResponse,
+} from "../../../_types/sale-response";
 import { normalizeToIsoString } from "../../../_utils/date";
 import { printSaleTicket } from "../../../_utils/print-sale-ticket";
 
+import { PageHeader } from "@/components/page/page-header";
+import { PageContainer } from "@/components/page/page-container";
 type SubmitMode = "draft" | "final";
 
 const DOCUMENT_OPTIONS: { value: SalesDocumentType; label: string }[] = [
@@ -87,17 +96,20 @@ function PointOfSaleContent() {
     setPaymentsError(undefined);
   }, []);
 
-  const handleReset = useCallback((options?: { preserveBlocked?: boolean }) => {
-    setSale(null);
-    cart.resetCart();
-    paymentCollector.resetPayments();
-    form.reset(DEFAULT_FORM_VALUES);
-    clearSectionErrors();
-    if (!options?.preserveBlocked) {
-      setBlockedSaleId(null);
-    }
-    router.push("/dashboard/pos/sales/new");
-  }, [cart, paymentCollector, form, clearSectionErrors, router]);
+  const handleReset = useCallback(
+    (options?: { preserveBlocked?: boolean }) => {
+      setSale(null);
+      cart.resetCart();
+      paymentCollector.resetPayments();
+      form.reset(DEFAULT_FORM_VALUES);
+      clearSectionErrors();
+      if (!options?.preserveBlocked) {
+        setBlockedSaleId(null);
+      }
+      router.push("/dashboard/pos/sales/new");
+    },
+    [cart, paymentCollector, form, clearSectionErrors, router]
+  );
 
   const handleTicketPrint = useCallback(
     (completedSale: SaleResponse) => {
@@ -183,7 +195,11 @@ function PointOfSaleContent() {
         syncFromSale(data, true);
         toast({ title: "Borrador cargado", description: `Venta #${data.id} lista para editar.` });
       } catch {
-        toast({ title: "Error al cargar la venta", description: "No se pudo obtener el detalle de la venta.", variant: "destructive" });
+        toast({
+          title: "Error al cargar la venta",
+          description: "No se pudo obtener el detalle de la venta.",
+          variant: "destructive",
+        });
         setBlockedSaleId(id);
       } finally {
         setSubmitting(false);
@@ -279,7 +295,11 @@ function PointOfSaleContent() {
         const updatedSale = await SalesService.updateSaleDetail(sale.id, item.detailId, payload);
         syncFromSale(updatedSale, false);
       } catch (error: unknown) {
-        toast({ title: "Error al actualizar ítem", description: getAaxiosErrorMessage(error), variant: "destructive" });
+        toast({
+          title: "Error al actualizar ítem",
+          description: getAaxiosErrorMessage(error),
+          variant: "destructive",
+        });
         cart.updateQuantity(itemId, original.quantity);
         cart.updateUnitPrice(itemId, original.unitPrice);
       } finally {
@@ -359,7 +379,11 @@ function PointOfSaleContent() {
         await SalesService.deleteSalePayment(sale.id, payment.paymentId);
         toast({ title: "Pago eliminado" });
       } catch (error: unknown) {
-        toast({ title: "Error al eliminar pago", description: getAaxiosErrorMessage(error), variant: "destructive" });
+        toast({
+          title: "Error al eliminar pago",
+          description: getAaxiosErrorMessage(error),
+          variant: "destructive",
+        });
         paymentCollector.setPayments(originalPayments);
       } finally {
         setSubmitting(false);
@@ -387,7 +411,12 @@ function PointOfSaleContent() {
       if (!parsed.success) {
         for (const issue of parsed.error.issues) {
           const path0 = issue.path?.[0];
-          if (path0 === "documentType" || path0 === "documentNumber" || path0 === "customerId" || path0 === "notes") {
+          if (
+            path0 === "documentType" ||
+            path0 === "documentNumber" ||
+            path0 === "customerId" ||
+            path0 === "notes"
+          ) {
             form.setError(path0 as keyof SaleFormValues, { type: "zod", message: issue.message });
           } else if (path0 === "items") {
             setItemsError(issue.message);
@@ -411,13 +440,28 @@ function PointOfSaleContent() {
         }
         return savedSale;
       } catch (err: unknown) {
-        toast({ title: "Error al crear la venta", description: getAaxiosErrorMessage(err), variant: "destructive" });
+        toast({
+          title: "Error al crear la venta",
+          description: getAaxiosErrorMessage(err),
+          variant: "destructive",
+        });
         return null;
       } finally {
         setSubmitting(false);
       }
     },
-    [branchId, sellerId, cart, paymentCollector, handleReset, router, toast, clearSectionErrors, form, handleTicketPrint]
+    [
+      branchId,
+      sellerId,
+      cart,
+      paymentCollector,
+      handleReset,
+      router,
+      toast,
+      clearSectionErrors,
+      form,
+      handleTicketPrint,
+    ]
   );
 
   const handleFinalizeSale = useCallback(async () => {
@@ -446,7 +490,11 @@ function PointOfSaleContent() {
       router.push("/dashboard/pos/sales/new");
     } catch (err: unknown) {
       console.error("[POS] Finalize request failed", err);
-      toast({ title: "Error al finalizar la venta", description: getAaxiosErrorMessage(err), variant: "destructive" });
+      toast({
+        title: "Error al finalizar la venta",
+        description: getAaxiosErrorMessage(err),
+        variant: "destructive",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -483,37 +531,37 @@ function PointOfSaleContent() {
   if (!isInitialLoadDone) return <div className="p-6">Cargando...</div>;
 
   return (
-    <div className="space-y-6 flex-1 flex flex-col">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <div className="rounded-2xl p-2 bg-gradient-to-br from-primary/15 to-primary/5 text-primary shadow-[0_2px_10px_-6px_rgb(0_0_0/0.3)]">
-            <ClipboardList className="h-6 w-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-              {isEditing ? (
-                <>
-                  Editando Venta <span className="text-slate-400">#{sale?.id}</span>
-                </>
-              ) : (
-                "Nueva venta"
-              )}
-            </h1>
-            <p className="mt-1 text-muted-foreground flex items-center gap-2">
-              <Sparkles className="h-4 w-4" />
-              Realiza una nueva o edita una guardada como borrador.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <PendingSalesSheet branchId={branchId} />
-          <Button onClick={() => handleReset()} className="gap-2">
-            <PlusCircle className="h-4 w-4" />
-            Nueva Venta
-          </Button>
-        </div>
-      </div>
+    <div className="flex flex-1 flex-col gap-4">
+      <PageHeader
+        title={
+          <>
+            {isEditing ? (
+              <>
+                {" "}
+                Editando Venta <span className="text-muted-foreground">#{sale?.id}</span>{" "}
+              </>
+            ) : (
+              "Nueva venta"
+            )}
+          </>
+        }
+        description={
+          <>
+            <Sparkles className="h-4 w-4" /> Realiza una nueva o edita una guardada como borrador.
+          </>
+        }
+        actions={
+          <>
+            <div className="flex items-center gap-2">
+              <PendingSalesSheet branchId={branchId} />
+              <Button onClick={() => handleReset()} className="gap-2">
+                <PlusCircle className="h-4 w-4" />
+                Nueva Venta
+              </Button>
+            </div>
+          </>
+        }
+      />
 
       <Form {...form}>
         <form onSubmit={onSubmitFinal} className="space-y-6 flex-1">
@@ -532,7 +580,11 @@ function PointOfSaleContent() {
                   <CardTitle>Artículos</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 flex flex-col flex-1">
-                  <AddProductsSection branchId={branchId} onAddProduct={addProductDeclarative} disabled={isFinalized || isBusy} />
+                  <AddProductsSection
+                    branchId={branchId}
+                    onAddProduct={addProductDeclarative}
+                    disabled={isFinalized || isBusy}
+                  />
                   <SaleItemsSection
                     items={cart.items}
                     onQuantityChange={(id, q) => patchItem(id, { quantity: q })}
@@ -569,11 +621,9 @@ export default function PointOfSalePage() {
   return (
     <Suspense fallback={<div className="p-6">Cargando venta...</div>}>
       <DashboardLayoutSection>
-        <div className="h-full">
-          <div className="mx-auto flex h-full max-w-8xl flex-col">
-            <PointOfSaleContent />
-          </div>
-        </div>
+        <PageContainer>
+          <PointOfSaleContent />
+        </PageContainer>
       </DashboardLayoutSection>
     </Suspense>
   );

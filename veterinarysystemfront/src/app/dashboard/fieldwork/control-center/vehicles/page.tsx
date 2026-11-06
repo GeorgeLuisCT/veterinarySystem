@@ -120,7 +120,7 @@ export default function VehicleManagementPage() {
                     <td className="py-2 pr-4">{vehicle.assignedVetName ?? '—'}</td>
                     <td className="py-2 pr-4">{vehicle.homeBranchName ?? '—'}</td>
                     <td className="py-2 pr-4">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs ${vehicle.active ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs ${vehicle.active ? 'bg-success-soft text-success-strong' : 'bg-muted text-muted-foreground'}`}>
                         {vehicle.active ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>

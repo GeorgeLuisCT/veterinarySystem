@@ -343,16 +343,16 @@ export default function HospitalizationChartPage() {
     const dischargeButtonLabel = isDischarged ? "Alta registrada" : isDischarging ? "Dando de alta..." : "Dar de Alta";
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="p-4 bg-white border-b sticky top-0 z-10">
-                <div className="flex justify-between items-center max-w-screen-xl mx-auto">
+        <div className="h-full overflow-y-auto">
+            <div className="sticky top-0 z-10 border-b bg-card px-4 py-3 sm:px-6">
+                <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between gap-3">
                     <div>
-                        <h1 className="text-xl font-bold text-slate-900">Ficha de Hospitalización</h1>
-                        <p className="text-sm text-gray-600">Paciente: <span className="font-semibold text-blue-600">{animalName}</span></p>
+                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Ficha de Hospitalización</h1>
+                        <p className="text-sm text-muted-foreground">Paciente: <span className="font-semibold text-info-strong">{animalName}</span></p>
                     </div>
                     <div className="flex gap-2">
                         <Button
-                            className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60"
+                            
                             onClick={() => setIsDischargeDialogOpen(true)}
                             disabled={isDischarging || isDischarged}
                         >
@@ -362,7 +362,7 @@ export default function HospitalizationChartPage() {
                 </div>
             </div>
 
-            <div className="max-w-screen-xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="mx-auto grid w-full max-w-screen-2xl grid-cols-1 gap-4 p-4 sm:p-6 lg:grid-cols-3">
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
                         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -403,7 +403,7 @@ export default function HospitalizationChartPage() {
                         <div className="p-4 overflow-x-auto">
                             <table className="w-full border-collapse text-sm text-center">
                                 <thead>
-                                    <tr className="bg-gray-100">
+                                    <tr className="bg-muted">
                                         <th className="border p-2 font-semibold text-left">Tratamiento</th>
                                         {timeSlots.map(time => <th key={time} className="border p-2 font-semibold">{time}</th>)}
                                     </tr>
@@ -428,7 +428,7 @@ export default function HospitalizationChartPage() {
                                                         const schedule = entry?.schedule;
 
                                                         if (!schedule) {
-                                                            return <td key={time} className="border p-2 bg-gray-50" />;
+                                                            return <td key={time} className="border p-2 bg-muted" />;
                                                         }
 
                                                         return (
@@ -436,7 +436,7 @@ export default function HospitalizationChartPage() {
                                                                 {schedule.isCompleted ? (
                                                                     <button
                                                                         type="button"
-                                                                        className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600 hover:bg-green-200"
+                                                                        className="flex h-8 w-8 items-center justify-center rounded-full bg-success-soft text-success-strong hover:bg-green-200"
                                                                         title="Ver detalles del tratamiento administrado"
                                                                         onClick={() => setViewTreatmentModal({ open: true, schedule })}
                                                                     >
@@ -446,7 +446,7 @@ export default function HospitalizationChartPage() {
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => setCompleteTreatmentModal({ open: true, schedule })}
-                                                                        className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 text-xs font-bold"
+                                                                        className="flex h-8 w-8 items-center justify-center rounded-full bg-info-soft text-info-strong hover:bg-blue-200 text-xs font-bold"
                                                                         title="Registrar administración"
                                                                     >
                                                                         A
@@ -471,9 +471,9 @@ export default function HospitalizationChartPage() {
                                     <div key={note.id} className="text-sm border-b pb-2">
                                         <div className="flex justify-between items-center mb-1">
                                             <span className="font-semibold">{note.authorFullName}</span>
-                                            <span className="text-xs text-gray-500">{new Date(note.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
+                                            <span className="text-xs text-muted-foreground">{new Date(note.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
-                                        <p className="text-gray-700">{note.note}</p>
+                                        <p className="text-muted-foreground">{note.note}</p>
                                     </div>
                                 ))}
                             </div>
@@ -524,25 +524,25 @@ export default function HospitalizationChartPage() {
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="rounded-lg border p-3 text-center">
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide">Temperatura</p>
-                                        <p className="text-lg font-semibold text-slate-900">
+                                        <p className="text-lg font-semibold text-foreground">
                                             {formatVitalValue(latestVitalSign.temperatureCelsius, "°C")}
                                         </p>
                                     </div>
                                     <div className="rounded-lg border p-3 text-center">
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide">Peso</p>
-                                        <p className="text-lg font-semibold text-slate-900">
+                                        <p className="text-lg font-semibold text-foreground">
                                             {formatVitalValue(latestVitalSign.weightKg, " kg")}
                                         </p>
                                     </div>
                                     <div className="rounded-lg border p-3 text-center">
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide">Frecuencia cardiaca</p>
-                                        <p className="text-lg font-semibold text-slate-900">
+                                        <p className="text-lg font-semibold text-foreground">
                                             {formatVitalValue(latestVitalSign.heartRate, " lpm")}
                                         </p>
                                     </div>
                                     <div className="rounded-lg border p-3 text-center">
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide">Frecuencia respiratoria</p>
-                                        <p className="text-lg font-semibold text-slate-900">
+                                        <p className="text-lg font-semibold text-foreground">
                                             {formatVitalValue(latestVitalSign.respiratoryRate, " rpm")}
                                         </p>
                                     </div>

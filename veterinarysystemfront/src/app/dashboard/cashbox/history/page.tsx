@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { CashSessionHistoryProvider } from "../_hooks/cash-history-context";
 import MainCashHistory from "../_components/main-cash-history";
+import { PageHeader } from "@/components/page/page-header";
 
 export default function CashSessionHistoryPage() {
   const router = useRouter();
@@ -12,24 +13,19 @@ export default function CashSessionHistoryPage() {
   return (
     <CashSessionHistoryProvider>
       <DashboardLayoutSection>
-        <div className="h-full bg-gray-50 p-4 sm:p-6 overflow-auto">
-          <div className="mx-auto flex h-full max-w-8xl flex-col">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">
-                  Historial de Cierres
-                </h1>
-                <p className="mt-1 text-gray-600">
-                  Gestiona y revisa todas las sesiones de caja cerradas.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <Button onClick={() => router.push("/dashboard/cashbox")}>
-                  Volver a Caja
-                </Button>
-              </div>
-            </div>
+        <div className="h-full overflow-y-auto p-4 sm:p-6">
+          <div className="mx-auto flex h-full w-full max-w-screen-2xl flex-col gap-4">
+            <PageHeader
+              title="Historial de Cierres"
+              description="Gestiona y revisa todas las sesiones de caja cerradas."
+              actions={
+                <>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button onClick={() => router.push("/dashboard/cashbox")}>Volver a Caja</Button>
+                  </div>
+                </>
+              }
+            />
 
             <MainCashHistory />
           </div>

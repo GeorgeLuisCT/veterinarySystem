@@ -418,7 +418,7 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                                             size="sm"
                                             onClick={cancelReport}
                                             disabled={currentStatus === SurgicalReportStatus.CANCELLED}
-                                            className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            className="flex items-center gap-1 text-destructive hover:text-destructive hover:bg-red-50"
                                         >
                                             <Ban className="h-4 w-4" />
                                             Cancelar
@@ -439,7 +439,7 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                         <Card>
                             <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Syringe className="h-5 w-5 text-blue-600" aria-hidden="true" />
+                                    <Syringe className="h-5 w-5 text-info-strong" aria-hidden="true" />
                                     <CardTitle>Protocolo anestésico</CardTitle>
                                 </div>
                                 <Button
@@ -488,7 +488,7 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                                                 <section
                                                     key={phase}
                                                     aria-labelledby={`phase-${phase}`}
-                                                    className="rounded-xl border p-3"
+                                                    className="rounded-lg border p-3"
                                                 >
                                                     <h3
                                                         id={`phase-${phase}`}
@@ -503,7 +503,7 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                                                     ) : (
                                                         <ul className="list-disc space-y-1 pl-5">
                                                             {list.map((drug) => (
-                                                                <li key={drug.id} className="text-sm text-slate-700">
+                                                                <li key={drug.id} className="text-sm text-muted-foreground">
                                                                     {lineText(drug)}
                                                                 </li>
                                                             ))}
@@ -520,7 +520,7 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                         <Card>
                             <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Package className="h-5 w-5 text-blue-600" aria-hidden="true" />
+                                    <Package className="h-5 w-5 text-info-strong" aria-hidden="true" />
                                     <CardTitle id="materials-heading">Materiales utilizados</CardTitle>
                                 </div>
                                 <Button
@@ -540,7 +540,7 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                                         Aún no registras materiales utilizados durante el procedimiento.
                                     </p>
                                 ) : (
-                                    <section className="rounded-xl border p-3" aria-labelledby="materials-heading">
+                                    <section className="rounded-lg border p-3" aria-labelledby="materials-heading">
                                         {/* lista sin bullets para usar iconos personalizados */}
                                         <ul role="list" className="space-y-2">
                                             {detail.materialsUsed.map((material) => {
@@ -565,14 +565,14 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                                                             {/* icono sutil según sea de catálogo o no */}
                                                             <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center" aria-hidden="true">
                                                                 {isCatalog ? (
-                                                                    <Package className="h-4 w-4 text-emerald-600" />
+                                                                    <Package className="h-4 w-4 text-success-strong" />
                                                                 ) : (
-                                                                    <FileQuestion className="h-4 w-4 text-slate-500" />
+                                                                    <FileQuestion className="h-4 w-4 text-muted-foreground" />
                                                                 )}
                                                             </span>
 
                                                             <div className="min-w-0">
-                                                                <span className="font-medium text-slate-700">{line}</span>
+                                                                <span className="font-medium text-muted-foreground">{line}</span>
                                                                 {material.productName && material.unregisteredProductName && (
                                                                     <span className="ml-2 text-xs text-">
                                                                         (alias: {material.unregisteredProductName})
@@ -593,7 +593,7 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                         <Card>
                             <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Stethoscope className="h-5 w-5 text-blue-600" aria-hidden="true" />
+                                    <Stethoscope className="h-5 w-5 text-info-strong" aria-hidden="true" />
                                     <CardTitle id="postop-heading">Indicaciones post operatorias</CardTitle>
                                 </div>
                                 <Button
@@ -613,7 +613,7 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                                         Todavía no hay indicaciones registradas para el post operatorio.
                                     </p>
                                 ) : (
-                                    <section className="rounded-xl border p-3" aria-labelledby="postop-heading">
+                                    <section className="rounded-lg border p-3" aria-labelledby="postop-heading">
                                         <ul role="list" className="space-y-2">
                                             {detail.postOperativeIndications.map((indication) => {
                                                 const isMed = Boolean(indication.productName);
@@ -651,15 +651,15 @@ const SurgicalReportForm = forwardRef<SurgicalReportFormHandle, Props>(
                                                             {/* Ícono sutil según tipo */}
                                                             <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center" aria-hidden="true">
                                                                 {isMed ? (
-                                                                    <Pill className="h-4 w-4 text-emerald-600" />
+                                                                    <Pill className="h-4 w-4 text-success-strong" />
                                                                 ) : (
-                                                                    <ClipboardList className="h-4 w-4 text-slate-500" />
+                                                                    <ClipboardList className="h-4 w-4 text-muted-foreground" />
                                                                 )}
                                                             </span>
 
                                                             {/* Contenido */}
                                                             <div className="min-w-0">
-                                                                <p className="font-medium text-slate-700">{mainLine}</p>
+                                                                <p className="font-medium text-muted-foreground">{mainLine}</p>
 
                                                                 {/* Si es medicación y hay además una instrucción/nota, muéstrala debajo */}
                                                                 {isMed && indication.nonDrugInstruction && (

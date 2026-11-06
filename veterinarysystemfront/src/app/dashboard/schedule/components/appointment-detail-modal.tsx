@@ -52,7 +52,7 @@ const typeSections: Record<
   CLINIC: {
     title: "Detalle clínico",
     icon: Stethoscope,
-    accent: "bg-emerald-100 text-emerald-700",
+    accent: "bg-success-soft text-success-strong",
     fields: [
       {
         label: "Servicio",
@@ -101,7 +101,7 @@ const typeSections: Record<
   SURGERY: {
     title: "Detalle quirúrgico",
     icon: Syringe,
-    accent: "bg-indigo-100 text-indigo-700",
+    accent: "bg-info-soft text-info-strong",
     fields: [
       {
         label: "Servicio final",
@@ -338,7 +338,7 @@ export function AppointmentDetailModal({ open, appointmentId, onClose }: Appoint
     const branchName = appointment.branch?.name ?? "Sin sucursal asignada";
 
     return (
-      <InfoSection title="Programación" icon={CalendarDays} iconClassName="bg-sky-100 text-sky-700">
+      <InfoSection title="Programación" icon={CalendarDays} iconClassName="bg-info-soft text-info-strong">
         <InfoRow
           label="Sucursal"
           icon={MapPin}
@@ -361,7 +361,7 @@ export function AppointmentDetailModal({ open, appointmentId, onClose }: Appoint
   };
 
   const renderAssignedInfo = (appointment: AppointmentDetailResponse) => (
-    <InfoSection title="Asignación" icon={PawPrint} iconClassName="bg-rose-100 text-rose-700">
+    <InfoSection title="Asignación" icon={PawPrint} iconClassName="bg-danger-soft text-danger-strong">
       <InfoRow label="Paciente" icon={PawPrint}>
         {appointment.animalName}
       </InfoRow>
@@ -392,12 +392,12 @@ export function AppointmentDetailModal({ open, appointmentId, onClose }: Appoint
     const label = AppointmentStatusLabels[status] ?? status;
     const variantClass =
       status === AppointmentStatus.SCHEDULED
-        ? "bg-blue-100 text-blue-800"
+        ? "bg-info-soft text-info-strong"
         : status === AppointmentStatus.CONFIRMED
-          ? "bg-emerald-100 text-emerald-800"
+          ? "bg-success-soft text-success-strong"
           : status === AppointmentStatus.CANCELED
-            ? "bg-red-100 text-red-800"
-            : "bg-slate-100 text-slate-800";
+            ? "bg-danger-soft text-danger-strong"
+            : "bg-muted text-foreground";
 
     return <Badge className={variantClass}>{label}</Badge>;
   };
@@ -439,7 +439,7 @@ export function AppointmentDetailModal({ open, appointmentId, onClose }: Appoint
               {renderTypeSection(detail)}
 
               <section
-                className="rounded-2xl border border-border bg-card/50 p-4"
+                className="rounded-lg border border-border bg-card/50 p-4"
                 aria-labelledby={attentionHeadingId}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 pb-3">
@@ -490,7 +490,7 @@ export function AppointmentDetailModal({ open, appointmentId, onClose }: Appoint
                   <Form {...attentionForm}>
                     <form
                       onSubmit={handleCreateAttention}
-                      className="mt-4 space-y-4 rounded-xl border border-dashed border-border bg-muted/30 p-4"
+                      className="mt-4 space-y-4 rounded-lg border border-dashed border-border bg-muted/30 p-4"
                     >
                       <FormField
                         control={attentionForm.control}
@@ -521,7 +521,7 @@ export function AppointmentDetailModal({ open, appointmentId, onClose }: Appoint
                         control={attentionForm.control}
                         name="emergency"
                         render={({ field }) => (
-                          <FormItem className="flex items-center justify-between rounded-xl border border-border bg-background px-3 py-2">
+                          <FormItem className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2">
                             <div className="space-y-0.5">
                               <span className="text-sm font-medium text-foreground">Emergencia</span>
                               <p className="text-xs text-muted-foreground">
@@ -581,11 +581,11 @@ function InfoSection({ title, description, icon: Icon, iconClassName, children }
   return (
     <section
       aria-labelledby={sectionId}
-      className="rounded-2xl border border-border bg-card/50 p-4 shadow-sm"
+      className="rounded-lg border border-border bg-card/50 p-4 shadow-sm"
     >
       <div className="flex items-center gap-3">
         {Icon && (
-          <span className={`rounded-2xl p-2 ${iconClassName ?? "bg-muted text-foreground"}`}>
+          <span className={`rounded-lg p-2 ${iconClassName ?? "bg-muted text-foreground"}`}>
             <Icon className="h-4 w-4" />
           </span>
         )}
@@ -616,10 +616,10 @@ interface InfoRowProps {
 
 function InfoRow({ label, children, description, icon: Icon }: InfoRowProps) {
   return (
-    <div className="rounded-xl border border-border/60 bg-background/80 p-3">
+    <div className="rounded-lg border border-border/60 bg-background/80 p-3">
       <div className="flex items-center gap-2">
         {Icon && (
-          <span className="rounded-xl bg-muted p-1.5 text-muted-foreground">
+          <span className="rounded-lg bg-muted p-1.5 text-muted-foreground">
             <Icon className="h-4 w-4" />
           </span>
         )}

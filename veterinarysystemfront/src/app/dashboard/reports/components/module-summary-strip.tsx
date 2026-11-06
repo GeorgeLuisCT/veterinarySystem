@@ -35,7 +35,7 @@ export function ModuleSummaryStrip({ collections, selectedModule, onSelect }: Mo
             onClick={() => onSelect(collection.module)}
             className={cn(
               "cursor-pointer border border-border/60 transition hover:border-primary/60",
-              selectedModule === collection.module && "border-primary shadow-md",
+              selectedModule === collection.module && "border-primary shadow-sm",
             )}
           >
             <div className="p-4 space-y-2">
@@ -45,7 +45,7 @@ export function ModuleSummaryStrip({ collections, selectedModule, onSelect }: Mo
                   <span
                     className={cn(
                       "flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                      trend > 0 ? "bg-emerald-50 text-emerald-700" : trend < 0 ? "bg-red-50 text-red-600" : "bg-muted text-muted-foreground",
+                      trend > 0 ? "bg-success-soft text-success-strong" : trend < 0 ? "bg-danger-soft text-danger-strong" : "bg-muted text-muted-foreground",
                     )}
                   >
                     <TrendIcon className="h-3 w-3" />

@@ -35,13 +35,13 @@ export function ReportInsightsCard({ collection }: ReportInsightsCardProps) {
       icon: ArrowUpRight,
       title: improvingMetric.label,
       description: `${(improvingMetric.trend! * 100).toFixed(1)}% por encima del periodo comparable.`,
-      accent: "text-emerald-600",
+      accent: "text-success-strong",
     },
     slippingMetric && {
       icon: ArrowDownRight,
       title: slippingMetric.label,
       description: `${Math.abs(slippingMetric.trend! * 100).toFixed(1)}% por debajo del periodo anterior.`,
-      accent: "text-red-600",
+      accent: "text-destructive",
     },
     topPerformer && {
       icon: Award,

@@ -39,10 +39,10 @@ export function AnalyticsModal({ isOpen, onClose }: AnalyticsModalProps) {
   const [activeTab, setActiveTab] = useState("overview")
 
   const getProductivityLevel = (score: number) => {
-    if (score >= 80) return { level: "Excellent", color: "text-green-600", bgColor: "bg-green-100" }
-    if (score >= 60) return { level: "Good", color: "text-blue-600", bgColor: "bg-blue-100" }
-    if (score >= 40) return { level: "Fair", color: "text-yellow-600", bgColor: "bg-yellow-100" }
-    return { level: "Needs Improvement", color: "text-red-600", bgColor: "bg-red-100" }
+    if (score >= 80) return { level: "Excellent", color: "text-success-strong", bgColor: "bg-green-100" }
+    if (score >= 60) return { level: "Good", color: "text-info-strong", bgColor: "bg-blue-100" }
+    if (score >= 40) return { level: "Fair", color: "text-warning-strong", bgColor: "bg-yellow-100" }
+    return { level: "Needs Improvement", color: "text-destructive", bgColor: "bg-red-100" }
   }
 
   const productivity = getProductivityLevel(analyticsData.productivityScore)
@@ -70,7 +70,7 @@ export function AnalyticsModal({ isOpen, onClose }: AnalyticsModalProps) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card className="p-4">
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-blue-600" />
+                  <Calendar className="h-4 w-4 text-info-strong" />
                   <span className="text-sm text-muted-foreground">Total Events</span>
                 </div>
                 <div className="text-2xl font-bold mt-1">{analyticsData.totalEvents}</div>
@@ -79,7 +79,7 @@ export function AnalyticsModal({ isOpen, onClose }: AnalyticsModalProps) {
 
               <Card className="p-4">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-green-600" />
+                  <Clock className="h-4 w-4 text-success-strong" />
                   <span className="text-sm text-muted-foreground">Total Hours</span>
                 </div>
                 <div className="text-2xl font-bold mt-1">{analyticsData.totalHours}h</div>
@@ -97,7 +97,7 @@ export function AnalyticsModal({ isOpen, onClose }: AnalyticsModalProps) {
 
               <Card className="p-4">
                 <div className="flex items-center gap-2">
-                  <Award className="h-4 w-4 text-orange-600" />
+                  <Award className="h-4 w-4 text-warning-strong" />
                   <span className="text-sm text-muted-foreground">Productivity</span>
                 </div>
                 <div className="text-2xl font-bold mt-1">{analyticsData.productivityScore}%</div>
@@ -125,13 +125,13 @@ export function AnalyticsModal({ isOpen, onClose }: AnalyticsModalProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="p-4">
                 <h4 className="font-medium mb-2">Busiest Day</h4>
-                <div className="text-xl font-semibold text-blue-600">{analyticsData.busiestDay}</div>
+                <div className="text-xl font-semibold text-info-strong">{analyticsData.busiestDay}</div>
                 <p className="text-sm text-muted-foreground">Most events scheduled</p>
               </Card>
 
               <Card className="p-4">
                 <h4 className="font-medium mb-2">Peak Hour</h4>
-                <div className="text-xl font-semibold text-green-600">
+                <div className="text-xl font-semibold text-success-strong">
                   {format(new Date().setHours(analyticsData.busiestHour), "h:mm a")}
                 </div>
                 <p className="text-sm text-muted-foreground">Most active time</p>
@@ -237,7 +237,7 @@ export function AnalyticsModal({ isOpen, onClose }: AnalyticsModalProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  <TrendingUp className="h-4 w-4 text-success-strong" />
                   <h4 className="font-medium">Schedule Optimization</h4>
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -249,7 +249,7 @@ export function AnalyticsModal({ isOpen, onClose }: AnalyticsModalProps) {
 
               <Card className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Zap className="h-4 w-4 text-yellow-600" />
+                  <Zap className="h-4 w-4 text-warning-strong" />
                   <h4 className="font-medium">Peak Performance</h4>
                 </div>
                 <p className="text-sm text-muted-foreground">

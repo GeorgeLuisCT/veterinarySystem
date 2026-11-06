@@ -5,7 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
-import TreasuryAccountService, { ManualMovementPayload, TreasuryAccountPayload } from "../../_services/treasury-account-service";
+import TreasuryAccountService, {
+  ManualMovementPayload,
+  TreasuryAccountPayload,
+} from "../../_services/treasury-account-service";
 import { TreasuryAccountResponse } from "../../_types/treasury-account";
 import { accountBadges } from "../../_lib/formatters";
 import { AccountsList } from "../../_components/accounts-list";
@@ -19,6 +22,8 @@ import ExpenseDialog from "../../_components/expense-dialog";
 import type { TransferFormValues } from "../../_schemas/transfer-schema";
 import type { ExpenseFormValues } from "../../_schemas/expense-schema";
 import FinanceActionService from "../../_services/finance-action-service";
+import { PageContainer } from "@/components/page/page-container";
+import { PageHeader } from "@/components/page/page-header";
 
 export default function TreasuryAccountsPage() {
   const { toast } = useToast();
@@ -29,7 +34,11 @@ export default function TreasuryAccountsPage() {
 
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
-  const [formDefaults, setFormDefaults] = useState<{ name: string; type: TreasuryAccountType; description?: string } | null>(null);
+  const [formDefaults, setFormDefaults] = useState<{
+    name: string;
+    type: TreasuryAccountType;
+    description?: string;
+  } | null>(null);
 
   const [confirmDelete, setConfirmDelete] = useState<TreasuryAccountResponse | null>(null);
 
@@ -76,12 +85,20 @@ export default function TreasuryAccountsPage() {
 
   const handleOpenEdit = (account: TreasuryAccountResponse) => {
     setFormMode("edit");
-    setFormDefaults({ name: account.name, type: account.type, description: account.description ?? "" });
+    setFormDefaults({
+      name: account.name,
+      type: account.type,
+      description: account.description ?? "",
+    });
     setSelectedAccount(account);
     setFormOpen(true);
   };
 
-  const handleSubmitAccount = async (values: { name: string; type: TreasuryAccountType; description?: string }) => {
+  const handleSubmitAccount = async (values: {
+    name: string;
+    type: TreasuryAccountType;
+    description?: string;
+  }) => {
     const payload: TreasuryAccountPayload = {
       name: values.name.trim(),
       type: values.type,
@@ -185,86 +202,83 @@ export default function TreasuryAccountsPage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="h-full bg-gray-50 p-4 sm:p-6">
-        <div className="mx-auto flex h-full max-w-8xl flex-col overflow-auto">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Tesorería</h1>
-              <p className="mt-1 text-gray-600">
-                Administra las cuentas bancarias, cajas y billeteras digitales. Registra movimientos manuales y consulta el historial.
-              </p>
-            </div>
+      <PageContainer>
+        <PageHeader
+          title="Tesorería"
+          description="Administra las cuentas bancarias, cajas y billeteras digitales. Registra movimientos manuales y consulta el historial."
+          actions={
+            <>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="outline" onClick={() => setExpenseOpen(true)}>
+                  <ReceiptText className="mr-2 h-4 w-4" />
+                  Registrar gasto
+                </Button>
+                <Button variant="outline" onClick={() => setTransferOpen(true)}>
+                  <ArrowLeftRight className="mr-2 h-4 w-4" />
+                  Transferencia
+                </Button>
+                <Button onClick={handleOpenCreate}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Nueva Cuenta
+                </Button>
+              </div>
+            </>
+          }
+        />
 
-            <div className="flex flex-wrap items-center gap-2">
-              <Button variant="outline" onClick={() => setExpenseOpen(true)}>
-                <ReceiptText className="mr-2 h-4 w-4" />
-                Registrar gasto
-              </Button>
-              <Button variant="outline" onClick={() => setTransferOpen(true)}>
-                <ArrowLeftRight className="mr-2 h-4 w-4" />
-                Transferencia
-              </Button>
-              <Button onClick={handleOpenCreate}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Nueva Cuenta
-              </Button>
-            </div>
-          </div>
-
-          <div className="w-full flex flex-col gap-4">
-            <AccountsList
-              accounts={accounts}
-              loading={loadingAccounts}
-              selectedId={selectedAccount?.id ?? null}
-              onSelect={setSelectedAccount}
-              onEdit={handleOpenEdit}
-              onDelete={setConfirmDelete}
-              badges={badges}
-            />
-
-            <Card>
-              <CardContent className="pb-8">
-                {selectedAccount ? (
-                  <AccountDetail
-                    account={selectedAccount}
-                    onRegisterMovement={handleRegisterMovement}
-                    refreshSignal={detailRefresh}
-                  />
-                ) : (
-                  <div className="rounded-lg border bg-muted/30 p-6 text-center text-muted-foreground">
-                    Selecciona una cuenta para ver el detalle.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <AccountFormDialog
-            open={formOpen}
-            mode={formMode}
-            defaults={formDefaults ?? { name: "", type: TreasuryAccountType.CASH, description: "" }}
-            onOpenChange={setFormOpen}
-            onSubmit={handleSubmitAccount}
+        <div className="w-full flex flex-col gap-4">
+          <AccountsList
+            accounts={accounts}
+            loading={loadingAccounts}
+            selectedId={selectedAccount?.id ?? null}
+            onSelect={setSelectedAccount}
+            onEdit={handleOpenEdit}
+            onDelete={setConfirmDelete}
+            badges={badges}
           />
 
-          <ConfirmDeleteDialog
-            open={Boolean(confirmDelete)}
-            onOpenChange={() => setConfirmDelete(null)}
-            onConfirm={handleDeleteAccount}
-          />
-
-          <TransferDialog
-            open={transferOpen}
-            onOpenChange={setTransferOpen}
-            onSubmit={handleSubmitTransfer}
-          />
-          <ExpenseDialog
-            open={expenseOpen}
-            onOpenChange={setExpenseOpen}
-            onSubmit={handleSubmitExpense}
-          />
+          <Card>
+            <CardContent className="pb-8">
+              {selectedAccount ? (
+                <AccountDetail
+                  account={selectedAccount}
+                  onRegisterMovement={handleRegisterMovement}
+                  refreshSignal={detailRefresh}
+                />
+              ) : (
+                <div className="rounded-lg border bg-muted/30 p-6 text-center text-muted-foreground">
+                  Selecciona una cuenta para ver el detalle.
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
-      </div>
+
+        <AccountFormDialog
+          open={formOpen}
+          mode={formMode}
+          defaults={formDefaults ?? { name: "", type: TreasuryAccountType.CASH, description: "" }}
+          onOpenChange={setFormOpen}
+          onSubmit={handleSubmitAccount}
+        />
+
+        <ConfirmDeleteDialog
+          open={Boolean(confirmDelete)}
+          onOpenChange={() => setConfirmDelete(null)}
+          onConfirm={handleDeleteAccount}
+        />
+
+        <TransferDialog
+          open={transferOpen}
+          onOpenChange={setTransferOpen}
+          onSubmit={handleSubmitTransfer}
+        />
+        <ExpenseDialog
+          open={expenseOpen}
+          onOpenChange={setExpenseOpen}
+          onSubmit={handleSubmitExpense}
+        />
+      </PageContainer>
     </DashboardLayoutSection>
   );
 }

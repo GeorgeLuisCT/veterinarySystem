@@ -65,7 +65,7 @@ export default function OrderSummarySection({
           <div className="flex items-center gap-2">
             <span
               aria-hidden
-              className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary"
             >
               <ReceiptText className="h-4 w-4" />
             </span>
@@ -101,7 +101,7 @@ export default function OrderSummarySection({
         />
 
         {/* Estado de pagos */}
-        <div className="space-y-3 rounded-xl border p-3 bg-background/50">
+        <div className="space-y-3 rounded-lg border p-3 bg-background/50">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="gap-1">

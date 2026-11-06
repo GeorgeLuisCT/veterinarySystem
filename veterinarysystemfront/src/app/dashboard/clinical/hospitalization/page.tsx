@@ -100,13 +100,13 @@ export default function HospitalizationBoardPage() {
   const CageActions = ({ cage, isHeaderDark }: { cage: CageResponse; isHeaderDark: boolean }) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className={`h-8 w-8 p-0 absolute top-2 right-2 focus-visible:ring-offset-0 focus-visible:ring-2 focus-visible:ring-white/70 ${isHeaderDark ? 'text-white hover:bg-white/20' : 'text-gray-500 hover:bg-gray-200'}`}>
+        <Button variant="ghost" className={`h-8 w-8 p-0 absolute top-2 right-2 focus-visible:ring-offset-0 focus-visible:ring-2 focus-visible:ring-white/70 ${isHeaderDark ? 'text-white hover:bg-white/20' : 'text-muted-foreground hover:bg-gray-200'}`}>
           <MoreHorizontal className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => handleOpenEditModal(cage)}><Edit className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleOpenDeleteModal(cage)} disabled={cage.occupied} className="text-red-600 focus:text-red-600 focus:bg-red-50"><Trash2 className="mr-2 h-4 w-4" />Eliminar</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleOpenDeleteModal(cage)} disabled={cage.occupied} className="text-destructive focus:text-destructive focus:bg-red-50"><Trash2 className="mr-2 h-4 w-4" />Eliminar</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -121,8 +121,8 @@ export default function HospitalizationBoardPage() {
     const SpeciesIcon = speciesDetails?.icon;
 
     const speciesColor = speciesDetails?.colorClass;
-    const borderClass = speciesColor ? speciesColor.replace("bg-", "border-") : "border-gray-200";
-    const iconClass = speciesColor ? speciesColor.replace("bg-", "text-") : "text-gray-400";
+    const borderClass = speciesColor ? speciesColor.replace("bg-", "border-") : "border-border";
+    const iconClass = speciesColor ? speciesColor.replace("bg-", "text-") : "text-muted-foreground";
 
     const latestVitalSign = hosp.latestVitalSign;
     const nextTreatment = hosp.nextTreatmentSchedule;
@@ -190,11 +190,11 @@ export default function HospitalizationBoardPage() {
             variant="outline"
             size="sm"
             type="button"
-            className="flex h-auto flex-col items-center gap-1 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+            className="flex h-auto flex-col items-center gap-1 py-2 text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             {params.icon}
             <p className="text-xs font-semibold">{params.title}</p>
-            <span className="text-[11px] leading-tight text-gray-500 text-center">{params.summary}</span>
+            <span className="text-[11px] leading-tight text-muted-foreground text-center">{params.summary}</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent className="max-w-xs whitespace-pre-wrap text-sm">
@@ -204,7 +204,7 @@ export default function HospitalizationBoardPage() {
     );
 
     return (
-      <Card className="flex flex-col overflow-hidden shadow-md bg-white rounded-lg pt-0 border-2">
+      <Card className="flex flex-col overflow-hidden shadow-sm bg-card rounded-lg pt-0 border-2">
         <div className={`relative flex items-center justify-between p-3 text-white ${causeDetails.colorClass}`}>
           <h3 className="font-bold text-lg">{cage.name}</h3>
           <CageActions cage={cage} isHeaderDark={true} />
@@ -216,12 +216,12 @@ export default function HospitalizationBoardPage() {
               <img
                 src={hosp.animalBasicResponse.animalPhotoUrl}
                 alt={hosp.animalBasicResponse.animalName}
-                className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                className="w-16 h-16 rounded-full object-cover border-2 border-border"
                 loading="lazy"
               />
             ) : (
               <div
-                className={`w-16 h-16 rounded-full border-2 bg-white flex items-center justify-center ${borderClass}`}
+                className={`w-16 h-16 rounded-full border-2 bg-card flex items-center justify-center ${borderClass}`}
               >
                 {SpeciesIcon ? (
                   <SpeciesIcon className={`h-8 w-8 ${iconClass}`} />
@@ -232,18 +232,18 @@ export default function HospitalizationBoardPage() {
             )}
 
             <div className="flex-grow">
-              <h4 className="text-xl font-bold text-gray-800">{hosp.animalBasicResponse.animalName}</h4>
+              <h4 className="text-xl font-bold text-foreground">{hosp.animalBasicResponse.animalName}</h4>
 
-              <div className="flex items-center gap-2 text-gray-600 mt-1 text-sm">
-                {SpeciesIcon && <SpeciesIcon className="h-5 w-5 text-gray-500" />}
+              <div className="flex items-center gap-2 text-muted-foreground mt-1 text-sm">
+                {SpeciesIcon && <SpeciesIcon className="h-5 w-5 text-muted-foreground" />}
                 <span>
                   {speciesDetails ? speciesDetails.label : hosp.animalBasicResponse.animalSpecies} - {hosp.animalBasicResponse.animalBreed || "Mestizo"}
                 </span>
               </div>
 
               {hosp.clinicalServiceName ? (
-                <div className="flex items-center gap-2 text-gray-600 mt-1 text-sm h-5">
-                  <BriefcaseMedical className="h-5 w-5 text-gray-500" />
+                <div className="flex items-center gap-2 text-muted-foreground mt-1 text-sm h-5">
+                  <BriefcaseMedical className="h-5 w-5 text-muted-foreground" />
                   <span className="truncate">{hosp.clinicalServiceName}</span>
                 </div>
               ) : (
@@ -258,7 +258,7 @@ export default function HospitalizationBoardPage() {
               <CauseIcon className="mr-2" />
               {causeDetails.label}
             </div>
-            <p className="text-sm text-gray-500">{formatAdmissionTime(hosp.admissionDate)}</p>
+            <p className="text-sm text-muted-foreground">{formatAdmissionTime(hosp.admissionDate)}</p>
           </div>
 
           <TooltipProvider delayDuration={150}>
@@ -284,9 +284,9 @@ export default function HospitalizationBoardPage() {
             </div>
           </TooltipProvider>
 
-          <div className="mt-auto pt-4 border-t border-gray-100">
+          <div className="mt-auto pt-4 border-t border-border">
             <Link href={`/dashboard/clinical/hospitalization/${hosp.id}`} className="w-full">
-              <Button variant="outline" className="w-full text-gray-700 font-semibold">
+              <Button variant="outline" className="w-full text-muted-foreground font-semibold">
                 <FileText className="mr-2 h-4 w-4" /> Ver Ficha Completa
               </Button>
             </Link>
@@ -299,7 +299,7 @@ export default function HospitalizationBoardPage() {
 
   const EmptyCageCard = ({ cage }: { cage: CageResponse }) => (
     <Card
-      className="group flex cursor-pointer flex-col overflow-hidden rounded-lg border-2 border-dashed border-slate-300 bg-white transition-colors duration-300 hover:border-emerald-400 pt-0"
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-lg border-2 border-dashed border-border bg-card transition-colors duration-300 hover:border-emerald-400 pt-0"
       onClick={() => handleOpenAdmitModal(cage)}
     >
       <div className={`relative flex items-center justify-between p-3 text-white`}>
@@ -308,14 +308,14 @@ export default function HospitalizationBoardPage() {
       </div>
 
       <CardContent className="flex flex-grow flex-col items-center justify-center p-6 text-center">
-        <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full border-2 border-dashed border-slate-300 transition-colors duration-300 group-hover:border-emerald-400">
-          <DoorOpen className="h-12 w-12 text-slate-400 transition-colors duration-300 group-hover:text-emerald-500" />
+        <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full border-2 border-dashed border-border transition-colors duration-300 group-hover:border-emerald-400">
+          <DoorOpen className="h-12 w-12 text-muted-foreground transition-colors duration-300 group-hover:text-emerald-500" />
         </div>
 
-        <p className="text-xl font-medium text-slate-600">
+        <p className="text-xl font-medium text-muted-foreground">
           Disponible
         </p>
-        <p className="text-sm text-slate-500">{CageSizeLabels[cage.size]}</p>
+        <p className="text-sm text-muted-foreground">{CageSizeLabels[cage.size]}</p>
       </CardContent>
     </Card>
   );
@@ -324,18 +324,18 @@ export default function HospitalizationBoardPage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="h-full bg-gray-50 p-4 sm:p-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="h-full overflow-y-auto p-4 sm:p-6">
+        <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-4">
           <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Tablero de Hospitalización</h1>
-              <p className="text-gray-600 mt-1">Estado en tiempo real de las jaulas y pacientes internados.</p>
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">Tablero de Hospitalización</h1>
+              <p className="text-sm text-muted-foreground">Estado en tiempo real de las jaulas y pacientes internados.</p>
             </div>
             <Button onClick={() => setAddCageModalOpen(true)} >
               <PlusCircle className="mr-2 h-4 w-4" /> Agregar Jaula
             </Button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
             {cages.map((cage) => (cage.occupied ? <OccupiedCageCard key={cage.id} cage={cage} /> : <EmptyCageCard key={cage.id} cage={cage} />))}
           </div>
         </div>

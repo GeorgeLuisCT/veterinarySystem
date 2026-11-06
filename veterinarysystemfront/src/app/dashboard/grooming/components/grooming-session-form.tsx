@@ -339,7 +339,7 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
           <Card>
             <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-2">
-                <Package className="h-5 w-5 text-blue-600" />
+                <Package className="h-5 w-5 text-info-strong" />
                 <CardTitle>Materiales utilizados</CardTitle>
               </div>
               <Button type="button" variant="outline" onClick={() => setOpenMaterial(true)}>
@@ -351,9 +351,9 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
                 <p className="text-sm text-muted-foreground">No se registraron materiales.</p>
               ) : (
                 detail.materialsUsed.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between rounded-lg border bg-white p-3 shadow-sm">
+                  <div key={m.id} className="flex items-center justify-between rounded-lg border bg-card p-3 shadow-sm">
                     <div>
-                      <p className="font-semibold text-slate-900">{m.productName ?? m.unregisteredProductName ?? "Material"}</p>
+                      <p className="font-semibold text-foreground">{m.productName ?? m.unregisteredProductName ?? "Material"}</p>
                       <p className="text-xs text-muted-foreground">
                         {m.quantity} {ProductUnitTypeLabels[m.unitType]}
                         {m.unitPrice !== null ? ` • PU ${m.unitPrice}` : ""} {m.subtotal !== null ? ` • Subtotal ${m.subtotal}` : ""}

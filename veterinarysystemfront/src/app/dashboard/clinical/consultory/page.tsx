@@ -12,11 +12,14 @@ import { ClinicalAttentionStatus } from "../enums/clinical-attention-status";
 import type { AttentionResponse } from "@/app/dashboard/schedule/types/attention-response";
 import type { ClinicalAttentionSummaryResponse } from "../types/clinical-attention-response";
 import ConsultationCard from "../components/consultory/consultation-card";
-import ConsultoryFilters, { type ConsultoryFilters as Filters } from "../components/consultory/consultation-filters";
+import ConsultoryFilters, {
+  type ConsultoryFilters as Filters,
+} from "../components/consultory/consultation-filters";
 import NewAttentionModal from "@/app/dashboard/schedule/components/new-attention-modal";
 import { AnimalBasicResponse } from "../../crm/patients/types/animal-basic-response";
 import { useUser } from "@/context/user-context";
 import DashboardLayoutSection from "../../dashboard-layout-section";
+import { PageHeader } from "@/components/page/page-header";
 
 function formatLocalDate(d: Date): string {
   const y = d.getFullYear();
@@ -58,16 +61,17 @@ export default function ConsultoryPage() {
   });
 
   const [waitingRoom, setWaitingRoom] = useState<AttentionResponse[]>([]);
-  const [clinicalAttentions, setClinicalAttentions] = useState<ClinicalAttentionSummaryResponse[]>([]);
+  const [clinicalAttentions, setClinicalAttentions] = useState<ClinicalAttentionSummaryResponse[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const { userInfo } = useUser();
-  const selectedBranchId = userInfo?.selectedBranch?.id || undefined
+  const selectedBranchId = userInfo?.selectedBranch?.id || undefined;
 
   const fetchData = useCallback(async () => {
-
     console.log(userInfo?.selectedBranch?.id);
     setLoading(true);
     setError(null);
@@ -82,7 +86,7 @@ export default function ConsultoryPage() {
           startDate: startDateParam,
           endDate: endDateParam,
           size: 200,
-          branchId: selectedBranchId
+          branchId: selectedBranchId,
         }),
         ClinicalAttentionService.list({
           statuses: [
@@ -94,7 +98,7 @@ export default function ConsultoryPage() {
           startDate: startDateParam,
           endDate: endDateParam,
           size: 200,
-          branchId: selectedBranchId
+          branchId: selectedBranchId,
         }),
       ]);
       setWaitingRoom(waitingRoomResponse.content);
@@ -152,32 +156,30 @@ export default function ConsultoryPage() {
       const tA = new Date(a.startTime).getTime();
       const tB = new Date(b.startTime).getTime();
       if (tA !== tB) return tB - tA;
-      return (b.attentionId - a.attentionId) || (b.id - a.id);
+      return b.attentionId - a.attentionId || b.id - a.id;
     });
-
   }, [waitingRoom, clinicalAttentions]);
 
   const filteredItems = useMemo(() => {
     if (filters.status === "ALL") return allItems;
     if (filters.status === "WAITING") return allItems.filter((i) => i.source === "RECEPCION");
-    return allItems.filter((i) =>
-      i.source === "CLINICA" &&
-      (
-        (filters.status === ClinicalAttentionStatus.OPEN && i.statusLabel.includes("Abierta")) ||
-        (filters.status === ClinicalAttentionStatus.IN_PROGRESS && i.statusLabel.includes("En progreso")) ||
-        (filters.status === ClinicalAttentionStatus.WAITING_LAB && i.statusLabel.includes("Esperando")) ||
-        (filters.status === ClinicalAttentionStatus.READY_TO_BILL && i.statusLabel.includes("Facturar"))
-      )
+    return allItems.filter(
+      (i) =>
+        i.source === "CLINICA" &&
+        ((filters.status === ClinicalAttentionStatus.OPEN && i.statusLabel.includes("Abierta")) ||
+          (filters.status === ClinicalAttentionStatus.IN_PROGRESS &&
+            i.statusLabel.includes("En progreso")) ||
+          (filters.status === ClinicalAttentionStatus.WAITING_LAB &&
+            i.statusLabel.includes("Esperando")) ||
+          (filters.status === ClinicalAttentionStatus.READY_TO_BILL &&
+            i.statusLabel.includes("Facturar")))
     );
   }, [allItems, filters.status]);
 
-  const handleCreated = useCallback(
-    () => {
-      setIsCreateModalOpen(false);
-      fetchData();
-    },
-    [fetchData]
-  );
+  const handleCreated = useCallback(() => {
+    setIsCreateModalOpen(false);
+    fetchData();
+  }, [fetchData]);
 
   if (loading) {
     return <div className="flex justify-center items-center h-[60vh]">Cargando consultas...</div>;
@@ -189,23 +191,25 @@ export default function ConsultoryPage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="h-screen bg-background flex flex-col overflow-hidden">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Consultas del Día</h1>
-            <p className="text-gray-600 mt-1">Todas las atenciones clínicas en una sola vista.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={fetchData} className="gap-2">
-              <RefreshCcw className="h-4 w-4" />
-              Actualizar
-            </Button>
-            <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
-              <PlusCircle className="h-4 w-4" />
-              Nueva Recepción
-            </Button>
-          </div>
-        </div>
+      <div className="flex h-full flex-col gap-4 overflow-y-auto p-4 sm:p-6">
+        <PageHeader
+          title="Consultas del Día"
+          description="Todas las atenciones clínicas en una sola vista."
+          actions={
+            <>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={fetchData} className="gap-2">
+                  <RefreshCcw className="h-4 w-4" />
+                  Actualizar
+                </Button>
+                <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+                  <PlusCircle className="h-4 w-4" />
+                  Nueva Recepción
+                </Button>
+              </div>
+            </>
+          }
+        />
 
         <div className="mb-4">
           <ConsultoryFilters value={filters} onChange={setFilters} />
@@ -218,10 +222,16 @@ export default function ConsultoryPage() {
         </div>
 
         {filteredItems.length === 0 && (
-          <div className="text-center text-gray-500 mt-10">No hay registros para los filtros seleccionados.</div>
+          <div className="text-center text-muted-foreground mt-10">
+            No hay registros para los filtros seleccionados.
+          </div>
         )}
 
-        <NewAttentionModal open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} onCreated={handleCreated} />
+        <NewAttentionModal
+          open={isCreateModalOpen}
+          onOpenChange={setIsCreateModalOpen}
+          onCreated={handleCreated}
+        />
       </div>
     </DashboardLayoutSection>
   );

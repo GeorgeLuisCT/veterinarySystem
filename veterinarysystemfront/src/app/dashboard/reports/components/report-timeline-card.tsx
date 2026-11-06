@@ -35,7 +35,7 @@ export function ReportTimelineCard({ title, series, className }: ReportTimelineC
             <span
               className={cn(
                 "text-xs font-semibold",
-                percentChange > 0 ? "text-emerald-600" : percentChange < 0 ? "text-red-600" : "text-muted-foreground",
+                percentChange > 0 ? "text-success-strong" : percentChange < 0 ? "text-destructive" : "text-muted-foreground",
               )}
             >
               {percentChange > 0 ? "+" : ""}

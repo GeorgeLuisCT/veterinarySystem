@@ -210,13 +210,13 @@ export function PurchaseDialog({ open, onOpenChange, branchOptions, defaultBranc
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[min(96vw,1000px)] max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-4xl" aria-busy={submitting}>
+      <DialogContent className="w-[min(96vw,1000px)] max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-4xl" aria-busy={submitting}>
         <DialogHeader className="space-y-1">
           <DialogTitle className="text-xl font-semibold">Registrar compra</DialogTitle>
           <DialogDescription id="purchase-desc">Completa los campos requeridos para registrar la compra.</DialogDescription>
         </DialogHeader>
 
-        <fieldset className="rounded-2xl border p-4">
+        <fieldset className="rounded-lg border p-4">
           <legend className="px-1 text-sm font-semibold">Datos de la compra</legend>
           <PurchaseForm
             form={form}
@@ -239,7 +239,7 @@ export function PurchaseDialog({ open, onOpenChange, branchOptions, defaultBranc
           </div>
 
           {items.length === 0 && (
-            <div className="rounded-xl border p-4 text-sm text-muted-foreground">No hay productos. Agrega al menos uno.</div>
+            <div className="rounded-lg border p-4 text-sm text-muted-foreground">No hay productos. Agrega al menos uno.</div>
           )}
 
           <div className="space-y-3">

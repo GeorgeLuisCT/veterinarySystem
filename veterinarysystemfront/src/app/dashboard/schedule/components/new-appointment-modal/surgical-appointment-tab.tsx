@@ -305,7 +305,7 @@ export function SurgicalAppointmentTab({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <fieldset className="rounded-2xl border p-4">
+        <fieldset className="rounded-lg border p-4">
           <legend className="px-1 text-sm font-semibold">Contexto de la cita</legend>
           <div className="grid gap-4 md:grid-cols-2">
             {!hasFixedBranch && (
@@ -365,7 +365,7 @@ export function SurgicalAppointmentTab({
           </div>
         </fieldset>
 
-        <fieldset className="rounded-2xl border p-4">
+        <fieldset className="rounded-lg border p-4">
           <legend className="px-1 text-sm font-semibold">Orden y servicio</legend>
           <div className="grid gap-4 md:grid-cols-2">
             <FormField
@@ -433,7 +433,7 @@ export function SurgicalAppointmentTab({
           </div>
         </fieldset>
 
-        <fieldset className="rounded-2xl border p-4">
+        <fieldset className="rounded-lg border p-4">
           <legend className="px-1 text-sm font-semibold">Equipo y programación</legend>
           <div className="grid gap-4 md:grid-cols-2">
             <FormField
@@ -540,7 +540,7 @@ export function SurgicalAppointmentTab({
           </div>
         </fieldset>
 
-        <fieldset className="rounded-2xl border p-4">
+        <fieldset className="rounded-lg border p-4">
           <legend className="px-1 text-sm font-semibold">Detalles adicionales</legend>
           <div className="grid gap-4 md:grid-cols-2">
             <FormField

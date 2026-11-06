@@ -53,10 +53,10 @@ export function EmployeeDetail({ employeeId, onClose }: EmployeeDetailProps) {
   }
 
   return (
-    <div className="w-full border rounded-xl p-4 space-y-5 text-sm">
+    <div className="w-full border rounded-lg p-4 space-y-5 text-sm">
       {onClose && (
         <div className="flex justify-end">
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button onClick={onClose} className="text-muted-foreground hover:text-muted-foreground">
             ✕
           </button>
         </div>
@@ -81,7 +81,7 @@ export function EmployeeDetail({ employeeId, onClose }: EmployeeDetailProps) {
           {employee.branches.map((b) => (
             <div key={b.id} className="flex justify-between">
               <span className="text-foreground">{b.branchName}</span>
-              <span className={`text-sm font-medium ${b.active ? "text-green-600" : "text-muted-foreground"}`}>
+              <span className={`text-sm font-medium ${b.active ? "text-success-strong" : "text-muted-foreground"}`}>
                 {b.active ? "Activo" : "Inactivo"}
               </span>
             </div>

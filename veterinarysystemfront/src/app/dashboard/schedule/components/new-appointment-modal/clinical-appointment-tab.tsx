@@ -133,7 +133,7 @@ export function ClinicalAppointmentTab({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <fieldset className="rounded-2xl border p-4">
+        <fieldset className="rounded-lg border p-4">
           <legend className="px-1 text-sm font-semibold">Contexto de la cita</legend>
           <div className="grid gap-4 md:grid-cols-2">
             {!hasFixedBranch && (
@@ -193,7 +193,7 @@ export function ClinicalAppointmentTab({
           </div>
         </fieldset>
 
-        <fieldset className="rounded-2xl border p-4">
+        <fieldset className="rounded-lg border p-4">
           <legend className="px-1 text-sm font-semibold">Servicio y profesional</legend>
           <div className="grid gap-4 md:grid-cols-2">
             <FormField
@@ -248,7 +248,7 @@ export function ClinicalAppointmentTab({
           </div>
         </fieldset>
 
-        <fieldset className="rounded-2xl border p-4">
+        <fieldset className="rounded-lg border p-4">
           <legend className="px-1 text-sm font-semibold">Programación</legend>
           <div className="grid gap-4 md:grid-cols-2">
             <FormField
@@ -300,7 +300,7 @@ export function ClinicalAppointmentTab({
           </div>
         </fieldset>
 
-        <fieldset className="rounded-2xl border p-4">
+        <fieldset className="rounded-lg border p-4">
           <legend className="px-1 text-sm font-semibold">Observaciones</legend>
           <div className="grid gap-4 md:grid-cols-2">
             <FormField

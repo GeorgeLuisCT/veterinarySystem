@@ -24,18 +24,18 @@ export default function VisitCard({ visit, onView, onStart, onComplete }: VisitC
   const statusInfo = getFieldVisitStatusStyles(visit.status);
 
   return (
-    <Card className={`relative overflow-hidden rounded-xl border-2 border-l-8 bg-white ${statusInfo.borderClass}`}>
+    <Card className={`relative overflow-hidden rounded-lg border-2 border-l-8 bg-card ${statusInfo.borderClass}`}>
       <CardContent className="p-3">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 flex items-center gap-3">
-            <div className="flex min-w-0 items-center gap-2 text-sm text-gray-800">
+            <div className="flex min-w-0 items-center gap-2 text-sm text-foreground">
               {visit.farmName ? <Home className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
               <span className="font-semibold truncate">{visit.farmName ?? visit.zoneName ?? "—"}</span>
             </div>
 
             <Dot className="hidden h-4 w-4 text-muted-foreground sm:block" />
 
-            <div className="hidden shrink-0 items-center gap-2 text-sm text-gray-700 sm:inline-flex">
+            <div className="hidden shrink-0 items-center gap-2 text-sm text-muted-foreground sm:inline-flex">
               <CalendarClock className="h-4 w-4" />
               <span className="font-medium">
                 {dt.toLocaleDateString()} {dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -67,7 +67,7 @@ export default function VisitCard({ visit, onView, onStart, onComplete }: VisitC
           </div>
         </div>
 
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-gray-600">
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted-foreground">
           <Badge className={`sm:hidden text-[10px] ${statusInfo.badgeClass}`}>
             {FieldVisitStatusLabels[visit.status]}
           </Badge>
@@ -88,7 +88,7 @@ export default function VisitCard({ visit, onView, onStart, onComplete }: VisitC
             <>
               <Dot className="h-4 w-4 text-muted-foreground" />
               <span className="line-clamp-1 truncate text-muted-foreground">
-                <span className="font-medium text-gray-700">Objetivo: </span>
+                <span className="font-medium text-muted-foreground">Objetivo: </span>
                 {visit.objective}
               </span>
             </>

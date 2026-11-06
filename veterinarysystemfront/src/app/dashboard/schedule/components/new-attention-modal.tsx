@@ -381,7 +381,7 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
 
   return (
     <Dialog open={open} onOpenChange={handleModalToggle}>
-      <DialogContent className="w-[min(95vw,900px)] sm:max-w-3xl rounded-2xl">
+      <DialogContent className="w-[min(95vw,900px)] sm:max-w-3xl rounded-lg">
         <DialogHeader>
           <DialogTitle>Registrar atención</DialogTitle>
           <DialogDescription>
@@ -397,7 +397,7 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <fieldset className="rounded-2xl border p-4">
+              <fieldset className="rounded-lg border p-4">
                 <legend className="px-1 text-sm font-semibold">Ubicación y paciente</legend>
                 <div className="grid gap-4 md:grid-cols-2">
                   {!hasFixedBranch && (
@@ -453,7 +453,7 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
                 </div>
               </fieldset>
 
-              <fieldset className="rounded-2xl border p-4">
+              <fieldset className="rounded-lg border p-4">
                 <legend className="px-1 text-sm font-semibold">Clasificación</legend>
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
@@ -506,7 +506,7 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
                 </div>
               </fieldset>
 
-              <fieldset className="rounded-2xl border p-4">
+              <fieldset className="rounded-lg border p-4">
                 <legend className="px-1 text-sm font-semibold">Profesionales y servicio</legend>
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
@@ -563,7 +563,7 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
                 </div>
               </fieldset>
 
-              <fieldset className="rounded-2xl border p-4">
+              <fieldset className="rounded-lg border p-4">
                 <legend className="px-1 text-sm font-semibold">Registro y prioridad</legend>
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
@@ -590,7 +590,7 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
                     control={form.control}
                     name="emergency"
                     render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-2xl border border-dashed border-border/80 px-3 py-2">
+                      <FormItem className="flex items-center justify-between rounded-lg border border-dashed border-border/80 px-3 py-2">
                         <div className="space-y-0.5">
                           <span className="text-sm font-medium text-foreground">Emergencia</span>
                           <p className="text-xs text-muted-foreground">

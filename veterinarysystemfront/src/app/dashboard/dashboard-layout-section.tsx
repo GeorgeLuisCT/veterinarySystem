@@ -28,7 +28,7 @@ export default function DashboardLayoutSection({ children }: DashboardLayoutSect
           )}
         >
           {topComponents.map((component, index) => (
-            <div key={index} className="rounded-xl h-[200px]">
+            <div key={index} className="rounded-lg h-[200px]">
               {component}
             </div>
           ))}
@@ -36,7 +36,7 @@ export default function DashboardLayoutSection({ children }: DashboardLayoutSect
       )}
 
       {/* Componente principal */}
-      <div className=" flex-1 max-h-screen overflow-y-auto rounded-xl relative">
+      <div className="flex-1 max-h-screen overflow-y-auto rounded-lg relative">
         <div className="absolute top-0 left-0 w-full h-full">
           {mainComponent}
         </div>

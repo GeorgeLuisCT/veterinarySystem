@@ -23,8 +23,8 @@ export const useInventoryColumns = (branchId: number) => {
                     const p = row.original;
                     return (
                         <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-xl bg-zinc-100 flex items-center justify-center">
-                                <Box className="h-4 w-4 text-zinc-500" />
+                            <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center">
+                                <Box className="h-4 w-4 text-muted-foreground" />
                             </div>
                             <div className="flex flex-col">
                                 <span className="font-medium leading-tight">{p.name}</span>
@@ -41,7 +41,7 @@ export const useInventoryColumns = (branchId: number) => {
                     const cat = row.original.categoryName ?? "Sin categoría";
                     return (
                         <div className="flex items-center gap-2">
-                            <Tag className="h-3.5 w-3.5 text-zinc-500" />
+                            <Tag className="h-3.5 w-3.5 text-muted-foreground" />
                             <Badge variant="secondary" className="rounded-full">{cat}</Badge>
                         </div>
                     );
@@ -150,7 +150,7 @@ export const useInventoryColumns = (branchId: number) => {
                         const isLow = (b.stockMainUnit ?? 0) < (p.minStock ?? 0);
                         return (
                             <span
-                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ring-1 ${isLow ? "bg-red-50 text-red-700 ring-red-200" : "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${isLow ? "bg-danger-soft text-danger-strong" : "bg-success-soft text-success-strong"
                                     }`}
                                 title={isLow ? "Stock bajo" : "OK"}
                             >
@@ -169,7 +169,7 @@ export const useInventoryColumns = (branchId: number) => {
                     if (sorted.length === 0) {
                         return (
                             <span
-                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ring-1 ${totalStockIsLow ? "bg-red-50 text-red-700 ring-red-200" : "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${totalStockIsLow ? "bg-danger-soft text-danger-strong" : "bg-success-soft text-success-strong"
                                     }`}
                                 title={totalStockIsLow ? "Stock bajo (total)" : "OK (total)"}
                             >
@@ -182,7 +182,7 @@ export const useInventoryColumns = (branchId: number) => {
                         <Popover>
                             <PopoverTrigger asChild>
                                 <span
-                                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ring-1 cursor-pointer ${totalStockIsLow ? "bg-red-50 text-red-700 ring-red-200" : "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs cursor-pointer ${totalStockIsLow ? "bg-danger-soft text-danger-strong" : "bg-success-soft text-success-strong"
                                         }`}
                                     title={totalStockIsLow ? "Stock bajo (total)" : "OK (total)"}
                                 >
@@ -197,11 +197,11 @@ export const useInventoryColumns = (branchId: number) => {
                                         return (
                                             <div
                                                 key={b.branchId}
-                                                className="flex items-center justify-between rounded-md bg-zinc-50 px-2 py-1 ring-1 ring-zinc-100"
+                                                className="flex items-center justify-between rounded-md bg-muted px-2 py-1 ring-border"
                                             >
                                                 <span className="truncate text-xs">{b.branchName}</span>
                                                 <span
-                                                    className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs ring-1 ${isLow ? "bg-red-50 text-red-700 ring-red-200" : "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                                                    className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs ${isLow ? "bg-danger-soft text-danger-strong" : "bg-success-soft text-success-strong"
                                                         }`}
                                                     title={isLow ? "Stock bajo" : "OK"}
                                                 >
@@ -257,10 +257,10 @@ export const useInventoryColumns = (branchId: number) => {
                                         .map((s) => (
                                             <div
                                                 key={s.branchId}
-                                                className="flex items-center justify-between rounded-md bg-zinc-50 px-2 py-1 ring-1 ring-zinc-100"
+                                                className="flex items-center justify-between rounded-md bg-muted px-2 py-1 ring-border"
                                             >
                                                 <span className="text-xs truncate">{s.branchName}</span>
-                                                <span className={`text-[11px] ${s.active ? "text-emerald-600" : "text-zinc-500"}`}>
+                                                <span className={`text-[11px] ${s.active ? "text-success-strong" : "text-muted-foreground"}`}>
                                                     {s.active ? "Activo" : "Inactivo"}
                                                 </span>
                                             </div>

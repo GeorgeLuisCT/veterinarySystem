@@ -102,7 +102,7 @@ export function SupplierForm({ open, setOpen, supplierId }: SupplierFormProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="w-[min(96vw,1000px)] max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-4xl">
+      <DialogContent className="w-[min(96vw,1000px)] max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-4xl">
         <DialogHeader className="space-y-1">
           <DialogTitle className="text-xl font-semibold">
             {supplierId ? "Editar Proveedor" : "Registrar Proveedor"}
@@ -114,12 +114,12 @@ export function SupplierForm({ open, setOpen, supplierId }: SupplierFormProps) {
 
         {loading ? (
           <div className="flex justify-center items-center h-40">
-            <Loader2 className="animate-spin w-6 h-6 text-gray-600" />
+            <Loader2 className="animate-spin w-6 h-6 text-muted-foreground" />
           </div>
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <fieldset className="rounded-2xl border p-4">
+              <fieldset className="rounded-lg border p-4">
                 <legend className="px-1 text-sm font-semibold">Información General</legend>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
@@ -203,7 +203,7 @@ export function SupplierForm({ open, setOpen, supplierId }: SupplierFormProps) {
                 </div>
               </fieldset>
 
-              <fieldset className="rounded-2xl border p-4">
+              <fieldset className="rounded-lg border p-4">
                 <legend className="px-1 text-sm font-semibold">Información Bancaria y Fiscal</legend>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField

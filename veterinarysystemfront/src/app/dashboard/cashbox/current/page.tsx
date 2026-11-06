@@ -11,7 +11,14 @@ import DashboardLayoutSection from "../../dashboard-layout-section";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 import OpenSessionDialog from "../_components/open-session-dialog";
 import RegisterMovementDialog from "../_components/register-movement-dialog";
@@ -42,7 +49,9 @@ import {
   CalendarClock,
   User2,
 } from "lucide-react";
+import { PageContainer } from "@/components/page/page-container";
 
+import { PageHeader } from "@/components/page/page-header";
 type SummaryItemProps = {
   label: string;
   value: number;
@@ -55,7 +64,7 @@ function SummaryItem({ label, value, negative, highlight, icon: Icon }: SummaryI
   return (
     <div
       className={[
-        "rounded-xl border p-4 h-full",
+        "rounded-lg border p-4 h-full",
         highlight ? "bg-primary/5 border-primary/30" : "bg-card/60",
         "shadow-sm",
       ].join(" ")}
@@ -84,7 +93,7 @@ function SalesSummaryCard({
   breakdown: CashboxPaymentBreakdownResponse[];
 }) {
   return (
-    <div className="rounded-xl border p-4 h-full bg-card/60 shadow-sm md:row-span-2">
+    <div className="rounded-lg border p-4 h-full bg-card/60 shadow-sm md:row-span-2">
       <div className="flex items-center gap-2">
         <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Receipt className="h-4 w-4" />
@@ -94,9 +103,14 @@ function SalesSummaryCard({
       <p className="mt-1 text-2xl font-semibold">{PEN.format(totalSales)}</p>
       <Separator className="my-3" />
       <div className="space-y-1.5">
-        {breakdown.length === 0 && <p className="text-xs text-muted-foreground">Sin ventas registradas.</p>}
+        {breakdown.length === 0 && (
+          <p className="text-xs text-muted-foreground">Sin ventas registradas.</p>
+        )}
         {breakdown.map((item) => (
-          <div key={item.paymentMethod} className="flex justify-between text-xs text-muted-foreground">
+          <div
+            key={item.paymentMethod}
+            className="flex justify-between text-xs text-muted-foreground"
+          >
             <span>{item.label}</span>
             <span className="font-medium">{PEN.format(item.amount)}</span>
           </div>
@@ -106,7 +120,11 @@ function SalesSummaryCard({
   );
 }
 
-const PEN = new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN", minimumFractionDigits: 2 });
+const PEN = new Intl.NumberFormat("es-PE", {
+  style: "currency",
+  currency: "PEN",
+  minimumFractionDigits: 2,
+});
 
 export default function CurrentCashSessionPage() {
   const { userInfo } = useUser();
@@ -157,7 +175,11 @@ export default function CurrentCashSessionPage() {
   const handleOpenSession = useCallback(
     async (amount: number) => {
       try {
-        await CashSessionService.openSession({ branchId, cashierId: userId, openingAmount: amount });
+        await CashSessionService.openSession({
+          branchId,
+          cashierId: userId,
+          openingAmount: amount,
+        });
         toast({ title: "Caja abierta", description: "La sesión de caja se creó correctamente" });
         await loadActiveSession();
       } catch (error) {
@@ -218,230 +240,273 @@ export default function CurrentCashSessionPage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="h-full bg-gray-50 p-4 sm:p-6">
-        <div className="mx-auto flex h-full max-w-8xl flex-col overflow-auto">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-semibold">Gestión de caja</h1>
-              </div>
-              <div className="flex gap-2">
-                <OpenSessionDialog onOpenSession={handleOpenSession} disabled={Boolean(detail)} />
-                <RegisterMovementDialog onRegister={handleRegisterMovement} disabled={!detail} />
-                <CloseSessionDialog
-                  onCloseSession={handleCloseSession}
-                  disabled={!detail || treasuryAccounts.length === 0}
-                  breakdown={detail?.paymentBreakdown ?? []}
-                  accounts={treasuryAccounts}
-                />
-              </div>
-            </div>
+      <PageContainer>
+        <div className="space-y-4">
+          <PageHeader
+            title="Gestión de caja"
+            actions={
+              <>
+                <div className="flex gap-2">
+                  <OpenSessionDialog onOpenSession={handleOpenSession} disabled={Boolean(detail)} />
+                  <RegisterMovementDialog onRegister={handleRegisterMovement} disabled={!detail} />
+                  <CloseSessionDialog
+                    onCloseSession={handleCloseSession}
+                    disabled={!detail || treasuryAccounts.length === 0}
+                    breakdown={detail?.paymentBreakdown ?? []}
+                    accounts={treasuryAccounts}
+                  />
+                </div>
+              </>
+            }
+          />
 
-            {loading && (
-              <Card>
-                <CardContent className="py-12 text-center text-muted-foreground">Cargando estado de caja…</CardContent>
-              </Card>
-            )}
+          {loading && (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Cargando estado de caja…
+              </CardContent>
+            </Card>
+          )}
 
-            {!loading && !detail && !closingSummary && (
-              <Card className="border-dashed">
-                <CardContent className="py-10 text-center">
-                  <p className="text-muted-foreground">
-                    No hay una sesión de caja abierta. Usa <span className="font-medium">“Abrir caja”</span> para iniciar.
+          {!loading && !detail && !closingSummary && (
+            <Card className="border-dashed">
+              <CardContent className="py-10 text-center">
+                <p className="text-muted-foreground">
+                  No hay una sesión de caja abierta. Usa{" "}
+                  <span className="font-medium">“Abrir caja”</span> para iniciar.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {closingSummary && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Último cierre</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-sm text-muted-foreground">Abierta</p>
+                  <p className="font-medium">
+                    {new Date(closingSummary.openedAt).toLocaleString()}
                   </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {closingSummary && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Último cierre</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Abierta</p>
-                    <p className="font-medium">{new Date(closingSummary.openedAt).toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Cerrada</p>
-                    <p className="font-medium">
-                      {closingSummary.closedAt ? new Date(closingSummary.closedAt).toLocaleString() : "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Calculado</p>
-                    <p className="font-medium">{PEN.format(closingSummary.calculatedClosingAmount)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Contado</p>
-                    <p className="font-medium">{PEN.format(closingSummary.countedClosingAmount ?? 0)}</p>
-                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Cerrada</p>
+                  <p className="font-medium">
+                    {closingSummary.closedAt
+                      ? new Date(closingSummary.closedAt).toLocaleString()
+                      : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Calculado</p>
+                  <p className="font-medium">
+                    {PEN.format(closingSummary.calculatedClosingAmount)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Contado</p>
+                  <p className="font-medium">
+                    {PEN.format(closingSummary.countedClosingAmount ?? 0)}
+                  </p>
+                </div>
+                <div className="sm:col-span-2">
+                  <p className="text-sm text-muted-foreground">Diferencia</p>
+                  <p
+                    className={`font-semibold ${closingSummary.differenceAmount ? "text-destructive" : ""}`}
+                  >
+                    {PEN.format(closingSummary.differenceAmount ?? 0)}
+                  </p>
+                </div>
+                {closingSummary.notes && (
                   <div className="sm:col-span-2">
-                    <p className="text-sm text-muted-foreground">Diferencia</p>
-                    <p className={`font-semibold ${closingSummary.differenceAmount ? "text-destructive" : ""}`}>
-                      {PEN.format(closingSummary.differenceAmount ?? 0)}
-                    </p>
+                    <p className="text-sm text-muted-foreground">Notas</p>
+                    <p className="font-normal">{closingSummary.notes}</p>
                   </div>
-                  {closingSummary.notes && (
-                    <div className="sm:col-span-2">
-                      <p className="text-sm text-muted-foreground">Notas</p>
-                      <p className="font-normal">{closingSummary.notes}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+                )}
+              </CardContent>
+            </Card>
+          )}
 
-            {detail && totals && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Resumen de sesión</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <SummaryItem label="Apertura" value={totals.opening} icon={Wallet} />
-                    <SalesSummaryCard totalSales={totals.sales} breakdown={detail.paymentBreakdown} />
-                    <SummaryItem label="Ingresos adicionales" value={totals.incomes} icon={ArrowUpRight} />
-                    <SummaryItem label="Total esperado" value={totals.expected} highlight icon={Calculator} />
-                    <SummaryItem label="Egresos" value={totals.expenses} negative icon={ArrowDownRight} />
-                  </div>
+          {detail && totals && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Resumen de sesión</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <SummaryItem label="Apertura" value={totals.opening} icon={Wallet} />
+                  <SalesSummaryCard totalSales={totals.sales} breakdown={detail.paymentBreakdown} />
+                  <SummaryItem
+                    label="Ingresos adicionales"
+                    value={totals.incomes}
+                    icon={ArrowUpRight}
+                  />
+                  <SummaryItem
+                    label="Total esperado"
+                    value={totals.expected}
+                    highlight
+                    icon={Calculator}
+                  />
+                  <SummaryItem
+                    label="Egresos"
+                    value={totals.expenses}
+                    negative
+                    icon={ArrowDownRight}
+                  />
+                </div>
 
-                  <Separator />
+                <Separator />
 
-                  <div>
-                    <h2 className="text-lg font-semibold mb-2">Movimientos adicionales</h2>
-                    <div className="rounded-xl border overflow-hidden">
-                      <Table>
-                        <TableHeader className="bg-muted/40">
+                <div>
+                  <h2 className="text-lg font-semibold mb-2">Movimientos adicionales</h2>
+                  <div className="rounded-lg border overflow-hidden">
+                    <Table>
+                      <TableHeader className="bg-muted/40">
+                        <TableRow>
+                          <TableHead>Fecha</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Monto</TableHead>
+                          <TableHead>Motivo</TableHead>
+                          <TableHead>Registrado por</TableHead>
+                          <TableHead>Referencia</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {detail.movements.length === 0 && (
                           <TableRow>
-                            <TableHead>Fecha</TableHead>
-                            <TableHead>Tipo</TableHead>
-                            <TableHead>Monto</TableHead>
-                            <TableHead>Motivo</TableHead>
-                            <TableHead>Registrado por</TableHead>
-                            <TableHead>Referencia</TableHead>
+                            <TableCell
+                              colSpan={6}
+                              className="text-center text-muted-foreground py-6"
+                            >
+                              No hay movimientos registrados en esta sesión.
+                            </TableCell>
                           </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {detail.movements.length === 0 && (
-                            <TableRow>
-                              <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
-                                No hay movimientos registrados en esta sesión.
-                              </TableCell>
-                            </TableRow>
-                          )}
-                          {detail.movements.map((movement) => (
-                            <TableRow key={movement.id} className="hover:bg-accent/40">
-                              <TableCell className="whitespace-nowrap">
-                                {new Date(movement.registeredAt).toLocaleString()}
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant={movement.movementType === CashMovementType.INCOME ? "secondary" : "outline"}>
-                                  {movement.movementType === CashMovementType.INCOME ? "Ingreso" : "Egreso"}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="font-medium">
-                                {movement.movementType === CashMovementType.EXPENSE ? "-" : ""}
-                                {PEN.format(movement.amount)}
-                              </TableCell>
-                              <TableCell className="max-w-[320px] truncate" title={movement.reason}>
-                                {movement.reason}
-                              </TableCell>
-                              <TableCell className="whitespace-nowrap">
-                                {movement.registeredByName ?? movement.registeredById ?? ""}
-                              </TableCell>
-                              <TableCell className="whitespace-nowrap">{movement.reference ?? "—"}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                        )}
+                        {detail.movements.map((movement) => (
+                          <TableRow key={movement.id} className="hover:bg-accent/40">
+                            <TableCell className="whitespace-nowrap">
+                              {new Date(movement.registeredAt).toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  movement.movementType === CashMovementType.INCOME
+                                    ? "secondary"
+                                    : "outline"
+                                }
+                              >
+                                {movement.movementType === CashMovementType.INCOME
+                                  ? "Ingreso"
+                                  : "Egreso"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {movement.movementType === CashMovementType.EXPENSE ? "-" : ""}
+                              {PEN.format(movement.amount)}
+                            </TableCell>
+                            <TableCell className="max-w-[320px] truncate" title={movement.reason}>
+                              {movement.reason}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {movement.registeredByName ?? movement.registeredById ?? ""}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {movement.reference ?? "—"}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">Cobros de Ventas</h2>
+                    <Badge variant="outline" className="gap-1">
+                      <Coins className="h-3.5 w-3.5" />
+                      {detail.salePayments.length}
+                    </Badge>
                   </div>
 
-                  <Separator />
-
-                  <div>
-                    <div className="mb-2 flex items-center justify-between">
-                      <h2 className="text-lg font-semibold">Cobros de Ventas</h2>
-                      <Badge variant="outline" className="gap-1">
-                        <Coins className="h-3.5 w-3.5" />
-                        {detail.salePayments.length}
-                      </Badge>
-                    </div>
-
-                    <div className="rounded-xl border overflow-hidden">
-                      <Table>
-                        <TableHeader className="bg-muted/40">
+                  <div className="rounded-lg border overflow-hidden">
+                    <Table>
+                      <TableHeader className="bg-muted/40">
+                        <TableRow>
+                          <TableHead>Fecha</TableHead>
+                          <TableHead>Venta</TableHead>
+                          <TableHead>Cliente</TableHead>
+                          <TableHead>Método</TableHead>
+                          <TableHead className="text-right">Monto</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {detail.salePayments.length === 0 && (
                           <TableRow>
-                            <TableHead>Fecha</TableHead>
-                            <TableHead>Venta</TableHead>
-                            <TableHead>Cliente</TableHead>
-                            <TableHead>Método</TableHead>
-                            <TableHead className="text-right">Monto</TableHead>
+                            <TableCell
+                              colSpan={5}
+                              className="text-center text-muted-foreground py-6"
+                            >
+                              No hay pagos de ventas registrados en esta sesión.
+                            </TableCell>
                           </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {detail.salePayments.length === 0 && (
-                            <TableRow>
-                              <TableCell colSpan={5} className="text-center text-muted-foreground py-6">
-                                No hay pagos de ventas registrados en esta sesión.
-                              </TableCell>
-                            </TableRow>
-                          )}
+                        )}
 
-                          {detail.salePayments.map((payment) => (
-                            <TableRow key={payment.paymentId} className="hover:bg-accent/40">
-                              <TableCell className="whitespace-nowrap">
-                                <div className="flex items-center gap-1 text-sm">
-                                  <CalendarClock className="h-3.5 w-3.5 opacity-70" />
-                                  {new Date(payment.paidAt).toLocaleString()}
-                                </div>
-                              </TableCell>
+                        {detail.salePayments.map((payment) => (
+                          <TableRow key={payment.paymentId} className="hover:bg-accent/40">
+                            <TableCell className="whitespace-nowrap">
+                              <div className="flex items-center gap-1 text-sm">
+                                <CalendarClock className="h-3.5 w-3.5 opacity-70" />
+                                {new Date(payment.paidAt).toLocaleString()}
+                              </div>
+                            </TableCell>
 
-                              <TableCell className="max-w-[320px]">
-                                <Link
-                                  href={`/dashboard/pos/sales/history/${payment.saleId}`}
-                                  className="hover:text-primary transition-colors inline-flex items-center gap-1"
-                                >
-                                  <span className="font-medium">Venta #{payment.saleId}</span>
-                                  <ExternalLink className="h-3.5 w-3.5" />
-                                </Link>
-                                <div className="mt-1">
-                                  {payment.saleDocumentNumber && (
-                                    <Badge variant="outline" className="font-normal">
-                                      {payment.saleDocumentNumber}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </TableCell>
+                            <TableCell className="max-w-[320px]">
+                              <Link
+                                href={`/dashboard/pos/sales/history/${payment.saleId}`}
+                                className="hover:text-primary transition-colors inline-flex items-center gap-1"
+                              >
+                                <span className="font-medium">Venta #{payment.saleId}</span>
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </Link>
+                              <div className="mt-1">
+                                {payment.saleDocumentNumber && (
+                                  <Badge variant="outline" className="font-normal">
+                                    {payment.saleDocumentNumber}
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
 
-                              <TableCell className="text-sm text-muted-foreground">
-                                <div className="inline-flex items-center gap-1">
-                                  <User2 className="h-3.5 w-3.5 opacity-70" />
-                                  {payment.customerName ?? "Cliente General"}
-                                </div>
-                              </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              <div className="inline-flex items-center gap-1">
+                                <User2 className="h-3.5 w-3.5 opacity-70" />
+                                {payment.customerName ?? "Cliente General"}
+                              </div>
+                            </TableCell>
 
-                              <TableCell className="whitespace-nowrap">
-                                {PaymentMethodLabels[payment.paymentMethod]}
-                              </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {PaymentMethodLabels[payment.paymentMethod]}
+                            </TableCell>
 
-                              <TableCell className="text-right font-semibold">
-                                {PEN.format(payment.amountPaid)}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                            <TableCell className="text-right font-semibold">
+                              {PEN.format(payment.amountPaid)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
-      </div>
+      </PageContainer>
     </DashboardLayoutSection>
   );
 }

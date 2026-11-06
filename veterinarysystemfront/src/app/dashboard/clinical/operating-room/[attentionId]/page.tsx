@@ -160,15 +160,15 @@ export default function SurgicalReportDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-20 border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-        <div className="mx-auto max-w-5xl px-4 py-3 md:py-4">
+    <div className="h-full overflow-y-auto">
+      <div className="sticky top-0 z-10 border-b bg-card">
+        <div className="mx-auto w-full max-w-screen-2xl px-4 py-3 sm:px-6">
           <div className="flex items-start justify-between gap-3">
             {/* IZQUIERDA */}
             <div className="min-w-0">
               {/* Servicio como título principal */}
               <div className="flex items-center gap-2">
-                <h1 className="truncate text-lg font-bold leading-tight text-slate-900 md:text-xl">
+                <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground">
                   {attention?.clinicalServiceName ?? "Servicio no especificado"}
                 </h1>
 
@@ -180,13 +180,13 @@ export default function SurgicalReportDetailPage() {
               {/* Subtítulo y metadatos */}
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
 
-                <span className="inline-flex max-w-[20rem] items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-blue-700 ring-1 ring-blue-200">
+                <span className="inline-flex max-w-[20rem] items-center gap-1 rounded-full bg-info-soft px-2 py-0.5 text-info-strong">
                   <span className="sr-only">Paciente</span>
                   <span className="truncate font-normal">{detail.summary.animalBasicResponse.animalName}</span>
                 </span>
 
                 <span className="hidden md:inline select-none">·</span>
-                <span className="rounded-full bg-slate-50 px-2 py-0.5 ring-1 ring-slate-200">
+                <span className="rounded-full bg-muted px-2 py-0.5">
                   Reporte quirúrgico
                 </span>
 
@@ -206,7 +206,7 @@ export default function SurgicalReportDetailPage() {
               </Button>
 
               <Button
-                className="bg-emerald-600 text-white hover:bg-emerald-700"
+                className=""
                 onClick={handleSaveAll}
                 disabled={saving}
                 aria-label="Guardar cambios"

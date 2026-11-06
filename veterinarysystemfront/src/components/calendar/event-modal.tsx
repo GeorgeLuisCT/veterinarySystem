@@ -257,20 +257,20 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
           <div className="absolute inset-0 bg-green-50 dark:bg-green-950/20 rounded-lg flex items-center justify-center z-50 animate-in fade-in-0 duration-300">
             <div className="text-center space-y-3">
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto animate-in zoom-in-50 duration-500">
-                <Sparkles className="w-8 h-8 text-green-600 animate-pulse" />
+                <Sparkles className="w-8 h-8 text-success-strong animate-pulse" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-semibold text-green-800 dark:text-green-200">
+                <h3 className="font-semibold text-success-strong dark:text-green-200">
                   {selectedEvent ? "Event Updated!" : "Event Created!"}
                 </h3>
-                <p className="text-sm text-green-600 dark:text-green-300">Your event has been saved successfully</p>
+                <p className="text-sm text-success-strong dark:text-green-300">Your event has been saved successfully</p>
               </div>
             </div>
           </div>
         )}
 
         {isLoading && !showSuccess && (
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-40">
+          <div className="absolute inset-0 bg-background/80 rounded-lg flex items-center justify-center z-40">
             <div className="flex items-center gap-3">
               <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
               <span className="text-sm text-muted-foreground">
@@ -282,7 +282,7 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-blue-600" />
+            <Calendar className="h-5 w-5 text-info-strong" />
             {selectedEvent ? "Edit Event" : "Create New Event"}
           </DialogTitle>
         </DialogHeader>
@@ -431,7 +431,7 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
                     variant={category === cat.name ? "default" : "outline"}
                     className={cn(
                       "cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95",
-                      category === cat.name && "bg-blue-600 hover:bg-blue-700 shadow-md",
+                      category === cat.name && "bg-blue-600 hover:bg-blue-700 shadow-sm",
                     )}
                     onClick={() => {
                       setCategory(category === cat.name ? "" : cat.name)
@@ -457,14 +457,14 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
                       "w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 active:scale-95",
                       "relative overflow-hidden",
                       color === colorOption.value
-                        ? "border-foreground scale-110 shadow-lg"
-                        : "border-transparent hover:shadow-md",
+                        ? "border-foreground scale-110 shadow-sm"
+                        : "border-transparent hover:shadow-sm",
                     )}
                     style={{ backgroundColor: colorOption.value }}
                     title={colorOption.name}
                   >
                     {color === colorOption.value && (
-                      <div className="absolute inset-0 bg-white/20 animate-pulse rounded-full" />
+                      <div className="absolute inset-0 bg-background animate-pulse rounded-full" />
                     )}
                   </button>
                 ))}
@@ -532,7 +532,7 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
                     variant="outline"
                     size="sm"
                     onClick={handleDuplicate}
-                    className="transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-md bg-transparent"
+                    className="transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-sm bg-transparent"
                   >
                     <Copy className="h-4 w-4 mr-2" />
                     Duplicate
@@ -542,8 +542,8 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
                     size="sm"
                     onClick={handleDelete}
                     className={cn(
-                      "text-red-600 hover:text-red-700 bg-transparent transition-all duration-200",
-                      "hover:scale-105 active:scale-95 hover:bg-red-50 dark:hover:bg-red-950/20 hover:shadow-md",
+                      "text-destructive hover:text-destructive bg-transparent transition-all duration-200",
+                      "hover:scale-105 active:scale-95 hover:bg-red-50 dark:hover:bg-red-950/20 hover:shadow-sm",
                     )}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
@@ -569,7 +569,7 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
             disabled={!title.trim() || !selectedCalendarId || isLoading}
             className={cn(
               "bg-blue-600 hover:bg-blue-700 transition-all duration-200 hover:scale-105 active:scale-95",
-              "shadow-lg hover:shadow-xl hover:shadow-blue-500/25",
+              "shadow-sm hover:shadow-xl hover:shadow-blue-500/25",
               "relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700",
             )}
           >

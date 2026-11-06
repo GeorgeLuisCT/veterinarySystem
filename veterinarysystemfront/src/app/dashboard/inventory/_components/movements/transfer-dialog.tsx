@@ -167,13 +167,13 @@ export function TransferDialog({ open, onOpenChange, defaultSourceBranchId, onCr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[min(96vw,1000px)] max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-4xl" aria-busy={submitting}>
+      <DialogContent className="w-[min(96vw,1000px)] max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-4xl" aria-busy={submitting}>
         <DialogHeader className="space-y-1">
           <DialogTitle className="text-xl font-semibold">Registrar transferencia</DialogTitle>
           <DialogDescription>Desplaza stock entre sucursales.</DialogDescription>
         </DialogHeader>
 
-        <fieldset className="rounded-2xl border p-4">
+        <fieldset className="rounded-lg border p-4">
           <legend className="px-1 text-sm font-semibold">Datos de la transferencia</legend>
           <TransferForm
             form={form}
@@ -191,7 +191,7 @@ export function TransferDialog({ open, onOpenChange, defaultSourceBranchId, onCr
           </div>
 
           {!sourceBranchId && (
-            <div className="rounded-xl border p-4 text-sm text-muted-foreground">
+            <div className="rounded-lg border p-4 text-sm text-muted-foreground">
               Selecciona la sucursal de origen para buscar productos.
             </div>
           )}

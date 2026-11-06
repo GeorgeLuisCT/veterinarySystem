@@ -91,7 +91,7 @@ export function AddAnestheticDrugModal({ reportId, open, onClose, onAdded }: Add
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="w-[min(92vw,840px)] max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-2xl">
+      <DialogContent className="w-[min(92vw,840px)] max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-2xl">
         <DialogHeader className="space-y-1">
           <DialogTitle className="text-xl">Agregar fármaco anestésico</DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -102,7 +102,7 @@ export function AddAnestheticDrugModal({ reportId, open, onClose, onAdded }: Add
         <Form {...form}>
           <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)} noValidate>
             {/* Producto y Fase */}
-            <fieldset className="rounded-xl border p-3">
+            <fieldset className="rounded-lg border p-3">
               <legend className="px-1 text-sm font-medium">Producto y fase</legend>
 
               <div className="grid gap-3 sm:grid-cols-2">
@@ -149,7 +149,7 @@ export function AddAnestheticDrugModal({ reportId, open, onClose, onAdded }: Add
             </fieldset>
 
             {/* Dosis */}
-            <fieldset className="rounded-xl border p-3">
+            <fieldset className="rounded-lg border p-3">
               <legend className="px-1 text-sm font-medium">Dosis</legend>
               <div className="grid gap-3 sm:grid-cols-3">
                 <FormField

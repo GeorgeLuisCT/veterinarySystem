@@ -49,7 +49,7 @@ export default function MainInventoryPurchases() {
         header: "Fecha",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <CalendarDays className="h-3.5 w-3.5 text-zinc-500" />
+            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="truncate">{format(new Date(row.original.date), DATE_TIME_DISPLAY_FORMAT)}</span>
           </div>
         ),
@@ -61,7 +61,7 @@ export default function MainInventoryPurchases() {
             header: "Sucursal",
             cell: ({ row }) => (
               <div className="flex items-center gap-2">
-                <Tag className="h-3.5 w-3.5 text-zinc-500" />
+                <Tag className="h-3.5 w-3.5 text-muted-foreground" />
                 <Badge variant="secondary" className="rounded-full">{row.original.sourceBranchName ?? "—"}</Badge>
               </div>
             ),
@@ -73,7 +73,7 @@ export default function MainInventoryPurchases() {
         header: "Proveedor",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <Truck className="h-3.5 w-3.5 text-zinc-500" />
+            <Truck className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="truncate">{row.original.supplierName ?? "—"}</span>
           </div>
         ),
@@ -83,7 +83,7 @@ export default function MainInventoryPurchases() {
         header: "Registrado por",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <UserRound className="h-3.5 w-3.5 text-zinc-500" />
+            <UserRound className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="truncate">{row.original.employeeName ?? "—"}</span>
           </div>
         ),
@@ -93,7 +93,7 @@ export default function MainInventoryPurchases() {
         header: "Descripción",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <FileText className="h-3.5 w-3.5 text-zinc-500" />
+            <FileText className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="truncate">{row.original.description ?? "—"}</span>
           </div>
         ),
@@ -143,7 +143,7 @@ export default function MainInventoryPurchases() {
     <div className="flex h-full flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Compras de inventario</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Compras de inventario</h1>
           <p className="text-sm text-muted-foreground">Gestiona y revisa las compras registradas en el inventario.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

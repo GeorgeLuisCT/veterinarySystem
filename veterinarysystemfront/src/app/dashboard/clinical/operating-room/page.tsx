@@ -21,10 +21,13 @@ import type { AttentionResponse } from "@/app/dashboard/schedule/types/attention
 
 import { CreateSurgicalOrderModal } from "../components/operating-room/create-surgical-order-modal";
 import SurgeryCard, { type SurgeryCardData } from "../components/operating-room/surgery-card";
-import SurgeryFilters, { type SurgeryFilters as Filters } from "../components/operating-room/surgery-filters";
+import SurgeryFilters, {
+  type SurgeryFilters as Filters,
+} from "../components/operating-room/surgery-filters";
 import SurgicalOrderCard from "../components/operating-room/surgical-order-card";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PageHeader } from "@/components/page/page-header";
 
 function formatLocalDate(d: Date): string {
   const y = d.getFullYear();
@@ -72,7 +75,11 @@ export default function OperatingRoomPage() {
 
     const statuses =
       filters.status === "ALL" || filters.status === "WAITING"
-        ? [SurgicalReportStatus.DRAFT, SurgicalReportStatus.IN_PROGRESS, SurgicalReportStatus.READY_TO_BILL]
+        ? [
+            SurgicalReportStatus.DRAFT,
+            SurgicalReportStatus.IN_PROGRESS,
+            SurgicalReportStatus.READY_TO_BILL,
+          ]
         : [filters.status];
 
     const resp = await SurgicalReportService.list({
@@ -134,7 +141,6 @@ export default function OperatingRoomPage() {
     const i = setInterval(fetchAll, 60000);
     return () => clearInterval(i);
   }, [fetchAll, showCreateModal]);
-
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -224,8 +230,12 @@ export default function OperatingRoomPage() {
       if (!filters.startDate || !filters.endDate) return true;
       if (!d) return false;
       const dt = new Date(d);
-      const start = new Date(filters.startDate instanceof Date ? filters.startDate : new Date(filters.startDate));
-      const end = new Date(filters.endDate instanceof Date ? filters.endDate : new Date(filters.endDate));
+      const start = new Date(
+        filters.startDate instanceof Date ? filters.startDate : new Date(filters.startDate)
+      );
+      const end = new Date(
+        filters.endDate instanceof Date ? filters.endDate : new Date(filters.endDate)
+      );
       start.setHours(0, 0, 0, 0);
       end.setHours(23, 59, 59, 999);
       return dt.getTime() >= start.getTime() && dt.getTime() <= end.getTime();
@@ -240,7 +250,9 @@ export default function OperatingRoomPage() {
           o.animalName ?? "",
           o.requestedByFullName ?? "",
           String(o.id),
-        ].join(" ").toLowerCase();
+        ]
+          .join(" ")
+          .toLowerCase();
         return haystack.includes(search.trim().toLowerCase());
       })
       .sort((a, b) => {
@@ -260,30 +272,41 @@ export default function OperatingRoomPage() {
   }
 
   return (
-    <div className="h-full bg-gray-50 p-4 sm:p-6">
-      <div className="max-w-screen-2xl mx-auto">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Sala de Operaciones</h1>
-            <p className="text-gray-600 mt-1">Reportes quirúrgicos, atenciones y órdenes en una sola vista.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleRefresh} className="gap-2" disabled={refreshing}>
-              <RefreshCcw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-              {refreshing ? "Actualizando..." : "Actualizar"}
-            </Button>
-            <Button onClick={() => setShowCreateModal(true)} className="gap-2">
-              <PlusCircle className="h-4 w-4" />
-              Nueva Orden
-            </Button>
-          </div>
-        </div>
+    <div className="h-full overflow-y-auto p-4 sm:p-6">
+      <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-4">
+        <PageHeader
+          title="Sala de Operaciones"
+          description="Reportes quirúrgicos, atenciones y órdenes en una sola vista."
+          actions={
+            <>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleRefresh}
+                  className="gap-2"
+                  disabled={refreshing}
+                >
+                  <RefreshCcw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+                  {refreshing ? "Actualizando..." : "Actualizar"}
+                </Button>
+                <Button onClick={() => setShowCreateModal(true)} className="gap-2">
+                  <PlusCircle className="h-4 w-4" />
+                  Nueva Orden
+                </Button>
+              </div>
+            </>
+          }
+        />
 
         <div className="mb-4 flex flex-col gap-3">
           <SurgeryFilters value={filters} onChange={setFilters} />
         </div>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "board" | "orders")} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as "board" | "orders")}
+          className="w-full"
+        >
           <TabsList className="mb-4">
             <TabsTrigger value="board">Tablero</TabsTrigger>
             <TabsTrigger value="orders">Órdenes</TabsTrigger>
@@ -292,11 +315,16 @@ export default function OperatingRoomPage() {
           <TabsContent value="board">
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
               {unifiedItems.map((item) => (
-                <SurgeryCard key={`${item.kind}-${item.attentionId ?? "na"}-${item.id}`} data={item} />
+                <SurgeryCard
+                  key={`${item.kind}-${item.attentionId ?? "na"}-${item.id}`}
+                  data={item}
+                />
               ))}
             </div>
             {unifiedItems.length === 0 && (
-              <div className="text-center text-gray-500 mt-10">No hay registros para los filtros seleccionados.</div>
+              <div className="text-center text-muted-foreground mt-10">
+                No hay registros para los filtros seleccionados.
+              </div>
             )}
           </TabsContent>
 
@@ -307,7 +335,9 @@ export default function OperatingRoomPage() {
               ))}
             </div>
             {filteredOrders.length === 0 && (
-              <div className="text-center text-gray-500 mt-10">No hay órdenes pendientes para los filtros seleccionados.</div>
+              <div className="text-center text-muted-foreground mt-10">
+                No hay órdenes pendientes para los filtros seleccionados.
+              </div>
             )}
           </TabsContent>
         </Tabs>

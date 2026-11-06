@@ -42,7 +42,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="text-yellow-600 cursor-pointer ml-1">
+                  <div className="text-warning-strong cursor-pointer ml-1">
                     {icon}
                   </div>
                 </TooltipTrigger>

@@ -94,7 +94,7 @@ export function SurgicalOrderModal({ id, onClose, onAdded }: CommonProps) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="w-[min(92vw,960px)] max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-2xl sm:max-w-3xl">
+      <DialogContent className="w-[min(92vw,960px)] max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-lg sm:max-w-3xl">
         <DialogHeader className="space-y-2">
           <DialogTitle>Crear orden quirúrgica</DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -105,7 +105,7 @@ export function SurgicalOrderModal({ id, onClose, onAdded }: CommonProps) {
         <Form {...form}>
           <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)} noValidate>
             {/* Datos de la orden */}
-            <fieldset className="rounded-2xl border p-5">
+            <fieldset className="rounded-lg border p-5">
               <legend className="px-2 text-sm font-medium text-muted-foreground">Datos de la orden</legend>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -153,7 +153,7 @@ export function SurgicalOrderModal({ id, onClose, onAdded }: CommonProps) {
                         </div>
                       </FormControl>
                       {!hasRooms && (
-                        <p className="text-xs text-amber-600">
+                        <p className="text-xs text-warning-strong">
                           No se encontraron salas para esta sucursal. Verifica la configuración de la sede.
                         </p>
                       )}
@@ -165,7 +165,7 @@ export function SurgicalOrderModal({ id, onClose, onAdded }: CommonProps) {
             </fieldset>
 
             {/* Observaciones */}
-            <fieldset className="rounded-2xl border p-5">
+            <fieldset className="rounded-lg border p-5">
               <legend className="px-2 text-sm font-medium text-muted-foreground">Observaciones</legend>
               <FormField
                 control={form.control}

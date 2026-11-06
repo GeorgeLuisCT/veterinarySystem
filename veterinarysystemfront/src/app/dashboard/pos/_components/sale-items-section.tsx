@@ -127,16 +127,11 @@ export default function SaleItemsSection({
       )}
 
       <div
-        className="
-          rounded-2xl border bg-card/60
-          shadow-[0_1px_0_0_rgb(2_6_23/0.06),0_8px_20px_-14px_rgb(2_6_23/0.16)]
-          dark:shadow-[0_1px_0_0_rgb(255_255_255/0.06)_inset,0_10px_24px_-16px_rgb(0_0_0/0.55)]
-          overflow-hidden flex flex-col flex-1
-        "
+        className="rounded-lg border bg-card/60 overflow-hidden flex flex-col flex-1"
       >
         <div className="max-h-[55vh] overflow-auto flex flex-col flex-1">
           <Table>
-            <TableHeader className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+            <TableHeader className="sticky top-0 z-10 bg-background/95">
               <TableRow>
                 <TableHead className="w-[44%]">Concepto</TableHead>
                 <TableHead className="w-[18%]">Cant.</TableHead>
@@ -150,8 +145,8 @@ export default function SaleItemsSection({
               {items.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="p-8">
-                    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-card/50 px-6 py-8 text-center">
-                      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-sm">
+                    <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed bg-card/50 px-6 py-8 text-center">
+                      <span className="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary shadow-sm">
                         <Package2 className="h-6 w-6" />
                       </span>
                       <div className="space-y-1">
@@ -186,10 +181,7 @@ export default function SaleItemsSection({
                 return (
                   <TableRow
                     key={item.id}
-                    className="
-                      group transition-colors
-                      hover:bg-accent/40
-                    "
+                    className="group transition-colors hover:bg-accent/40"
                   >
                     {/* Concepto */}
                     <TableCell className="align-middle">

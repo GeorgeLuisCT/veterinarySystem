@@ -166,22 +166,16 @@ export default function AddProductsSection({ branchId, onAddProduct, disabled = 
         {open && (
           <div
             id="product-search-panel"
-            className="
-              absolute left-0 right-0 top-full mt-1 z-50
-              max-h-96 overflow-auto rounded-xl border bg-popover text-popover-foreground
-              shadow-[0_1px_0_0_rgb(2_6_23/0.06),0_10px_30px_-12px_rgb(2_6_23/0.18)]
-              dark:shadow-[0_1px_0_0_rgb(255_255_255/0.06)_inset,0_16px_36px_-18px_rgb(0_0_0/0.50)]
-              backdrop-blur supports-[backdrop-filter]:bg-popover/98 bg-app-gradient
-            "
+            className="absolute left-0 right-0 top-full mt-1 z-50 max-h-96 overflow-auto rounded-lg border bg-popover text-popover-foreground bg-app-gradient"
             role="listbox"
             aria-label="Resultados de búsqueda de productos"
           >
             <div className="p-2 space-y-2">
               {loading && (
                 <div className="space-y-2">
-                  <Skeleton className="h-16 w-full rounded-xl" />
-                  <Skeleton className="h-16 w-full rounded-xl" />
-                  <Skeleton className="h-16 w-full rounded-xl" />
+                  <Skeleton className="h-16 w-full rounded-lg" />
+                  <Skeleton className="h-16 w-full rounded-lg" />
+                  <Skeleton className="h-16 w-full rounded-lg" />
                 </div>
               )}
 
@@ -201,11 +195,7 @@ export default function AddProductsSection({ branchId, onAddProduct, disabled = 
                   return (
                     <div
                       key={p.id}
-                      className="
-                        group rounded-xl border bg-card/50
-                        hover:bg-accent/40 transition-colors
-                        shadow-sm hover:shadow-md surface-card
-                      "
+                      className="group rounded-lg border bg-card/50 hover:bg-accent/40 transition-colors shadow-sm hover:shadow-sm surface-card"
                     >
                       {/* Header de la tarjeta */}
                       <div
@@ -263,10 +253,7 @@ export default function AddProductsSection({ branchId, onAddProduct, disabled = 
                       {/* Panel expandible */}
                       {expanded && (
                         <div
-                          className="
-                            px-3 pb-3 pt-0
-                            animate-in fade-in-0 zoom-in-95 duration-150
-                          "
+                          className="px-3 pb-3 pt-0 animate-in fade-in-0 zoom-in-95 duration-150"
                         >
                           <Separator className="mb-3" />
 

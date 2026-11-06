@@ -63,11 +63,11 @@ export function FilterModal({ isOpen, onClose }: FilterModalProps) {
             </Label>
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 rounded-lg bg-muted/50 text-center">
-                <div className="text-2xl font-bold text-blue-600">{totalEvents}</div>
+                <div className="text-2xl font-bold text-info-strong">{totalEvents}</div>
                 <div className="text-xs text-muted-foreground">Total Events</div>
               </div>
               <div className="p-3 rounded-lg bg-muted/50 text-center">
-                <div className="text-2xl font-bold text-green-600">{allDayEvents}</div>
+                <div className="text-2xl font-bold text-success-strong">{allDayEvents}</div>
                 <div className="text-xs text-muted-foreground">All-day Events</div>
               </div>
               <div className="p-3 rounded-lg bg-muted/50 text-center">
@@ -75,7 +75,7 @@ export function FilterModal({ isOpen, onClose }: FilterModalProps) {
                 <div className="text-xs text-muted-foreground">Recurring</div>
               </div>
               <div className="p-3 rounded-lg bg-muted/50 text-center">
-                <div className="text-2xl font-bold text-orange-600">{eventsWithLocation}</div>
+                <div className="text-2xl font-bold text-warning-strong">{eventsWithLocation}</div>
                 <div className="text-xs text-muted-foreground">With Location</div>
               </div>
             </div>

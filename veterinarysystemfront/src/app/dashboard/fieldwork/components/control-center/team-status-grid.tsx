@@ -35,7 +35,7 @@ export default function TeamStatusGrid() {
       <CardContent>
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {team.map((t) => (
-            <article key={t.employeeId} className="rounded-xl border bg-card p-4 shadow-sm transition hover:shadow">
+            <article key={t.employeeId} className="rounded-lg border bg-card p-4 shadow-sm transition hover:shadow">
               <div className="flex items-start justify-between">
                 <div>
                   <h4 className="font-medium leading-tight">{t.employeeName}</h4>

@@ -11,13 +11,21 @@ import AccountsPayableFilters from "../../_components/accounts-payable-filters";
 import AccountsPayableTable from "../../_components/accounts-payable-table";
 import RegisterPaymentDialog from "../../_components/register-payment-dialog";
 import AccountPayableDetailCard from "../../_components/account-payable-detail-card";
-import { AccountPayableDetail, AccountPayableStatus, AccountPayableSummary } from "../../_types/account-payable";
+import {
+  AccountPayableDetail,
+  AccountPayableStatus,
+  AccountPayableSummary,
+} from "../../_types/account-payable";
 import { TreasuryAccountResponse } from "../../_types/treasury-account";
-import AccountPayableService, { AccountPayableListParams, CreateAccountPayablePayload, RegisterPaymentPayload } from "../../_services/account-payable-service";
+import AccountPayableService, {
+  AccountPayableListParams,
+  CreateAccountPayablePayload,
+  RegisterPaymentPayload,
+} from "../../_services/account-payable-service";
 import TreasuryAccountService from "../../_services/treasury-account-service";
 import AccountPayableCreateDialog from "../../_components/account-payable-create-dialog";
 import { PlusCircle } from "lucide-react";
-
+import { PageHeader } from "@/components/page/page-header";
 
 export default function AccountsPayablePage() {
   const { toast } = useToast();
@@ -125,7 +133,6 @@ export default function AccountsPayablePage() {
   };
 
   const handleRegisterPayment = async (values: RegisterPaymentPayload) => {
-
     console.log(values);
     if (!selected) return;
     try {
@@ -145,26 +152,24 @@ export default function AccountsPayablePage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="h-full bg-gray-50 p-4 sm:p-6">
-        <div className="mx-auto flex h-full max-w-8xl flex-col overflow-auto">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Cuentas por pagar</h1>
-              <p className="mt-1 text-gray-600">
-                Registra obligaciones con proveedores y controla los pagos desde tus cuentas de tesorería.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Button onClick={() => setCreateOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Nueva cuenta por pagar
-              </Button>
-            </div>
-          </div>
+      <div className="h-full overflow-y-auto p-4 sm:p-6">
+        <div className="mx-auto flex h-full w-full max-w-screen-2xl flex-col gap-4">
+          <PageHeader
+            title="Cuentas por pagar"
+            description="Registra obligaciones con proveedores y controla los pagos desde tus cuentas de tesorería."
+            actions={
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button onClick={() => setCreateOpen(true)}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Nueva cuenta por pagar
+                  </Button>
+                </div>
+              </>
+            }
+          />
 
           <div className="flex flex-col gap-4 flex-1">
-
             <AccountsPayableFilters
               value={filters}
               onChange={(f) => {
@@ -204,9 +209,7 @@ export default function AccountsPayablePage() {
               <Card className="h-full w-full md:w-2/5">
                 <CardHeader>
                   <CardTitle>Detalle</CardTitle>
-                  <CardDescription>
-                    Pagos registrados y saldo pendiente.
-                  </CardDescription>
+                  <CardDescription>Pagos registrados y saldo pendiente.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <AccountPayableDetailCard

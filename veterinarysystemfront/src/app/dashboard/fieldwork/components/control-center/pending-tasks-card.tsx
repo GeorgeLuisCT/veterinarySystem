@@ -66,10 +66,10 @@ export default function PendingTasksCard() {
   };
 
   const priorityClasses = {
-    [FieldTaskPriority.URGENT]: "bg-red-200/70 text-red-800 ring-1 ring-red-300",
-    [FieldTaskPriority.HIGH]: "bg-red-100/80 text-red-700 ring-1 ring-red-200",
-    [FieldTaskPriority.MEDIUM]: "bg-amber-100/80 text-amber-700 ring-1 ring-amber-200",
-    [FieldTaskPriority.LOW]: "bg-zinc-100 text-zinc-700 ring-1 ring-zinc-200",
+    [FieldTaskPriority.URGENT]: "bg-red-200/70 text-destructive ring-1 ring-red-300",
+    [FieldTaskPriority.HIGH]: "bg-danger-soft text-danger-strong",
+    [FieldTaskPriority.MEDIUM]: "bg-warning-soft text-warning-strong",
+    [FieldTaskPriority.LOW]: "bg-muted text-muted-foreground ring-1 ring-border",
   } as const satisfies Record<FieldTaskPriority, string>;
 
   const leftBarClasses = {
@@ -203,7 +203,7 @@ export default function PendingTasksCard() {
         {loading ? (
           <div className="space-y-2 p-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-xl border bg-background p-3">
+              <div key={i} className="flex items-center gap-3 rounded-lg border bg-background p-3">
                 <div className="h-full w-1 rounded-full bg-muted" />
                 <div className="flex-1 space-y-2">
                   <div className="h-4 w-40 animate-pulse rounded bg-muted" />
@@ -241,7 +241,7 @@ export default function PendingTasksCard() {
                   <AccordionItem
                     key={group.zoneName + idx}
                     value={group.zoneName + idx}
-                    className="rounded-xl border-primary bg-card border-t-0 border-x-0"
+                    className="rounded-lg border-primary bg-card border-t-0 border-x-0"
                   >
                     <AccordionTrigger className="px-0 py-2 hover:no-underline">
                       <ZoneHeader name={group.zoneName} counts={group.counts} total={total} />

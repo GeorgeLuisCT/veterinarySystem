@@ -220,7 +220,7 @@ export function PrescriptionTemplateApplyModal({ id, onClose, onAdded }: CommonP
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="w-[min(92vw,1000px)] max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-2xl sm:max-w-4xl">
+      <DialogContent className="w-[min(92vw,1000px)] max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-lg sm:max-w-4xl">
         <DialogHeader className="space-y-2">
           <DialogTitle>Aplicar plantilla de prescripción</DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -230,7 +230,7 @@ export function PrescriptionTemplateApplyModal({ id, onClose, onAdded }: CommonP
 
         <div className="space-y-6">
           {/* Selección de plantilla */}
-          <fieldset className="rounded-2xl border p-5">
+          <fieldset className="rounded-lg border p-5">
             <legend className="px-2 text-sm font-medium text-muted-foreground">Seleccionar plantilla</legend>
             <div className="space-y-2">
               <div className="w-full">
@@ -260,7 +260,7 @@ export function PrescriptionTemplateApplyModal({ id, onClose, onAdded }: CommonP
           {selectedTemplate && (
             <Form {...form}>
               <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)} noValidate>
-                <fieldset className="rounded-2xl border p-5">
+                <fieldset className="rounded-lg border p-5">
                   <legend className="px-2 text-sm font-medium text-muted-foreground">Medicamentos de la plantilla</legend>
 
                   {!items || items.length === 0 ? (
@@ -273,7 +273,7 @@ export function PrescriptionTemplateApplyModal({ id, onClose, onAdded }: CommonP
                         return (
                           <section
                             key={index}
-                            className="rounded-xl border p-4"
+                            className="rounded-lg border p-4"
                             aria-labelledby={`med-row-${index}-title`}
                           >
                             {/* Encabezado de fila */}
@@ -363,7 +363,7 @@ export function PrescriptionTemplateApplyModal({ id, onClose, onAdded }: CommonP
                               </div>
 
                               {/* Dosis */}
-                              <fieldset className="rounded-xl border p-3">
+                              <fieldset className="rounded-lg border p-3">
                                 <legend className="px-1 text-sm font-medium">Dosis</legend>
                                 <div className="grid gap-3 sm:grid-cols-3">
                                   <FormField
@@ -425,7 +425,7 @@ export function PrescriptionTemplateApplyModal({ id, onClose, onAdded }: CommonP
                               </fieldset>
 
                               {/* Frecuencia */}
-                              <fieldset className="rounded-xl border p-3">
+                              <fieldset className="rounded-lg border p-3">
                                 <legend className="px-1 text-sm font-medium">Frecuencia</legend>
                                 <div className="grid gap-3 sm:grid-cols-2">
                                   <FormField

@@ -114,14 +114,14 @@ export function CalendarHeader({
 
   const Title = () => (
     <div className="flex items-center gap-2 md:gap-3">
-      <h1 className="text-lg md:text-2xl font-semibold text-foreground">{titleOverride ?? (isMobile ? "Agenda" : "Calendario")}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground">{titleOverride ?? (isMobile ? "Agenda" : "Calendario")}</h1>
       <Button
         variant="outline"
         size="sm"
         onClick={goToToday}
         className={cn(
           "text-xs md:text-sm bg-transparent transition-all duration-200 hover:scale-105 active:scale-95",
-          "hover:shadow-md hover:shadow-blue-500/20",
+          "hover:shadow-sm hover:shadow-blue-500/20",
         )}
       >
         Hoy
@@ -208,7 +208,7 @@ export function CalendarHeader({
             onClick={() => trigger(primaryAction)}
             className={cn(
               "bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 hover:scale-105 active:scale-95",
-              "shadow-lg hover:shadow-xl hover:shadow-blue-500/25",
+              "shadow-sm hover:shadow-xl hover:shadow-blue-500/25",
               "relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700",
             )}
             size={primaryAction.size ?? (isMobile ? "sm" : "default")}

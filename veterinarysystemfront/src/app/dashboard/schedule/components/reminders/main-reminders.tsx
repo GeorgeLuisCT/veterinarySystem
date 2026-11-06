@@ -41,19 +41,19 @@ const DEFAULT_FILTERS: FilterState = {
 };
 
 const STATUS_COLORS: Record<ReminderStatus, string> = {
-  [ReminderStatus.PENDING]: "bg-amber-100 text-amber-900",
-  [ReminderStatus.SENT]: "bg-blue-100 text-blue-900",
-  [ReminderStatus.COMPLETED]: "bg-emerald-100 text-emerald-900",
+  [ReminderStatus.PENDING]: "bg-warning-soft text-warning-strong",
+  [ReminderStatus.SENT]: "bg-info-soft text-info-strong",
+  [ReminderStatus.COMPLETED]: "bg-success-soft text-success-strong",
 };
 
 const TYPE_COLORS: Partial<Record<ReminderType, string>> = {
-  [ReminderType.VACCINATION]: "bg-purple-100 text-purple-900",
-  [ReminderType.DEWORMING]: "bg-rose-100 text-rose-900",
-  [ReminderType.CHECKUP]: "bg-blue-100 text-blue-900",
-  [ReminderType.GROOMING]: "bg-teal-100 text-teal-900",
-  [ReminderType.LAB_TEST]: "bg-slate-100 text-slate-900",
-  [ReminderType.SURGERY_FOLLOWUP]: "bg-orange-100 text-orange-900",
-  [ReminderType.DENTAL_CARE]: "bg-amber-100 text-amber-900",
+  [ReminderType.VACCINATION]: "bg-muted text-foreground",
+  [ReminderType.DEWORMING]: "bg-danger-soft text-danger-strong",
+  [ReminderType.CHECKUP]: "bg-info-soft text-info-strong",
+  [ReminderType.GROOMING]: "bg-success-soft text-success-strong",
+  [ReminderType.LAB_TEST]: "bg-muted text-foreground",
+  [ReminderType.SURGERY_FOLLOWUP]: "bg-warning-soft text-warning-strong",
+  [ReminderType.DENTAL_CARE]: "bg-warning-soft text-warning-strong",
 };
 
 const buildParams = (
@@ -155,7 +155,7 @@ export default function MainRemindersPage() {
         cell: ({ row }) => {
           const reminder = row.original;
           const typeColor =
-            TYPE_COLORS[reminder.reminderType] ?? "bg-slate-100 text-slate-900";
+            TYPE_COLORS[reminder.reminderType] ?? "bg-muted text-foreground";
           return (
             <div className="flex flex-col gap-1">
               <Badge className={cn("w-fit", typeColor)}>
@@ -186,7 +186,7 @@ export default function MainRemindersPage() {
                 className={cn(
                   "text-xs",
                   relativeLabel.includes("Atrasado")
-                    ? "text-amber-600"
+                    ? "text-warning-strong"
                     : "text-muted-foreground"
                 )}
               >
@@ -202,7 +202,7 @@ export default function MainRemindersPage() {
         cell: ({ row }) => {
           const reminder = row.original;
           const statusColor =
-            STATUS_COLORS[reminder.status] ?? "bg-slate-100 text-slate-900";
+            STATUS_COLORS[reminder.status] ?? "bg-muted text-foreground";
           return (
             <Badge className={cn("w-fit", statusColor)}>
               {ReminderStatusLabels[reminder.status]}
@@ -343,7 +343,7 @@ export default function MainRemindersPage() {
     <>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
+          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
             <CalendarClock className="h-6 w-6 text-primary" /> Centro de
             recordatorios
           </h1>

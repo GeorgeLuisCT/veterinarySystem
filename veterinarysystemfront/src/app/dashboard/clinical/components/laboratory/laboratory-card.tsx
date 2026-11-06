@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, Stethoscope, MoveRight, Tags, PawPrint, MapPin, ClipboardList } from "lucide-react";
 import { AnimalSpeciesDetails } from "@/app/dashboard/crm/patients/enums/animal-species";
 import { LabRequestStatus } from "../../enums/lab-request-status";
+import { toneBorderLeft, type StatusTone } from "@/components/page/status-tone";
 
 export type LaboratoryCardData = {
     id: number;
@@ -54,35 +55,27 @@ export default function LaboratoryCard({ data }: { data: LaboratoryCardData }) {
 
     const SpeciesIcon = speciesDetails?.icon;
     const speciesColor = speciesDetails?.colorClass;
-    const borderIconClass = speciesColor ? speciesColor.replace("bg-", "border-") : "border-gray-200";
-    const iconSpeciesClass = speciesColor ? speciesColor.replace("bg-", "text-") : "text-gray-400";
+    const borderIconClass = speciesColor ? speciesColor.replace("bg-", "border-") : "border-border";
+    const iconSpeciesClass = speciesColor ? speciesColor.replace("bg-", "text-") : "text-muted-foreground";
 
-    const borderCardClass =
+    const tone: StatusTone =
         data.status === LabRequestStatus.REQUESTED
-            ? "border-amber-500"
+            ? "warning"
             : data.status === LabRequestStatus.IN_PROGRESS
-                ? "border-blue-600"
+                ? "info"
                 : data.status === LabRequestStatus.COMPLETED
-                    ? "border-emerald-700"
-                    : "border-slate-300";
-
-    const badgeColor =
-        data.status === LabRequestStatus.REQUESTED
-            ? "bg-amber-500"
-            : data.status === LabRequestStatus.IN_PROGRESS
-                ? "bg-blue-600"
-                : data.status === LabRequestStatus.COMPLETED
-                    ? "bg-emerald-700"
-                    : "bg-slate-500";
+                    ? "success"
+                    : "neutral";
+    const borderCardClass = toneBorderLeft[tone];
 
     const handleOpen = useCallback(() => {
         router.push(`/dashboard/clinical/laboratory/${data.id}`);
     }, [router, data.id]);
 
     return (
-        <Card className={`relative flex flex-col overflow-hidden shadow-md bg-white rounded-lg pt-0 border-2 border-l-8 ${borderCardClass}`}>
+        <Card className={`relative flex flex-col gap-0 overflow-hidden rounded-lg border border-l-4 py-0 ${borderCardClass}`}>
             <div className="absolute right-3 top-3 z-10">
-                <Badge className={`gap-1 text-xs text-white shadow-sm ${badgeColor}`}>
+                <Badge variant={tone} className="gap-1 text-xs">
                     <Tags className="h-3.5 w-3.5" />
                     {data.badgeLabel}
                 </Badge>
@@ -90,7 +83,7 @@ export default function LaboratoryCard({ data }: { data: LaboratoryCardData }) {
 
             <CardContent className="p-4 flex flex-col gap-4 pb-0">
                 <div className="flex items-start gap-4">
-                    <div className={`w-16 h-16 rounded-full border-2 bg-white flex items-center justify-center ${borderIconClass}`}>
+                    <div className={`w-16 h-16 rounded-full border-2 bg-card flex items-center justify-center ${borderIconClass}`}>
                         {SpeciesIcon ? (
                             <SpeciesIcon className={`h-8 w-8 ${iconSpeciesClass}`} />
                         ) : (
@@ -99,18 +92,18 @@ export default function LaboratoryCard({ data }: { data: LaboratoryCardData }) {
                     </div>
 
                     <div className="flex-grow min-w-0">
-                        <h4 className="text-xl font-bold text-gray-800 truncate">{data.animalName}</h4>
+                        <h4 className="text-xl font-bold text-foreground truncate">{data.animalName}</h4>
 
-                        <div className="flex items-center gap-2 text-gray-600 mt-1 text-sm">
-                            {SpeciesIcon && <SpeciesIcon className="h-5 w-5 text-gray-500 shrink-0" />}
+                        <div className="flex items-center gap-2 text-muted-foreground mt-1 text-sm">
+                            {SpeciesIcon && <SpeciesIcon className="h-5 w-5 text-muted-foreground shrink-0" />}
                             <span className="truncate">
                                 {(speciesDetails ? speciesDetails.label : (data.species ?? "—"))} — {data.breed || "Mestizo"}
                             </span>
                         </div>
 
                         {data.laboratoryName ? (
-                            <div className="flex items-center gap-2 text-gray-600 mt-1 text-sm">
-                                <MapPin className="h-5 w-5 text-gray-500" />
+                            <div className="flex items-center gap-2 text-muted-foreground mt-1 text-sm">
+                                <MapPin className="h-5 w-5 text-muted-foreground" />
                                 <span className="truncate">Lab: {data.laboratoryName}</span>
                             </div>
                         ) : (
@@ -121,29 +114,29 @@ export default function LaboratoryCard({ data }: { data: LaboratoryCardData }) {
 
                 <div className="space-y-2 ml-2">
                     <div className="flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-gray-500" />
-                        <p className="text-sm font-semibold text-gray-600">
+                        <Clock className="h-5 w-5 text-muted-foreground" />
+                        <p className="text-sm font-semibold text-muted-foreground">
                             Creado hace:
-                            <span className="text-sm font-normal text-gray-500"> {timeInStatus}</span>
+                            <span className="text-sm font-normal text-muted-foreground"> {timeInStatus}</span>
                         </p>
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <Stethoscope className="h-5 w-5 text-gray-500" />
-                        <p className="text-sm font-semibold text-gray-600">
+                        <Stethoscope className="h-5 w-5 text-muted-foreground" />
+                        <p className="text-sm font-semibold text-muted-foreground">
                             Solicitante:
-                            <span className="text-sm font-normal text-gray-500"> {data.requestingEmployeeFullName || "No asignado"}</span>
+                            <span className="text-sm font-normal text-muted-foreground"> {data.requestingEmployeeFullName || "No asignado"}</span>
                         </p>
                     </div>
                 </div>
 
-                <div className="text-sm my-2 p-2 bg-gray-50 rounded-md truncate flex items-center gap-2" title={data.clinicalNotes ?? ""}>
+                <div className="text-sm my-2 p-2 bg-muted rounded-md truncate flex items-center gap-2" title={data.clinicalNotes ?? ""}>
                     <ClipboardList className={`h-5 w-5 text-primary`} />
                     {data.clinicalNotes ?? "Sin notas clínicas"}
                 </div>
 
-                <div className="mt-auto pt-4 border-t border-gray-100">
-                    <Button variant="outline" size="sm" className="w-full text-gray-700 font-semibold h-9" onClick={handleOpen}>
+                <div className="mt-auto pt-4 border-t border-border">
+                    <Button variant="outline" size="sm" className="w-full text-muted-foreground font-semibold h-9" onClick={handleOpen}>
                         Ver solicitud
                         <MoveRight className="h-3.5 w-3.5 ml-2" />
                     </Button>

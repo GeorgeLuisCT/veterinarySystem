@@ -63,7 +63,7 @@ export function UserDetail({ userId }: Props) {
   return (
     <ScrollArea className="max-h-[70vh] pr-3">
       <div className="space-y-6">
-        <div className="rounded-2xl border bg-card p-4 shadow-sm space-y-4">
+        <div className="rounded-lg border bg-card p-4 shadow-sm space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Usuario</p>
@@ -77,7 +77,7 @@ export function UserDetail({ userId }: Props) {
               </p>
               <Badge
                 variant={data.active ? "outline" : "secondary"}
-                className={`mt-1 ${data.active ? "text-emerald-700" : ""}`}
+                className={`mt-1 ${data.active ? "text-success-strong" : ""}`}
               >
                 {data.active ? "Habilitado" : "Suspendido"}
               </Badge>
@@ -96,7 +96,7 @@ export function UserDetail({ userId }: Props) {
           </div>
         </div>
 
-        <div className="rounded-2xl border bg-card p-4 shadow-sm space-y-3">
+        <div className="rounded-lg border bg-card p-4 shadow-sm space-y-3">
           <div className="flex items-center gap-2 font-semibold text-lg">
             <UserRound className="h-5 w-5 text-muted-foreground" />
             Información del empleado
@@ -123,14 +123,14 @@ export function UserDetail({ userId }: Props) {
           </div>
         </div>
 
-        <div className="rounded-2xl border bg-card p-4 shadow-sm">
+        <div className="rounded-lg border bg-card p-4 shadow-sm">
           <p className="mb-3 text-sm font-medium text-muted-foreground">Sucursales asignadas</p>
           {data.branches.length === 0 ? (
             <p className="text-sm text-muted-foreground">No tiene sucursales disponibles.</p>
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {data.branches.map((branch) => (
-                <div key={branch.id} className="rounded-xl border px-4 py-2">
+                <div key={branch.id} className="rounded-lg border px-4 py-2">
                   <p className="font-semibold">{branch.name}</p>
                   <p className="text-xs text-muted-foreground">{branch.location}</p>
                 </div>

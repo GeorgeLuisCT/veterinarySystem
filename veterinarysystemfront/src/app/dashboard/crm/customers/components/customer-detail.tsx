@@ -40,10 +40,10 @@ export function CustomerDetail({ customerId, onClose }: CustomerDetailProps) {
   }
 
   return (
-    <div className="w-full border rounded-xl p-4 space-y-5 text-sm">
+    <div className="w-full border rounded-lg p-4 space-y-5 text-sm">
       {onClose && (
         <div className="flex justify-end">
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button onClick={onClose} className="text-muted-foreground hover:text-muted-foreground">
             ✕
           </button>
         </div>

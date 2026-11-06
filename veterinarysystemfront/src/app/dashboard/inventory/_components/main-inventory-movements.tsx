@@ -34,11 +34,11 @@ const toBackendDate = (date?: Date) => (date ? format(date, "yyyy-MM-dd") : unde
 const typeBadgeClass = (t?: string) => {
   switch (t) {
     case "TRANSFER":
-      return "bg-blue-50 text-blue-700 border-blue-200";
+      return "bg-info-soft text-info-strong border-blue-200";
     case "ADJUSTMENT":
-      return "bg-amber-50 text-amber-700 border-amber-200";
+      return "bg-warning-soft text-warning-strong border-amber-200";
     default:
-      return "bg-zinc-50 text-zinc-700 border-zinc-200";
+      return "bg-muted text-muted-foreground border-border";
   }
 };
 
@@ -70,7 +70,7 @@ export default function MainInventoryMovements() {
         header: "Fecha",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <CalendarDays className="h-3.5 w-3.5 text-zinc-500" />
+            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="truncate">
               {format(new Date(row.original.date), DATE_TIME_DISPLAY_FORMAT)}
             </span>
@@ -82,7 +82,7 @@ export default function MainInventoryMovements() {
         header: "Tipo",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <Tag className="h-3.5 w-3.5 text-zinc-500" />
+            <Tag className="h-3.5 w-3.5 text-muted-foreground" />
             <Badge
               variant="outline"
               className={`font-medium rounded-full border ${typeBadgeClass(row.original.type)}`}
@@ -103,7 +103,7 @@ export default function MainInventoryMovements() {
             header: "Sucursal",
             cell: ({ row }) => (
               <div className="flex items-center gap-2">
-                <Building2 className="h-3.5 w-3.5 text-zinc-500" />
+                <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
                 <Badge variant="secondary" className="rounded-full">
                   {row.original.sourceBranchName ?? "—"}
                 </Badge>
@@ -118,7 +118,7 @@ export default function MainInventoryMovements() {
         cell: ({ row }) => (
           <div className="flex items-center gap-2 min-w-[220px]">
             <span className="truncate text-sm">{row.original.sourceBranchName ?? "—"}</span>
-            <ArrowRight className="h-3.5 w-3.5 text-zinc-500" />
+            <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="truncate text-sm">{row.original.targetBranchName ?? "—"}</span>
           </div>
         ),
@@ -128,7 +128,7 @@ export default function MainInventoryMovements() {
         header: "Registrado por",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <UserRound className="h-3.5 w-3.5 text-zinc-500" />
+            <UserRound className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="truncate">{row.original.employeeName ?? "—"}</span>
           </div>
         ),
@@ -138,7 +138,7 @@ export default function MainInventoryMovements() {
         header: "Descripción",
         cell: ({ row }) => (
           <div className="flex items-center gap-2 max-w-[420px]">
-            <FileText className="h-3.5 w-3.5 text-zinc-500" />
+            <FileText className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="truncate">{row.original.description ?? "—"}</span>
           </div>
         ),
@@ -193,7 +193,7 @@ export default function MainInventoryMovements() {
     <div className="flex h-full flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Movimientos de inventario</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Movimientos de inventario</h1>
           <p className="text-sm text-muted-foreground">
             Gestiona y revisa los movimientos registrados en el inventario.
           </p>

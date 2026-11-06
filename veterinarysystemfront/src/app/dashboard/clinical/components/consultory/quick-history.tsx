@@ -53,7 +53,7 @@ export default function QuickHistory({ animalId, className }: { animalId: number
   return (
     <aside className={className}>
       <div className="sticky top-24">
-        <h3 className="font-semibold mb-3 text-gray-700">Historial Rápido</h3>
+        <h3 className="font-semibold mb-3 text-muted-foreground">Historial Rápido</h3>
 
         {loading && (
           <div className="space-y-3">
@@ -67,23 +67,23 @@ export default function QuickHistory({ animalId, className }: { animalId: number
         )}
 
         {error && !loading && (
-          <div className="flex items-start gap-2 text-sm text-red-600">
+          <div className="flex items-start gap-2 text-sm text-destructive">
             <AlertCircle className="h-4 w-4" />
             <span>{error}</span>
           </div>
         )}
 
         {!loading && !error && (
-          <div className="space-y-4 border-l-2 pl-4 border-slate-200">
+          <div className="space-y-4 border-l-2 pl-4 border-border">
             {items.length === 0 && (
               <p className="text-sm text-muted-foreground">Sin eventos aún.</p>
             )}
             {items.map((event, index) => (
               <div key={`${event.occurredAt}-${index}`} className="relative">
-                <div className="absolute -left-[22.5px] top-1 h-3 w-3 rounded-full bg-blue-500 border-2 border-white" />
-                <p className="text-xs text-gray-500">{formatDate(event.occurredAt)}</p>
+                <div className="absolute -left-[22.5px] top-1 h-3 w-3 rounded-full bg-primary border-2 border-background" />
+                <p className="text-xs text-muted-foreground">{formatDate(event.occurredAt)}</p>
                 <p className="font-semibold text-sm">{MedicalRecordCategoryLabels[event.category as MedicalRecordCategory] ?? event.category}</p>
-                <p className="text-sm text-gray-600">{event.title}</p>
+                <p className="text-sm text-muted-foreground">{event.title}</p>
               </div>
             ))}
           </div>

@@ -94,7 +94,7 @@ export default function ClinicalServicesMain() {
             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
               <span
                 className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs
-                ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}
+                ${isActive ? "bg-success-soft text-success-strong" : "bg-danger-soft text-danger-strong"}`}
                 title={selected ? selected.branchName : "Sin estado para la sucursal seleccionada"}
               >
                 {selected ? (isActive ? "Activo" : "Inactivo") : "—"}

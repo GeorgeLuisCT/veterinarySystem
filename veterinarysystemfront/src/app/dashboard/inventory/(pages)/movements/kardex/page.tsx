@@ -22,6 +22,7 @@ import type { ProductBatchSearchResponse } from "../../../_types/product-batch-r
 import { KardexMovementTypeLabels } from "../../../_enums/kardex-movement-type";
 import KardexFiltersBar from "../../../_components/movements/kardex-filters";
 import DashboardLayoutSection from "@/app/dashboard/dashboard-layout-section";
+import { PageContainer } from "@/components/page/page-container";
 
 const DATE_TIME_FORMAT = "dd/MM/yyyy HH:mm";
 const DATE_FORMAT = "dd/MM/yyyy";
@@ -35,7 +36,10 @@ type KardexActiveFilters = {
   endDate?: string;
 };
 
-const makeEmptyPage = (pageIndex: number, pageSize: number): PaginatedResponse<KardexMovementResponse> => ({
+const makeEmptyPage = (
+  pageIndex: number,
+  pageSize: number
+): PaginatedResponse<KardexMovementResponse> => ({
   content: [],
   currentPage: pageIndex,
   pageSize,
@@ -178,8 +182,10 @@ export default function KardexPage() {
         header: "Fecha",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <CalendarDays className="h-3.5 w-3.5 text-zinc-500" />
-            <span className="truncate">{format(new Date(row.original.date), DATE_TIME_FORMAT)}</span>
+            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="truncate">
+              {format(new Date(row.original.date), DATE_TIME_FORMAT)}
+            </span>
           </div>
         ),
       },
@@ -188,7 +194,7 @@ export default function KardexPage() {
         header: "Tipo",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <Tag className="h-3.5 w-3.5 text-zinc-500" />
+            <Tag className="h-3.5 w-3.5 text-muted-foreground" />
             <Badge variant="outline">{KardexMovementTypeLabels[row.original.type]}</Badge>
           </div>
         ),
@@ -198,7 +204,7 @@ export default function KardexPage() {
         header: "Cantidad",
         cell: ({ row }) => (
           <div className="flex items-center gap-2 font-medium">
-            <Package className="h-3.5 w-3.5 text-zinc-500" />
+            <Package className="h-3.5 w-3.5 text-muted-foreground" />
             {row.original.quantity}
           </div>
         ),
@@ -208,7 +214,7 @@ export default function KardexPage() {
         header: "Stock Resultante",
         cell: ({ row }) => (
           <div className="flex items-center gap-2 font-medium">
-            <Boxes className="h-3.5 w-3.5 text-zinc-500" />
+            <Boxes className="h-3.5 w-3.5 text-muted-foreground" />
             {row.original.resultingStock}
           </div>
         ),
@@ -227,7 +233,7 @@ export default function KardexPage() {
         header: "Origen",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <ClipboardList className="h-3.5 w-3.5 text-zinc-500" />
+            <ClipboardList className="h-3.5 w-3.5 text-muted-foreground" />
             <div className="flex flex-col">
               <span className="text-sm font-medium">{row.original.originType}</span>
               <span className="text-xs text-muted-foreground">#{row.original.originId}</span>
@@ -241,74 +247,76 @@ export default function KardexPage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="h-full bg-gray-50 p-4 sm:p-6">
-        <div className="mx-auto h-full max-w-8xl">
-          <div className="flex h-full flex-col gap-5">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-semibold text-foreground">Historial de Kardex</h1>
-                <p className="text-sm text-muted-foreground">Consulta el historial detallado de movimientos por producto.</p>
-              </div>
-            </div>
-
-            <KardexFiltersBar
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              onReset={resetFilters}
-              onRefresh={fetchKardex}
-              loading={loading}
-              // producto
-              productSelected={selectedProduct}
-              productOnSelect={(option) => {
-                setSelectedProduct(option);
-                setProductOptions([]);
-              }}
-              productPlaceholder="Buscar producto"
-              productSearch={searchProduct}
-              productCancel={cancelProductSearch}
-              productOptions={productOptions}
-              productLoading={productLoading}
-              productGetOptionLabel={(option) => option.name}
-              productGetOptionDescription={(option) => (option.sku ? `SKU: ${option.sku}` : undefined)}
-              // lote
-              batchSelected={selectedBatch}
-              batchOnSelect={(option) => {
-                setSelectedBatch(option);
-                setBatchOptions([]);
-              }}
-              batchPlaceholder="Buscar lote"
-              batchSearch={searchBatch}
-              batchCancel={cancelBatchSearch}
-              batchOptions={batchOptions}
-              batchLoading={batchLoading}
-              batchGetOptionLabel={(option) => option.batchNumber}
-              batchGetOptionDescription={(option) =>
-                option.expirationDate
-                  ? `Vence: ${format(new Date(`${option.expirationDate}T00:00:00`), DATE_FORMAT)}`
-                  : "Sin vencimiento"
-              }
-              batchDisabled={!selectedProduct}
-            />
-
-            <div className="flex-1">
-              <DataTable<KardexMovementResponse>
-                pageData={safePageData}
-                columns={columns}
-                pageIndex={pageIndex}
-                pageSize={pageSize}
-                onPageIndexChange={handlePageIndexChange}
-                onPageSizeChange={handlePageSizeChange}
-                loading={loading}
-                emptyState={
-                  activeFilters
-                    ? "Sin movimientos con los filtros seleccionados."
-                    : "Configura los filtros para visualizar el kardex."
-                }
-              />
+      <PageContainer>
+        <div className="flex h-full flex-col gap-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">Historial de Kardex</h1>
+              <p className="text-sm text-muted-foreground">
+                Consulta el historial detallado de movimientos por producto.
+              </p>
             </div>
           </div>
+
+          <KardexFiltersBar
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+            onReset={resetFilters}
+            onRefresh={fetchKardex}
+            loading={loading}
+            // producto
+            productSelected={selectedProduct}
+            productOnSelect={(option) => {
+              setSelectedProduct(option);
+              setProductOptions([]);
+            }}
+            productPlaceholder="Buscar producto"
+            productSearch={searchProduct}
+            productCancel={cancelProductSearch}
+            productOptions={productOptions}
+            productLoading={productLoading}
+            productGetOptionLabel={(option) => option.name}
+            productGetOptionDescription={(option) =>
+              option.sku ? `SKU: ${option.sku}` : undefined
+            }
+            // lote
+            batchSelected={selectedBatch}
+            batchOnSelect={(option) => {
+              setSelectedBatch(option);
+              setBatchOptions([]);
+            }}
+            batchPlaceholder="Buscar lote"
+            batchSearch={searchBatch}
+            batchCancel={cancelBatchSearch}
+            batchOptions={batchOptions}
+            batchLoading={batchLoading}
+            batchGetOptionLabel={(option) => option.batchNumber}
+            batchGetOptionDescription={(option) =>
+              option.expirationDate
+                ? `Vence: ${format(new Date(`${option.expirationDate}T00:00:00`), DATE_FORMAT)}`
+                : "Sin vencimiento"
+            }
+            batchDisabled={!selectedProduct}
+          />
+
+          <div className="flex-1">
+            <DataTable<KardexMovementResponse>
+              pageData={safePageData}
+              columns={columns}
+              pageIndex={pageIndex}
+              pageSize={pageSize}
+              onPageIndexChange={handlePageIndexChange}
+              onPageSizeChange={handlePageSizeChange}
+              loading={loading}
+              emptyState={
+                activeFilters
+                  ? "Sin movimientos con los filtros seleccionados."
+                  : "Configura los filtros para visualizar el kardex."
+              }
+            />
+          </div>
         </div>
-      </div>
+      </PageContainer>
     </DashboardLayoutSection>
   );
 }

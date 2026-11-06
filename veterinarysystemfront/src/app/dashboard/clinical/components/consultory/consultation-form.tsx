@@ -615,7 +615,7 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
                   <p className="text-sm text-muted-foreground">Sin registros</p>
                 ) : (
                   entries.map((e) => (
-                    <div key={e.id} className="rounded-xl border p-3 hover:bg-muted/40 transition-colors">
+                    <div key={e.id} className="rounded-lg border p-3 hover:bg-muted/40 transition-colors">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-2">
                           <div className="grid h-8 w-8 place-items-center rounded-lg border">

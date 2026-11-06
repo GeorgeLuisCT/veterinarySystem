@@ -72,7 +72,7 @@ export function ManageCategorieProduct() {
         <div className="max-h-[500px] w-full overflow-auto border p-4 rounded-md">
             {isLoading ? (
                 <div className="flex justify-center items-center h-40">
-                    <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                 </div>
             ) : (
                 <ScrollArea>
@@ -105,7 +105,7 @@ export function ManageCategorieProduct() {
                                         </form>
                                     </Form>
                                 ) : (
-                                    <span className={`${!category.active ? "text-gray-500 line-through" : ""} pl-4`}>{category.name}</span>
+                                    <span className={`${!category.active ? "text-muted-foreground line-through" : ""} pl-4`}>{category.name}</span>
                                 )}
                                 <div className="flex space-x-2">
                                     {loadingIds.has(category.id) ? (

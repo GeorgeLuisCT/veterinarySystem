@@ -130,7 +130,7 @@ export function LaboratoryRequestModal({ id, onClose, onAdded }: CommonProps) {
 
     return (
         <Dialog open onOpenChange={onClose}>
-            <DialogContent className="w-[min(92vw,900px)] max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-2xl sm:max-w-3xl">
+            <DialogContent className="w-[min(92vw,900px)] max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-lg sm:max-w-3xl">
                 <DialogHeader className="space-y-1">
                     <DialogTitle>Registrar solicitud de laboratorio</DialogTitle>
                     <p className="text-sm text-muted-foreground">
@@ -163,7 +163,7 @@ export function LaboratoryRequestModal({ id, onClose, onAdded }: CommonProps) {
                         />
 
                         {/* Ítems / Pruebas */}
-                        <fieldset className="rounded-xl border p-4">
+                        <fieldset className="rounded-lg border p-4">
                             <legend className="px-1 text-sm font-medium">Pruebas</legend>
 
                             {!hasLab ? (
@@ -271,7 +271,7 @@ export function LaboratoryRequestModal({ id, onClose, onAdded }: CommonProps) {
                                                             <Button
                                                                 type="button"
                                                                 variant="outline"
-                                                                className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 shrink-0"
+                                                                className="gap-1 text-destructive hover:text-destructive hover:bg-red-50 shrink-0"
                                                                 onClick={() => remove(index)}
                                                             >
                                                                 <Trash2 className="h-4 w-4" />

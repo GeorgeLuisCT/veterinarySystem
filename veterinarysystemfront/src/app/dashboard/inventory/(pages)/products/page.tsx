@@ -26,6 +26,8 @@ import MainInvetory from "../../_components/main-invetory";
 import { ProductForm } from "../../_components/product-form";
 import { CategoryForm } from "../../_components/category-form";
 import { ManageCategorieProduct } from "../../_components/manage-categorie-product";
+import { PageContainer } from "@/components/page/page-container";
+import { PageHeader } from "@/components/page/page-header";
 
 export default function InventoryPage() {
   const { userInfo } = useUser();
@@ -39,48 +41,45 @@ export default function InventoryPage() {
   return (
     <ProductProvider>
       <DashboardLayoutSection>
-        <div className="h-full bg-gray-50 p-4 sm:p-6">
-          <div className="mx-auto flex h-full max-w-8xl flex-col">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">Inventario</h1>
-                <p className="mt-1 text-gray-600">
-                  Gestiona productos, categorías y disponibilidad por sucursal.
-                </p>
-              </div>
+        <PageContainer>
+          <PageHeader
+            title="Inventario"
+            description="Gestiona productos, categorías y disponibilidad por sucursal."
+            actions={
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button onClick={() => setOpenProduct(true)}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Registrar producto
+                  </Button>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <Button onClick={() => setOpenProduct(true)}>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Registrar producto
-                </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="secondary">
+                        <List className="mr-2 h-4 w-4" />
+                        Categorías
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem onSelect={() => setOpenCategory(true)}>
+                          <FolderPlus className="mr-2 h-4 w-4" />
+                          Nueva categoría
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setOpenManage(true)}>
+                          <Settings className="mr-2 h-4 w-4" />
+                          Administrar categorías
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </>
+            }
+          />
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="secondary">
-                      <List className="mr-2 h-4 w-4" />
-                      Categorías
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56">
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem onSelect={() => setOpenCategory(true)}>
-                        <FolderPlus className="mr-2 h-4 w-4" />
-                        Nueva categoría
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => setOpenManage(true)}>
-                        <Settings className="mr-2 h-4 w-4" />
-                        Administrar categorías
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-
-            <MainInvetory branchId={branchId} />
-          </div>
-        </div>
+          <MainInvetory branchId={branchId} />
+        </PageContainer>
       </DashboardLayoutSection>
 
       <ProductForm open={openProduct} setOpen={setOpenProduct} />

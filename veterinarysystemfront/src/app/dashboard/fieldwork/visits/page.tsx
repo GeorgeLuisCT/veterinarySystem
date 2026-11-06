@@ -19,6 +19,8 @@ import VisitFilters, { VisitFilterValue } from "../components/visits/visit-filte
 import VisitCard from "../components/visits/visit-card";
 import { useUser } from "@/context/user-context";
 import { RefreshCcw } from "lucide-react";
+import { PageContainer } from "@/components/page/page-container";
+import { PageHeader } from "@/components/page/page-header";
 
 const formatLocalDate = (d: Date): string => {
   const y = d.getFullYear();
@@ -81,7 +83,8 @@ export default function FieldworkVisitsPage() {
     q: searchParams.get("q") ?? "",
   }));
 
-  const [pageData, setPageData] = React.useState<PaginatedResponse<FieldVisitSummaryResponse> | null>(null);
+  const [pageData, setPageData] =
+    React.useState<PaginatedResponse<FieldVisitSummaryResponse> | null>(null);
   const [pageIndex, setPageIndex] = React.useState<number>(Number(searchParams.get("page") ?? 0));
   const [pageSize, setPageSize] = React.useState<number>(Number(searchParams.get("size") ?? 10));
   const [loading, setLoading] = React.useState(false);
@@ -95,10 +98,14 @@ export default function FieldworkVisitsPage() {
       if (nextFilters.status === "ALL") params.delete("status");
       else params.set("status", String(nextFilters.status));
 
-      const s = nextFilters.startDate instanceof Date ? formatLocalDate(nextFilters.startDate) : undefined;
-      const e = nextFilters.endDate instanceof Date ? formatLocalDate(nextFilters.endDate) : undefined;
-      if (s) params.set("startDate", s); else params.delete("startDate");
-      if (e) params.set("endDate", e); else params.delete("endDate");
+      const s =
+        nextFilters.startDate instanceof Date ? formatLocalDate(nextFilters.startDate) : undefined;
+      const e =
+        nextFilters.endDate instanceof Date ? formatLocalDate(nextFilters.endDate) : undefined;
+      if (s) params.set("startDate", s);
+      else params.delete("startDate");
+      if (e) params.set("endDate", e);
+      else params.delete("endDate");
 
       if (nextFilters.q?.trim()) params.set("q", nextFilters.q.trim());
       else params.delete("q");
@@ -176,7 +183,10 @@ export default function FieldworkVisitsPage() {
         const detail = await VisitService.get(visitId);
         const payload: UpdateVisitRequest = mapVisitDetailToUpdate(detail, nextStatus);
         await VisitService.update(visitId, payload);
-        toast({ title: "Visita actualizada", description: `La visita cambió a estado ${nextStatus}.` });
+        toast({
+          title: "Visita actualizada",
+          description: `La visita cambió a estado ${nextStatus}.`,
+        });
         fetchVisits();
       } catch (error) {
         toast({
@@ -191,52 +201,52 @@ export default function FieldworkVisitsPage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="h-full bg-gray-50 p-4 sm:p-6">
-        <div className="mx-auto flex h-full max-w-8xl flex-col">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Visitas de campo</h1>
-              <p className="mt-1 text-gray-600">Visualiza y gestiona tus visitas programadas y en curso.</p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => fetchVisits()} className="gap-2">
-                <RefreshCcw className="h-4 w-4" />
-                Actualizar
-              </Button>
-            </div>
-          </div>
+      <PageContainer>
+        <PageHeader
+          title="Visitas de campo"
+          description="Visualiza y gestiona tus visitas programadas y en curso."
+          actions={
+            <>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => fetchVisits()} className="gap-2">
+                  <RefreshCcw className="h-4 w-4" />
+                  Actualizar
+                </Button>
+              </div>
+            </>
+          }
+        />
 
-          <PaginatedCardList<FieldVisitSummaryResponse>
-            pageData={pageData}
-            pageIndex={pageIndex}
-            pageSize={pageSize}
-            onPageIndexChange={(p) => setPageIndex(p)}
-            onPageSizeChange={handlePageSizeChange}
-            loading={loading}
-            headerSlotLeft={
-              <VisitFilters
-                value={filters}
-                onChange={(next) => {
-                  setFilters(next);
-                  setPageIndex(0);
-                }}
-              />
-            }
-            renderCard={(visit) => (
-              <VisitCard
-                visit={visit}
-                onView={navigateToDetail}
-                onStart={() => updateVisitStatus(visit.id, FieldVisitStatus.IN_PROGRESS)}
-                onComplete={() => updateVisitStatus(visit.id, FieldVisitStatus.COMPLETED)}
-              />
-            )}
-            getItemKey={(visit) => visit.id}
-            emptyState={"No hay visitas para los filtros seleccionados."}
-            onCardClick={navigateToDetail}
-            gridClassName="grid grid-cols-1 gap-2"
-          />
-        </div>
-      </div>
+        <PaginatedCardList<FieldVisitSummaryResponse>
+          pageData={pageData}
+          pageIndex={pageIndex}
+          pageSize={pageSize}
+          onPageIndexChange={(p) => setPageIndex(p)}
+          onPageSizeChange={handlePageSizeChange}
+          loading={loading}
+          headerSlotLeft={
+            <VisitFilters
+              value={filters}
+              onChange={(next) => {
+                setFilters(next);
+                setPageIndex(0);
+              }}
+            />
+          }
+          renderCard={(visit) => (
+            <VisitCard
+              visit={visit}
+              onView={navigateToDetail}
+              onStart={() => updateVisitStatus(visit.id, FieldVisitStatus.IN_PROGRESS)}
+              onComplete={() => updateVisitStatus(visit.id, FieldVisitStatus.COMPLETED)}
+            />
+          )}
+          getItemKey={(visit) => visit.id}
+          emptyState={"No hay visitas para los filtros seleccionados."}
+          onCardClick={navigateToDetail}
+          gridClassName="grid grid-cols-1 gap-2"
+        />
+      </PageContainer>
     </DashboardLayoutSection>
   );
 }

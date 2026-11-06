@@ -49,7 +49,7 @@ export default function AccountPayableDetailCard({ detail, loading, outstanding,
               </div>
               <div>
                 <p className="text-muted-foreground">Pendiente</p>
-                <p className="font-semibold text-orange-600">{PEN.format(outstanding)}</p>
+                <p className="font-semibold text-warning-strong">{PEN.format(outstanding)}</p>
               </div>
             </div>
             {detail.status !== AccountPayableStatus.PAID && (

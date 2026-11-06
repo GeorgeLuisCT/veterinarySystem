@@ -255,7 +255,7 @@ export default function DeriveHospitalizationModal({ open, onOpenChange, detail,
 
         {/* Cabecera de contexto (no inputs) */}
         <div className="mb-2 -mt-2">
-          <div className="rounded-xl border bg-muted/40 p-3">
+          <div className="rounded-lg border bg-muted/40 p-3">
             <div className="text-xs text-muted-foreground">Paciente</div>
             <div className="text-sm font-medium">
               {detail.summary.animalBasicResponse.animalName ?? "—"}
