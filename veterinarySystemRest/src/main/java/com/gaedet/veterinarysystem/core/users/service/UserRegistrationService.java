@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Set;
+import javax.persistence.EntityNotFoundException;
+import com.gaedet.veterinarysystem.exeption.BadRequestException;
 
 @Service
 public class UserRegistrationService {
@@ -41,11 +43,11 @@ public class UserRegistrationService {
     @Transactional
     public UserSummaryResponse registerUser(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username is already taken");
+            throw new BadRequestException("Username is already taken");
         }
 
         Employee employee = employeeRepository.findById(request.getEmployeeId())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Employee not found"));
 
         User user = new User();
         user.setUsername(request.getUsername());
@@ -56,7 +58,7 @@ public class UserRegistrationService {
         Set<Role> roles = new HashSet<>();
         for (RoleName roleName : request.getRoles()) {
             Role role = roleRepository.findByName(RoleName.valueOf(roleName.name()))
-                    .orElseThrow(() -> new RuntimeException("Role not found: " + roleName));
+                    .orElseThrow(() -> new EntityNotFoundException("Role not found: " + roleName));
             roles.add(role);
         }
         user.setRoles(roles);

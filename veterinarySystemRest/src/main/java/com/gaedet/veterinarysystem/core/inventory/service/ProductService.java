@@ -29,6 +29,7 @@ import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.persistence.EntityNotFoundException;
 
 @Service
 public class ProductService {
@@ -79,7 +80,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductResponse getProduct(Long id) {
         Product product = productRepository.findWithDetailsById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
 
         Map<Long, BigDecimal> totalStockData = kardexService.getStockForProducts(List.of(id), null);
         BigDecimal totalStockBaseUnit = totalStockData.getOrDefault(id, BigDecimal.ZERO);
@@ -98,7 +99,7 @@ public class ProductService {
         List<Product> products = productRepository.findAllWithDetailsByIdIn(ids);
 
         if (products.size() != ids.size()) {
-            throw new RuntimeException("Uno o más productos no fueron encontrados");
+            throw new BadRequestException("Uno o más productos no fueron encontrados");
         }
 
         Map<Long, BigDecimal> totalStockData = kardexService.getStockForProducts(ids, null);
@@ -208,10 +209,10 @@ public class ProductService {
     @Transactional
     public ProductSummaryResponse updateProduct(ProductUpdateRequest request) {
         Product product = productRepository.findById(request.getId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
 
         CategoryProduct category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+                .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
 
         if (productRepository.existsBySkuAndIdNot(request.getSku(), request.getId())) {
             throw new BadRequestException("El SKU ya está en uso por otro producto");
@@ -230,14 +231,14 @@ public class ProductService {
     @Transactional
     public void softDeleteProduct(Long productId, Long branchId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
 
         if (branchId == null || branchId == 0) {
 
             for (ProductBranch stock : product.getBranchStocks()) {
                 BigDecimal currentStock = kardexService.getCurrentStock(productId, stock.getBranch().getId());
                 if (currentStock.compareTo(BigDecimal.ZERO) > 0) {
-                    throw new RuntimeException("No se puede desactivar el producto. Tiene stock en la sucursal: " + stock.getBranch().getName());
+                    throw new BadRequestException("No se puede desactivar el producto. Tiene stock en la sucursal: " + stock.getBranch().getName());
                 }
                 stock.setActive(false);
             }
@@ -246,11 +247,11 @@ public class ProductService {
             ProductBranch branchStock = product.getBranchStocks().stream()
                     .filter(stock -> stock.getBranch().getId().equals(branchId))
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Sucursal no encontrada para este producto."));
+                    .orElseThrow(() -> new EntityNotFoundException("Sucursal no encontrada para este producto."));
 
             BigDecimal currentStock = kardexService.getCurrentStock(productId, branchId);
             if (currentStock.compareTo(BigDecimal.ZERO) > 0) {
-                throw new RuntimeException("No se puede desactivar el producto porque tiene stock disponible en la sucursal.");
+                throw new BadRequestException("No se puede desactivar el producto porque tiene stock disponible en la sucursal.");
             }
 
             branchStock.setActive(false);
@@ -260,12 +261,12 @@ public class ProductService {
     @Transactional
     public void hardDeleteProduct(Long productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
 
         for (ProductBranch stock : product.getBranchStocks()) {
             BigDecimal currentStock = kardexService.getCurrentStock(productId, stock.getBranch().getId());
             if (currentStock.compareTo(BigDecimal.ZERO) > 0) {
-                throw new RuntimeException("No se puede eliminar el producto. Tiene stock en la sucursal: " + stock.getBranch().getName());
+                throw new BadRequestException("No se puede eliminar el producto. Tiene stock en la sucursal: " + stock.getBranch().getName());
             }
         }
 
@@ -275,7 +276,7 @@ public class ProductService {
     @Transactional
     public ProductSummaryResponse restoreProduct(Long productId, Long branchId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
 
         if (branchId == null || branchId == 0) {
             product.getBranchStocks().forEach(stock -> stock.setActive(true));
@@ -283,7 +284,7 @@ public class ProductService {
             ProductBranch branchStock = product.getBranchStocks().stream()
                     .filter(stock -> stock.getBranch().getId().equals(branchId))
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Sucursal no encontrada para este producto."));
+                    .orElseThrow(() -> new EntityNotFoundException("Sucursal no encontrada para este producto."));
 
             branchStock.setActive(true);
         }

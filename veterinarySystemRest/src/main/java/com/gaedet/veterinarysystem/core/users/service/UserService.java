@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.stream.Collectors;
+import javax.persistence.EntityNotFoundException;
 
 @Service
 public class UserService {
@@ -34,7 +35,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserInfoResponse getUserInfo(Long userId, Long branchId) {
         User user = userRepository.findAuthBundleById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         Employee employee = user.getEmployee();
 
@@ -71,7 +72,7 @@ public class UserService {
                     .map(EmployeeBranch::getBranch)
                     .filter(b -> b.getId().equals(branchId))
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Sucursal no encontrada para este usuario"));
+                    .orElseThrow(() -> new EntityNotFoundException("Sucursal no encontrada para este usuario"));
 
             selected = new BranchResponse(selectedBranch.getId(), selectedBranch.getName(), selectedBranch.getLocation());
         }
@@ -83,7 +84,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserDetailResponse getUserDetail(Long userId) {
         User user = userRepository.findAuthBundleById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         Employee employee = user.getEmployee();
 
@@ -133,7 +134,7 @@ public class UserService {
     @Transactional
     public UserSummaryResponse updateUserStatus(Long userId, boolean active) {
         User user = userRepository.findAuthBundleById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         user.setActive(active);
         User saved = userRepository.save(user);
@@ -143,7 +144,7 @@ public class UserService {
     @Transactional
     public void deleteUser(Long userId) {
         User user = userRepository.findAuthBundleById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         Employee employee = user.getEmployee();
         boolean hasActiveAssignments = employee != null &&

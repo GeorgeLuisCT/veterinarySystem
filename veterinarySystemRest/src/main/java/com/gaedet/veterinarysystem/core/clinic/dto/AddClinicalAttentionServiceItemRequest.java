@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
+import javax.validation.Valid;
 
 @Getter
 @Builder
@@ -26,5 +27,6 @@ public class AddClinicalAttentionServiceItemRequest {
 
     private String notes;
 
+    @Valid
     private List<AddClinicalServiceProductRequest> products;
 }

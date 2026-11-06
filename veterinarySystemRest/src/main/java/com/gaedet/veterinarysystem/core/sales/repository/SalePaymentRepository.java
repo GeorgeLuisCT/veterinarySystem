@@ -17,6 +17,7 @@ public interface SalePaymentRepository extends JpaRepository<SalePayment, Long> 
             SELECT sp.paymentMethod, SUM(sp.amountPaid)
             FROM SalePayment sp
             WHERE sp.cashSession.id = :cashSessionId
+              AND sp.sale.status = com.gaedet.veterinarysystem.core.sales.enums.SaleStatus.COMPLETED
             GROUP BY sp.paymentMethod
             """)
     List<Object[]> sumByCashSessionGrouped(@Param("cashSessionId") Long cashSessionId);
@@ -33,7 +34,21 @@ public interface SalePaymentRepository extends JpaRepository<SalePayment, Long> 
             @Param("end") LocalDateTime end
     );
 
-    List<SalePayment> findByCashSessionId(Long cashSessionId);
+    /** Pagos de la sesión que cuentan para la caja: solo ventas COMPLETADAS (no borradores ni anuladas). */
+    @Query("""
+            SELECT sp FROM SalePayment sp
+            WHERE sp.cashSession.id = :cashSessionId
+              AND sp.sale.status = com.gaedet.veterinarysystem.core.sales.enums.SaleStatus.COMPLETED
+            """)
+    List<SalePayment> findCompletedByCashSessionId(@Param("cashSessionId") Long cashSessionId);
+
+    /** Pagos que pertenecen a sesiones ya cerradas (impide anular ventas cuyo dinero ya se transfirió). */
+    @Query("""
+            SELECT COUNT(sp) FROM SalePayment sp
+            WHERE sp.sale.id = :saleId
+              AND sp.cashSession.status = com.gaedet.veterinarysystem.core.cashbox.enums.CashSessionStatus.CLOSED
+            """)
+    long countPaymentsInClosedSessions(@Param("saleId") Long saleId);
 
     @Query("SELECT p FROM SalePayment p " +
             "JOIN FETCH p.sale s " +

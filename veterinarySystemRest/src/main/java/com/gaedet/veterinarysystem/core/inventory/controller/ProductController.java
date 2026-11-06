@@ -23,7 +23,7 @@ import java.util.Map;
 public class ProductController {
     private final ProductService productService;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'WAREHOUSE')")
     @PostMapping("/create")
     public ResponseEntity<ProductSummaryResponse> createProduct(@Valid @RequestBody ProductCreateRequest request) {
         return ResponseEntity.ok(productService.createProduct(request));
@@ -66,13 +66,13 @@ public class ProductController {
         return ResponseEntity.ok(productService.searchProductsByName(name, branchId));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'WAREHOUSE')")
     @PutMapping("/update")
     public ResponseEntity<ProductSummaryResponse> updateProduct(@RequestBody @Valid ProductUpdateRequest request) {
         return ResponseEntity.ok(productService.updateProduct(request));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'WAREHOUSE')")
     @DeleteMapping("/soft-delete")
     public ResponseEntity<Map<String, String>> softDeleteProduct(@RequestParam Long id,
                                                                  @RequestParam(required = false) Long branchId) {
@@ -81,14 +81,14 @@ public class ProductController {
         return ResponseEntity.ok(Map.of("message", "Producto desavilitado correctamente"));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole(\'ADMIN\', \'MANAGER\')")
     @DeleteMapping("/hard-delete")
     public ResponseEntity<Map<String, String>> hardDeleteProduct(@RequestParam Long id) {
         productService.hardDeleteProduct(id);
         return ResponseEntity.ok(Map.of("message", "Producto eliminado permanentemente"));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'WAREHOUSE')")
     @PutMapping("/restore")
     public ResponseEntity<ProductSummaryResponse> activateProduct(@RequestParam Long id,
                                                                   @RequestParam(required = false) Long branchId) {

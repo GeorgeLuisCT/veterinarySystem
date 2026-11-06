@@ -10,6 +10,7 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
+import javax.validation.Valid;
 
 @Data
 @Builder
@@ -24,6 +25,7 @@ public class CloseCashSessionRequest {
     private String notes;
 
     @Builder.Default
+    @Valid
     private List<PaymentTransferAllocation> paymentTransfers = List.of();
 
     @Data

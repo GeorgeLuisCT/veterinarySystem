@@ -67,7 +67,7 @@ public class EmployeeController {
         return ResponseEntity.ok(Map.of("message", "Empleado desactivado correctamente"));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole(\'ADMIN\', \'MANAGER\')")
     @DeleteMapping("/hard-delete")
     public ResponseEntity<Map<String, String>> hardDeleteEmployee(@RequestParam Long id) {
         employeeService.hardDeleteEmployee(id);
@@ -81,7 +81,7 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.restoreEmployee(id, branchId));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPERVISOR', 'VETERINARIAN', 'CASHIER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPERVISOR', 'VETERINARIAN', 'ASSISTANT', 'CASHIER', 'RECEPTIONIST', 'GROOMER')")
     @GetMapping("/by-roles")
     public ResponseEntity<List<EmployeeSummaryResponse>> getEmployeesByRoles(
             @RequestParam List<RoleName> roles) {

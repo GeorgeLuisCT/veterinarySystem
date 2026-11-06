@@ -79,6 +79,9 @@ public class AccountPayableService {
 
     @Transactional
     public AccountPayableSummaryResponse create(CreateAccountPayableRequest request) {
+        if (request.getTotalAmount() == null || request.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException("El monto total de la cuenta por pagar debe ser mayor a cero");
+        }
         Supplier supplier = resolveSupplier(request.getSupplierId());
         AccountPayable payable = AccountPayable.builder()
                 .supplier(supplier)
@@ -101,7 +104,8 @@ public class AccountPayableService {
             throw new BadRequestException("Debe seleccionar una cuenta de tesorería");
         }
 
-        AccountPayable payable = accountPayableRepository.findById(accountPayableId)
+        // Bloqueo de fila: dos pagos simultáneos no pueden exceder la deuda
+        AccountPayable payable = accountPayableRepository.findByIdForUpdate(accountPayableId)
                 .orElseThrow(() -> new EntityNotFoundException("Cuenta por pagar no encontrada"));
 
         TreasuryAccount treasuryAccount = treasuryAccountRepository.findById(request.getTreasuryAccountId())
@@ -110,6 +114,17 @@ public class AccountPayableService {
         BigDecimal amount = request.getAmount().setScale(MONEY_SCALE, ROUNDING_MODE);
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BadRequestException("El monto debe ser mayor a cero");
+        }
+
+        if (payable.getStatus() == AccountPayableStatus.PAID) {
+            throw new BadRequestException("La cuenta por pagar ya está pagada en su totalidad");
+        }
+
+        // No se puede pagar más de lo adeudado: el dinero saldría de tesorería sin quedar aplicado a ninguna deuda
+        BigDecimal alreadyPaid = payable.getAmountPaid() == null ? BigDecimal.ZERO : payable.getAmountPaid();
+        BigDecimal outstanding = payable.getTotalAmount().subtract(alreadyPaid).setScale(MONEY_SCALE, ROUNDING_MODE);
+        if (amount.compareTo(outstanding) > 0) {
+            throw new BadRequestException("El pago (" + amount + ") excede el saldo pendiente (" + outstanding + ")");
         }
 
         AccountPayablePayment payment = AccountPayablePayment.builder()

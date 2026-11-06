@@ -28,10 +28,12 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .map(role -> new SimpleGrantedAuthority(role.getName().name()))
                 .toList();
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPassword(),
-                authorities
-        );
+        // Un usuario desactivado NO puede autenticarse (antes se ignoraba el estado).
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .authorities(authorities)
+                .disabled(!user.isActive())
+                .build();
     }
 }

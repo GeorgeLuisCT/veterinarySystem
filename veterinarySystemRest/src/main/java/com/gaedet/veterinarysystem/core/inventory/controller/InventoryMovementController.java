@@ -23,7 +23,7 @@ public class InventoryMovementController {
 
     private final InventoryMovementService movementService;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DEPOSIT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'WAREHOUSE')")
     @PostMapping("/purchase")
     public ResponseEntity<InventoryMovementResponse> createPurchase(
             @Valid @RequestBody PurchaseCreateRequest request,
@@ -32,7 +32,7 @@ public class InventoryMovementController {
         return ResponseEntity.ok(movementService.createPurchase(request, principal.getEmployeeId()));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'WAREHOUSE')")
     @PostMapping("/transfer")
     public ResponseEntity<InventoryMovementResponse> createTransfer(
             @Valid @RequestBody TransferCreateRequest request,
@@ -41,7 +41,7 @@ public class InventoryMovementController {
         return ResponseEntity.ok(movementService.createTransfer(request, principal.getEmployeeId()));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'WAREHOUSE')")
     @PostMapping("/adjustment")
     public ResponseEntity<InventoryMovementResponse> createAdjustment(
             @Valid @RequestBody AdjustmentCreateRequest request,

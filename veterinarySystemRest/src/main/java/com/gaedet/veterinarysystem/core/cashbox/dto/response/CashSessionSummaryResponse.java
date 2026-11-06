@@ -20,6 +20,7 @@ public class CashSessionSummaryResponse {
     LocalDateTime closedAt;
     BigDecimal openingAmount;
     BigDecimal totalSales;
+    BigDecimal totalCashSales;
     BigDecimal totalIncomeMovements;
     BigDecimal totalExpenseMovements;
     BigDecimal calculatedClosingAmount;

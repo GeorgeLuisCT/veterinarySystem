@@ -37,8 +37,22 @@ public class AccountMovementService {
             throw new BadRequestException("El monto del movimiento debe ser distinto de cero");
         }
 
-        TreasuryAccount account = treasuryAccountRepository.findById(treasuryAccountId)
+        // Bloqueo de fila: dos retiros simultáneos no pueden dejar la cuenta en negativo
+        TreasuryAccount account = treasuryAccountRepository.findByIdForUpdate(treasuryAccountId)
                 .orElseThrow(() -> new EntityNotFoundException("Cuenta de tesorería no encontrada"));
+
+        if (Boolean.FALSE.equals(account.getActive())) {
+            throw new BadRequestException("La cuenta de tesorería '" + account.getName() + "' está inactiva");
+        }
+
+        BigDecimal normalizedAmount = rawAmount.setScale(MONEY_SCALE, ROUNDING_MODE);
+        if (normalizedAmount.compareTo(BigDecimal.ZERO) < 0) {
+            BigDecimal balance = getCurrentBalance(treasuryAccountId);
+            if (balance.add(normalizedAmount).compareTo(BigDecimal.ZERO) < 0) {
+                throw new BadRequestException("Saldo insuficiente en '" + account.getName() + "': disponible "
+                        + balance + ", se intenta retirar " + normalizedAmount.abs());
+            }
+        }
 
         AccountMovement movement = AccountMovement.builder()
                 .treasuryAccount(account)
@@ -46,7 +60,7 @@ public class AccountMovementService {
                 .description(description)
                 .movementDate(movementDate)
                 .reference(reference)
-                .amount(rawAmount.setScale(MONEY_SCALE, ROUNDING_MODE))
+                .amount(normalizedAmount)
                 .build();
 
         return accountMovementRepository.save(movement);

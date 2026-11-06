@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.util.List;
+import javax.persistence.EntityNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +45,7 @@ public class CustomerService {
 
     public CustomerResponse getCustomer(Long id) {
         Customer customer = customerRepository.findWithDetailsById(id)
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Cliente no encontrado"));
         return customerMapper.toResponse(customer);
     }
 
@@ -77,10 +78,10 @@ public class CustomerService {
     @Transactional
     public CustomerSummaryResponse updateCustomer(CustomerUpdateRequest request) {
         Customer customer = customerRepository.findById(request.getId())
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Cliente no encontrado"));
 
         DocumentType documentType = documentTypeRepository.findById(request.getDocumentTypeId())
-                .orElseThrow(() -> new RuntimeException("Tipo de documento no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Tipo de documento no encontrado"));
 
         if (customerRepository.existsByDocumentNumberAndIdNot(request.getDocumentNumber(), request.getId())) {
             throw new BadRequestException("El número de documento ya está en uso por otro cliente");
@@ -96,7 +97,7 @@ public class CustomerService {
     @Transactional
     public void softDeleteCustomer(Long customerId) {
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Cliente no encontrado"));
 
         customer.setActive(false);
 
@@ -106,7 +107,7 @@ public class CustomerService {
     @Transactional
     public void hardDeleteCustomer(Long customerId) {
         if (!customerRepository.existsById(customerId)) {
-            throw new RuntimeException("Cliente no encontrado");
+            throw new EntityNotFoundException("Cliente no encontrado");
         }
         customerRepository.deleteById(customerId);
     }
@@ -114,7 +115,7 @@ public class CustomerService {
     @Transactional
     public CustomerSummaryResponse restoreCustomer(Long customerId) {
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Cliente no encontrado"));
 
         customer.setActive(true);
 

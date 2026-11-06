@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import javax.persistence.EntityNotFoundException;
 
 @Service
 public class SupplierService {
@@ -39,7 +40,7 @@ public class SupplierService {
 
     public SupplierResponse getSupplier(Long id) {
         Supplier supplier = supplierRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
         return SupplierMapper.toResponse(supplier);
     }
 
@@ -75,7 +76,7 @@ public class SupplierService {
     @Transactional
     public SupplierSummaryResponse updateSupplier(SupplierUpdateRequest request) {
         Supplier supplier = supplierRepository.findById(request.getId())
-                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
 
         if (supplierRepository.existsByEmailAndIdNot(request.getEmail(), request.getId())) {
             throw new BadRequestException("El correo electrónico ya está en uso por otro proveedor");
@@ -90,7 +91,7 @@ public class SupplierService {
     @Transactional
     public void softDeleteSupplier(Long supplierId) {
         Supplier supplier = supplierRepository.findById(supplierId)
-                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
 
         supplier.setActive(false);
         supplierRepository.save(supplier);
@@ -99,7 +100,7 @@ public class SupplierService {
     @Transactional
     public SupplierSummaryResponse restoreSupplier(Long supplierId) {
         Supplier supplier = supplierRepository.findById(supplierId)
-                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
 
         supplier.setActive(true);
         supplierRepository.save(supplier);
@@ -110,7 +111,7 @@ public class SupplierService {
     @Transactional
     public void hardDeleteSupplier(Long supplierId) {
         if (!supplierRepository.existsById(supplierId)) {
-            throw new RuntimeException("Proveedor no encontrado");
+            throw new EntityNotFoundException("Proveedor no encontrado");
         }
         supplierRepository.deleteById(supplierId);
     }

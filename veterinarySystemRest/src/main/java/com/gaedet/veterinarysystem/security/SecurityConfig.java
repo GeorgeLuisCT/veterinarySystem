@@ -5,6 +5,8 @@ import com.gaedet.veterinarysystem.core.users.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -21,7 +23,17 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
+// Activa @PreAuthorize en los controladores (antes estaban declarados pero NO se aplicaban)
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
+
+    private static final String ADMIN = RoleName.ROLE_ADMIN.name();
+    private static final String MANAGER = RoleName.ROLE_MANAGER.name();
+    private static final String CASHIER = RoleName.ROLE_CASHIER.name();
+    private static final String RECEPTIONIST = RoleName.ROLE_RECEPTIONIST.name();
+    private static final String VETERINARIAN = RoleName.ROLE_VETERINARIAN.name();
+    private static final String ASSISTANT = RoleName.ROLE_ASSISTANT.name();
+    private static final String GROOMER = RoleName.ROLE_GROOMER.name();
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -52,6 +64,44 @@ public class SecurityConfig {
                         .antMatchers("/api/supervisor/**").hasAuthority(RoleName.ROLE_SUPERVISOR.name())
                         .antMatchers("/api/warehouse/**").hasAuthority(RoleName.ROLE_WAREHOUSE.name())
                         .antMatchers("/api/cashier/**").hasAuthority(RoleName.ROLE_CASHIER.name())
+
+                        // ---- Reglas por módulo (alineadas con la navegación del frontend) ----
+                        // Finanzas: solo administración. La lista de cuentas de tesorería se lee también
+                        // al cerrar caja (cajero) y en reportes (gerente).
+                        .antMatchers("/api/finance/**", "/api/accounts-payable/**").hasAuthority(ADMIN)
+                        .antMatchers(HttpMethod.GET, "/api/treasury-accounts", "/api/treasury-accounts/*")
+                            .hasAnyAuthority(ADMIN, MANAGER, CASHIER)
+                        .antMatchers("/api/treasury-accounts/**").hasAuthority(ADMIN)
+
+                        // Caja
+                        .antMatchers(HttpMethod.GET, "/api/cash-sessions/active")
+                            .hasAnyAuthority(ADMIN, MANAGER, CASHIER, RECEPTIONIST)
+                        .antMatchers(HttpMethod.GET, "/api/cash-sessions/history").hasAnyAuthority(ADMIN, MANAGER)
+                        .antMatchers("/api/cash-sessions/**").hasAnyAuthority(ADMIN, MANAGER, CASHIER)
+
+                        // Ventas: anular es una decisión de supervisión
+                        .antMatchers(HttpMethod.POST, "/api/sales/*/void").hasAnyAuthority(ADMIN, MANAGER)
+                        .antMatchers("/api/sales/**").hasAnyAuthority(ADMIN, MANAGER, CASHIER, RECEPTIONIST)
+
+                        // Veterinaria de campo
+                        .antMatchers("/api/fieldwork/**", "/api/farms/**", "/api/geo-zones/**")
+                            .hasAnyAuthority(ADMIN, MANAGER, VETERINARIAN)
+
+                        // Módulo clínico (datos clínicos: solo personal clínico)
+                        .antMatchers("/api/clinical-attentions/**", "/api/hospitalizations/**", "/api/cages/**",
+                                "/api/surgical-reports/**", "/api/laboratory-requests/**")
+                            .hasAnyAuthority(ADMIN, MANAGER, VETERINARIAN, ASSISTANT)
+                        // Catálogos clínicos: lectura general, escritura de veterinaria/administración
+                        .antMatchers(HttpMethod.GET, "/api/prescription-templates/**", "/api/health-plans/**",
+                                "/api/laboratory-tests/**", "/api/clinical-services/**").authenticated()
+                        .antMatchers("/api/prescription-templates/**", "/api/health-plans/**",
+                                "/api/laboratory-tests/**", "/api/clinical-services/**")
+                            .hasAnyAuthority(ADMIN, MANAGER, VETERINARIAN)
+
+                        // Peluquería
+                        .antMatchers("/api/grooming-sessions/**")
+                            .hasAnyAuthority(ADMIN, MANAGER, GROOMER, RECEPTIONIST)
+
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

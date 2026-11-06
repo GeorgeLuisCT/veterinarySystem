@@ -75,6 +75,7 @@ public class SaleService {
     private final ProductBatchRepository productBatchRepository;
     private final ProductSaleModeRepository productSaleModeRepository;
     private final CashSessionRepository cashSessionRepository;
+    private final com.gaedet.veterinarysystem.core.sales.repository.SalePaymentRepository salePaymentRepository;
     private final KardexService kardexService;
     private final BillableServiceRegistry billableServiceRegistry;
 
@@ -104,6 +105,9 @@ public class SaleService {
         Sale sale = getDraftSale(saleId);
 
         if (request.getBranchId() != null && !request.getBranchId().equals(sale.getBranch().getId())) {
+            if (!sale.getDetails().isEmpty() || !sale.getPayments().isEmpty()) {
+                throw new BadRequestException("No se puede cambiar la sucursal de una venta que ya tiene ítems o pagos");
+            }
             Branch branch = branchRepository.findById(request.getBranchId())
                     .orElseThrow(() -> new EntityNotFoundException("Sucursal no encontrada"));
             sale.setBranch(branch);
@@ -188,6 +192,12 @@ public class SaleService {
         }
         if (sale.getStatus() != SaleStatus.COMPLETED) {
             throw new BadRequestException("Solo se pueden anular ventas completadas");
+        }
+
+        // El dinero de una caja cerrada ya se transfirió a tesorería: anular aquí descuadraría los cierres.
+        if (salePaymentRepository.countPaymentsInClosedSessions(sale.getId()) > 0) {
+            throw new BadRequestException("No se puede anular: el cobro pertenece a una caja ya cerrada. "
+                    + "Solicita al administrador la devolución desde tesorería.");
         }
 
         sale.setStatus(SaleStatus.VOIDED);
@@ -284,6 +294,10 @@ public class SaleService {
             throw new BadRequestException("El total pagado es menor al total de la venta");
         }
 
+        if (finalizeSale) {
+            settleChange(sale);
+        }
+
         if (!finalizeSale) {
             sale.setStatus(SaleStatus.DRAFT);
             Sale savedSale = saleRepository.save(sale);
@@ -313,8 +327,9 @@ public class SaleService {
                 .notes(paymentRequest.getNotes())
                 .build();
 
+        // Solo puede haber una caja abierta por sucursal: todo cobro entra a ella sin importar quién venda.
         CashSession cashSession = cashSessionRepository
-                .findFirstByBranchIdAndCashierIdAndStatus(branch.getId(), sale.getSeller().getId(), CashSessionStatus.OPEN)
+                .findFirstByBranchIdAndStatusOrderByOpenedAtDesc(branch.getId(), CashSessionStatus.OPEN)
                 .orElseThrow(() -> new BadRequestException("No existe una caja abierta para registrar pagos en esta sucursal."));
         payment.setCashSession(cashSession);
 
@@ -467,6 +482,10 @@ public class SaleService {
         Sale sale = getDraftSale(saleId);
         Branch branch = sale.getBranch();
 
+        if (sale.getDetails().isEmpty()) {
+            throw new BadRequestException("No se puede finalizar una venta sin ítems");
+        }
+
         if (request.getPayments() != null) {
             for (SalePaymentRequest paymentRequest : request.getPayments()) {
                 SalePayment payment = mapSalePayment(sale, branch, paymentRequest);
@@ -531,20 +550,7 @@ public class SaleService {
             }
         }
 
-        CashSession openSession = null;
-        boolean sessionSearched = false;
-
-        for (SalePayment payment : sale.getPayments()) {
-            if (payment.getPaymentMethod() == PaymentMethod.CASH && payment.getCashSession() == null) {
-                if (!sessionSearched) {
-                    openSession = cashSessionRepository
-                            .findFirstByBranchIdAndCashierIdAndStatus(branch.getId(), sale.getSeller().getId(), CashSessionStatus.OPEN)
-                            .orElse(null);
-                    sessionSearched = true;
-                }
-                payment.setCashSession(openSession);
-            }
-        }
+        settleChange(sale);
 
         sale.setStatus(SaleStatus.COMPLETED);
         Sale savedSale = saleRepository.saveAndFlush(sale);
@@ -553,6 +559,48 @@ public class SaleService {
         markServicesAsBilled(serviceMarks);
 
         return SaleMapper.toResponse(savedSale);
+    }
+
+    /**
+     * Si el cliente pagó de más, el excedente es vuelto y solo puede salir del efectivo recibido.
+     * Se descuenta del pago en efectivo para que la caja registre lo que realmente quedó (no lo entregado).
+     */
+    private void settleChange(Sale sale) {
+        BigDecimal paid = sale.getPayments().stream()
+                .map(SalePayment::getAmountPaid)
+                .reduce(ZERO, BigDecimal::add);
+        BigDecimal change = paid.subtract(sale.getGrandTotal()).setScale(MONEY_SCALE, ROUNDING_MODE);
+        if (change.compareTo(ZERO) <= 0) {
+            return;
+        }
+
+        List<SalePayment> cashPayments = sale.getPayments().stream()
+                .filter(p -> p.getPaymentMethod() == PaymentMethod.CASH)
+                .toList();
+        BigDecimal cashTotal = cashPayments.stream().map(SalePayment::getAmountPaid).reduce(ZERO, BigDecimal::add);
+        if (cashTotal.compareTo(change) <= 0) {
+            throw new BadRequestException("El pago excede el total en " + change
+                    + " y ese vuelto no puede entregarse en efectivo: ajusta los montos pagados");
+        }
+
+        BigDecimal remaining = change;
+        for (int i = cashPayments.size() - 1; i >= 0 && remaining.compareTo(ZERO) > 0; i--) {
+            SalePayment payment = cashPayments.get(i);
+            BigDecimal reducible = payment.getAmountPaid().subtract(new BigDecimal("0.01")).max(ZERO);
+            BigDecimal cut = reducible.min(remaining);
+            if (cut.compareTo(ZERO) <= 0) {
+                continue;
+            }
+            payment.setAmountPaid(payment.getAmountPaid().subtract(cut).setScale(MONEY_SCALE, ROUNDING_MODE));
+            String note = "Vuelto entregado: " + cut;
+            payment.setNotes(payment.getNotes() == null || payment.getNotes().isBlank()
+                    ? note : payment.getNotes() + " | " + note);
+            remaining = remaining.subtract(cut);
+        }
+
+        if (remaining.compareTo(ZERO) > 0) {
+            throw new BadRequestException("No se pudo calcular el vuelto con los pagos en efectivo registrados");
+        }
     }
 
     private Sale getDraftSale(Long saleId) {
