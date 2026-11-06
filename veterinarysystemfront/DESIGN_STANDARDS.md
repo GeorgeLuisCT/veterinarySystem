@@ -66,3 +66,17 @@ Reglas cortas; si una pantalla las rompe, se corrige la pantalla, no la regla.
 
 Componentes en `components/page/`: `SegmentedControl`, `SummaryPanel`, `PageContainer`, `PageHeader`, `PageSection`, `CollapsibleSection`, `FormSection`, `DescriptionList`, `FilterBar`, `status-tone`.
 Pilotos de referencia: consulta clínica (`consultation-form.tsx`), `fieldwork/.../service-item-dialog.tsx`, detalle de movimiento de inventario.
+
+## 7. Checklist de revisión (antes de dar una pantalla por terminada)
+
+Pensado en cómo la usa una persona real:
+
+- **Estructura:** `DashboardLayoutSection` > `PageContainer` > `PageHeader`. Sin fondo propio, sin `min-h-screen`.
+- **Primer vistazo:** ¿se entiende en 3 segundos qué es y cuál es la acción principal? Una sola acción primaria visible.
+- **Estados:** carga (spinner/skeleton), vacío (texto que explique qué hacer) y error (mensaje + reintento) definidos.
+- **Acciones destructivas o irreversibles** (eliminar, finalizar, anular, cerrar caja): siempre con `ConfirmationDialog` que diga qué pasará.
+- **Formularios:** secciones con título; si hay errores en una pestaña oculta, saltar a ella y marcarla (ver `service-item-dialog`).
+- **Tablas:** columnas con ≥ 4 atributos; acciones con `aria-label`; click en fila abre el detalle.
+- **Móvil (390 px):** sin scroll horizontal de la página; las tablas hacen scroll interno; los botones de cabecera hacen wrap.
+- **Color:** solo tokens; estados con `Badge` de estado, nunca texto de color suelto.
+- **Inicio (`/dashboard`):** accesos rápidos según roles del usuario; nunca una pantalla vacía.

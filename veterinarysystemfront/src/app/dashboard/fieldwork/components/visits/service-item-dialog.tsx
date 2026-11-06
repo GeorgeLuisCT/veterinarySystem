@@ -121,6 +121,31 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
   });
 
   const { control, handleSubmit, reset, setValue, watch, getValues } = form;
+  const { errors } = form.formState;
+  const [tab, setTab] = React.useState<"general" | "animals" | "products">("general");
+  const tabHasError = {
+    general: Boolean(
+      errors.clinicalServiceId ||
+        errors.quantity ||
+        errors.unitPrice ||
+        errors.performedById ||
+        errors.notes
+    ),
+    animals: Boolean(errors.animalIds || errors.groups),
+    products: Boolean(errors.products),
+  };
+  // Si el envío falla por un campo en otra pestaña, llevar al usuario a la primera pestaña con error
+  const onInvalid = () => {
+    setTab(
+      tabHasError.general
+        ? "general"
+        : tabHasError.animals
+          ? "animals"
+          : tabHasError.products
+            ? "products"
+            : "general"
+    );
+  };
 
   const {
     fields: groupFields,
@@ -356,6 +381,7 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
 
   React.useEffect(() => {
     if (!open) {
+      setTab("general");
       reset({
         clinicalServiceId: undefined,
         quantity: 1,
@@ -382,10 +408,17 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
           <DialogDescription>Registra la prestación realizada en la visita.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-            <Tabs defaultValue="general" className="gap-3">
+          <form className="space-y-4" onSubmit={handleSubmit(onSubmit, onInvalid)}>
+            <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="gap-3">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="general">Servicio</TabsTrigger>
+                <TabsTrigger value="general">
+                  Servicio
+                  {tabHasError.general && (
+                    <span className="ml-1 text-destructive" aria-label="Hay errores">
+                      ●
+                    </span>
+                  )}
+                </TabsTrigger>
                 <TabsTrigger value="animals">
                   Animales
                   {selectedAnimalIds.length + groupFields.length > 0
@@ -393,7 +426,10 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
                     : ""}
                 </TabsTrigger>
                 <TabsTrigger value="products">
-                  Productos{productFields.length > 0 ? ` (${productFields.length})` : ""}
+                  Productos
+                  {productFields.length > 0
+                    ? ` (${productFields.length}{tabHasError.products && <span className="ml-1 text-destructive" aria-label="Hay errores">●</span>})`
+                    : ""}
                 </TabsTrigger>
               </TabsList>
               <div className="min-h-[20rem]">

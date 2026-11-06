@@ -4,7 +4,6 @@
 import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import PaginatedCardList from "@/components/paginated-card-list";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import DashboardLayoutSection from "../../dashboard-layout-section";
@@ -16,11 +15,16 @@ import { FieldVisitStatus } from "../enums/field-visit-status";
 import { UpdateVisitRequest } from "../types/visit-request";
 
 import VisitFilters, { VisitFilterValue } from "../components/visits/visit-filters";
-import VisitCard from "../components/visits/visit-card";
 import { useUser } from "@/context/user-context";
 import { RefreshCcw } from "lucide-react";
 import { PageContainer } from "@/components/page/page-container";
 import { PageHeader } from "@/components/page/page-header";
+import DataTable, { type Action } from "@/components/data-table";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
+import { Home, MapPin, PlayCircle, CheckCircle2, Eye } from "lucide-react";
+import { getFieldVisitStatusTone, FieldVisitStatusLabels } from "../enums/field-visit-status";
 
 const formatLocalDate = (d: Date): string => {
   const y = d.getFullYear();
@@ -199,6 +203,91 @@ export default function FieldworkVisitsPage() {
     [fetchVisits, mapVisitDetailToUpdate, toast]
   );
 
+  const [visitToComplete, setVisitToComplete] = React.useState<FieldVisitSummaryResponse | null>(
+    null
+  );
+
+  const columns = React.useMemo<ColumnDef<FieldVisitSummaryResponse>[]>(
+    () => [
+      {
+        id: "destination",
+        header: "Destino",
+        cell: ({ row }) => (
+          <div className="flex min-w-40 items-center gap-2 py-2 font-medium">
+            {row.original.farmName ? (
+              <Home className="size-4 shrink-0 text-muted-foreground" />
+            ) : (
+              <MapPin className="size-4 shrink-0 text-muted-foreground" />
+            )}
+            <span className="truncate">
+              {row.original.farmName ?? row.original.zoneName ?? "—"}
+            </span>
+          </div>
+        ),
+      },
+      {
+        id: "when",
+        header: "Fecha y hora",
+        cell: ({ row }) => {
+          const dt = new Date(row.original.scheduledDateTime);
+          return (
+            <span className="whitespace-nowrap tabular-nums">
+              {dt.toLocaleDateString()}{" "}
+              {dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </span>
+          );
+        },
+      },
+      {
+        id: "status",
+        header: "Estado",
+        cell: ({ row }) => (
+          <Badge variant={getFieldVisitStatusTone(row.original.status)}>
+            {FieldVisitStatusLabels[row.original.status]}
+          </Badge>
+        ),
+      },
+      { id: "vet", header: "Veterinario", cell: ({ row }) => row.original.fieldVetName ?? "—" },
+      { id: "vehicle", header: "Vehículo", cell: ({ row }) => row.original.vehicleName ?? "—" },
+      {
+        id: "objective",
+        header: "Objetivo",
+        cell: ({ row }) => (
+          <span className="line-clamp-1 max-w-64 text-muted-foreground">
+            {row.original.objective ?? "—"}
+          </span>
+        ),
+      },
+    ],
+    []
+  );
+
+  const actions = React.useMemo<Action<FieldVisitSummaryResponse>[]>(
+    () => [
+      {
+        label: "Iniciar visita",
+        type: "direct",
+        icon: <PlayCircle className="size-4 text-primary" />,
+        isVisible: (v) => v.status === FieldVisitStatus.PLANNED,
+        onClick: (v) => updateVisitStatus(v.id, FieldVisitStatus.IN_PROGRESS),
+      },
+      {
+        label: "Finalizar visita",
+        type: "direct",
+        icon: <CheckCircle2 className="size-4 text-success-strong" />,
+        isVisible: (v) => v.status === FieldVisitStatus.IN_PROGRESS,
+        onClick: (v) => setVisitToComplete(v),
+      },
+      {
+        label: "Ver detalle",
+        type: "direct",
+        icon: <Eye className="size-4" />,
+        onClick: navigateToDetail,
+      },
+    ],
+    [navigateToDetail, updateVisitStatus]
+  );
+
   return (
     <DashboardLayoutSection>
       <PageContainer>
@@ -217,8 +306,10 @@ export default function FieldworkVisitsPage() {
           }
         />
 
-        <PaginatedCardList<FieldVisitSummaryResponse>
+        <DataTable<FieldVisitSummaryResponse>
           pageData={pageData}
+          columns={columns}
+          actions={actions}
           pageIndex={pageIndex}
           pageSize={pageSize}
           onPageIndexChange={(p) => setPageIndex(p)}
@@ -233,18 +324,29 @@ export default function FieldworkVisitsPage() {
               }}
             />
           }
-          renderCard={(visit) => (
-            <VisitCard
-              visit={visit}
-              onView={navigateToDetail}
-              onStart={() => updateVisitStatus(visit.id, FieldVisitStatus.IN_PROGRESS)}
-              onComplete={() => updateVisitStatus(visit.id, FieldVisitStatus.COMPLETED)}
-            />
-          )}
-          getItemKey={(visit) => visit.id}
-          emptyState={"No hay visitas para los filtros seleccionados."}
-          onCardClick={navigateToDetail}
-          gridClassName="grid grid-cols-1 gap-2"
+          getRowKey={(visit) => visit.id}
+          emptyState="No hay visitas para los filtros seleccionados."
+          onRowClick={navigateToDetail}
+        />
+
+        <ConfirmationDialog
+          open={visitToComplete !== null}
+          onClose={() => setVisitToComplete(null)}
+          title="¿Finalizar esta visita?"
+          description={
+            <>
+              Se marcará como <strong>completada</strong> la visita a{" "}
+              <strong>{visitToComplete?.farmName ?? visitToComplete?.zoneName ?? "—"}</strong>.
+              Verifica que el reporte, los servicios y los insumos estén registrados.
+            </>
+          }
+          confirmText="Finalizar visita"
+          onConfirm={async () => {
+            if (!visitToComplete) return;
+            const id = visitToComplete.id;
+            setVisitToComplete(null);
+            await updateVisitStatus(id, FieldVisitStatus.COMPLETED);
+          }}
         />
       </PageContainer>
     </DashboardLayoutSection>

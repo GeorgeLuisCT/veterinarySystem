@@ -37,7 +37,7 @@ export function SimpleDataTable<T extends Identifiable>({
   if (data.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        {emptyIcon && <div className="mb-4 text-gray-300">{emptyIcon}</div>}
+        {emptyIcon && <div className="mb-4 text-muted-foreground">{emptyIcon}</div>}
         <p>{emptyMessage}</p>
       </div>
     );

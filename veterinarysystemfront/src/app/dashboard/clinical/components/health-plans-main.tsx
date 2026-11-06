@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Edit, Trash2, PlusCircle } from "lucide-react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,9 +15,9 @@ import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { PaginatedResponse } from "@/types/paginated-response";
 import { getAaxiosErrorMessage } from "@/helpers/error";
-import PaginatedCardList from "@/components/paginated-card-list";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import DataTable from "@/components/data-table";
+import type { ColumnDef } from "@tanstack/react-table";
+import { PageSection } from "@/components/page/page-section";
 
 import HealthPlanService from "../service/health-plan-service";
 import { HealthPlanResponse } from "../types/health-plan-response";
@@ -29,7 +28,9 @@ type ActiveModal = "create" | "edit" | null;
 export function HealthPlansMain() {
   const { toast } = useToast();
 
-  const [pageData, setPageData] = React.useState<PaginatedResponse<HealthPlanResponse> | null>(null);
+  const [pageData, setPageData] = React.useState<PaginatedResponse<HealthPlanResponse> | null>(
+    null
+  );
   const [loading, setLoading] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [pageIndex, setPageIndex] = React.useState(0);
@@ -141,74 +142,75 @@ export function HealthPlansMain() {
     [openEditModal, openDeleteConfirm]
   );
 
-  const renderCard = React.useCallback(
-    (plan: HealthPlanResponse) => (
-      <div className="flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
-            {plan.description && (
-              <p className="text-sm text-muted-foreground">{plan.description}</p>
+  const columns = React.useMemo<ColumnDef<HealthPlanResponse>[]>(
+    () => [
+      {
+        id: "name",
+        header: "Plan",
+        cell: ({ row }) => (
+          <div className="min-w-48 py-2">
+            <div className="font-medium text-foreground">{row.original.name}</div>
+            {row.original.description && (
+              <div className="line-clamp-1 text-xs text-muted-foreground">
+                {row.original.description}
+              </div>
             )}
           </div>
-          <Badge variant="outline" className="text-base font-semibold">
-            S/ {Number(plan.price ?? 0).toFixed(2)}
-          </Badge>
-        </div>
-
-        {plan.notes && (
-          <div>
-            <h4 className="text-xs font-semibold uppercase text-muted-foreground">Notas</h4>
-            <p className="text-sm leading-6 text-foreground">{plan.notes}</p>
-          </div>
-        )}
-
-        <Separator />
-
-        <div className="space-y-2">
-          <h4 className="text-xs font-semibold uppercase text-muted-foreground">
-            Servicios incluidos
-          </h4>
-          {plan.serviceItems.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No hay servicios asociados.</p>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {plan.serviceItems.map((item) => (
-                <div key={item.id} className="rounded-md border border-dashed border-border p-3">
-                  <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-                    <div className="flex flex-col">
-                      <span className="font-medium text-foreground">{item.clinicalServiceName}</span>
-                    </div>
-                    <Badge variant="secondary">Cantidad: {item.quantity}</Badge>
-                  </div>
-                  {item.notes && (
-                    <p className="mt-2 text-sm text-muted-foreground">Notas: {item.notes}</p>
-                  )}
-                </div>
-              ))}
+        ),
+      },
+      {
+        id: "services",
+        header: "Servicios incluidos",
+        cell: ({ row }) => {
+          const items = row.original.serviceItems;
+          if (items.length === 0) return <span className="text-muted-foreground">—</span>;
+          return (
+            <div className="py-2 text-sm">
+              <span className="font-medium">
+                {items.length} {items.length === 1 ? "servicio" : "servicios"}
+              </span>
+              <div className="line-clamp-1 text-xs text-muted-foreground">
+                {items
+                  .map((i) =>
+                    i.quantity > 1
+                      ? `${i.clinicalServiceName} ×${i.quantity}`
+                      : i.clinicalServiceName
+                  )
+                  .join(", ")}
+              </div>
             </div>
-          )}
-        </div>
-      </div>
-    ),
+          );
+        },
+      },
+      {
+        id: "price",
+        header: () => <div className="text-right">Precio</div>,
+        cell: ({ row }) => (
+          <div className="text-right font-semibold tabular-nums">
+            S/ {Number(row.original.price ?? 0).toFixed(2)}
+          </div>
+        ),
+      },
+    ],
     []
   );
 
   return (
-    <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Planes de Salud</CardTitle>
-          <CardDescription>Administra los paquetes de servicios ofrecidos a tus clientes.</CardDescription>
-        </div>
+    <PageSection
+      title="Planes de salud"
+      description="Administra los paquetes de servicios ofrecidos a tus clientes."
+      className="h-full"
+      actions={
         <Button onClick={openCreateModal}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Crear plan
         </Button>
-      </CardHeader>
-      <CardContent className="h-full">
-        <PaginatedCardList<HealthPlanResponse>
+      }
+    >
+      <div className="h-full">
+        <DataTable<HealthPlanResponse>
           pageData={pageData}
+          columns={columns}
           actions={actions}
           loading={loading}
           onSearch={handleSearch}
@@ -217,8 +219,7 @@ export function HealthPlansMain() {
           onPageIndexChange={setPageIndex}
           onPageSizeChange={handlePageSizeChange}
           searchPlaceholder="Buscar por nombre…"
-          getItemKey={(plan) => plan.id}
-          renderCard={renderCard}
+          getRowKey={(plan) => plan.id}
           emptyState={<div className="text-muted-foreground">No hay planes registrados.</div>}
         />
 
@@ -267,8 +268,8 @@ export function HealthPlansMain() {
           confirmVariant="destructive"
           onConfirm={handleDelete}
         />
-      </CardContent>
-    </Card>
+      </div>
+    </PageSection>
   );
 }
 

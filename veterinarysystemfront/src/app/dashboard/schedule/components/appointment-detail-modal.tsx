@@ -405,7 +405,7 @@ export function AppointmentDetailModal({ open, appointmentId, onClose }: Appoint
   const statusIndicatorColor = (status: AppointmentStatus) => {
     if (status === AppointmentStatus.CANCELED) return "bg-red-500";
     if (status === AppointmentStatus.CONFIRMED) return "bg-emerald-500";
-    if (status === AppointmentStatus.COMPLETED) return "bg-slate-500";
+    if (status === AppointmentStatus.COMPLETED) return "bg-muted-foreground";
     return "bg-amber-400";
   };
 

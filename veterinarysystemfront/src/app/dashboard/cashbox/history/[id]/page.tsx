@@ -50,9 +50,8 @@ function SummaryItem({ label, value, negative, highlight, icon: Icon }: SummaryI
   return (
     <div
       className={[
-        "rounded-lg border p-4 h-full",
-        highlight ? "bg-primary/5 border-primary/30" : "bg-card/60",
-        "shadow-sm",
+        "rounded-lg p-4 h-full",
+        highlight ? "bg-primary/10" : "bg-muted/50",
       ].join(" ")}
     >
       <div className="flex items-center gap-2">
@@ -79,7 +78,7 @@ function SalesSummaryCard({
   breakdown: CashboxPaymentBreakdownResponse[];
 }) {
   return (
-    <div className="rounded-lg border p-4 h-full bg-card/60 shadow-sm md:row-span-2">
+    <div className="rounded-lg p-4 h-full bg-muted/50 md:row-span-2">
       <div className="flex items-center gap-2">
         <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Receipt className="h-4 w-4" />
