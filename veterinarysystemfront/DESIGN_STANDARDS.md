@@ -60,7 +60,7 @@ Reglas cortas; si una pantalla las rompe, se corrige la pantalla, no la regla.
 | Confirmaciones | `ConfirmationDialog`; **nunca un modal sobre otro modal** |
 | Formulario largo | `FormSection` por bloque; lo opcional/avanzado con `collapsible` |
 | Información extensa (consulta, detalle) | `CollapsibleSection` con resumen a la derecha ("Completo", "3 registros") |
-| Pares etiqueta/valor | `DescriptionList` + `DescriptionItem` (no cards sueltas) |
+| Datos clave de un detalle | `SummaryPanel` + `SummaryItem` (una sola superficie suave con icono, etiqueta y valor destacado; descripción en el pie). `DescriptionList` para pares secundarios |
 | Registros homogéneos con ≥ 4 atributos | Tabla (`DataTable`); cards solo para tableros operativos |
 
 Componentes en `components/page/`: `PageContainer`, `PageHeader`, `PageSection`, `CollapsibleSection`, `FormSection`, `DescriptionList`, `FilterBar`, `status-tone`.

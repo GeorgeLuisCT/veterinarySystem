@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
-import { ArrowLeft, CalendarDays } from "lucide-react";
+import { ArrowLeft, CalendarDays, Truck, Building2, UserRound } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/page/page-header";
 import { PageSection } from "@/components/page/page-section";
-import { DescriptionList, DescriptionItem } from "@/components/page/description-list";
+import { SummaryPanel, SummaryItem } from "@/components/page/summary-panel";
+import { ExpirationBadge } from "@/app/dashboard/inventory/_components/expiration-badge";
 
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import { InventoryMovementResponse } from "@/app/dashboard/inventory/_types/inventory-movement-response";
@@ -130,24 +131,33 @@ export default function MovementDetailPage() {
             }
           />
 
-          <DescriptionList cols={3}>
-            <DescriptionItem label="Sucursal de origen">
+          <SummaryPanel
+            footer={
+              <span className={movement.description?.trim() ? "text-foreground" : ""}>
+                {movement.description?.trim() || "Sin descripción"}
+              </span>
+            }
+          >
+            <SummaryItem icon={Truck} label="Origen">
               {movement.sourceBranch?.name ?? "—"}
-            </DescriptionItem>
-            <DescriptionItem label="Sucursal de destino">
+            </SummaryItem>
+            <SummaryItem icon={Building2} label="Destino">
               {movement.targetBranch?.name ?? "—"}
-            </DescriptionItem>
-            <DescriptionItem label="Registrado por">{employeeDisplay}</DescriptionItem>
-            <DescriptionItem label="Descripción" className="sm:col-span-full">
-              {movement.description?.trim() || "—"}
-            </DescriptionItem>
-          </DescriptionList>
+            </SummaryItem>
+            <SummaryItem icon={UserRound} label="Registrado por">
+              {employeeDisplay}
+            </SummaryItem>
+          </SummaryPanel>
 
-          <PageSection title="Productos del movimiento" description="Detalle de ítems">
+          <PageSection
+            title="Productos del movimiento"
+            description="Detalle de ítems"
+            actions={<Badge variant="neutral">{movement.products?.length ?? 0} productos</Badge>}
+          >
             <div className="rounded-md border overflow-hidden">
               <div className="max-h-[60vh] overflow-auto">
                 <Table>
-                  <TableHeader className="sticky top-0 bg-background z-10">
+                  <TableHeader className="sticky top-0 z-10 bg-muted/60">
                     <TableRow>
                       <TableHead>Producto</TableHead>
                       <TableHead className="text-right">Cantidad</TableHead>
@@ -158,12 +168,20 @@ export default function MovementDetailPage() {
                   </TableHeader>
                   <TableBody>
                     {movement.products?.map((item) => (
-                      <TableRow key={item.id} className="hover:bg-muted/30">
-                        <TableCell className="min-w-56">{item.product.name}</TableCell>
-                        <TableCell className="text-right">{Number(item.quantity ?? 0)}</TableCell>
-                        <TableCell>{ProductUnitTypeLabels[item.unitType]}</TableCell>
-                        <TableCell>{item.batch?.batchNumber ?? "—"}</TableCell>
-                        <TableCell>{formatDate(item.batch?.expirationDate)}</TableCell>
+                      <TableRow key={item.id}>
+                        <TableCell className="min-w-56 font-medium">{item.product.name}</TableCell>
+                        <TableCell className="text-right text-base font-semibold tabular-nums">
+                          {Number(item.quantity ?? 0)}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {ProductUnitTypeLabels[item.unitType]}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {item.batch?.batchNumber ?? "—"}
+                        </TableCell>
+                        <TableCell>
+                          <ExpirationBadge date={item.batch?.expirationDate} />
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
