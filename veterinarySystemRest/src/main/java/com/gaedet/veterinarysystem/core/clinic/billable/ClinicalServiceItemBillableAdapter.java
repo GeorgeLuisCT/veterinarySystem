@@ -10,6 +10,10 @@ import com.gaedet.veterinarysystem.core.clinic.repository.ClinicalServiceItemRep
 import com.gaedet.veterinarysystem.core.sales.billable.BillableServiceAdapter;
 import com.gaedet.veterinarysystem.core.sales.billable.BillableServiceItem;
 import com.gaedet.veterinarysystem.core.sales.enums.BillableServiceType;
+import com.gaedet.veterinarysystem.core.clinic.enums.ClinicalAttentionStatus;
+import com.gaedet.veterinarysystem.exeption.BadRequestException;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +25,7 @@ public class ClinicalServiceItemBillableAdapter implements BillableServiceAdapte
 
     private final ClinicalServiceItemRepository clinicalServiceItemRepository;
     private final ObjectMapper objectMapper;
+    private final ClinicalAttentionBillingCloser billingCloser;
 
     @Override
     public BillableServiceType supportsType() {
@@ -32,7 +37,14 @@ public class ClinicalServiceItemBillableAdapter implements BillableServiceAdapte
         ClinicalServiceItem item = clinicalServiceItemRepository.findById(itemId)
                 .orElseThrow(() -> new EntityNotFoundException("Ítem clínico no encontrado"));
 
+        if (item.getSaleDetailId() != null) {
+            throw new BadRequestException("El servicio clínico #" + item.getId() + " ya fue cobrado en otra venta");
+        }
+
         ClinicalAttention clinicalAttention = item.getClinicalAttention();
+        if (clinicalAttention != null && clinicalAttention.getStatus() != ClinicalAttentionStatus.READY_TO_BILL) {
+            throw new BadRequestException("La atención clínica aún no está lista para facturar");
+        }
         Attentions attention = clinicalAttention != null ? clinicalAttention.getAttention() : null;
 
         Long branchId = attention != null && attention.getBranch() != null
@@ -60,14 +72,47 @@ public class ClinicalServiceItemBillableAdapter implements BillableServiceAdapte
     }
 
     @Override
+    @Transactional
     public void markAsBilled(Long itemId, Long saleDetailId) {
-        // Aún no se registra un vínculo persistente con la venta.
-        // Se deja como no-op para futuras iteraciones.
+        ClinicalServiceItem item = clinicalServiceItemRepository.findById(itemId)
+                .orElseThrow(() -> new EntityNotFoundException("Ítem clínico no encontrado"));
+        // Evita el doble cobro: un ítem solo puede pertenecer a un detalle de venta
+        if (item.getSaleDetailId() != null && !item.getSaleDetailId().equals(saleDetailId)) {
+            throw new BadRequestException("El servicio clínico #" + itemId + " ya fue cobrado en otra venta");
+        }
+        item.setSaleDetailId(saleDetailId);
+        billingCloser.onBillingChanged(item.getClinicalAttention());
     }
 
     @Override
+    @Transactional
     public void markAsUnbilled(Long itemId) {
-        // No-op por ahora.
+        clinicalServiceItemRepository.findById(itemId).ifPresent(item -> {
+            item.setSaleDetailId(null);
+            billingCloser.onBillingChanged(item.getClinicalAttention());
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BillableServiceItem> listPending(Long branchId, Long attentionId, Long patientId, String query) {
+        return clinicalServiceItemRepository.findBillable(branchId, attentionId, patientId, query).stream()
+                .map(item -> {
+                    ClinicalAttention clinicalAttention = item.getClinicalAttention();
+                    Attentions attention = clinicalAttention.getAttention();
+                    String animalName = attention.getAnimal().getName();
+                    return BillableServiceItem.builder()
+                            .type(supportsType())
+                            .itemId(item.getId())
+                            .branchId(attention.getBranch() != null ? attention.getBranch().getId() : null)
+                            .description(item.getClinicalService().getName() + " — " + animalName)
+                            .unitPrice(item.getUnitPrice())
+                            .quantity(item.getQuantity())
+                            .taxRate(null)
+                            .metadataJson(buildMetadataJson(clinicalAttention, attention, item))
+                            .build();
+                })
+                .toList();
     }
 
     private String buildMetadataJson(ClinicalAttention clinicalAttention, Attentions attention, ClinicalServiceItem item) {

@@ -81,7 +81,7 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.restoreEmployee(id, branchId));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPERVISOR', 'VETERINARIAN', 'CASHIER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPERVISOR', 'VETERINARIAN', 'ASSISTANT', 'CASHIER', 'RECEPTIONIST', 'GROOMER')")
     @GetMapping("/by-roles")
     public ResponseEntity<List<EmployeeSummaryResponse>> getEmployeesByRoles(
             @RequestParam List<RoleName> roles) {

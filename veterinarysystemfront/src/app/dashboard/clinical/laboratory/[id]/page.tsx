@@ -160,25 +160,25 @@ export default function LaboratoryRequestDetailPage() {
     const testsLabel = `${testsCount} ${testsCount === 1 ? "prueba" : "pruebas"} solicitadas`;
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="sticky top-0 z-20 border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-                <div className="mx-auto px-4 py-3 md:py-4">
+        <div className="h-full overflow-y-auto">
+            <div className="sticky top-0 z-10 border-b bg-card">
+                <div className="mx-auto w-full max-w-screen-2xl px-4 py-3 sm:px-6">
                     <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
-                                <h1 className="truncate text-lg font-bold leading-tight text-slate-900 md:text-xl">{testsLabel}</h1>
+                                <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground">{testsLabel}</h1>
                                 <Badge variant="secondary" className="text-xs tracking-wide">
                                     {LabRequestStatusLabels[detail.status as LabRequestStatus] ?? detail.status}
                                 </Badge>
                             </div>
                             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                <span className="inline-flex max-w-[20rem] items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-blue-700 ring-1 ring-blue-200">
+                                <span className="inline-flex max-w-[20rem] items-center gap-1 rounded-full bg-info-soft px-2 py-0.5 text-info-strong">
                                     <span className="truncate font-normal">Paciente: {detail.animalName}</span>
                                 </span>
                                 <span className="hidden md:inline select-none">·</span>
-                                <span className="rounded-full bg-slate-50 px-2 py-0.5 ring-1 ring-slate-200">Solicitud de laboratorio</span>
+                                <span className="rounded-full bg-muted px-2 py-0.5">Solicitud de laboratorio</span>
                                 <span className="hidden md:inline select-none">·</span>
-                                <span className="rounded-full bg-slate-50 px-2 py-0.5 ring-1 ring-slate-200">{createdAtStr}</span>
+                                <span className="rounded-full bg-muted px-2 py-0.5">{createdAtStr}</span>
                             </div>
                         </div>
                         <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -193,7 +193,7 @@ export default function LaboratoryRequestDetailPage() {
                                     </>
                                 )}
                             </Button>
-                            <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={handleSaveAll} disabled={savingAll} aria-label="Guardar todo">
+                            <Button className="" onClick={handleSaveAll} disabled={savingAll} aria-label="Guardar todo">
                                 {savingAll ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...
@@ -248,15 +248,15 @@ export default function LaboratoryRequestDetailPage() {
                 <PatientDetails animalId={animalId} className="sm:basis-[21%] sm:shrink-0 w-full" />
                 <div className="sm:basis-[79%] sm:min-w-0 w-full flex flex-col gap-4">
                     {detail.clinicalNotes ? (
-                        <div className="rounded-xl border bg-white p-4 md:p-5">
+                        <div className="rounded-lg border bg-card p-4 md:p-5">
                             <div className="mb-2 flex items-center gap-2">
                                 <FileText className="h-4 w-4" aria-hidden="true" />
                                 <h2 className="text-sm font-semibold">Notas clínicas</h2>
                             </div>
-                            <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{detail.clinicalNotes}</div>
+                            <div className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{detail.clinicalNotes}</div>
                         </div>
                     ) : null}
-                    <div className="rounded-xl border bg-white p-4 md:p-5">
+                    <div className="rounded-lg border bg-card p-4 md:p-5">
                         <LaboratoryRequestForm ref={formRef} detail={detail} />
                     </div>
                 </div>

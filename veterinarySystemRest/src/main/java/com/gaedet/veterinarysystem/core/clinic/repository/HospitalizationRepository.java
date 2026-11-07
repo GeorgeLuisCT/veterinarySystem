@@ -19,6 +19,9 @@ import java.util.Set;
 @Repository
 public interface HospitalizationRepository extends JpaRepository<Hospitalization, Long>, JpaSpecificationExecutor<Hospitalization> {
 
+    /** ¿El animal tiene una hospitalización vigente (ni alta ni cancelada)? */
+    boolean existsByAnimalIdAndStatusNotIn(Long animalId, java.util.Collection<com.gaedet.veterinarysystem.core.clinic.enums.HospitalizationStatus> statuses);
+
 
     @Override
     @EntityGraph(attributePaths = {

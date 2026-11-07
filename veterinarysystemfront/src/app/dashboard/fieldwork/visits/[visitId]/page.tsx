@@ -17,6 +17,7 @@ import UsagesCard from "../../components/visits/usages-card";
 import AttachmentsCard from "../../components/visits/attachments-card";
 import { ReportEditor } from "../../components/visits/report-editor";
 import { FieldVisitStatus, FieldVisitStatusLabels } from "../../enums/field-visit-status";
+import { PageContainer } from "@/components/page/page-container";
 
 export default function FieldVisitPage() {
   const params = useParams();
@@ -52,10 +53,10 @@ export default function FieldVisitPage() {
   }
 
   return (
-    <div className="space-y-5 p-4">
+    <PageContainer>
       <header className="flex flex-col justify-between gap-3 lg:flex-row lg:items-end">
         <div className="space-y-1">
-          <h1 className="text-xl font-bold">Visita #{id}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Visita #{id}</h1>
           <p className="text-sm text-muted-foreground">
             {(data?.farmName ?? data?.zoneName ?? "Sin destino")} – {data && new Date(data.scheduledDateTime).toLocaleString()}
           </p>
@@ -154,6 +155,6 @@ export default function FieldVisitPage() {
         onOpenChange={(o) => !o && setModal(null)}
         onSuccess={() => { setModal(null); fetchData(); }}
       />
-    </div>
+    </PageContainer>
   );
 }

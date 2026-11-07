@@ -158,11 +158,11 @@ export function CompleteTreatmentModal({ open, onOpenChange, hospitalizationId, 
                 <DialogHeader>
                     <DialogTitle>Administrar tratamiento</DialogTitle>
                 </DialogHeader>
-                <div className="rounded-lg bg-slate-50 p-3 text-sm space-y-1">
-                    <p className="font-semibold text-slate-900 whitespace-pre-line">{schedule.treatmentName}</p>
-                    <p className="text-slate-600">Programado para {scheduledTimeLabel}</p>
+                <div className="rounded-lg bg-muted p-3 text-sm space-y-1">
+                    <p className="font-semibold text-foreground whitespace-pre-line">{schedule.treatmentName}</p>
+                    <p className="text-muted-foreground">Programado para {scheduledTimeLabel}</p>
                     {schedule.notes && (
-                        <p className="text-slate-600 whitespace-pre-line">Notas del plan: {schedule.notes}</p>
+                        <p className="text-muted-foreground whitespace-pre-line">Notas del plan: {schedule.notes}</p>
                     )}
                 </div>
                 <Form {...form}>
@@ -183,11 +183,11 @@ export function CompleteTreatmentModal({ open, onOpenChange, hospitalizationId, 
                         </div>
 
                         <div className="space-y-3">
-                            <p className="text-sm font-medium text-slate-800">
+                            <p className="text-sm font-medium text-foreground">
                                 Productos aplicados y a descontar del inventario
                             </p>
                             {productFields.map((productField, index) => (
-                                <div key={productField.id} className="rounded-xl border p-3 space-y-3">
+                                <div key={productField.id} className="rounded-lg border p-3 space-y-3">
                                     <div className="flex items-start justify-between">
                                         <p className="text-sm font-medium">Producto #{index + 1}</p>
                                         {productFields.length > 1 && (

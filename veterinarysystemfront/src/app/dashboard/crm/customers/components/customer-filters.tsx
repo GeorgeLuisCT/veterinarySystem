@@ -54,7 +54,7 @@ export default function CustomerFilters({ value, onChange, onReset }: Props) {
   };
 
   return (
-    <div className="w-full overflow-x-auto rounded-2xl border bg-background/80 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="w-full overflow-x-auto">
       <div className="flex min-w-max items-center gap-3">
         {/* Buscador */}
         <div className="relative w-[260px]">

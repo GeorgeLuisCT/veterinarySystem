@@ -62,4 +62,8 @@ public interface KardexMovementRepository
     @Query("SELECT SUM(km.quantity) FROM KardexMovement km " +
             "WHERE km.product.id = :productId AND km.branch.id = :branchId AND km.batch.id IS NULL")
     Optional<BigDecimal> findCurrentStockByProductAndBranchWithoutBatch(Long productId, Long branchId);
+
+    @Query("SELECT km FROM KardexMovement km WHERE km.originType IN :originTypes AND km.originId = :originId")
+    List<KardexMovement> findByOrigin(@Param("originTypes") java.util.Collection<String> originTypes,
+                                      @Param("originId") Long originId);
 }

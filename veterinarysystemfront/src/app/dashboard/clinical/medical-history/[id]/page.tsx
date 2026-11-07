@@ -13,6 +13,7 @@ import PreventiveMedicineTabs from "../components/preventive-medicine-tabs";
 import DiagnosticsAndFollowUpTabs from "../components/diagnostics-and-follow-up-tabs";
 import MedicalHistoryService from "../../service/medical-history-service";
 import type { ClinicalHistoryDetailResponse } from "../../types/medical-history-response";
+import { PageContainer } from "@/components/page/page-container";
 
 type DateFilters = {
   from?: string;
@@ -126,76 +127,84 @@ export default function MedicalHistoryDetailPage() {
   const lastConsultation = history.lastConsultation ?? history.consultations[0];
 
   return (
-    <div className="flex min-h-screen flex-col bg-muted/40">
-      <main className="flex-1 p-4 sm:p-6">
-        <div className="mx-auto max-w-7xl space-y-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div className="grid w-full gap-3 sm:grid-cols-3">
-              <FloatingLabelDateInput
-                id="from"
-                label="Desde"
-                value={filters.from}
-                onChange={(value) => setFilters((prev) => ({ ...prev, from: value || undefined }))}
-                mode="date"
-              />
-              <FloatingLabelDateInput
-                id="to"
-                label="Hasta"
-                value={filters.to}
-                onChange={(value) => setFilters((prev) => ({ ...prev, to: value || undefined }))}
-                mode="date"
-              />
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleClearFilters}
-                  disabled={!filters.from && !filters.to}
-                >
-                  Limpiar
-                </Button>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={fetchHistory} disabled={isRefreshing}>
-                {isRefreshing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Actualizando
-                  </>
-                ) : (
-                  <>
-                    <RefreshCcw className="mr-2 h-4 w-4" />
-                    Actualizar
-                  </>
-                )}
-              </Button>
-              <Button variant="outline" size="sm" disabled>
-                <Download className="mr-2 h-4 w-4" /> Exportar PDF
-              </Button>
-            </div>
-          </div>
-
-          <Separator />
-
-          <AnimalInfoCard patient={history.patient}>
-            <Button variant="outline" size="sm" disabled>
-              <Download className="mr-2 h-4 w-4" />
-              Descargar ficha
+    <PageContainer>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="grid w-full gap-3 sm:grid-cols-3">
+          <FloatingLabelDateInput
+            id="from"
+            label="Desde"
+            value={filters.from}
+            onChange={(value) => setFilters((prev) => ({ ...prev, from: value || undefined }))}
+            mode="date"
+          />
+          <FloatingLabelDateInput
+            id="to"
+            label="Hasta"
+            value={filters.to}
+            onChange={(value) => setFilters((prev) => ({ ...prev, to: value || undefined }))}
+            mode="date"
+          />
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleClearFilters}
+              disabled={!filters.from && !filters.to}
+            >
+              Limpiar
             </Button>
-          </AnimalInfoCard>
-
-          {lastConsultation && <LastVisitSummary consultation={lastConsultation} />}
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <ClinicalHistoryTabs consultations={history.consultations} procedures={history.procedures} />
-            <PreventiveMedicineTabs preventiveCare={history.preventiveCare} />
           </div>
-
-          <DiagnosticsAndFollowUpTabs labResults={history.labResults} weightHistory={history.weightHistory} />
         </div>
-      </main>
-    </div>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={fetchHistory}
+            disabled={isRefreshing}
+          >
+            {isRefreshing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Actualizando
+              </>
+            ) : (
+              <>
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Actualizar
+              </>
+            )}
+          </Button>
+          <Button variant="outline" size="sm" disabled>
+            <Download className="mr-2 h-4 w-4" /> Exportar PDF
+          </Button>
+        </div>
+      </div>
+
+      <Separator />
+
+      <AnimalInfoCard patient={history.patient}>
+        <Button variant="outline" size="sm" disabled>
+          <Download className="mr-2 h-4 w-4" />
+          Descargar ficha
+        </Button>
+      </AnimalInfoCard>
+
+      {lastConsultation && <LastVisitSummary consultation={lastConsultation} />}
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <ClinicalHistoryTabs
+          consultations={history.consultations}
+          procedures={history.procedures}
+        />
+        <PreventiveMedicineTabs preventiveCare={history.preventiveCare} />
+      </div>
+
+      <DiagnosticsAndFollowUpTabs
+        labResults={history.labResults}
+        weightHistory={history.weightHistory}
+      />
+    </PageContainer>
   );
 }

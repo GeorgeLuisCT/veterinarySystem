@@ -52,6 +52,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import com.gaedet.veterinarysystem.exeption.BadRequestException;
 
 @Service
 @RequiredArgsConstructor
@@ -70,6 +71,7 @@ public class ClinicalAttentionService {
     private final BranchRepository branchRepository;
     private final LaboratoryRepository laboratoryRepository;
     private final OperatingRoomRepository operatingRoomRepository;
+    private final com.gaedet.veterinarysystem.core.inventory.service.InventoryConsumptionService inventoryConsumptionService;
 
     @Transactional
     public ClinicalAttentionCreatedResponse create(CreateClinicalAttentionRequest request) {
@@ -152,6 +154,11 @@ public class ClinicalAttentionService {
             throw new OptimisticLockException("Version desactualizada");
         }
 
+        assertEditable(ca);
+        if (request.getStatus() != null && request.getStatus().isPresent() && request.getStatus().get() != null) {
+            validateTransition(ca, request.getStatus().get());
+        }
+
         Map<String, Object> updated = new LinkedHashMap<>();
 
         apply(updated, "visitDate", request.getVisitDate(), ca::setVisitDate, ca::getVisitDate);
@@ -182,6 +189,7 @@ public class ClinicalAttentionService {
     public ClinicalAttentionDetailResponse registerMedication(Long id, AddClinicalAttentionMedicationRequest request) {
         ClinicalAttention clinicalAttention = clinicalAttentionRepository.findWithDetailsById(id)
                 .orElseThrow(() -> new IllegalArgumentException("ClinicalAttention no encontrada: id=" + id));
+        assertEditable(clinicalAttention);
 
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: id=" + request.getProductId()));
@@ -210,6 +218,12 @@ public class ClinicalAttentionService {
         MedicationAdministration saved = medicationAdministrationRepository.save(medication);
         clinicalAttention.getMedicationAdministrations().add(saved);
 
+        // El medicamento administrado sale del inventario de la sucursal de la atención (FEFO)
+        if (request.getDoseAmount() != null && request.getDoseAmount().signum() > 0) {
+            inventoryConsumptionService.consume(product.getId(), attentionBranchId(clinicalAttention),
+                    request.getDoseAmount(), request.getDoseUnit(), "MedicationAdministration", saved.getId());
+        }
+
         return ClinicalAttentionMapper.toDetail(clinicalAttention);
     }
 
@@ -217,10 +231,17 @@ public class ClinicalAttentionService {
     public ClinicalAttentionDetailResponse addServiceItem(Long id, AddClinicalAttentionServiceItemRequest request) {
         ClinicalAttention clinicalAttention = clinicalAttentionRepository.findWithDetailsById(id)
                 .orElseThrow(() -> new IllegalArgumentException("ClinicalAttention no encontrada: id=" + id));
+        assertEditable(clinicalAttention);
 
         ClinicalService service = clinicalServiceRepository.findById(request.getClinicalServiceId())
                 .orElseThrow(() -> new IllegalArgumentException("Servicio clínico no encontrado: id=" + request.getClinicalServiceId()));
 
+        if (request.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException("La cantidad del servicio debe ser mayor a cero");
+        }
+        if (request.getUnitPrice().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException("El precio del servicio no puede ser negativo");
+        }
         BigDecimal subtotal = request.getUnitPrice().multiply(request.getQuantity());
 
         ClinicalServiceItem item = ClinicalServiceItem.builder()
@@ -261,6 +282,7 @@ public class ClinicalAttentionService {
     public ClinicalAttentionDetailResponse addSurgicalOrder(Long id, AddClinicalAttentionSurgicalOrderRequest request) {
         ClinicalAttention clinicalAttention = clinicalAttentionRepository.findWithDetailsById(id)
                 .orElseThrow(() -> new IllegalArgumentException("ClinicalAttention no encontrada: id=" + id));
+        assertEditable(clinicalAttention);
 
         ClinicalService service = clinicalServiceRepository.findById(request.getRecommendedServiceId())
                 .orElseThrow(() -> new IllegalArgumentException("Servicio clínico no encontrado: id=" + request.getRecommendedServiceId()));
@@ -300,6 +322,7 @@ public class ClinicalAttentionService {
     public ClinicalAttentionDetailResponse addLaboratoryRequest(Long id, AddClinicalAttentionLaboratoryRequest request) {
         ClinicalAttention clinicalAttention = clinicalAttentionRepository.findWithDetailsById(id)
                 .orElseThrow(() -> new IllegalArgumentException("ClinicalAttention no encontrada: id=" + id));
+        assertEditable(clinicalAttention);
 
         Laboratory laboratory = laboratoryRepository.findWithBranchById(request.getLaboratoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Laboratorio no encontrado: id=" + request.getLaboratoryId()));
@@ -455,6 +478,11 @@ public class ClinicalAttentionService {
         return attention != null ? attention.getBranch() : null;
     }
 
+    private Long attentionBranchId(ClinicalAttention clinicalAttention) {
+        Attentions attention = clinicalAttention.getAttention();
+        return attention != null && attention.getBranch() != null ? attention.getBranch().getId() : null;
+    }
+
     private Animal resolveAnimal(ClinicalAttention clinicalAttention) {
         Attentions attention = clinicalAttention.getAttention();
         if (attention == null || attention.getAnimal() == null) {
@@ -469,5 +497,46 @@ public class ClinicalAttentionService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    // ---- Reglas del ciclo de vida de la atención clínica -------------------------------------------------------
+
+    /** Una atención cerrada (ya cobrada) o cancelada no admite cambios clínicos ni nuevos cargos. */
+    private void assertEditable(ClinicalAttention ca) {
+        if (ca.getStatus() == ClinicalAttentionStatus.CLOSED || ca.getStatus() == ClinicalAttentionStatus.CANCELED) {
+            throw new BadRequestException("La atención está " + ca.getStatus().getLabel().toLowerCase()
+                    + " y ya no admite cambios");
+        }
+    }
+
+    /**
+     * OPEN → IN_PROGRESS | WAITING_LAB | READY_TO_BILL | CANCELED
+     * IN_PROGRESS ⇄ WAITING_LAB; ambos → READY_TO_BILL | CANCELED
+     * READY_TO_BILL → CLOSED (al cobrarse) | IN_PROGRESS (reabrir, solo si nada se cobró) | CANCELED (solo si nada se cobró)
+     * CLOSED y CANCELED son finales.
+     */
+    private void validateTransition(ClinicalAttention ca, ClinicalAttentionStatus target) {
+        ClinicalAttentionStatus current = ca.getStatus();
+        if (current == target) {
+            return;
+        }
+        boolean allowed = switch (current) {
+            case OPEN -> target == ClinicalAttentionStatus.IN_PROGRESS || target == ClinicalAttentionStatus.WAITING_LAB
+                    || target == ClinicalAttentionStatus.READY_TO_BILL || target == ClinicalAttentionStatus.CANCELED;
+            case IN_PROGRESS, WAITING_LAB -> target == ClinicalAttentionStatus.IN_PROGRESS
+                    || target == ClinicalAttentionStatus.WAITING_LAB
+                    || target == ClinicalAttentionStatus.READY_TO_BILL || target == ClinicalAttentionStatus.CANCELED;
+            case READY_TO_BILL -> target == ClinicalAttentionStatus.CLOSED
+                    || target == ClinicalAttentionStatus.IN_PROGRESS || target == ClinicalAttentionStatus.CANCELED;
+            case CLOSED, CANCELED -> false;
+        };
+        if (!allowed) {
+            throw new BadRequestException("Transición de estado no permitida: " + current.getLabel() + " → " + target.getLabel());
+        }
+        boolean anyBilled = ca.getServiceItems().stream().anyMatch(i -> i.getSaleDetailId() != null);
+        if (current == ClinicalAttentionStatus.READY_TO_BILL && anyBilled
+                && (target == ClinicalAttentionStatus.IN_PROGRESS || target == ClinicalAttentionStatus.CANCELED)) {
+            throw new BadRequestException("La atención ya tiene servicios cobrados: no puede reabrirse ni cancelarse");
+        }
     }
 }

@@ -99,4 +99,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Boolean existsByUsername(String username);
 
     boolean existsByRoles_Name(RoleName roleName);
+
+    /** Administradores activos (para impedir que el sistema se quede sin ninguno). */
+    @org.springframework.data.jpa.repository.Query("""
+        select count(u) from User u join u.roles r
+        where r.name = com.gaedet.veterinarysystem.core.users.enums.RoleName.ROLE_ADMIN and u.isActive = true
+    """)
+    long countActiveAdmins();
 }

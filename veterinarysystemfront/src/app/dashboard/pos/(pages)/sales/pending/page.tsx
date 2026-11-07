@@ -3,13 +3,22 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import SalesService from "../../../_service/sales.service";
 import { SaleSummaryResponse } from "../../../_types/sale-response";
 import { SaleStatus } from "../../../_types/sale-enums";
 
+import { PageHeader } from "@/components/page/page-header";
+import { PageContainer } from "@/components/page/page-container";
 export default function PendingSalesPage() {
   const [sales, setSales] = useState<SaleSummaryResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,14 +42,16 @@ export default function PendingSalesPage() {
   }, [toast]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Ventas en progreso</h1>
-          <p className="text-sm text-muted-foreground">Continúa con los borradores pendientes.</p>
-        </div>
-        <Button onClick={() => router.push("/dashboard/pos/new")}>Crear nueva venta</Button>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Ventas en progreso"
+        description="Continúa con los borradores pendientes."
+        actions={
+          <>
+            <Button onClick={() => router.push("/dashboard/pos/new")}>Crear nueva venta</Button>
+          </>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -81,7 +92,10 @@ export default function PendingSalesPage() {
                   <TableCell>{new Date(sale.createdAt).toLocaleString()}</TableCell>
                   <TableCell>S/ {sale.grandTotal.toFixed(2)}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" onClick={() => router.push(`/dashboard/pos/new?saleId=${sale.id}`)}>
+                    <Button
+                      variant="outline"
+                      onClick={() => router.push(`/dashboard/pos/new?saleId=${sale.id}`)}
+                    >
                       Continuar
                     </Button>
                   </TableCell>
@@ -91,6 +105,6 @@ export default function PendingSalesPage() {
           </Table>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

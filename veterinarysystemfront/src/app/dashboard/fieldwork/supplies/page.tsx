@@ -7,6 +7,9 @@ import VehicleSelectorCard from "../components/suplies/vehicle-selector-card";
 import VehicleInventoryCard from "../components/suplies/vehicle-inventory-card";
 import TransferDialog from "../components/suplies/transfer-dialog";
 import BranchInventoryCard from "../components/suplies/branch-inventory-card";
+import DashboardLayoutSection from "@/app/dashboard/dashboard-layout-section";
+import { PageContainer } from "@/components/page/page-container";
+import { PageHeader } from "@/components/page/page-header";
 
 export default function FieldSuppliesPage() {
   const { userInfo } = useUser();
@@ -24,34 +27,44 @@ export default function FieldSuppliesPage() {
   const refreshBranchPanel = () => setBranchRefreshKey((k) => k + 1);
 
   return (
-    <div className="space-y-6 p-4">
-      <VehicleSelectorCard value={selectedVehicleId} onChange={setSelectedVehicleId} onRefresh={refreshVehiclePanels} />
+    <DashboardLayoutSection>
+      <PageContainer>
+        <PageHeader
+          title="Gestión de insumos"
+          description="Transfiere productos de la sucursal a los vehículos de campo."
+        />
+        <VehicleSelectorCard
+          value={selectedVehicleId}
+          onChange={setSelectedVehicleId}
+          onRefresh={refreshVehiclePanels}
+        />
 
-      <div className="grid gap-6 lg:grid-cols-4">
-        <div className="lg:col-span-2 space-y-6">
-          <BranchInventoryCard
-            branchId={selectedBranchId}
-            onAddToVehicle={(product) => setOpenTransferFor(product)}
-            vehicleSelected={selectedVehicleId != null}
-            refreshKey={branchRefreshKey}
-          />
+        <div className="grid gap-4 lg:grid-cols-4">
+          <div className="lg:col-span-2 space-y-4">
+            <BranchInventoryCard
+              branchId={selectedBranchId}
+              onAddToVehicle={(product) => setOpenTransferFor(product)}
+              vehicleSelected={selectedVehicleId != null}
+              refreshKey={branchRefreshKey}
+            />
+          </div>
+          <div className="lg:col-span-2 space-y-4">
+            <VehicleInventoryCard vehicleId={selectedVehicleId} refreshKey={stockRefreshKey} />
+          </div>
         </div>
-        <div className="lg:col-span-2 space-y-6">
-          <VehicleInventoryCard vehicleId={selectedVehicleId} refreshKey={stockRefreshKey} />
-        </div>
-      </div>
 
-      <TransferDialog
-        product={openTransferFor}
-        vehicleId={selectedVehicleId}
-        branchId={selectedBranchId}
-        onClose={() => setOpenTransferFor(null)}
-        onTransferred={() => {
-          setOpenTransferFor(null);
-          refreshVehiclePanels();
-          refreshBranchPanel();
-        }}
-      />
-    </div>
+        <TransferDialog
+          product={openTransferFor}
+          vehicleId={selectedVehicleId}
+          branchId={selectedBranchId}
+          onClose={() => setOpenTransferFor(null)}
+          onTransferred={() => {
+            setOpenTransferFor(null);
+            refreshVehiclePanels();
+            refreshBranchPanel();
+          }}
+        />
+      </PageContainer>
+    </DashboardLayoutSection>
   );
 }

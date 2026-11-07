@@ -10,6 +10,7 @@ import com.gaedet.veterinarysystem.exeption.BadRequestException;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import javax.persistence.EntityNotFoundException;
 
 @Service
 public class SaleModeService {
@@ -106,7 +107,7 @@ public class SaleModeService {
                 ProductSaleMode existing = product.getSaleModes().stream()
                         .filter(sm -> req.getId().equals(sm.getId()))
                         .findFirst()
-                        .orElseThrow(() -> new RuntimeException("Modo de venta no encontrado: " + req.getId()));
+                        .orElseThrow(() -> new EntityNotFoundException("Modo de venta no encontrado: " + req.getId()));
 
                 if (existing.getIsBaseMode()) {
                     throw new IllegalArgumentException("No se puede actualizar el modo de venta base a través de la lista 'saleModes'.");

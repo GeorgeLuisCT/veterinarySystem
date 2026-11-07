@@ -59,8 +59,13 @@ public class CashSessionService {
 
     @Transactional
     public CashSessionSummaryResponse openSession(OpenCashSessionRequest request) {
-        Branch branch = branchRepository.findById(request.getBranchId())
+        // Bloquea la sucursal para que dos aperturas simultáneas no creen dos cajas abiertas
+        Branch branch = branchRepository.findByIdForUpdate(request.getBranchId())
                 .orElseThrow(() -> new EntityNotFoundException("Sucursal no encontrada"));
+
+        if (request.getOpeningAmount().compareTo(ZERO) < 0) {
+            throw new BadRequestException("El monto de apertura no puede ser negativo");
+        }
 
         User cashier = userRepository.findById(request.getCashierId())
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
@@ -93,15 +98,25 @@ public class CashSessionService {
 
     @Transactional
     public CashSessionDetailResponse registerMovement(Long sessionId, RegisterCashMovementRequest request) {
-        CashSession session = cashSessionRepository.findById(sessionId)
+        CashSession session = cashSessionRepository.findByIdForUpdate(sessionId)
                 .orElseThrow(() -> new EntityNotFoundException("Sesión de caja no encontrada"));
 
         if (session.getStatus() != CashSessionStatus.OPEN) {
             throw new BadRequestException("Solo se pueden registrar movimientos en sesiones abiertas");
         }
 
-        if (request.getMovementType() == CashMovementType.EXPENSE && request.getAmount().compareTo(ZERO) <= 0) {
-            throw new BadRequestException("Los egresos deben tener un monto positivo");
+        // Ingresos y egresos siempre se registran en positivo; el tipo define si suma o resta
+        if (request.getAmount().compareTo(ZERO) <= 0) {
+            throw new BadRequestException("El monto del movimiento debe ser mayor a cero");
+        }
+
+        // Un egreso no puede dejar el efectivo esperado de la caja en negativo
+        if (request.getMovementType() == CashMovementType.EXPENSE) {
+            BigDecimal available = buildSummary(session).getCalculatedClosingAmount();
+            if (request.getAmount().compareTo(available) > 0) {
+                throw new BadRequestException("El egreso (" + request.getAmount().setScale(MONEY_SCALE, ROUNDING_MODE)
+                        + ") supera el efectivo disponible en caja (" + available + ")");
+            }
         }
 
         User registeredBy = userRepository.findById(request.getRegisteredById())
@@ -123,11 +138,16 @@ public class CashSessionService {
 
     @Transactional
     public CashSessionSummaryResponse closeSession(Long sessionId, CloseCashSessionRequest request) {
-        CashSession session = cashSessionRepository.findById(sessionId)
+        // Bloqueo de fila: evita cerrar dos veces la misma caja (y transferir dos veces el dinero)
+        CashSession session = cashSessionRepository.findByIdForUpdate(sessionId)
                 .orElseThrow(() -> new EntityNotFoundException("Sesión de caja no encontrada"));
 
         if (session.getStatus() != CashSessionStatus.OPEN) {
             throw new BadRequestException("La sesión ya se encuentra cerrada");
+        }
+
+        if (request.getCountedClosingAmount().compareTo(ZERO) < 0) {
+            throw new BadRequestException("El monto contado no puede ser negativo");
         }
 
         CashSessionSummaryResponse summaryBeforeClose = buildSummary(session);
@@ -285,11 +305,13 @@ public class CashSessionService {
 
     private CashSessionSummaryResponse buildSummary(CashSession session) {
         BigDecimal totalSales = sumSales(session.getId());
+        // Solo el efectivo entra al cajón: tarjetas/transferencias se concilian por método, no suman al arqueo
+        BigDecimal totalCashSales = sumCashSales(session.getId());
         BigDecimal totalIncomeMovements = sumMovements(session.getId(), CashMovementType.INCOME);
         BigDecimal totalExpenseMovements = sumMovements(session.getId(), CashMovementType.EXPENSE);
 
         BigDecimal calculated = session.getOpeningAmount()
-                .add(totalSales)
+                .add(totalCashSales)
                 .add(totalIncomeMovements)
                 .subtract(totalExpenseMovements)
                 .setScale(MONEY_SCALE, ROUNDING_MODE);
@@ -311,6 +333,7 @@ public class CashSessionService {
                 .closedAt(session.getClosedAt())
                 .openingAmount(session.getOpeningAmount())
                 .totalSales(totalSales)
+                .totalCashSales(totalCashSales)
                 .totalIncomeMovements(totalIncomeMovements)
                 .totalExpenseMovements(totalExpenseMovements)
                 .calculatedClosingAmount(calculated)
@@ -349,8 +372,16 @@ public class CashSessionService {
     }
 
     private BigDecimal sumSales(Long sessionId) {
-        List<SalePayment> payments = salePaymentRepository.findByCashSessionId(sessionId);
-        return payments.stream()
+        // Solo pagos de ventas COMPLETADAS (excluye borradores y ventas anuladas)
+        return salePaymentRepository.findCompletedByCashSessionId(sessionId).stream()
+                .map(SalePayment::getAmountPaid)
+                .reduce(ZERO, BigDecimal::add)
+                .setScale(MONEY_SCALE, ROUNDING_MODE);
+    }
+
+    private BigDecimal sumCashSales(Long sessionId) {
+        return salePaymentRepository.findCompletedByCashSessionId(sessionId).stream()
+                .filter(payment -> payment.getPaymentMethod() == PaymentMethod.CASH)
                 .map(SalePayment::getAmountPaid)
                 .reduce(ZERO, BigDecimal::add)
                 .setScale(MONEY_SCALE, ROUNDING_MODE);

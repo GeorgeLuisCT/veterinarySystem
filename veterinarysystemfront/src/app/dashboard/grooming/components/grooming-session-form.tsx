@@ -20,6 +20,7 @@ import { GroomingSessionDetailResponse } from "../types/grooming-session-respons
 import { AddGroomingMaterialRequest, UpdateGroomingSessionRequest, updateGroomingSessionSchema } from "../types/grooming-session-request";
 import GroomingSessionService from "../service/grooming-session-service";
 import { GroomingStatusLabels, GroomingStatusOptions } from "../enums/grooming-status";
+import { PageSection } from "@/components/page/page-section";
 
 export type Option = { value: string; label: string };
 
@@ -150,11 +151,8 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
     return (
       <Form {...form}>
         <form className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Detalles de la sesión</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <PageSection title="Detalles de la sesión">
+<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <FormField
                 control={form.control}
                 name="startedAt"
@@ -273,14 +271,11 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
                   {detail.assignedProfessionalFullName ?? "Sin asignar"}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+</PageSection>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Notas de comportamiento</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <PageSection title="Notas de comportamiento">
+<div>
               <FormField
                 control={form.control}
                 name="behaviorNotes"
@@ -303,14 +298,11 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
+            </div>
+</PageSection>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Observaciones clínicas</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <PageSection title="Observaciones clínicas">
+<div>
               <FormField
                 control={form.control}
                 name="clinicalObservations"
@@ -333,13 +325,13 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
+            </div>
+</PageSection>
 
           <Card>
             <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-2">
-                <Package className="h-5 w-5 text-blue-600" />
+                <Package className="h-5 w-5 text-info-strong" />
                 <CardTitle>Materiales utilizados</CardTitle>
               </div>
               <Button type="button" variant="outline" onClick={() => setOpenMaterial(true)}>
@@ -351,9 +343,9 @@ const GroomingSessionForm = forwardRef<GroomingSessionFormHandle, Props>(
                 <p className="text-sm text-muted-foreground">No se registraron materiales.</p>
               ) : (
                 detail.materialsUsed.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between rounded-lg border bg-white p-3 shadow-sm">
+                  <div key={m.id} className="flex items-center justify-between  shadow-sm">
                     <div>
-                      <p className="font-semibold text-slate-900">{m.productName ?? m.unregisteredProductName ?? "Material"}</p>
+                      <p className="font-semibold text-foreground">{m.productName ?? m.unregisteredProductName ?? "Material"}</p>
                       <p className="text-xs text-muted-foreground">
                         {m.quantity} {ProductUnitTypeLabels[m.unitType]}
                         {m.unitPrice !== null ? ` • PU ${m.unitPrice}` : ""} {m.subtotal !== null ? ` • Subtotal ${m.subtotal}` : ""}

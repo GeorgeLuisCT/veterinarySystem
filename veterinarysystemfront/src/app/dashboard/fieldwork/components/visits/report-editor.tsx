@@ -142,7 +142,7 @@ export function ReportEditor({ visitId, report, onReportUpdated }: Props) {
               status[field] === "error"
                 ? "text-destructive"
                 : status[field] === "saved"
-                ? "text-emerald-600"
+                ? "text-success-strong"
                 : "text-muted-foreground"
             )}
           >

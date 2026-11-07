@@ -46,11 +46,11 @@ export function ViewTreatmentModal({ open, onOpenChange, schedule }: Props) {
           <DialogTitle>Detalle del tratamiento</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 text-sm">
-          <div className="rounded-lg bg-slate-50 p-3">
-            <p className="font-semibold text-slate-900 whitespace-pre-line">{schedule.treatmentName}</p>
-            <p className="text-slate-600">Programado: {scheduledAt}</p>
+          <div className="rounded-lg bg-muted p-3">
+            <p className="font-semibold text-foreground whitespace-pre-line">{schedule.treatmentName}</p>
+            <p className="text-muted-foreground">Programado: {scheduledAt}</p>
             {completedAt && (
-              <p className="text-slate-600">
+              <p className="text-muted-foreground">
                 Administrado: {completedAt}
                 {schedule.completedByEmployeeFullName ? ` por ${schedule.completedByEmployeeFullName}` : ""}
               </p>
@@ -59,19 +59,19 @@ export function ViewTreatmentModal({ open, onOpenChange, schedule }: Props) {
 
           {schedule.notes && (
             <div>
-              <p className="text-xs font-semibold uppercase text-slate-500">Notas del plan</p>
-              <p className="whitespace-pre-wrap text-slate-800">{schedule.notes}</p>
+              <p className="text-xs font-semibold uppercase text-muted-foreground">Notas del plan</p>
+              <p className="whitespace-pre-wrap text-foreground">{schedule.notes}</p>
             </div>
           )}
 
           <div>
-            <p className="text-xs font-semibold uppercase text-slate-500">Productos registrados</p>
+            <p className="text-xs font-semibold uppercase text-muted-foreground">Productos registrados</p>
             {schedule.products && schedule.products.length > 0 ? (
               <ul className="mt-1 space-y-1">
                 {schedule.products.map((product) => (
                   <li key={product.id} className="rounded-md border p-2">
-                    <p className="font-medium text-slate-900">{product.productName}</p>
-                    <p className="text-xs text-slate-600">
+                    <p className="font-medium text-foreground">{product.productName}</p>
+                    <p className="text-xs text-muted-foreground">
                       {product.quantity} {ProductUnitTypeLabels[product.unit]}
                     </p>
                   </li>

@@ -197,10 +197,10 @@ export function MonthView() {
                 isMobile ? "min-h-[80px]" : "min-h-[120px]",
                 !isCurrentMonth && "bg-muted/10 text-muted-foreground",
                 isCurrentMonth && "bg-card",
-                isTodayDate && "bg-blue-50 dark:bg-blue-950/20",
+                isTodayDate && "bg-primary/10",
                 isWeekend && isCurrentMonth && "bg-muted/5",
                 index % 7 === 6 && "border-r-0", // Remove right border on last column
-                isHovered && "ring-1 ring-blue-200 dark:ring-blue-800",
+                isHovered && "",
               )}
               onClick={() => handleDateClick(day)}
               onMouseEnter={() => !isMobile && setHoveredDate(day)}
@@ -212,7 +212,7 @@ export function MonthView() {
                   className={cn(
                     "text-xs md:text-sm font-medium transition-colors",
                     isTodayDate &&
-                    "bg-blue-600 text-white rounded-full w-6 h-6 md:w-7 md:h-7 flex items-center justify-center text-xs font-semibold shadow-sm",
+                    "bg-primary text-primary-foreground rounded-full w-6 h-6 md:w-7 md:h-7 flex items-center justify-center text-xs font-semibold shadow-sm",
                     !isTodayDate && isCurrentMonth && "text-foreground",
                     !isTodayDate && !isCurrentMonth && "text-muted-foreground",
                   )}
@@ -226,7 +226,7 @@ export function MonthView() {
                   variant="ghost"
                   className={cn(
                     "h-5 w-5 md:h-6 md:w-6 p-0 transition-opacity",
-                    "hover:bg-blue-100 dark:hover:bg-blue-900/50",
+                    "hover:bg-accent",
                     isMobile ? "opacity-60" : "opacity-0 group-hover:opacity-100",
                   )}
                   onClick={(e) => handleQuickAdd(day, e)}
@@ -248,13 +248,13 @@ export function MonthView() {
               {/* Event count indicator for mobile */}
               {dayEvents.length > 0 && isMobile && (
                 <div className="absolute top-1 right-1">
-                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                 </div>
               )}
 
               {/* Today indicator ring */}
               {isTodayDate && (
-                <div className="absolute inset-0 border-2 border-blue-200 dark:border-blue-800 rounded-lg pointer-events-none opacity-50"></div>
+                <div className="absolute inset-0 border-2 border-primary/30 rounded-lg pointer-events-none opacity-50"></div>
               )}
             </div>
           )

@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.persistence.EntityNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -32,8 +33,16 @@ public class KardexService {
     @Transactional
     public void registerMovement(KardexRegistrationRequest request) {
 
+        // Todo movimiento se registra por lote y con cantidad positiva (el tipo define si entra o sale)
+        if (request.getBatchId() == null) {
+            throw new BadRequestException("El movimiento de inventario requiere un lote");
+        }
+        if (request.getQuantity() == null || request.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException("La cantidad del movimiento de inventario debe ser mayor a cero");
+        }
+
         Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado para Kardex"));
+                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado para Kardex"));
 
         BigDecimal baseQuantity = convertToBaseUnit(
                 product,
@@ -47,7 +56,7 @@ public class KardexService {
 
         ProductBranch pbs = productBranchStockRepository
                 .findByProductIdAndBranchId(request.getProductId(), request.getBranchId())
-                .orElseThrow(() -> new RuntimeException("Producto no configurado en la sucursal"));
+                .orElseThrow(() -> new BadRequestException("Producto no configurado en la sucursal"));
 
         if (!pbs.isActive()) {
             throw new BadRequestException("El producto no está activo en esta sucursal");
@@ -90,7 +99,7 @@ public class KardexService {
     @Transactional(readOnly = true)
     public BigDecimal convertToBaseUnit(Long productId, BigDecimal quantity, ProductUnitType unitType) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado para conversión de unidades"));
+                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado para conversión de unidades"));
         return convertToBaseUnit(product, quantity, unitType);
     }
 

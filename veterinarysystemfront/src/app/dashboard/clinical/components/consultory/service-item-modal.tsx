@@ -142,7 +142,7 @@ export function ServiceItemModal({ id, onClose, onAdded, category }: CommonProps
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="w-[min(90vw,900px)] max-h-[95vh] overflow-y-auto overflow-x-hidden rounded-2xl sm:max-w-6xl">
+      <DialogContent className="w-[min(90vw,900px)] max-h-[95vh] overflow-y-auto overflow-x-hidden rounded-lg sm:max-w-6xl">
         <DialogHeader className="space-y-1">
           <DialogTitle>{dialogTitle}</DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -153,8 +153,8 @@ export function ServiceItemModal({ id, onClose, onAdded, category }: CommonProps
         <Form {...form}>
           <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)} noValidate>
             {/* DATOS DEL SERVICIO */}
-            <fieldset className="rounded-xl border p-4">
-              <legend className="px-1 text-sm font-medium">Datos del servicio</legend>
+            <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+              <legend className="mb-3 text-sm font-semibold text-foreground">Datos del servicio</legend>
 
               <FormField
                 control={form.control}
@@ -260,8 +260,8 @@ export function ServiceItemModal({ id, onClose, onAdded, category }: CommonProps
 
             {/* PRODUCTOS DEL SERVICIO — solo si hay servicio */}
             {hasService && (
-              <fieldset className="rounded-xl border p-4">
-                <legend className="px-1 text-sm font-medium">Productos usados</legend>
+              <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                <legend className="mb-3 text-sm font-semibold text-foreground">Productos usados</legend>
 
                 <div className="mb-3 flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
@@ -388,7 +388,7 @@ export function ServiceItemModal({ id, onClose, onAdded, category }: CommonProps
                           <Button
                             type="button"
                             variant="outline"
-                            className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="gap-1 text-destructive hover:text-destructive hover:bg-red-50"
                             onClick={() => remove(index)}
                           >
                             <Trash2 className="h-4 w-4" />

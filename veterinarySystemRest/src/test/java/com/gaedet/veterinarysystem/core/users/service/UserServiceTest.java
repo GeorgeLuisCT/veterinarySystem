@@ -59,6 +59,7 @@ class UserServiceTest {
         User user = buildUser(true);
         when(userRepository.findAuthBundleById(1L)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.countActiveAdmins()).thenReturn(2L); // hay otro administrador activo
 
         UserSummaryResponse response = userService.updateUserStatus(1L, false);
 
@@ -80,10 +81,31 @@ class UserServiceTest {
     void deleteUserShouldDeleteWhenNoActiveAssignments() {
         User user = buildUser(false);
         when(userRepository.findAuthBundleById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.countActiveAdmins()).thenReturn(2L);
 
         userService.deleteUser(1L);
 
         verify(userRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    void cannotDeactivateYourself() {
+        User user = buildUser(true);
+        when(userRepository.findAuthBundleById(1L)).thenReturn(Optional.of(user));
+
+        assertThrows(IllegalStateException.class, () -> userService.updateUserStatus(1L, false, 1L));
+    }
+
+    @Test
+    void cannotDeactivateTheLastAdmin() {
+        User admin = buildUser(true);
+        Role adminRole = new Role();
+        adminRole.setName(RoleName.ROLE_ADMIN);
+        admin.setRoles(Set.of(adminRole));
+        when(userRepository.findAuthBundleById(1L)).thenReturn(Optional.of(admin));
+        when(userRepository.countActiveAdmins()).thenReturn(1L);
+
+        assertThrows(IllegalStateException.class, () -> userService.updateUserStatus(1L, false, 99L));
     }
 
     private User buildUser(boolean activeBranch) {

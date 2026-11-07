@@ -62,6 +62,7 @@ public class SurgicalReportService {
     private final ProductRepository productRepository;
     private final AnestheticDrugRepository anestheticDrugRepository;
     private final SurgicalMaterialRepository surgicalMaterialRepository;
+    private final com.gaedet.veterinarysystem.core.inventory.service.InventoryConsumptionService inventoryConsumptionService;
     private final PostOperativeIndicationRepository postOperativeIndicationRepository;
 
     @Transactional(readOnly = true)
@@ -251,6 +252,11 @@ public class SurgicalReportService {
         AnestheticDrug saved = anestheticDrugRepository.save(drug);
         report.getAnestheticProtocol().add(saved);
 
+        Long drugBranchId = report.getAttention() != null && report.getAttention().getBranch() != null
+                ? report.getAttention().getBranch().getId() : null;
+        inventoryConsumptionService.consume(product.getId(), drugBranchId, request.getDoseAmount(),
+                request.getDoseUnit(), "AnestheticDrug", saved.getId());
+
         return SurgicalReportMapper.toDetail(report);
     }
 
@@ -277,6 +283,14 @@ public class SurgicalReportService {
 
         SurgicalMaterial saved = surgicalMaterialRepository.save(material);
         report.getMaterialsUsed().add(saved);
+
+        if (product != null) {
+            Long materialBranchId = report.getAttention() != null && report.getAttention().getBranch() != null
+                    ? report.getAttention().getBranch().getId() : null;
+            inventoryConsumptionService.consume(product.getId(), materialBranchId,
+                    java.math.BigDecimal.valueOf(request.getQuantity() != null ? request.getQuantity() : 0),
+                    request.getUnitType(), "SurgicalMaterial", saved.getId());
+        }
 
         return SurgicalReportMapper.toDetail(report);
     }

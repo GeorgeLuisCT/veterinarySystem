@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
@@ -12,6 +11,7 @@ import DataTable, { type Action } from "@/components/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import type { ProductResponse, ProductSummaryResponse } from "@/app/dashboard/inventory/_types/product-response";
+import { PageSection } from "@/components/page/page-section";
 
 export default function BranchInventoryCard({ branchId, onAddToVehicle, vehicleSelected, refreshKey }: { branchId: number | null; onAddToVehicle: (product: ProductResponse) => void; vehicleSelected: boolean; refreshKey?: number; }) {
   const { toast } = useToast();
@@ -68,12 +68,7 @@ export default function BranchInventoryCard({ branchId, onAddToVehicle, vehicleS
   );
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle>Inventario de la sucursal</CardTitle>
-        <p className="text-sm text-muted-foreground">{branchId ? "Productos disponibles en la sucursal seleccionada" : "Selecciona una sucursal para ver inventario"}</p>
-      </CardHeader>
-      <CardContent>
+    <PageSection title="Inventario de la sucursal" description={branchId ? "Productos disponibles en la sucursal seleccionada" : "Selecciona una sucursal para ver inventario"} className="h-full">
         <DataTable<ProductSummaryResponse>
           pageData={pageData}
           columns={columns}
@@ -88,7 +83,6 @@ export default function BranchInventoryCard({ branchId, onAddToVehicle, vehicleS
           emptyState={<div className="text-muted-foreground">{loading ? "Cargando inventario…" : "No se encontraron productos."}</div>}
           actions={vehicleSelected ? actions : []}
         />
-      </CardContent>
-    </Card>
+      </PageSection>
   );
 }

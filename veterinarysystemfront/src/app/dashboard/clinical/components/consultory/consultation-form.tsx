@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CollapsibleSection } from "@/components/page/collapsible-section";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +37,10 @@ interface Props {
 
 export interface ConsultationFormHandle {
   triggerSaveAll: () => Promise<void>;
+}
+
+function SummaryState({ done }: { done: boolean }) {
+  return <span className={done ? "text-success-strong" : "text-muted-foreground"}>{done ? "Completo" : "Sin completar"}</span>;
 }
 
 const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, setDetail, className }, ref) => {
@@ -174,11 +178,7 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
 
   return (
     <div className={className}>
-      <Card>
-        <CardHeader>
-          <CardTitle>S - Subjetivo</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <CollapsibleSection title="S - Subjetivo" summary={<SummaryState done={Boolean(form.watch("subjective"))} />}>
           <Form {...form}>
             <FormField
               control={form.control}
@@ -202,14 +202,9 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
               )}
             />
           </Form>
-        </CardContent>
-      </Card>
+        </CollapsibleSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>O - Objetivo</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <CollapsibleSection title="O - Objetivo" summary={<SummaryState done={Boolean(form.watch("objective")) || [form.watch("weightKg"), form.watch("temperatureCelsius"), form.watch("heartRate"), form.watch("respiratoryRate")].some((v) => v != null && v !== ("" as unknown))} />} contentClassName="space-y-4">
           <Form {...form}>
             <div className="grid gap-4 md:grid-cols-4">
               <FormField
@@ -326,14 +321,9 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
               )}
             />
           </Form>
-        </CardContent>
-      </Card>
+        </CollapsibleSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>A - Valoración</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <CollapsibleSection title="A - Valoración" summary={<SummaryState done={Boolean(form.watch("assessment"))} />}>
           <Form {...form}>
             <FormField
               control={form.control}
@@ -357,14 +347,9 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
               )}
             />
           </Form>
-        </CardContent>
-      </Card>
+        </CollapsibleSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>P - Plan</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <CollapsibleSection title="P - Plan" summary={<>{medications.length + serviceItems.length + surgicalOrders.length + labRequests.length} registros</>} contentClassName="space-y-6">
           {/* Acciones rápidas */}
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => setOpenMedication(true)}>
@@ -610,12 +595,12 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
             };
 
             return (
-              <div className="space-y-3">
+              <div className="divide-y">
                 {entries.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Sin registros</p>
                 ) : (
                   entries.map((e) => (
-                    <div key={e.id} className="rounded-xl border p-3 hover:bg-muted/40 transition-colors">
+                    <div key={e.id} className="py-3 transition-colors hover:bg-muted/40">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-2">
                           <div className="grid h-8 w-8 place-items-center rounded-lg border">
@@ -681,9 +666,7 @@ const ConsultationForm = forwardRef<ConsultationFormHandle, Props>(({ detail, se
               )}
             />
           </Form>
-        </CardContent>
-
-      </Card>
+        </CollapsibleSection>
 
       {openMedication && (
         <MedicationModal

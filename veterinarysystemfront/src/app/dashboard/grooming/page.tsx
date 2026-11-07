@@ -3,7 +3,10 @@
 
 import { AnimalBasicResponse } from "@/app/dashboard/crm/patients/types/animal-basic-response";
 import NewAttentionModal from "@/app/dashboard/schedule/components/new-attention-modal";
-import { AttentionStatus, AttentionStatusLabels } from "@/app/dashboard/schedule/enums/attention-status";
+import {
+  AttentionStatus,
+  AttentionStatusLabels,
+} from "@/app/dashboard/schedule/enums/attention-status";
 import { AttentionType } from "@/app/dashboard/schedule/enums/attention-type";
 import AttentionService from "@/app/dashboard/schedule/service/attention-service";
 import type { AttentionResponse } from "@/app/dashboard/schedule/types/attention-response";
@@ -13,11 +16,15 @@ import { useToast } from "@/hooks/use-toast";
 import { PlusCircle, RefreshCcw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import GroomingCard from "../clinical/components/grooming/grooming-card";
-import GroomingFilters, { type GroomingFilters as Filters } from "../clinical/components/grooming/grooming-filters";
+import GroomingFilters, {
+  type GroomingFilters as Filters,
+} from "../clinical/components/grooming/grooming-filters";
 import DashboardLayoutSection from "../dashboard-layout-section";
 import { GroomingStatus, GroomingStatusLabels } from "./enums/grooming-status";
 import GroomingSessionService from "./service/grooming-session-service";
 import type { GroomingSessionSummaryResponse } from "./types/grooming-session-response";
+import { PageHeader } from "@/components/page/page-header";
+import { PageContainer } from "@/components/page/page-container";
 
 function formatLocalDate(d: Date): string {
   const y = d.getFullYear();
@@ -75,45 +82,46 @@ export default function GroomingPage() {
       const startDateParam = toDateParam(filters.startDate);
       const endDateParam = toDateParam(filters.endDate);
 
-      const [waitingRoomResponse, inConsultationResponse, inProgressResponse, sessionsResponse] = await Promise.all([
-        AttentionService.list({
-          status: AttentionStatus.WAITING,
-          type: AttentionType.GROOMING,
-          startDate: startDateParam,
-          endDate: endDateParam,
-          size: 200,
-          branchId: selectedBranchId,
-        }),
-        AttentionService.list({
-          status: AttentionStatus.IN_CONSULTATION,
-          type: AttentionType.GROOMING,
-          startDate: startDateParam,
-          endDate: endDateParam,
-          size: 200,
-          branchId: selectedBranchId,
-        }),
-        AttentionService.list({
-          status: AttentionStatus.IN_PROGRESS,
-          type: AttentionType.GROOMING,
-          startDate: startDateParam,
-          endDate: endDateParam,
-          size: 200,
-          branchId: selectedBranchId,
-        }),
-        GroomingSessionService.list({
-          statuses: [
-            GroomingStatus.DRAFT,
-            GroomingStatus.BATHING,
-            GroomingStatus.DRYING,
-            GroomingStatus.FINISHING,
-            GroomingStatus.READY_FOR_PICKUP,
-          ],
-          startDate: startDateParam,
-          endDate: endDateParam,
-          size: 200,
-          branchId: selectedBranchId,
-        }),
-      ]);
+      const [waitingRoomResponse, inConsultationResponse, inProgressResponse, sessionsResponse] =
+        await Promise.all([
+          AttentionService.list({
+            status: AttentionStatus.WAITING,
+            type: AttentionType.GROOMING,
+            startDate: startDateParam,
+            endDate: endDateParam,
+            size: 200,
+            branchId: selectedBranchId,
+          }),
+          AttentionService.list({
+            status: AttentionStatus.IN_CONSULTATION,
+            type: AttentionType.GROOMING,
+            startDate: startDateParam,
+            endDate: endDateParam,
+            size: 200,
+            branchId: selectedBranchId,
+          }),
+          AttentionService.list({
+            status: AttentionStatus.IN_PROGRESS,
+            type: AttentionType.GROOMING,
+            startDate: startDateParam,
+            endDate: endDateParam,
+            size: 200,
+            branchId: selectedBranchId,
+          }),
+          GroomingSessionService.list({
+            statuses: [
+              GroomingStatus.DRAFT,
+              GroomingStatus.BATHING,
+              GroomingStatus.DRYING,
+              GroomingStatus.FINISHING,
+              GroomingStatus.READY_FOR_PICKUP,
+            ],
+            startDate: startDateParam,
+            endDate: endDateParam,
+            size: 200,
+            branchId: selectedBranchId,
+          }),
+        ]);
 
       setWaitingRoom(waitingRoomResponse.content);
       const mergedAttending: AttentionResponse[] = [];
@@ -166,7 +174,9 @@ export default function GroomingPage() {
         professionalName: att.attendingEmployeeFullName,
         startTime: att.checkInTime,
         attentionId: att.id,
-        statusLabel: att.status ? AttentionStatusLabels[att.status] ?? "En atención" : "En atención",
+        statusLabel: att.status
+          ? (AttentionStatusLabels[att.status] ?? "En atención")
+          : "En atención",
       }));
 
     const gs: UnifiedCardData[] = sessions.map((s) => ({
@@ -187,7 +197,7 @@ export default function GroomingPage() {
       const tA = new Date(a.startTime).getTime();
       const tB = new Date(b.startTime).getTime();
       if (tA !== tB) return tB - tA;
-      return (b.attentionId - a.attentionId) || (b.id - a.id);
+      return b.attentionId - a.attentionId || b.id - a.id;
     });
   }, [waitingRoom, attendingRoom, sessions]);
 
@@ -195,7 +205,9 @@ export default function GroomingPage() {
     if (filters.status === "ALL") return allItems;
     if (filters.status === "WAITING") return allItems.filter((i) => i.source === "RECEPCION");
     return allItems.filter(
-      (i) => i.source === "GROOMING" && i.statusLabel === GroomingStatusLabels[filters.status as GroomingStatus]
+      (i) =>
+        i.source === "GROOMING" &&
+        i.statusLabel === GroomingStatusLabels[filters.status as GroomingStatus]
     );
   }, [allItems, filters.status]);
 
@@ -206,7 +218,11 @@ export default function GroomingPage() {
   }, [fetchData, toast]);
 
   if (loading) {
-    return <div className="flex justify-center items-center h-[60vh]">Cargando sesiones de peluquería...</div>;
+    return (
+      <div className="flex justify-center items-center h-[60vh]">
+        Cargando sesiones de peluquería...
+      </div>
+    );
   }
 
   if (error) {
@@ -215,25 +231,25 @@ export default function GroomingPage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="h-screen bg-background flex flex-col overflow-hidden">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Peluquería</h1>
-              <p className="text-gray-600 mt-1">Todas las atenciones y sesiones en una sola vista.</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={fetchData} className="gap-2">
-              <RefreshCcw className="h-4 w-4" />
-              Actualizar
-            </Button>
-            <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
-              <PlusCircle className="h-4 w-4" />
-              Nueva Recepción
-            </Button>
-          </div>
-        </div>
+      <PageContainer>
+        <PageHeader
+          title="Peluquería"
+          description="Todas las atenciones y sesiones en una sola vista."
+          actions={
+            <>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={fetchData} className="gap-2">
+                  <RefreshCcw className="h-4 w-4" />
+                  Actualizar
+                </Button>
+                <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+                  <PlusCircle className="h-4 w-4" />
+                  Nueva Recepción
+                </Button>
+              </div>
+            </>
+          }
+        />
 
         <div className="mb-4">
           <GroomingFilters value={filters} onChange={setFilters} />
@@ -246,7 +262,9 @@ export default function GroomingPage() {
         </div>
 
         {filteredItems.length === 0 && (
-          <div className="text-center text-gray-500 mt-10">No hay registros para los filtros seleccionados.</div>
+          <div className="text-center text-muted-foreground mt-10">
+            No hay registros para los filtros seleccionados.
+          </div>
         )}
 
         <NewAttentionModal
@@ -255,7 +273,7 @@ export default function GroomingPage() {
           onCreated={handleCreated}
           origin="GROOMING"
         />
-      </div>
+      </PageContainer>
     </DashboardLayoutSection>
   );
 }

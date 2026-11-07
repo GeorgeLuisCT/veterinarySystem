@@ -49,7 +49,7 @@ export function MetricHighlightCard({ metric, timeline = [], colorIndex }: Metri
             <span
               className={cn(
                 "flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                trend > 0 ? "bg-emerald-50 text-emerald-700" : trend < 0 ? "bg-red-50 text-red-600" : "bg-muted text-foreground",
+                trend > 0 ? "bg-success-soft text-success-strong" : trend < 0 ? "bg-danger-soft text-danger-strong" : "bg-muted text-foreground",
               )}
             >
               <TrendIcon className="h-3 w-3" />

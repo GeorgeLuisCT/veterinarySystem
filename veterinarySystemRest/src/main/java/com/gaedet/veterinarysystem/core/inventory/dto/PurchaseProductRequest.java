@@ -24,5 +24,6 @@ public class PurchaseProductRequest {
     @NotNull
     private ProductUnitType unitType;
     @NotNull
+    @javax.validation.constraints.DecimalMin(value = "0.00", message = "El costo unitario no puede ser negativo")
     private BigDecimal unitCost;
 }

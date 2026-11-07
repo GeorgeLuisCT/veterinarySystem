@@ -120,7 +120,7 @@ export function AnimalForm({
     <div className="max-h-[80vh] overflow-auto p-4">
       {loading ? (
         <div className="flex justify-center items-center h-40">
-          <Loader2 className="animate-spin w-6 h-6 text-gray-600" />
+          <Loader2 className="animate-spin w-6 h-6 text-muted-foreground" />
         </div>
       ) : (
         <Form {...form}>

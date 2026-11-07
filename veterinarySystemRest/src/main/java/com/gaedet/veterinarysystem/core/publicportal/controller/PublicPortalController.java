@@ -26,12 +26,31 @@ import java.util.List;
 public class PublicPortalController {
 
     private final PublicPortalService publicPortalService;
+    private final com.gaedet.veterinarysystem.core.publicportal.service.PublicPortalRateLimiter rateLimiter;
+
+    /** IP real del cliente (nginx envía X-Forwarded-For); sirve solo para frenar abuso, no para autorizar. */
+    private static String clientIp(javax.servlet.http.HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
+
+    private void throttle(javax.servlet.http.HttpServletRequest request, String documentNumber) {
+        rateLimiter.check("ip:" + clientIp(request));
+        if (documentNumber != null && !documentNumber.isBlank()) {
+            rateLimiter.check("doc:" + documentNumber.trim());
+        }
+    }
 
     @GetMapping("/clinical-history/animals")
     public ResponseEntity<List<PublicAnimalSummaryResponse>> getAnimalsForClientHistory(
             @RequestParam Long documentTypeId,
-            @RequestParam String documentNumber
+            @RequestParam String documentNumber,
+            javax.servlet.http.HttpServletRequest httpRequest
     ) {
+        throttle(httpRequest, documentNumber);
         List<PublicAnimalSummaryResponse> animals = publicPortalService.getAnimalsForClient(documentTypeId, documentNumber);
         return ResponseEntity.ok(animals);
     }
@@ -46,8 +65,10 @@ public class PublicPortalController {
     public ResponseEntity<ClinicalHistoryDetailResponse> getClinicalHistory(
             @RequestParam Long documentTypeId,
             @RequestParam String documentNumber,
-            @RequestParam Long animalId
+            @RequestParam Long animalId,
+            javax.servlet.http.HttpServletRequest httpRequest
     ) {
+        throttle(httpRequest, documentNumber);
         ClinicalHistoryDetailResponse history = publicPortalService.getClinicalHistory(documentTypeId, documentNumber, animalId);
         return ResponseEntity.ok(history);
     }
@@ -60,8 +81,10 @@ public class PublicPortalController {
 
     @PostMapping("/appointments/request")
     public ResponseEntity<PublicAppointmentResponse> requestAppointment(
-            @Valid @RequestBody PublicAppointmentRequest request
+            @Valid @RequestBody PublicAppointmentRequest request,
+            javax.servlet.http.HttpServletRequest httpRequest
     ) {
+        throttle(httpRequest, request.getDocumentNumber());
         PublicAppointmentResponse response = publicPortalService.createAppointmentRequest(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

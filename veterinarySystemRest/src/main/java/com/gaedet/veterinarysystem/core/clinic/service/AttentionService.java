@@ -95,6 +95,7 @@ public class AttentionService {
         Animal animal = getAnimalOrThrow(request.getAnimalId());
         Employee employee = getEmployeeOrThrow(request.getAttendingEmployeeId());
         ClinicalService service = getClinicalServiceOrThrow(request.getClinicalServiceId());
+        assertNoOpenAttention(animal, request.getType());
 
         Attentions attention = Attentions.builder()
                 .branch(branch)
@@ -139,6 +140,7 @@ public class AttentionService {
         LocalDateTime checkInTime = request.getCheckInTime() != null ? request.getCheckInTime() : LocalDateTime.now();
         AttentionsStatus status = request.getStatus() != null ? request.getStatus() : AttentionsStatus.WAITING;
         AttentionType type = mapFromAppointmentType(appointment.getType());
+        assertNoOpenAttention(animal, type);
         ClinicalService service = resolveServiceFromAppointment(appointment);
         SurgicalOrder surgicalOrder = resolveOrderFromAppointment(appointment);
 
@@ -166,6 +168,7 @@ public class AttentionService {
         Attentions attention = attentionRepository.findWithDetailsById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Atención no encontrada: id=" + id));
 
+        validateStatusChange(attention.getStatus(), request.getStatus());
         attention.setStatus(request.getStatus());
         syncAppointmentStatus(attention);
 
@@ -192,6 +195,13 @@ public class AttentionService {
     public void delete(Long id) {
         Attentions attention = attentionRepository.findWithDetailsById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Atención no encontrada: id=" + id));
+
+        // Solo se puede eliminar un registro de recepción que aún no empezó (error de digitación);
+        // una atención en curso o finalizada ya tiene historia clínica y cargos asociados.
+        if (attention.getStatus() != AttentionsStatus.WAITING) {
+            throw new IllegalStateException("Solo se puede eliminar una recepción en espera. Esta atención ya está "
+                    + (attention.getStatus() == AttentionsStatus.FINISHED ? "finalizada" : "en curso"));
+        }
 
         Appointment appointment = attention.getAppointment();
         if (appointment != null) {
@@ -301,5 +311,25 @@ public class AttentionService {
     private ClinicalService getClinicalServiceOrThrow(Long id) {
         return clinicalServiceRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Servicio clínico no encontrado: id=" + id));
+    }
+
+    /** Un paciente no puede tener dos recepciones abiertas del mismo tipo a la vez (doble registro). */
+    private void assertNoOpenAttention(Animal animal, AttentionType type) {
+        if (attentionRepository.existsByAnimalIdAndTypeAndStatusNot(animal.getId(), type, AttentionsStatus.FINISHED)) {
+            throw new IllegalStateException("El paciente ya tiene una atención de tipo " + type + " abierta");
+        }
+    }
+
+    /** WAITING → IN_CONSULTATION | IN_PROGRESS | FINISHED; entre IN_CONSULTATION e IN_PROGRESS → FINISHED (final). */
+    private void validateStatusChange(AttentionsStatus current, AttentionsStatus target) {
+        if (current == target) {
+            return;
+        }
+        if (current == AttentionsStatus.FINISHED) {
+            throw new IllegalStateException("La atención ya está finalizada y no puede cambiar de estado");
+        }
+        if (target == AttentionsStatus.WAITING) {
+            throw new IllegalStateException("No se puede regresar una atención a 'en espera'");
+        }
     }
 }

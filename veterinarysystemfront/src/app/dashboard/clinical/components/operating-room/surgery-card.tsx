@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, Stethoscope, MoveRight, Tags, PawPrint, MapPin, ClipboardList } from "lucide-react";
 import { AnimalSpeciesDetails } from "@/app/dashboard/crm/patients/enums/animal-species";
 import { SurgicalReportStatus } from "../../enums/surgical-report-status";
+import { toneBorderLeft, type StatusTone } from "@/components/page/status-tone";
 
 export type SurgeryCardData = {
     kind: "WAITING" | "REPORT";
@@ -56,26 +57,16 @@ export default function SurgeryCard({ data }: { data: SurgeryCardData }) {
 
     const SpeciesIcon = speciesDetails?.icon;
     const speciesColor = speciesDetails?.colorClass;
-    const borderIconClass = speciesColor ? speciesColor.replace("bg-", "border-") : "border-gray-200";
-    const iconSpeciesClass = speciesColor ? speciesColor.replace("bg-", "text-") : "text-gray-400";
+    const borderIconClass = speciesColor ? speciesColor.replace("bg-", "border-") : "border-border";
+    const iconSpeciesClass = speciesColor ? speciesColor.replace("bg-", "text-") : "text-muted-foreground";
 
-    const borderCardClass =
+    const tone: StatusTone =
         data.kind === "WAITING"
-            ? "border-amber-500"
-            : data.reportStatus === SurgicalReportStatus.IN_PROGRESS
-                ? "border-emerald-600"
-                : data.reportStatus === SurgicalReportStatus.READY_TO_BILL
-                    ? "border-emerald-700"
-                    : "border-slate-300";
-
-    const badgeColor =
-        data.kind === "WAITING"
-            ? "bg-amber-500"
-            : data.reportStatus === SurgicalReportStatus.IN_PROGRESS
-                ? "bg-emerald-600"
-                : data.reportStatus === SurgicalReportStatus.READY_TO_BILL
-                    ? "bg-emerald-700"
-                    : "bg-slate-500";
+            ? "warning"
+            : data.reportStatus === SurgicalReportStatus.IN_PROGRESS || data.reportStatus === SurgicalReportStatus.READY_TO_BILL
+                ? "success"
+                : "neutral";
+    const borderCardClass = toneBorderLeft[tone];
 
     const handleOpen = useCallback(() => {
         if (data.kind === "WAITING" && data.attentionId) {
@@ -86,9 +77,9 @@ export default function SurgeryCard({ data }: { data: SurgeryCardData }) {
     }, [router, data.kind, data.attentionId, data.id]);
 
     return (
-        <Card className={`relative flex flex-col overflow-hidden shadow-md bg-white rounded-lg pt-0 border-2 border-l-8 ${borderCardClass}`}>
+        <Card className={`relative flex flex-col gap-0 overflow-hidden rounded-lg border border-l-4 py-0 ${borderCardClass}`}>
             <div className="absolute right-3 top-3 z-10">
-                <Badge className={`gap-1 text-xs text-white shadow-sm ${badgeColor}`}>
+                <Badge variant={tone} className="gap-1 text-xs">
                     <Tags className="h-3.5 w-3.5" />
                     {data.badgeLabel}
                 </Badge>
@@ -96,7 +87,7 @@ export default function SurgeryCard({ data }: { data: SurgeryCardData }) {
 
             <CardContent className="p-4 flex flex-col gap-4 pb-0">
                 <div className="flex items-start gap-4">
-                    <div className={`w-16 h-16 rounded-full border-2 bg-white flex items-center justify-center ${borderIconClass}`}>
+                    <div className={`w-16 h-16 rounded-full border-2 bg-card flex items-center justify-center ${borderIconClass}`}>
                         {SpeciesIcon ? (
                             <SpeciesIcon className={`h-8 w-8 ${iconSpeciesClass}`} />
                         ) : (
@@ -105,18 +96,18 @@ export default function SurgeryCard({ data }: { data: SurgeryCardData }) {
                     </div>
 
                     <div className="flex-grow min-w-0">
-                        <h4 className="text-xl font-bold text-gray-800 truncate">{data.animalName}</h4>
+                        <h4 className="text-xl font-bold text-foreground truncate">{data.animalName}</h4>
 
-                        <div className="flex items-center gap-2 text-gray-600 mt-1 text-sm">
-                            {SpeciesIcon && <SpeciesIcon className="h-5 w-5 text-gray-500 shrink-0" />}
+                        <div className="flex items-center gap-2 text-muted-foreground mt-1 text-sm">
+                            {SpeciesIcon && <SpeciesIcon className="h-5 w-5 text-muted-foreground shrink-0" />}
                             <span className="truncate">
                                 {(speciesDetails ? speciesDetails.label : (data.species ?? "—"))} — {data.breed || "Mestizo"}
                             </span>
                         </div>
 
                         {data.operatingRoomName ? (
-                            <div className="flex items-center gap-2 text-gray-600 mt-1 text-sm">
-                                <MapPin className="h-5 w-5 text-gray-500" />
+                            <div className="flex items-center gap-2 text-muted-foreground mt-1 text-sm">
+                                <MapPin className="h-5 w-5 text-muted-foreground" />
                                 <span className="truncate">Quirófano: {data.operatingRoomName}</span>
                             </div>
                         ) : (
@@ -127,29 +118,29 @@ export default function SurgeryCard({ data }: { data: SurgeryCardData }) {
 
                 <div className="space-y-2 ml-2">
                     <div className="flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-gray-500" />
-                        <p className="text-sm font-semibold text-gray-600">
+                        <Clock className="h-5 w-5 text-muted-foreground" />
+                        <p className="text-sm font-semibold text-muted-foreground">
                             En estado:
-                            <span className="text-sm font-normal text-gray-500"> {timeInStatus}</span>
+                            <span className="text-sm font-normal text-muted-foreground"> {timeInStatus}</span>
                         </p>
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <Stethoscope className="h-5 w-5 text-gray-500" />
-                        <p className="text-sm font-semibold text-gray-600">
+                        <Stethoscope className="h-5 w-5 text-muted-foreground" />
+                        <p className="text-sm font-semibold text-muted-foreground">
                             Responsable:
-                            <span className="text-sm font-normal text-gray-500"> {data.vetName || "No asignado"}</span>
+                            <span className="text-sm font-normal text-muted-foreground"> {data.vetName || "No asignado"}</span>
                         </p>
                     </div>
                 </div>
 
-                <div className="text-sm my-2 p-2 bg-gray-50 rounded-md truncate flex items-center gap-2" title={data.reason ?? ""}>
+                <div className="text-sm my-2 p-2 bg-muted rounded-md truncate flex items-center gap-2" title={data.reason ?? ""}>
                     <ClipboardList className={`h-5 w-5 text-primary`} />
                     {data.reason ?? "—"}
                 </div>
 
-                <div className="mt-auto pt-4 border-t border-gray-100">
-                    <Button variant="outline" size="sm" className="w-full text-gray-700 font-semibold h-9" onClick={handleOpen}>
+                <div className="mt-auto pt-4 border-t border-border">
+                    <Button variant="outline" size="sm" className="w-full text-muted-foreground font-semibold h-9" onClick={handleOpen}>
                         {data.kind === "WAITING" ? "Atender" : "Ver reporte"}
                         <MoveRight className="h-3.5 w-3.5 ml-2" />
                     </Button>

@@ -114,14 +114,14 @@ export function CalendarHeader({
 
   const Title = () => (
     <div className="flex items-center gap-2 md:gap-3">
-      <h1 className="text-lg md:text-2xl font-semibold text-foreground">{titleOverride ?? (isMobile ? "Agenda" : "Calendario")}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground">{titleOverride ?? (isMobile ? "Agenda" : "Calendario")}</h1>
       <Button
         variant="outline"
         size="sm"
         onClick={goToToday}
         className={cn(
-          "text-xs md:text-sm bg-transparent transition-all duration-200 hover:scale-105 active:scale-95",
-          "hover:shadow-md hover:shadow-blue-500/20",
+          "text-xs md:text-sm bg-transparent transition-all duration-200",
+          "hover:shadow-sm hover:shadow-blue-500/20",
         )}
       >
         Hoy
@@ -138,8 +138,8 @@ export function CalendarHeader({
           size="icon"
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className={cn(
-            "md:hidden transition-all duration-200 hover:scale-105 active:scale-95",
-            "relative overflow-hidden before:absolute before:inset-0 before:bg-blue-500/20 before:rounded-full before:scale-0 hover:before:scale-100 before:transition-transform before:duration-300",
+            "md:hidden transition-all duration-200",
+            "relative overflow-hidden before:absolute before:inset-0 before:bg-primary/20 before:rounded-full before:scale-0 hover:before:scale-100 before:transition-transform before:duration-300",
           )}
         >
           <Menu className="h-5 w-5" />
@@ -153,7 +153,7 @@ export function CalendarHeader({
             variant="ghost"
             size="icon"
             onClick={() => navigateDate("prev")}
-            className="transition-all duration-200 hover:scale-110 active:scale-95 hover:bg-blue-50 dark:hover:bg-blue-950/50"
+            className="transition-all duration-200 hover:bg-accent"
           >
             <ChevronLeft className="h-4 w-4 md:h-5 md:w-5" />
           </Button>
@@ -161,7 +161,7 @@ export function CalendarHeader({
             variant="ghost"
             size="icon"
             onClick={() => navigateDate("next")}
-            className="transition-all duration-200 hover:scale-110 active:scale-95 hover:bg-blue-50 dark:hover:bg-blue-950/50"
+            className="transition-all duration-200 hover:bg-accent"
           >
             <ChevronRight className="h-4 w-4 md:h-5 md:w-5" />
           </Button>
@@ -184,8 +184,8 @@ export function CalendarHeader({
                 onClick={() => handleViewChange(v)}
                 className={cn(
                   "capitalize transition-all duration-200 relative overflow-hidden",
-                  view === v && "shadow-sm bg-blue-600 text-white hover:bg-blue-700",
-                  view !== v && "hover:bg-accent hover:scale-105",
+                  view === v && "shadow-sm bg-primary text-primary-foreground hover:bg-primary/90",
+                  view !== v && "hover:bg-accent",
                 )}
               >
                 {VIEW_LABELS[v]}
@@ -207,8 +207,8 @@ export function CalendarHeader({
           <Button
             onClick={() => trigger(primaryAction)}
             className={cn(
-              "bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 hover:scale-105 active:scale-95",
-              "shadow-lg hover:shadow-xl hover:shadow-blue-500/25",
+              "bg-primary text-primary-foreground hover:bg-primary/90 text-white transition-all duration-200",
+              "shadow-sm",
               "relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700",
             )}
             size={primaryAction.size ?? (isMobile ? "sm" : "default")}

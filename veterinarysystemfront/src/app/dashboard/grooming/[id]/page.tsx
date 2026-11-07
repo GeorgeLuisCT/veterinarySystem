@@ -130,8 +130,8 @@ export default function GroomingSessionDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-10 border-b bg-white p-4 shadow-sm">
+    <div className="h-full overflow-y-auto">
+      <div className="sticky top-0 z-10 border-b bg-card px-4 py-3 sm:px-6">
         <div className="mx-auto flex max-w-screen-2xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
             <Link href="/dashboard/grooming" className="inline-flex">
@@ -141,7 +141,7 @@ export default function GroomingSessionDetailPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Sesión #{detail.id}</h1>
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">Sesión #{detail.id}</h1>
               <p className="text-sm text-muted-foreground">
                 Paciente: <span className="font-semibold text-pink-600">{detail.summary.animalBasicResponse.animalName}</span> • Atención #{detail.attentionId}
               </p>
@@ -152,20 +152,20 @@ export default function GroomingSessionDetailPage() {
             <Button variant="outline" onClick={() => attentionId && fetchDetail(attentionId)} disabled={loading}>
               <Loader2 className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Actualizar
             </Button>
-            <Button variant="default" className="text-white " onClick={handleSaveAll} disabled={saving}>
+            <Button variant="default" className="text-white" onClick={handleSaveAll} disabled={saving}>
               {saving ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</>) : (<><Save className="mr-2 h-4 w-4" /> Guardar cambios</>)}
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-screen-2xl space-y-6 px-4 py-6 sm:px-6">
+      <div className="mx-auto w-full max-w-screen-2xl space-y-4 p-4 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row">
           <PatientDetails
             animalId={detail.summary.animalBasicResponse.animalId}
             className="w-full lg:basis-[30%] lg:shrink-0"
           />
-          <div className="flex-1 rounded-2xl border border-border/50 bg-white p-4 shadow-sm">
+          <div className="flex-1 rounded-lg border border-border/50 bg-card p-4 shadow-sm">
             <GroomingSessionForm
               ref={formRef}
               sessionId={detail.id}

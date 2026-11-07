@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Edit, Trash2, PlusCircle } from "lucide-react";
+import { Edit, Eye, Trash2, PlusCircle } from "lucide-react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,40 +15,34 @@ import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { PaginatedResponse } from "@/types/paginated-response";
 import { getAaxiosErrorMessage } from "@/helpers/error";
-import PaginatedCardList from "@/components/paginated-card-list";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import DataTable from "@/components/data-table";
+import type { ColumnDef } from "@tanstack/react-table";
+import { PageSection } from "@/components/page/page-section";
+import { PrescriptionTemplateDetail } from "./prescription-template-detail";
 
 import PrescriptionTemplateService from "../service/prescription-template-service";
-import {
-  PrescriptionTemplateResponse,
-} from "../types/prescription-template-response";
+import { PrescriptionTemplateResponse } from "../types/prescription-template-response";
 import PrescriptionTemplateForm from "./prescription-template-form";
-import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
-import { FrequencyUnitLabels } from "../enums/frequency-unit";
-import { TimeUnit } from "@/enums/time-unit";
 
-type ActiveModal = "create" | "edit" | null;
-
-const timeUnitLabels: Record<TimeUnit, string> = {
-  [TimeUnit.DAYS]: "días",
-  [TimeUnit.WEEKS]: "semanas",
-  [TimeUnit.MONTHS]: "meses",
-};
+type ActiveModal = "create" | "edit" | "view" | null;
 
 export function PrescriptionTemplatesMain() {
   const { toast } = useToast();
 
-  const [pageData, setPageData] = React.useState<PaginatedResponse<PrescriptionTemplateResponse> | null>(null);
+  const [pageData, setPageData] =
+    React.useState<PaginatedResponse<PrescriptionTemplateResponse> | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
 
   const [activeModal, setActiveModal] = React.useState<ActiveModal>(null);
-  const [templateForEdit, setTemplateForEdit] = React.useState<PrescriptionTemplateResponse | null>(null);
+  const [templateForEdit, setTemplateForEdit] = React.useState<PrescriptionTemplateResponse | null>(
+    null
+  );
   const [templateDeleteId, setTemplateDeleteId] = React.useState<number | null>(null);
-  const [templatePendingDelete, setTemplatePendingDelete] = React.useState<PrescriptionTemplateResponse | null>(null);
+  const [templatePendingDelete, setTemplatePendingDelete] =
+    React.useState<PrescriptionTemplateResponse | null>(null);
 
   const fetchData = React.useCallback(async () => {
     setLoading(true);
@@ -90,6 +83,11 @@ export function PrescriptionTemplatesMain() {
   }, [fetchData]);
 
   const openCreateModal = React.useCallback(() => setActiveModal("create"), []);
+
+  const openViewModal = React.useCallback((template: PrescriptionTemplateResponse) => {
+    setTemplateForEdit(template);
+    setActiveModal("view");
+  }, []);
 
   const openEditModal = React.useCallback((template: PrescriptionTemplateResponse) => {
     setTemplateForEdit(template);
@@ -138,6 +136,12 @@ export function PrescriptionTemplatesMain() {
   const actions = React.useMemo(
     () => [
       {
+        label: "Ver detalle",
+        type: "direct" as const,
+        icon: <Eye className="h-4 w-4" />,
+        onClick: (template: PrescriptionTemplateResponse) => openViewModal(template),
+      },
+      {
         label: "Editar",
         type: "direct" as const,
         icon: <Edit className="h-4 w-4" />,
@@ -149,97 +153,61 @@ export function PrescriptionTemplatesMain() {
         onClick: (template: PrescriptionTemplateResponse) => openDeleteConfirm(template),
       },
     ],
-    [openEditModal, openDeleteConfirm]
+    [openViewModal, openEditModal, openDeleteConfirm]
   );
 
-  const renderMedication = React.useCallback(
-    (medication: PrescriptionTemplateResponse["medications"][number]) => {
-      const label = medication.productName
-        ? medication.productName
-        : medication.customMedicationName ?? "Medicamento personalizado";
-      const dosageUnitLabel = medication.dosageUnit
-        ? ProductUnitTypeLabels[medication.dosageUnit] ?? medication.dosageUnit
-        : undefined;
-      const frequencyLabel = `${medication.frequencyValue} ${FrequencyUnitLabels[medication.frequencyUnit]}`;
-      const durationLabel = `${medication.durationValue} ${
-        timeUnitLabels[medication.durationUnit] ?? medication.durationUnit
-      }`;
-
-      return (
-        <div
-          key={medication.id}
-          className="rounded-md border border-dashed border-border p-3"
-        >
-          <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-col">
-              <span className="font-semibold text-foreground">{label}</span>
-              {medication.productId && (
-                <span className="text-xs text-muted-foreground">Producto del inventario (ID: {medication.productId})</span>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary">
-                Dosis: {medication.dosageAmount}
-                {dosageUnitLabel ? ` ${dosageUnitLabel}` : ""}
-              </Badge>
-              <Badge variant="secondary">Cada {frequencyLabel}</Badge>
-              <Badge variant="secondary">Por {durationLabel}</Badge>
-            </div>
+  const columns = React.useMemo<ColumnDef<PrescriptionTemplateResponse>[]>(
+    () => [
+      {
+        id: "name",
+        header: "Plantilla",
+        cell: ({ row }) => (
+          <div className="min-w-48 py-2">
+            <div className="font-medium text-foreground">{row.original.name}</div>
+            <div className="line-clamp-1 text-xs text-muted-foreground">{row.original.purpose}</div>
           </div>
-          {medication.instructions && (
-            <p className="mt-2 text-sm text-muted-foreground">
-              Instrucciones: {medication.instructions}
-            </p>
-          )}
-        </div>
-      );
-    },
+        ),
+      },
+      {
+        id: "medications",
+        header: "Medicamentos",
+        cell: ({ row }) => {
+          const meds = row.original.medications;
+          if (meds.length === 0) return <span className="text-muted-foreground">—</span>;
+          return (
+            <div className="py-2 text-sm">
+              <span className="font-medium">
+                {meds.length} {meds.length === 1 ? "medicamento" : "medicamentos"}
+              </span>
+              <div className="line-clamp-1 text-xs text-muted-foreground">
+                {meds
+                  .map((m) => m.productName ?? m.customMedicationName ?? "Personalizado")
+                  .join(", ")}
+              </div>
+            </div>
+          );
+        },
+      },
+    ],
     []
   );
 
-  const renderCard = React.useCallback(
-    (template: PrescriptionTemplateResponse) => (
-      <div className="flex flex-col gap-3">
-        <div>
-          <h3 className="text-lg font-semibold text-foreground">{template.name}</h3>
-          <p className="text-sm text-muted-foreground">{template.purpose}</p>
-        </div>
-
-        {template.notes && (
-          <div>
-            <h4 className="text-xs font-semibold uppercase text-muted-foreground">Notas generales</h4>
-            <p className="text-sm leading-6 text-foreground">{template.notes}</p>
-          </div>
-        )}
-
-        <Separator />
-
-        <div className="space-y-2">
-          <h4 className="text-xs font-semibold uppercase text-muted-foreground">Medicamentos</h4>
-          <div className="flex flex-col gap-2">
-            {template.medications.map((medication) => renderMedication(medication))}
-          </div>
-        </div>
-      </div>
-    ),
-    [renderMedication]
-  );
-
   return (
-    <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Plantillas de Prescripciones Médicas</CardTitle>
-          <CardDescription>Ahorrar tiempo creando esquemas de tratamiento reutilizables.</CardDescription>
-        </div>
+    <PageSection
+      title="Plantillas de prescripción"
+      description="Ahorrar tiempo creando esquemas de tratamiento reutilizables."
+      className="h-full"
+      actions={
         <Button onClick={openCreateModal}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Crear plantilla
         </Button>
-      </CardHeader>
-      <CardContent className="h-full">
-        <PaginatedCardList<PrescriptionTemplateResponse>
+      }
+    >
+      <div className="h-full">
+        <DataTable<PrescriptionTemplateResponse>
           pageData={pageData}
+          columns={columns}
           actions={actions}
           loading={loading}
           onSearch={handleSearch}
@@ -248,8 +216,7 @@ export function PrescriptionTemplatesMain() {
           onPageIndexChange={setPageIndex}
           onPageSizeChange={handlePageSizeChange}
           searchPlaceholder="Buscar por nombre o propósito…"
-          getItemKey={(template) => template.id}
-          renderCard={renderCard}
+          getRowKey={(template) => template.id}
           emptyState={<div className="text-muted-foreground">No hay plantillas registradas.</div>}
         />
 
@@ -262,6 +229,16 @@ export function PrescriptionTemplatesMain() {
               </DialogDescription>
             </DialogHeader>
             <PrescriptionTemplateForm setOpen={closeModal} onSuccess={handleFormSuccess} />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={activeModal === "view"} onOpenChange={(open) => !open && closeModal()}>
+          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{templateForEdit?.name ?? "Detalle de plantilla"}</DialogTitle>
+              <DialogDescription>Medicamentos y notas de la plantilla.</DialogDescription>
+            </DialogHeader>
+            {templateForEdit && <PrescriptionTemplateDetail templateId={templateForEdit.id} />}
           </DialogContent>
         </Dialog>
 
@@ -298,8 +275,8 @@ export function PrescriptionTemplatesMain() {
           confirmVariant="destructive"
           onConfirm={handleDelete}
         />
-      </CardContent>
-    </Card>
+      </div>
+    </PageSection>
   );
 }
 

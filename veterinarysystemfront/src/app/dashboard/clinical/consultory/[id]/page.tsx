@@ -198,13 +198,13 @@ export default function ConsultationPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="p-4 bg-white border-b sticky top-0 z-10 shadow-sm">
-                <div className="flex justify-between items-center max-w-screen-2xl mx-auto">
+        <div className="h-full overflow-y-auto">
+            <div className="sticky top-0 z-10 border-b bg-card px-4 py-3 sm:px-6">
+                <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between gap-3">
                     <div>
-                        <h1 className="text-xl font-bold">Pantalla de Atención</h1>
-                        <p className="text-sm text-gray-600">
-                            Atendiendo a: <span className="font-semibold text-blue-600">{clinicalAttention.attention.animalName}</span>
+                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Pantalla de Atención</h1>
+                        <p className="text-sm text-muted-foreground">
+                            Atendiendo a: <span className="font-semibold text-info-strong">{clinicalAttention.attention.animalName}</span>
                         </p>
                     </div>
                     <div className="flex gap-2">
@@ -220,7 +220,7 @@ export default function ConsultationPage() {
                             Derivar a hospitalización
                         </Button>
                         <Button
-                            className="bg-green-600 hover:bg-green-700 text-white"
+                           
                             onClick={handleFinalizeAndSendToCash}
                             disabled={saving || sendingToCash}
                         >
@@ -248,7 +248,7 @@ export default function ConsultationPage() {
                     ref={formRef}
                     detail={clinicalAttention}
                     setDetail={setClinicalAttention}
-                    className="sm:basis-[72%] sm:min-w-0 w-full flex flex-col gap-4"
+                    className="sm:basis-[72%] sm:min-w-0 w-full flex flex-col"
                 />
                 <QuickHistory
                     animalId={clinicalAttention?.attention.animalId}

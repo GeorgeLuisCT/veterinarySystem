@@ -12,19 +12,12 @@ import {
   ReceiptText, // Cambiado de Receipt a ReceiptText
   User,
   Store,
-  ClipboardList, // Importado para el header
   Package, // Para la tabla de items
   Ban, // Para ventas anuladas
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -37,15 +30,27 @@ import { Badge } from "@/components/ui/badge";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import { SaleResponse } from "@/app/dashboard/pos/_types/sale-response";
 import SalesService from "@/app/dashboard/pos/_service/sales.service";
-import { BillableServiceTypeLabels, PaymentMethodLabels, SalesDocumentTypeLabels, SaleStatus } from "@/app/dashboard/pos/_types/sale-enums";
+import {
+  BillableServiceTypeLabels,
+  PaymentMethodLabels,
+  SalesDocumentTypeLabels,
+  SaleStatus,
+} from "@/app/dashboard/pos/_types/sale-enums";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 
+import { PageHeader } from "@/components/page/page-header";
+import { PageContainer } from "@/components/page/page-container";
+import { PageSection } from "@/components/page/page-section";
 // Helper para estilos de Badge (de tu código original)
 const getStatusStyle = (
   status: SaleStatus
-): { variant: "default" | "destructive" | "outline" | "secondary"; className?: string; label: string } => {
+): {
+  variant: "default" | "destructive" | "outline" | "secondary";
+  className?: string;
+  label: string;
+} => {
   switch (status) {
     case SaleStatus.VOIDED:
       return { variant: "destructive", label: "Anulada" };
@@ -54,7 +59,7 @@ const getStatusStyle = (
     case SaleStatus.COMPLETED:
       return {
         variant: "secondary",
-        className: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+        className: "bg-success-soft text-success-strong",
         label: "Completada",
       };
     default:
@@ -82,12 +87,24 @@ const InfoItem = ({
 );
 
 // Componente helper para la barra lateral de totales
-const TotalRow = ({ label, value, isLarge = false }: { label: string; value: string; isLarge?: boolean }) => (
+const TotalRow = ({
+  label,
+  value,
+  isLarge = false,
+}: {
+  label: string;
+  value: string;
+  isLarge?: boolean;
+}) => (
   <div className="flex items-baseline justify-between">
-    <span className={cn("text-sm", isLarge ? "font-semibold text-foreground" : "text-muted-foreground")}>
+    <span
+      className={cn("text-sm", isLarge ? "font-semibold text-foreground" : "text-muted-foreground")}
+    >
       {label}
     </span>
-    <span className={cn("font-medium", isLarge ? "text-xl font-bold" : "text-base text-foreground")}>
+    <span
+      className={cn("font-medium", isLarge ? "text-xl font-bold" : "text-base text-foreground")}
+    >
       {value}
     </span>
   </div>
@@ -168,69 +185,49 @@ export default function SalesDetailPage() {
   const statusStyle = getStatusStyle(sale.status);
   const totalPaid = sale.payments.reduce((acc, p) => acc + p.amount, 0);
   const netDue = Math.max(sale.grandTotal - totalPaid, 0);
-  const paidPct =
-    sale.grandTotal > 0 ? Math.min((totalPaid / sale.grandTotal) * 100, 100) : 0;
+  const paidPct = sale.grandTotal > 0 ? Math.min((totalPaid / sale.grandTotal) * 100, 100) : 0;
 
   return (
-    <div className="space-y-6 p-4 md:p-6 h-full flex flex-col">
+    <PageContainer>
       {/* Encabezado (Inspirado en PointOfSalePage) */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="rounded-2xl p-2 bg-gradient-to-br from-primary/15 to-primary/5 text-primary shadow-[0_2px_10px_-6px_rgb(0_0_0/0.3)]">
-            <ClipboardList className="h-6 w-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-              Detalle de Venta
-            </h1>
-            <p className="mt-1 text-muted-foreground">
-              Visualizando la venta <span className="font-medium text-foreground">#{sale.id}</span>
-            </p>
-          </div>
-        </div>
-        <Button variant="outline" onClick={() => router.back()}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Volver al historial
-        </Button>
-      </div>
+      <PageHeader
+        title="Detalle de Venta"
+        description={
+          <>
+            Visualizando la venta <span className="font-medium text-foreground">#{sale.id}</span>
+          </>
+        }
+        actions={
+          <>
+            <Button variant="outline" onClick={() => router.back()}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Volver al historial
+            </Button>
+          </>
+        }
+      />
 
       {/* Layout principal (Inspirado en PointOfSalePage) */}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] flex-1">
-
         {/* Columna Izquierda (Principal) */}
         <div className="space-y-6 flex flex-col">
-
           {/* Detalles de la Venta (Inspirado en SaleDetailsSection) */}
-          <Card className="surface-card">
-            <CardHeader>
-              <CardTitle className="text-lg">Información General</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <PageSection title="Información General">
+<div>
               <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-4">
                 <InfoItem
                   icon={FileText}
                   label="Documento"
                   value={
                     <span className="font-bold">
-                      {SalesDocumentTypeLabels[sale.documentType]} {sale.documentNumber ? ` - ${sale.documentNumber}` : ""}
+                      {SalesDocumentTypeLabels[sale.documentType]}{" "}
+                      {sale.documentNumber ? ` - ${sale.documentNumber}` : ""}
                     </span>
                   }
                 />
-                <InfoItem
-                  icon={User}
-                  label="Cliente"
-                  value={sale.customerName || "N/A"}
-                />
-                <InfoItem
-                  icon={Store}
-                  label="Sucursal"
-                  value={sale.branchName || "N/A"}
-                />
-                <InfoItem
-                  icon={User}
-                  label="Vendedor"
-                  value={sale.sellerName || "N/A"}
-                />
+                <InfoItem icon={User} label="Cliente" value={sale.customerName || "N/A"} />
+                <InfoItem icon={Store} label="Sucursal" value={sale.branchName || "N/A"} />
+                <InfoItem icon={User} label="Vendedor" value={sale.sellerName || "N/A"} />
                 <div className="sm:col-span-2">
                   <InfoItem
                     icon={FileText}
@@ -243,18 +240,12 @@ export default function SalesDetailPage() {
                   />
                 </div>
               </dl>
-            </CardContent>
-          </Card>
+            </div>
+</PageSection>
 
           {/* Tabla de Detalles (Inspirado en SaleItemsSection) */}
-          <Card className="surface-card flex-1">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5" />
-                Artículos de la Venta ({sale.details.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          <PageSection title={<span className="inline-flex items-center gap-2"><ShoppingCart className="h-5 w-5" /> Artículos de la Venta ({sale.details.length})</span>}>
+<div>
               <div className="overflow-hidden rounded-md border">
                 <Table>
                   <TableHeader className="bg-muted/50">
@@ -317,7 +308,9 @@ export default function SalesDetailPage() {
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell className="text-right">S/ {item.unitPrice.toFixed(2)}</TableCell>
+                            <TableCell className="text-right">
+                              S/ {item.unitPrice.toFixed(2)}
+                            </TableCell>
                             <TableCell className="text-right">{item.quantity}</TableCell>
                             <TableCell className="text-right font-medium">
                               S/ {item.lineSubtotal.toFixed(2)}
@@ -329,8 +322,8 @@ export default function SalesDetailPage() {
                   </TableBody>
                 </Table>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+</PageSection>
         </div>
 
         {/* Columna Derecha (Barra Lateral) (Inspirado en OrderSummarySection) */}
@@ -454,6 +447,6 @@ export default function SalesDetailPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

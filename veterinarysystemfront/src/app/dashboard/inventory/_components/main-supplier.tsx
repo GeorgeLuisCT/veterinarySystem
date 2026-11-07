@@ -59,8 +59,8 @@ export default function MainSupplier() {
           const s = row.original;
           return (
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-zinc-100 flex items-center justify-center">
-                <Building className="h-4 w-4 text-zinc-500" />
+              <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center">
+                <Building className="h-4 w-4 text-muted-foreground" />
               </div>
               <div className="flex flex-col">
                 <span className="font-medium leading-tight">{s.name}</span>

@@ -30,10 +30,10 @@ const FieldVisitStatusLabels: Record<FieldVisitStatus, string> = {
 const statusBadgeClass = (status: FieldVisitStatus) =>
   cn(
     "rounded-full px-2 py-1 text-xs",
-    status === FieldVisitStatus.IN_PROGRESS && "bg-amber-100 text-amber-800 ring-1 ring-amber-200",
-    status === FieldVisitStatus.PLANNED && "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
-    status === FieldVisitStatus.COMPLETED && "bg-green-100 text-green-700 ring-1 ring-green-200",
-    status === FieldVisitStatus.CANCELED && "bg-red-100 text-red-700 ring-1 ring-red-200"
+    status === FieldVisitStatus.IN_PROGRESS && "bg-warning-soft text-warning-strong",
+    status === FieldVisitStatus.PLANNED && "bg-info-soft text-info-strong",
+    status === FieldVisitStatus.COMPLETED && "bg-success-soft text-success-strong",
+    status === FieldVisitStatus.CANCELED && "bg-danger-soft text-danger-strong"
   );
 
 const fmtDate = (iso: string) =>
@@ -239,7 +239,7 @@ export default function PlannedVisitsTable() {
   );
 
   return (
-    <div className="h-full rounded-xl border bg-card p-4 shadow-sm overflow-auto">
+    <div className="h-full overflow-auto">
       <DataTable<FieldVisitSummaryResponse>
         pageData={pageData}
         columns={columns}

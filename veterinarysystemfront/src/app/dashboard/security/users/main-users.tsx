@@ -74,7 +74,7 @@ export default function MainUsers({ branchId, refreshKey = 0 }: Props) {
         cell: ({ row }) => {
           const active = row.original.active;
           return (
-            <Badge variant="outline" className={active ? "text-emerald-700" : "text-zinc-500"}>
+            <Badge variant={active ? "success" : "neutral"}>
               {active ? "Activo" : "Inactivo"}
             </Badge>
           );
@@ -104,7 +104,7 @@ export default function MainUsers({ branchId, refreshKey = 0 }: Props) {
     {
       label: "Activar",
       type: "dropdown",
-      icon: <Ban className="w-4 h-4 text-emerald-600" />,
+      icon: <Ban className="w-4 h-4 text-success-strong" />,
       onClick: (row) => openPanel(UsersPanel.Activate, row),
       isVisible: (row) => !row.active,
     },

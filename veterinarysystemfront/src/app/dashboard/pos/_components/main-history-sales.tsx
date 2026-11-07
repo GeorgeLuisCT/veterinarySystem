@@ -108,7 +108,7 @@ export default function MainSales() {
                     if (s.status === SaleStatus.VOIDED) variant = "destructive";
                     if (s.status === SaleStatus.COMPLETED) {
                         variant = "secondary";
-                        extra = "bg-emerald-100 text-emerald-700 border border-emerald-200";
+                        extra = "bg-success-soft text-success-strong";
                     }
                     if (s.status === SaleStatus.DRAFT) variant = "default";
 

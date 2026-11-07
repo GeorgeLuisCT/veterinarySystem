@@ -40,7 +40,7 @@ public class AnimalService {
 
     public AnimalResponse getAnimal(Long id) {
         Animal animal = animalRepository.findWithDetailsById(id)
-                .orElseThrow(() -> new RuntimeException("Animal no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Animal no encontrado"));
         return animalMapper.toResponse(animal);
     }
 
@@ -71,10 +71,10 @@ public class AnimalService {
     @Transactional
     public AnimalSummaryResponse updateAnimal(AnimalUpdateRequest request) {
         Animal animal = animalRepository.findById(request.getId())
-                .orElseThrow(() -> new RuntimeException("Animal no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Animal no encontrado"));
 
         Customer owner = customerRepository.findById(request.getOwnerId())
-                .orElseThrow(() -> new RuntimeException("Dueño no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Dueño no encontrado"));
 
 
         animalMapper.updateEntity(animal, request, owner);
@@ -87,7 +87,7 @@ public class AnimalService {
     @Transactional
     public void softDeleteAnimal(Long animalId) {
         Animal animal = animalRepository.findById(animalId)
-                .orElseThrow(() -> new RuntimeException("Animal no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Animal no encontrado"));
 
         animal.setActive(false);
 
@@ -97,7 +97,7 @@ public class AnimalService {
     @Transactional
     public void hardDeleteAnimal(Long animalId) {
         if (!animalRepository.existsById(animalId)) {
-            throw new RuntimeException("Animal no encontrado");
+            throw new EntityNotFoundException("Animal no encontrado");
         }
         animalRepository.deleteById(animalId);
     }
@@ -105,7 +105,7 @@ public class AnimalService {
     @Transactional
     public AnimalSummaryResponse restoreAnimal(Long animalId) {
         Animal animal = animalRepository.findById(animalId)
-                .orElseThrow(() -> new RuntimeException("Animal no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Animal no encontrado"));
 
         animal.setActive(true);
 

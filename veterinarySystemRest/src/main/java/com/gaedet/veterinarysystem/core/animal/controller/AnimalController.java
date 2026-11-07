@@ -21,7 +21,7 @@ public class AnimalController {
     private final AnimalService animalService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECEPTIONIST', 'VETERINARIAN')")
     @PostMapping("/create")
     public ResponseEntity<AnimalSummaryResponse> createAnimal(@Valid @RequestBody AnimalCreateRequest request) {
         return ResponseEntity.ok(animalService.createAnimal(request));
@@ -50,13 +50,13 @@ public class AnimalController {
         return ResponseEntity.ok(animalService.quickSearch(query, active));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECEPTIONIST', 'VETERINARIAN')")
     @PutMapping("/update")
     public ResponseEntity<AnimalSummaryResponse> updateAnimal(@Valid @RequestBody AnimalUpdateRequest request) {
         return ResponseEntity.ok(animalService.updateAnimal(request));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECEPTIONIST', 'VETERINARIAN')")
     @DeleteMapping("/soft-delete")
     public ResponseEntity<Map<String, String>> softDeleteAnimal(@RequestParam Long id) {
         animalService.softDeleteAnimal(id);
@@ -70,14 +70,14 @@ public class AnimalController {
         return ResponseEntity.ok(Map.of("message", "Animal eliminado permanentemente"));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECEPTIONIST', 'VETERINARIAN')")
     @PutMapping("/restore")
     public ResponseEntity<AnimalSummaryResponse> restoreAnimal(@RequestParam Long id) {
         AnimalSummaryResponse response = animalService.restoreAnimal(id);
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECEPTIONIST', 'VETERINARIAN')")
     @GetMapping("/clinical-history")
     public ResponseEntity<ClinicalHistoryResponse> getAnimalClinicalHistoryGrouped(@RequestParam Long animalId) {
         return ResponseEntity.ok(animalService.getAnimalClinicalHistoryGrouped(animalId));

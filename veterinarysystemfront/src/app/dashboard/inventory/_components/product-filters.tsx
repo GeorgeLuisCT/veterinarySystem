@@ -99,7 +99,7 @@ export default function ProductFilters({ value, onChange, onReset }: Props) {
   };
 
   return (
-    <div className="w-full overflow-x-auto rounded-2xl border bg-background/80 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="w-full overflow-x-auto">
       <div className="flex min-w-max items-center gap-3">
         <div className="relative w-[220px]">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

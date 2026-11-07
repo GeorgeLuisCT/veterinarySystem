@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.util.List;
+import javax.persistence.EntityNotFoundException;
 
 @Service
 public class EmployeeService {
@@ -51,7 +52,7 @@ public class EmployeeService {
 
     public EmployeeResponse getEmployee(Long id) {
         Employee employee = employeeRepository.findWithDetailsById(id)
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Empleado no encontrado"));
         return EmployeeMapper.toResponse(employee);
     }
 
@@ -95,7 +96,7 @@ public class EmployeeService {
     @Transactional
     public EmployeeSummaryResponse updateEmployee(EmployeeUpdateRequest request) {
         Employee employee = employeeRepository.findById(request.getId())
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Empleado no encontrado"));
 
         if (employeeRepository.existsByEmailAndIdNot(request.getEmail(), request.getId())) {
             throw new BadRequestException("El correo electrónico ya está en uso por otro empleado");
@@ -110,7 +111,7 @@ public class EmployeeService {
     @Transactional
     public void softDeleteEmployee(Long employeeId, Long branchId) {
         Employee employee = employeeRepository.findWithDetailsById(employeeId)
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Empleado no encontrado"));
 
         if (branchId == null || branchId == 0) {
             employee.getEmployeeBranches().forEach(eb -> eb.setActive(false));
@@ -118,7 +119,7 @@ public class EmployeeService {
             EmployeeBranch eb = employee.getEmployeeBranches().stream()
                     .filter(e -> e.getBranch().getId().equals(branchId))
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Sucursal no encontrada para este empleado"));
+                    .orElseThrow(() -> new EntityNotFoundException("Sucursal no encontrada para este empleado"));
             eb.setActive(false);
         }
 
@@ -128,7 +129,7 @@ public class EmployeeService {
     @Transactional
     public void hardDeleteEmployee(Long employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Empleado no encontrado"));
 
         employeeRepository.deleteById(employeeId);
     }
@@ -136,7 +137,7 @@ public class EmployeeService {
     @Transactional
     public EmployeeSummaryResponse restoreEmployee(Long employeeId, Long branchId) {
         Employee employee = employeeRepository.findWithDetailsById(employeeId)
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Empleado no encontrado"));
 
         if (branchId == null || branchId == 0) {
             employee.getEmployeeBranches().forEach(eb -> eb.setActive(true));
@@ -144,7 +145,7 @@ public class EmployeeService {
             EmployeeBranch eb = employee.getEmployeeBranches().stream()
                     .filter(e -> e.getBranch().getId().equals(branchId))
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Sucursal no encontrada para este empleado"));
+                    .orElseThrow(() -> new EntityNotFoundException("Sucursal no encontrada para este empleado"));
             eb.setActive(true);
         }
 

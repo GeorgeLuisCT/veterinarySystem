@@ -38,9 +38,9 @@ export function CalendarMain() {
   return (
     <main className="flex-1 bg-background overflow-hidden relative">
       {(isLoading || isTransitioning) && (
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-background/80 z-50 flex items-center justify-center">
           <div className="flex items-center gap-3">
-            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             <span className="text-sm text-muted-foreground">Cargando…</span>
           </div>
         </div>

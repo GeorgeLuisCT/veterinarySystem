@@ -19,7 +19,9 @@ import AttentionFilters from "../components/attentions/attention-filters";
 import AttentionCard from "../components/attentions/attention-card";
 import NewAttentionModal from "../components/new-attention-modal";
 import { AttentionStatus } from "../enums/attention-status";
+import { PageContainer } from "@/components/page/page-container";
 
+import { PageHeader } from "@/components/page/page-header";
 const CARD_EMERGENCY_CLASS = "bg-red-100/70";
 
 const attendUrlByType: Record<AttentionType, (id: number) => string> = {
@@ -60,7 +62,7 @@ export default function AttentionsPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const selectedBranchId = userInfo?.selectedBranch?.id || undefined
+  const selectedBranchId = userInfo?.selectedBranch?.id || undefined;
   const branchFilter = selectedBranchId && selectedBranchId > 0 ? selectedBranchId : undefined;
 
   const today = React.useMemo(() => {
@@ -80,8 +82,8 @@ export default function AttentionsPage() {
     startDate?: string | Date | null;
     endDate?: string | Date | null;
   }>(() => ({
-    type: ((searchParams.get("type") as AttentionType | "ALL") ?? "ALL"),
-    status: ((searchParams.get("status") as string | "ALL") ?? "ALL"),
+    type: (searchParams.get("type") as AttentionType | "ALL") ?? "ALL",
+    status: (searchParams.get("status") as string | "ALL") ?? "ALL",
     emergency: emergencyInit,
     startDate: parseLocalDate(searchParams.get("startDate")) ?? today,
     endDate: parseLocalDate(searchParams.get("endDate")) ?? today,
@@ -183,56 +185,56 @@ export default function AttentionsPage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="h-full bg-gray-50 p-4 sm:p-6">
-        <div className="max-w-8xl mx-auto h-full flex flex-col">
-          <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Recepción</h1>
-              <p className="text-gray-600 mt-1">Gestiona las recepciones en curso y revisa el flujo de pacientes.</p>
-            </div>
-            <Button onClick={() => openCreateModal()}>
-              <PlusCircle className="mr-2 h-4 w-4" /> Nueva Recepción
-            </Button>
-          </div>
+      <PageContainer>
+        <PageHeader
+          title="Recepción"
+          description="Gestiona las recepciones en curso y revisa el flujo de pacientes."
+          actions={
+            <>
+              <Button onClick={() => openCreateModal()}>
+                <PlusCircle className="mr-2 h-4 w-4" /> Nueva Recepción
+              </Button>
+            </>
+          }
+        />
 
-          <PaginatedCardList
-            pageData={pageData}
-            pageIndex={pageIndex}
-            pageSize={pageSize}
-            onPageIndexChange={(p) => {
-              setPageIndex(p);
-            }}
-            onPageSizeChange={handlePageSizeChange}
-            loading={loading}
-            headerSlotLeft={
-              <AttentionFilters
-                value={filters}
-                onChange={(next) => {
-                  setFilters(next);
-                  setPageIndex(0);
-                }}
-              />
-            }
-            renderCard={(attention) => (
-              <AttentionCard
-                attention={attention}
-                onAttend={handleAttend}
-                highlightClassName={attention.emergency ? CARD_EMERGENCY_CLASS : undefined}
-              />
-            )}
-            cardHighlightBy={(attention) => attention.emergency}
-            cardHighlightClassName={CARD_EMERGENCY_CLASS}
-            getItemKey={(attention) => attention.id}
-            emptyState={"No hay atenciones para los filtros seleccionados."}
-          />
+        <PaginatedCardList
+          pageData={pageData}
+          pageIndex={pageIndex}
+          pageSize={pageSize}
+          onPageIndexChange={(p) => {
+            setPageIndex(p);
+          }}
+          onPageSizeChange={handlePageSizeChange}
+          loading={loading}
+          headerSlotLeft={
+            <AttentionFilters
+              value={filters}
+              onChange={(next) => {
+                setFilters(next);
+                setPageIndex(0);
+              }}
+            />
+          }
+          renderCard={(attention) => (
+            <AttentionCard
+              attention={attention}
+              onAttend={handleAttend}
+              highlightClassName={attention.emergency ? CARD_EMERGENCY_CLASS : undefined}
+            />
+          )}
+          cardHighlightBy={(attention) => attention.emergency}
+          cardHighlightClassName={CARD_EMERGENCY_CLASS}
+          getItemKey={(attention) => attention.id}
+          emptyState={"No hay atenciones para los filtros seleccionados."}
+        />
 
-          <NewAttentionModal
-            open={isCreateModalOpen}
-            onOpenChange={setIsCreateModalOpen}
-            onCreated={handleAttentionCreated}
-          />
-        </div>
-      </div>
+        <NewAttentionModal
+          open={isCreateModalOpen}
+          onOpenChange={setIsCreateModalOpen}
+          onCreated={handleAttentionCreated}
+        />
+      </PageContainer>
     </DashboardLayoutSection>
   );
 }

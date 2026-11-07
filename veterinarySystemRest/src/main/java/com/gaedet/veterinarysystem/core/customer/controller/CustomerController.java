@@ -21,7 +21,7 @@ public class CustomerController {
     private final CustomerService customerService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECEPTIONIST')")
     @PostMapping("/create")
     public ResponseEntity<CustomerSummaryResponse> createCustomer(@Valid @RequestBody CustomerCreateRequest request) {
         return ResponseEntity.ok(customerService.createCustomer(request));
@@ -47,13 +47,13 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.searchCustomersByName(name));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECEPTIONIST')")
     @PutMapping("/update")
     public ResponseEntity<CustomerSummaryResponse> updateCustomer(@Valid @RequestBody CustomerUpdateRequest request) {
         return ResponseEntity.ok(customerService.updateCustomer(request));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECEPTIONIST')")
     @DeleteMapping("/soft-delete")
     public ResponseEntity<Map<String, String>> softDeleteCustomer(@RequestParam Long id) {
         customerService.softDeleteCustomer(id);
@@ -67,7 +67,7 @@ public class CustomerController {
         return ResponseEntity.ok(Map.of("message", "Cliente eliminado permanentemente"));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECEPTIONIST')")
     @PutMapping("/restore")
     public ResponseEntity<CustomerSummaryResponse> restoreCustomer(@RequestParam Long id) {
         CustomerSummaryResponse response = customerService.restoreCustomer(id);

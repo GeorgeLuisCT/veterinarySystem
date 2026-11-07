@@ -288,7 +288,7 @@ export default function CalendarPage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="h-screen bg-background flex flex-col overflow-hidden">
+      <div className="flex h-full flex-col gap-4 overflow-y-auto p-4 sm:p-6">
         <CalendarHeader
           titleOverride="Agenda"
           actions={actions}

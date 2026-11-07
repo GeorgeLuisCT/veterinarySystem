@@ -1,16 +1,7 @@
 "use client";
 
-import {
-  Activity,
-  FileText,
-  HeartPulse,
-  Info,
-  Pill,
-  Stethoscope,
-  Thermometer,
-  Weight,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Activity, FileText, HeartPulse, Info, Pill, Stethoscope, Thermometer, Weight } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import type {
@@ -19,6 +10,7 @@ import type {
   ClinicalHistoryMedication,
 } from "../../types/medical-history-response";
 import { ClinicalServiceCategoryLabels } from "../../enums/clinical-service-category";
+import { PageSection } from "@/components/page/page-section";
 
 const EMPTY_LABEL = "—";
 
@@ -255,11 +247,8 @@ export default function ClinicalHistoryTabs({
   procedures: ClinicalHistoryProcedure[];
 }) {
   return (
-    <Card className="col-span-1">
-      <CardHeader>
-        <CardTitle className="text-lg">Historial clínico y tratamientos</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <PageSection title="Historial clínico y tratamientos">
+<div>
         <Tabs defaultValue="consultations">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="consultations">
@@ -278,7 +267,7 @@ export default function ClinicalHistoryTabs({
             <ProceduresTab procedures={procedures} />
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
+      </div>
+</PageSection>
   );
 }

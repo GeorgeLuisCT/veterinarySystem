@@ -1,13 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import VehicleService from "../../services/vehicle-service";
 import type { VehicleStockResponse } from "../../types/vehicle-response";
 import type { PaginatedResponse } from "@/types/paginated-response";
 import DataTable from "@/components/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-unit-type";
+import { PageSection } from "@/components/page/page-section";
 
 export default function VehicleInventoryCard({
   vehicleId,
@@ -55,14 +55,7 @@ export default function VehicleInventoryCard({
   ], []);
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle>Inventario del vehículo</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          {vehicleId == null ? "Selecciona un vehículo para ver su inventario" : "Productos en el vehículo seleccionado"}
-        </p>
-      </CardHeader>
-      <CardContent>
+    <PageSection title="Inventario del vehículo" description={vehicleId == null ? "Selecciona un vehículo para ver su inventario" : "Productos en el vehículo seleccionado"} className="h-full">
         <DataTable<VehicleStockResponse>
           pageData={pageData}
           columns={columns}
@@ -78,7 +71,6 @@ export default function VehicleInventoryCard({
             </div>
           }
         />
-      </CardContent>
-    </Card>
+      </PageSection>
   );
 }

@@ -149,14 +149,14 @@ export function AdjustmentDialog({ open, onOpenChange, defaultBranchId, onCreate
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[min(96vw,1000px)] max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-4xl" aria-busy={submitting}>
+      <DialogContent className="w-[min(96vw,1000px)] max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-4xl" aria-busy={submitting}>
         <DialogHeader className="space-y-1">
           <DialogTitle className="text-xl font-semibold">Registrar ajuste</DialogTitle>
           <DialogDescription>Ajusta el stock de la sucursal seleccionada.</DialogDescription>
         </DialogHeader>
 
-        <fieldset className="rounded-2xl border p-4">
-          <legend className="px-1 text-sm font-semibold">Datos del ajuste</legend>
+        <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+          <legend className="mb-3 text-sm font-semibold text-foreground">Datos del ajuste</legend>
           <AdjustmentForm
             form={form}
             branchOptions={branchSelectOptions}
@@ -172,7 +172,7 @@ export function AdjustmentDialog({ open, onOpenChange, defaultBranchId, onCreate
           </div>
 
           {!branchId && (
-            <div className="rounded-xl border p-4 text-sm text-muted-foreground">
+            <div className="rounded-lg border p-4 text-sm text-muted-foreground">
               Selecciona la sucursal para buscar productos.
             </div>
           )}

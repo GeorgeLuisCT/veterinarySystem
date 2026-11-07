@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import com.gaedet.veterinarysystem.core.fieltd.enums.FieldVisitStatus;
 
 @Service
 @RequiredArgsConstructor
@@ -99,6 +100,7 @@ public class FieldVisitService {
         if (r.getFarmId() == null && r.getZoneId() == null) {
             throw new IllegalArgumentException("Debe seleccionar una finca o una zona para planificar la visita.");
         }
+        validateTransition(e.getStatus(), r.getStatus());
         e.setFarm(r.getFarmId() != null ? em.getReference(Farm.class, r.getFarmId()) : null);
         e.setZone(r.getZoneId() != null ? em.getReference(GeoZone.class, r.getZoneId()) : null);
         e.setFieldVet(em.getReference(Employee.class, r.getFieldVetId()));
@@ -114,6 +116,10 @@ public class FieldVisitService {
     @Transactional
     public FieldVisitSummaryResponse delete(Long id) {
         FieldVisit e = fieldVisitRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("FieldVisit no encontrado: id=" + id));
+        // Solo se elimina una visita que no empezó; las demás se cancelan para conservar el historial y el consumo de insumos
+        if (e.getStatus() != FieldVisitStatus.PLANNED) {
+            throw new IllegalStateException("Solo se puede eliminar una visita planificada. Cancélala para conservar su historial.");
+        }
         FieldVisitSummaryResponse summary = FieldVisitMapper.toSummary(e);
         fieldVisitRepository.delete(e);
         return summary;
@@ -123,6 +129,7 @@ public class FieldVisitService {
     public FieldVisitServiceItemResponse addServiceItem(Long visitId, AddServiceItemRequest r) {
         FieldVisit visit = fieldVisitRepository.findById(visitId)
                 .orElseThrow(() -> new IllegalArgumentException("Visita no encontrada: id=" + visitId));
+        assertOpenForRecords(visit);
         ClinicalService cs = clinicalServiceRepository.findById(r.getClinicalServiceId())
                 .orElseThrow(() -> new IllegalArgumentException("Servicio clínico no encontrado: id=" + r.getClinicalServiceId()));
         FieldVisitServiceItem item = FieldVisitServiceItem.builder()
@@ -219,6 +226,7 @@ public class FieldVisitService {
     public FieldVisitResponse updateStatus(Long visitId, UpdateFieldVisitStatusRequest request) {
         FieldVisit visit = fieldVisitRepository.findById(visitId)
                 .orElseThrow(() -> new IllegalArgumentException("Visita no encontrada: id=" + visitId));
+        validateTransition(visit.getStatus(), request.getStatus());
         visit.setStatus(request.getStatus());
         FieldVisit saved = fieldVisitRepository.save(visit);
         ensureReport(saved);
@@ -228,6 +236,7 @@ public class FieldVisitService {
     @Transactional
     public FieldVisitProductUsageResponse addProductUsage(Long visitId, AddProductUsageRequest r, Long performedById) {
         FieldVisit visit = fieldVisitRepository.findById(visitId).orElseThrow(() -> new IllegalArgumentException("Visita no encontrada"));
+        assertOpenForRecords(visit);
         Product product = em.getReference(Product.class, r.getProductId());
         Vehicle vehicle = r.getVehicleId() != null ? em.getReference(Vehicle.class, r.getVehicleId()) : visit.getVehicle();
         if (vehicle == null) {
@@ -375,5 +384,32 @@ public class FieldVisitService {
                     visit.setReport(created);
                     return created;
                 });
+    }
+
+    // ---- Ciclo de vida de la visita ---------------------------------------------------------------------------
+
+    /** PLANNED → IN_PROGRESS | CANCELED; IN_PROGRESS → COMPLETED | CANCELED. COMPLETED y CANCELED son finales. */
+    private void validateTransition(FieldVisitStatus current, FieldVisitStatus target) {
+        if (target == null) {
+            throw new IllegalArgumentException("El estado de la visita es obligatorio");
+        }
+        if (current == target) {
+            return;
+        }
+        boolean allowed = switch (current) {
+            case PLANNED -> target == FieldVisitStatus.IN_PROGRESS || target == FieldVisitStatus.CANCELED;
+            case IN_PROGRESS -> target == FieldVisitStatus.COMPLETED || target == FieldVisitStatus.CANCELED;
+            case COMPLETED, CANCELED -> false;
+        };
+        if (!allowed) {
+            throw new IllegalStateException("Transición de visita no permitida: " + current + " → " + target);
+        }
+    }
+
+    /** Servicios e insumos solo se registran mientras la visita no esté completada ni cancelada. */
+    private void assertOpenForRecords(FieldVisit visit) {
+        if (visit.getStatus() == FieldVisitStatus.COMPLETED || visit.getStatus() == FieldVisitStatus.CANCELED) {
+            throw new IllegalStateException("La visita está " + visit.getStatus() + " y ya no admite registros");
+        }
     }
 }

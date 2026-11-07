@@ -183,7 +183,7 @@ export default function DataTable<T>({
   };
   
   return (
-    <div className="w-full h-full rounded-lg text-foreground flex flex-col dark:bg-gray-900 dark:border-gray-800">
+    <div className="w-full h-full rounded-lg text-foreground flex flex-col">
       <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {onSearch && (

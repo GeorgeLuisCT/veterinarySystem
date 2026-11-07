@@ -7,19 +7,33 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { CalendarClock, ClipboardList, FlaskConical, Loader2, Mail, PawPrint, Phone, Scissors, Search, User } from "lucide-react";
+import {
+  CalendarClock,
+  ClipboardList,
+  FlaskConical,
+  Loader2,
+  Mail,
+  PawPrint,
+  Phone,
+  Scissors,
+  Search,
+  User,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import DashboardLayoutSection from "../../dashboard-layout-section";
-import MedicalHistoryService, { type ClinicalHistoryListParams } from "../service/medical-history-service";
+import MedicalHistoryService, {
+  type ClinicalHistoryListParams,
+} from "../service/medical-history-service";
 import type { ClinicalHistoryAnimalSummaryResponse } from "../types/medical-history-response";
 
 import MedicalHistoryFilterBar, {
   type FilterState,
   DEFAULTS as DEFAULT_FILTERS,
 } from "./components/medical-history-filter-bar";
+import { PageContainer } from "@/components/page/page-container";
 
-
+import { PageHeader } from "@/components/page/page-header";
 type PaginationState = {
   page: number;
   size: number;
@@ -88,18 +102,12 @@ export default function MedicalHistoryPage() {
 
   return (
     <DashboardLayoutSection>
-      <div className="flex min-h-screen flex-col bg-muted/40">
-        <main className="flex-1 p-4 sm:p-6">
-          <div className="mx-auto flex max-w-8xl flex-col gap-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h1 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
-                  <PawPrint className="h-6 w-6 text-primary" /> Historial clínico de pacientes
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  Consulta el resumen clínico de cada animal y accede al detalle de visitas, procedimientos y exámenes.
-                </p>
-              </div>
+      <PageContainer>
+        <PageHeader
+          title="Historial clínico de pacientes"
+          description="Consulta el resumen clínico de cada animal y accede al detalle de visitas, procedimientos y exámenes."
+          actions={
+            <>
               <Button variant="outline" onClick={fetchAnimals} disabled={isRefreshing} size="sm">
                 {isRefreshing ? (
                   <>
@@ -111,73 +119,76 @@ export default function MedicalHistoryPage() {
                   </>
                 )}
               </Button>
-            </div>
+            </>
+          }
+        />
 
-            <MedicalHistoryFilterBar
-              value={filters}
-              onChange={handleFilterChange}
-              onReset={handleFilterReset}
-              onRefresh={fetchAnimals}
-            />
+        <MedicalHistoryFilterBar
+          value={filters}
+          onChange={handleFilterChange}
+          onReset={handleFilterReset}
+          onRefresh={fetchAnimals}
+        />
 
-            <Separator />
+        <Separator />
 
-            {error && (
-              <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                {error}
-              </div>
-            )}
-
-            {isLoading && !data.length ? (
-              <div className="flex items-center justify-center py-24">
-                <div className="flex items-center gap-3 rounded-lg border bg-background px-4 py-3 text-sm text-muted-foreground shadow-sm">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Cargando pacientes...
-                </div>
-              </div>
-            ) : data.length === 0 ? (
-              <PaginatedList
-                items={[]}
-                renderItem={() => null}
-                pageIndex={pagination.page}
-                pageSize={pagination.size}
-                totalElements={totalElements}
-                totalPages={totalPages}
-                onPageIndexChange={handlePaginate}
-                emptyState={
-                  <Card className="border-dashed">
-                    <CardContent className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
-                      <PawPrint className="h-8 w-8" />
-                      <p>No encontramos pacientes que coincidan con tu búsqueda.</p>
-                    </CardContent>
-                  </Card>
-                }
-              />
-            ) : (
-              <PaginatedList
-                items={data}
-                renderItem={(item) => (
-                  <MedicalHistoryListItem item={item} onNavigate={() => handleNavigate(item.animalId)} />
-                )}
-                pageIndex={pagination.page}
-                pageSize={pagination.size}
-                totalElements={totalElements}
-                totalPages={totalPages}
-                onPageIndexChange={handlePaginate}
-                isBusy={isRefreshing}
-                getItemKey={(item) => item.animalId}
-                emptyState={
-                  <Card className="border-dashed">
-                    <CardContent className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
-                      <PawPrint className="h-8 w-8" />
-                      <p>No encontramos pacientes que coincidan con tu búsqueda.</p>
-                    </CardContent>
-                  </Card>
-                }
-              />
-            )}
+        {error && (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {error}
           </div>
-        </main>
-      </div>
+        )}
+
+        {isLoading && !data.length ? (
+          <div className="flex items-center justify-center py-24">
+            <div className="flex items-center gap-3 rounded-lg border bg-background px-4 py-3 text-sm text-muted-foreground shadow-sm">
+              <Loader2 className="h-4 w-4 animate-spin" /> Cargando pacientes...
+            </div>
+          </div>
+        ) : data.length === 0 ? (
+          <PaginatedList
+            items={[]}
+            renderItem={() => null}
+            pageIndex={pagination.page}
+            pageSize={pagination.size}
+            totalElements={totalElements}
+            totalPages={totalPages}
+            onPageIndexChange={handlePaginate}
+            emptyState={
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
+                  <PawPrint className="h-8 w-8" />
+                  <p>No encontramos pacientes que coincidan con tu búsqueda.</p>
+                </CardContent>
+              </Card>
+            }
+          />
+        ) : (
+          <PaginatedList
+            items={data}
+            renderItem={(item) => (
+              <MedicalHistoryListItem
+                item={item}
+                onNavigate={() => handleNavigate(item.animalId)}
+              />
+            )}
+            pageIndex={pagination.page}
+            pageSize={pagination.size}
+            totalElements={totalElements}
+            totalPages={totalPages}
+            onPageIndexChange={handlePaginate}
+            isBusy={isRefreshing}
+            getItemKey={(item) => item.animalId}
+            emptyState={
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
+                  <PawPrint className="h-8 w-8" />
+                  <p>No encontramos pacientes que coincidan con tu búsqueda.</p>
+                </CardContent>
+              </Card>
+            }
+          />
+        )}
+      </PageContainer>
     </DashboardLayoutSection>
   );
 }
@@ -188,7 +199,9 @@ type MedicalHistoryListItemProps = {
 };
 
 function MedicalHistoryListItem({ item, onNavigate }: MedicalHistoryListItemProps) {
-  const visitDate = item.lastVisitDate ? new Date(item.lastVisitDate).toLocaleDateString("es-PE") : "Sin registro";
+  const visitDate = item.lastVisitDate
+    ? new Date(item.lastVisitDate).toLocaleDateString("es-PE")
+    : "Sin registro";
   const ownerName = item.ownerName ?? "Propietario no disponible";
   const stats = [
     { label: "Consultas", value: item.totalConsultations ?? 0, icon: ClipboardList },
@@ -199,7 +212,7 @@ function MedicalHistoryListItem({ item, onNavigate }: MedicalHistoryListItemProp
   return (
     <Card
       className={cn(
-        "overflow-hidden border bg-background shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
+        "overflow-hidden border bg-background shadow-sm transition hover:-translate-y-0.5 hover:shadow-sm",
         !item.active && "border-dashed border-muted-foreground/40 bg-muted/40"
       )}
     >
@@ -211,15 +224,23 @@ function MedicalHistoryListItem({ item, onNavigate }: MedicalHistoryListItemProp
             </div>
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
-                <CardTitle className="text-xl leading-tight text-foreground">{item.animalName}</CardTitle>
+                <CardTitle className="text-xl leading-tight text-foreground">
+                  {item.animalName}
+                </CardTitle>
                 <Badge variant="outline" className="text-xs uppercase tracking-wide">
                   Paciente #{item.animalId}
                 </Badge>
                 <Badge variant="secondary" className="text-xs">
                   {item.speciesLabel ?? AnimalSpeciesLabels[item.species]}
                 </Badge>
-                {item.breed && <span className="text-xs uppercase text-muted-foreground">Raza: {item.breed}</span>}
-                <span className="text-xs uppercase text-muted-foreground">Edad: {item.age ?? "No disponible"}</span>
+                {item.breed && (
+                  <span className="text-xs uppercase text-muted-foreground">
+                    Raza: {item.breed}
+                  </span>
+                )}
+                <span className="text-xs uppercase text-muted-foreground">
+                  Edad: {item.age ?? "No disponible"}
+                </span>
               </div>
               {item.microchip && (
                 <p className="text-xs text-muted-foreground">
@@ -229,7 +250,10 @@ function MedicalHistoryListItem({ item, onNavigate }: MedicalHistoryListItemProp
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={item.active ? "default" : "secondary"} className={cn(!item.active && "bg-muted-foreground/50 text-foreground")}>
+            <Badge
+              variant={item.active ? "default" : "secondary"}
+              className={cn(!item.active && "bg-muted-foreground/50 text-foreground")}
+            >
               {item.active ? "Activo" : "Inactivo"}
             </Badge>
             {stats.map((stat) => (
@@ -247,17 +271,19 @@ function MedicalHistoryListItem({ item, onNavigate }: MedicalHistoryListItemProp
 
       <CardContent className="px-4 py-4">
         <div className="grid gap-4 text-sm text-muted-foreground lg:grid-cols-2">
-          <div className="flex items-center gap-3 rounded-xl border border-dashed border-muted-foreground/30 bg-background/70 p-4">
+          <div className="flex items-center gap-3 rounded-lg border border-dashed border-muted-foreground/30 bg-background/70 p-4">
             <div className="rounded-full bg-primary/10 p-2 text-primary">
               <CalendarClock className="h-4 w-4" />
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide">Última visita</p>
               <p className="text-base font-semibold text-foreground">{visitDate}</p>
-              {item.lastVisitService && <p className="text-xs text-muted-foreground">Servicio: {item.lastVisitService}</p>}
+              {item.lastVisitService && (
+                <p className="text-xs text-muted-foreground">Servicio: {item.lastVisitService}</p>
+              )}
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-xl border border-dashed border-muted-foreground/30 bg-background/70 p-4">
+          <div className="flex items-center gap-3 rounded-lg border border-dashed border-muted-foreground/30 bg-background/70 p-4">
             <div className="rounded-full bg-primary/10 p-2 text-primary">
               <User className="h-4 w-4" />
             </div>
@@ -284,7 +310,9 @@ function MedicalHistoryListItem({ item, onNavigate }: MedicalHistoryListItemProp
       </CardContent>
 
       <CardFooter className="flex flex-col gap-3 border-t bg-muted/30 px-4 py-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-        <span className="text-xs text-muted-foreground">Actualizado automáticamente con cada atención registrada.</span>
+        <span className="text-xs text-muted-foreground">
+          Actualizado automáticamente con cada atención registrada.
+        </span>
         <Button size="sm" onClick={onNavigate} className="w-full md:w-auto">
           Ver historial
         </Button>

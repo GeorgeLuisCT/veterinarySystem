@@ -55,7 +55,7 @@ export default function PaginatedList<T>({
     <div className={cn("space-y-4", className)}>
       <div className="relative">
         {isBusy && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/80 backdrop-blur-sm">
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/80">
             {loadingState ?? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
           </div>
         )}

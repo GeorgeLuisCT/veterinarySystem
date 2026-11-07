@@ -160,7 +160,7 @@ export default function CloseSessionDialog({
 
             <div className="space-y-3">
               <p className="text-sm font-medium">Transferir montos por método</p>
-              <div className="space-y-3 rounded-2xl border p-3">
+              <div className="space-y-3 rounded-lg border p-3">
                 {actionableBreakdown.length === 0 && (
                   <p className="text-sm text-muted-foreground">No hay montos por transferir.</p>
                 )}

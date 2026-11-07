@@ -43,6 +43,7 @@ public class GroomingSessionService {
 
     private final GroomingSessionRepository groomingSessionRepository;
     private final GroomingMaterialUsedRepository groomingMaterialUsedRepository;
+    private final com.gaedet.veterinarysystem.core.inventory.service.InventoryConsumptionService inventoryConsumptionService;
     private final AttentionRepository attentionRepository;
     private final EmployeeRepository employeeRepository;
     private final ProductRepository productRepository;
@@ -225,6 +226,17 @@ public class GroomingSessionService {
 
         GroomingMaterialUsed saved = groomingMaterialUsedRepository.save(material);
         session.getMaterialsUsed().add(saved);
+
+        // Un material del inventario descuenta stock (FEFO) de la sucursal donde se atiende
+        if (product != null) {
+            if (request.getQuantity() == null || request.getQuantity().signum() <= 0) {
+                throw new com.gaedet.veterinarysystem.exeption.BadRequestException("La cantidad del material debe ser mayor a cero");
+            }
+            Long branchId = session.getAttention() != null && session.getAttention().getBranch() != null
+                    ? session.getAttention().getBranch().getId() : null;
+            inventoryConsumptionService.consume(product.getId(), branchId, request.getQuantity(),
+                    request.getUnitType(), "GroomingMaterialUsed", saved.getId());
+        }
 
         return GroomingSessionMapper.toDetail(session);
     }

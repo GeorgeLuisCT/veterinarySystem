@@ -188,8 +188,8 @@ export function AddTreatmentModal({ open, onOpenChange, hospitalizationId, onSuc
                             )}
                         />
 
-                        <fieldset className="rounded-xl border p-3">
-                            <legend className="px-1 text-sm font-medium">Frecuencia (opcional)</legend>
+                        <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                            <legend className="mb-3 text-sm font-semibold text-foreground">Frecuencia (opcional)</legend>
                             <div className="grid gap-3 sm:grid-cols-3">
                                 <FormField
                                     control={form.control}

@@ -38,7 +38,7 @@ export function AccountsList({
           {loading && (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {Array.from({ length: 4 }).map((_, i) => (
-                <Card key={i} className="rounded-xl">
+                <Card key={i} className="rounded-lg">
                   <CardContent className="p-3 space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 space-y-1">
@@ -87,7 +87,7 @@ export function AccountsList({
                       if (e.key === "Enter" || e.key === " ") onSelect(account);
                     }}
                     className={cn(
-                      "transition rounded-xl cursor-pointer hover:shadow-sm focus-visible:outline-none focus-visible:ring-2",
+                      "transition rounded-lg cursor-pointer hover:shadow-sm focus-visible:outline-none focus-visible:ring-2",
                       "bg-card/50",
                       isSelected ? "ring-2 ring-primary" : "border"
                     )}

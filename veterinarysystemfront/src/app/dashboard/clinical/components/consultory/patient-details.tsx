@@ -77,13 +77,13 @@ export default function AnimalDetails({ animalId, className }: { animalId: numbe
 
   if (loading) {
     return (
-      <Card className={containerClass + " overflow-hidden border-muted/50 bg-gradient-to-b from-muted/40 to-background"}>
+      <Card className={containerClass + " overflow-hidden"}>
         <CardContent className="p-4">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
             <span className="font-medium">Cargando ficha…</span>
           </div>
-          <div className="mt-4 h-48 w-full animate-pulse rounded-2xl bg-muted" />
+          <div className="mt-4 h-48 w-full animate-pulse rounded-lg bg-muted" />
         </CardContent>
       </Card>
     );
@@ -112,10 +112,10 @@ export default function AnimalDetails({ animalId, className }: { animalId: numbe
 
   return (
     <Card className={containerClass + " overflow-hidden border-muted/40 bg-card"}>
-      <div className="relative h-28 w-full bg-gradient-to-r from-primary/10 via-primary/5 to-transparent" />
+      <div className="relative h-28 w-full bg-primary/10" />
       <CardContent className="px-4 pb-4 -mt-12">
         <div className="flex items-end gap-3">
-          <div className="relative h-20 w-20 overflow-hidden rounded-2xl ring-2 ring-background shadow">
+          <div className="relative h-20 w-20 overflow-hidden rounded-lg ring-2 ring-background shadow">
             {animal.photoUrl ? (
               <Image src={animal.photoUrl} alt={`Foto de ${animal.name}`} fill className="object-cover" />
             ) : (
@@ -143,7 +143,7 @@ export default function AnimalDetails({ animalId, className }: { animalId: numbe
         <Separator className="my-4" />
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl border bg-muted/20 p-3">
+          <div className="rounded-lg border bg-muted/20 p-3">
             <div className="text-sm font-medium">{animal.owner?.name ?? "—"}</div>
             <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
               <User2 className="h-3.5 w-3.5" />
@@ -151,7 +151,7 @@ export default function AnimalDetails({ animalId, className }: { animalId: numbe
             </div>
           </div>
 
-          <div className="rounded-xl border bg-muted/20 p-3">
+          <div className="rounded-lg border bg-muted/20 p-3">
             <div className="text-sm font-medium">{sexLabel ?? "—"}</div>
             <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
               <ShieldCheck className="h-3.5 w-3.5" />
@@ -159,7 +159,7 @@ export default function AnimalDetails({ animalId, className }: { animalId: numbe
             </div>
           </div>
 
-          <div className="rounded-xl border bg-muted/20 p-3">
+          <div className="rounded-lg border bg-muted/20 p-3">
             <div className="text-sm font-medium">{calcAge(animal.birthDate)}</div>
             <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
               <CalendarDays className="h-3.5 w-3.5" />
@@ -167,7 +167,7 @@ export default function AnimalDetails({ animalId, className }: { animalId: numbe
             </div>
           </div>
 
-          <div className="rounded-xl border bg-muted/20 p-3">
+          <div className="rounded-lg border bg-muted/20 p-3">
             <div className="text-sm font-medium">{animal.microchipNumber || "—"}</div>
             <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
               <Barcode className="h-3.5 w-3.5" />
@@ -177,14 +177,14 @@ export default function AnimalDetails({ animalId, className }: { animalId: numbe
         </div>
 
         <div className="mt-4 space-y-3">
-          <div className="rounded-2xl border p-3">
+          <div className="rounded-lg border p-3">
             <div className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Alergias</div>
             <p className="text-sm">
               {animal.allergies && animal.allergies.length > 0 ? animal.allergies.join(", ") : "Ninguna registrada"}
             </p>
           </div>
 
-          <div className="rounded-2xl border p-3">
+          <div className="rounded-lg border p-3">
             <div className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Condiciones crónicas</div>
             <p className="text-sm">
               {animal.chronicConditions && animal.chronicConditions.length > 0

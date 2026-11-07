@@ -44,16 +44,16 @@ export default function KpiGrid() {
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <KpiCard title="Planificadas hoy" value={String(planned)} accent="from-blue-500/15 to-blue-500/5" dot="bg-blue-500" />
-      <KpiCard title="En progreso" value={String(inProgress)} accent="from-amber-500/15 to-amber-500/5" dot="bg-amber-500" />
-      <KpiCard title="Completadas" value={String(completed)} accent="from-emerald-500/15 to-emerald-500/5" dot="bg-emerald-500" />
+      <KpiCard title="Planificadas hoy" value={String(planned)} dot="bg-info" />
+      <KpiCard title="En progreso" value={String(inProgress)} dot="bg-warning" />
+      <KpiCard title="Completadas" value={String(completed)} dot="bg-success" />
     </div>
   );
 }
 
-function KpiCard({ title, value, accent, dot }: { title: string; value: string; accent: string; dot: string }) {
+function KpiCard({ title, value, dot }: { title: string; value: string; dot: string }) {
   return (
-    <Card className={cn("overflow-hidden border-none shadow-sm", "bg-gradient-to-b", accent)}>
+    <Card className={"gap-2"}>
       <CardHeader className="pb-0">
         <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <span className={cn("size-2 rounded-full", dot)} /> {title}

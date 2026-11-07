@@ -55,7 +55,7 @@ export function MobileNavigation() {
               setIsEventModalOpen(true)
             }}
             size="sm"
-            className="flex flex-col items-center gap-1 h-12 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full"
+            className="flex flex-col items-center gap-1 h-12 px-3 bg-primary text-primary-foreground hover:bg-primary/90 text-white rounded-full"
           >
             <Plus className="h-4 w-4" />
             <span className="text-xs">Add</span>

@@ -450,7 +450,7 @@ export function ClinicalServiceForm({ setOpen, serviceId, onSuccess }: ClinicalS
     <div className="max-h-[80vh] overflow-auto p-4">
       {loading ? (
         <div className="flex h-40 items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-600" />
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : (
         <Form {...form}>

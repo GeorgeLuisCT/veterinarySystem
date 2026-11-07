@@ -116,7 +116,7 @@ export function AccountDetail({
           <div
             className={cn(
               "text-right font-medium",
-              row.original.amount >= 0 ? "text-emerald-600" : "text-red-600"
+              row.original.amount >= 0 ? "text-success-strong" : "text-destructive"
             )}
           >
             {PEN.format(row.original.amount)}

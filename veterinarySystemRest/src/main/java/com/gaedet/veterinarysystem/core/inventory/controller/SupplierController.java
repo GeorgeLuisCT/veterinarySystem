@@ -19,7 +19,7 @@ public class SupplierController {
 
     private final SupplierService supplierService;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'WAREHOUSE')")
     @PostMapping("/create")
     public ResponseEntity<SupplierSummaryResponse> createSupplier(@Valid @RequestBody SupplierCreateRequest request) {
         return ResponseEntity.ok(supplierService.createSupplier(request));
@@ -48,13 +48,13 @@ public class SupplierController {
         return ResponseEntity.ok(supplierService.searchSuppliers(query));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'WAREHOUSE')")
     @PutMapping("/update")
     public ResponseEntity<SupplierSummaryResponse> updateSupplier(@Valid @RequestBody SupplierUpdateRequest request) {
         return ResponseEntity.ok(supplierService.updateSupplier(request));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'WAREHOUSE')")
     @DeleteMapping("/soft-delete")
     public ResponseEntity<Map<String, String>> softDeleteSupplier(@RequestParam Long id) {
         supplierService.softDeleteSupplier(id);
@@ -68,7 +68,7 @@ public class SupplierController {
         return ResponseEntity.ok(Map.of("message", "Proveedor eliminado permanentemente"));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'WAREHOUSE')")
     @PutMapping("/restore")
     public ResponseEntity<SupplierSummaryResponse> restoreSupplier(@RequestParam Long id) {
         return ResponseEntity.ok(supplierService.restoreSupplier(id));

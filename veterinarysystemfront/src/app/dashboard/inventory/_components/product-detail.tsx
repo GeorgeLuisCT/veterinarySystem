@@ -59,10 +59,10 @@ export function ProductDetail({ productId, branchId, onClose }: ProductDetailPro
     }
 
     return (
-        <div className="w-full border rounded-xl p-4 space-y-5 text-sm">
+        <div className="w-full border rounded-lg p-4 space-y-5 text-sm">
             {onClose && (
                 <div className="flex justify-end">
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+                    <button onClick={onClose} className="text-muted-foreground hover:text-muted-foreground">
                         ✕
                     </button>
                 </div>
@@ -109,7 +109,7 @@ export function ProductDetail({ productId, branchId, onClose }: ProductDetailPro
                     />
                     <div className="flex items-center gap-2">
                         <Ruler className="w-5 h-5" />
-                        <span className="font-medium ">Contenido: </span>
+                        <span className="font-medium">Contenido: </span>
                         <span className="text-muted-foreground truncate">{`${product.contentTotal} ${getProductUnitTypeAbbreviation(product.unitType)}`}</span>
                     </div>
                 </div>

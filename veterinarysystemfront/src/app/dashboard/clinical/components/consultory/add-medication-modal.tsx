@@ -171,7 +171,7 @@ export function MedicationModal({ id, onClose, onAdded }: CommonProps) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="w-[min(92vw,840px)] max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-2xl">
+      <DialogContent className="w-[min(92vw,840px)] max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-2xl">
         <DialogHeader className="space-y-1">
           <DialogTitle className="text-xl">Registrar medicación</DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -225,8 +225,8 @@ export function MedicationModal({ id, onClose, onAdded }: CommonProps) {
             />
 
             {/* Dosis */}
-            <fieldset className="rounded-xl border p-3">
-              <legend className="px-1 text-sm font-medium">Dosis</legend>
+            <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+              <legend className="mb-3 text-sm font-semibold text-foreground">Dosis</legend>
               <div className="grid gap-3 sm:grid-cols-3">
                 <FormField
                   control={form.control}
@@ -303,8 +303,8 @@ export function MedicationModal({ id, onClose, onAdded }: CommonProps) {
             </fieldset>
 
             {/* Frecuencia */}
-            <fieldset className="rounded-xl border p-3">
-              <legend className="px-1 text-sm font-medium">Frecuencia</legend>
+            <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+              <legend className="mb-3 text-sm font-semibold text-foreground">Frecuencia</legend>
               <div className="grid gap-3 sm:grid-cols-2">
                 <FormField
                   control={form.control}

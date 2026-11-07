@@ -93,7 +93,7 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
                 const rowSummary = `${summaryText} a ${priceText}`;
 
                 return (
-                    <div key={field.id} className="rounded-xl border p-3 space-y-2">
+                    <div key={field.id} className="rounded-lg border p-3 space-y-2">
                         <div className="flex flex-row items-end gap-3">
                             <div className="flex flex gap-2 w-full">
                                 <FormField
@@ -172,7 +172,7 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
                                     size="icon"
                                     onClick={() => remove(index)}
                                 >
-                                    <Trash2 className="h-4 w-4 text-red-600" />
+                                    <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
                             </div>
                         </div>
@@ -191,7 +191,7 @@ export function ProductSaleModeForm({ control, baseUnitType, presentationType, i
                     type="button"
                     onClick={handleAddSaleMode}
                     variant="link"
-                    className="flex items-center gap-1 rounded-xl cursor-pointer"
+                    className="flex items-center gap-1 rounded-lg cursor-pointer"
                 >
                     <Plus className="h-4 w-4" />
                     <span>Agregar</span>

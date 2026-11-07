@@ -1,15 +1,8 @@
 package com.gaedet.veterinarysystem.security.service;
 
-import com.gaedet.veterinarysystem.core.animal.entity.Animal;
-import com.gaedet.veterinarysystem.core.animal.repository.AnimalRepository;
 import com.gaedet.veterinarysystem.core.branches.entity.Branch;
 import com.gaedet.veterinarysystem.core.branches.repository.BranchRepository;
-import com.gaedet.veterinarysystem.core.clinic.entity.ClinicalService;
-import com.gaedet.veterinarysystem.core.clinic.entity.SurgicalOrder;
-import com.gaedet.veterinarysystem.core.clinic.enums.ClinicalServiceCategory;
-import com.gaedet.veterinarysystem.core.clinic.enums.SurgicalOrderStatus;
 import com.gaedet.veterinarysystem.core.clinic.repository.ClinicalServiceRepository;
-import com.gaedet.veterinarysystem.core.clinic.repository.SurgicalOrderRepository;
 import com.gaedet.veterinarysystem.core.employees.entity.Employee;
 import com.gaedet.veterinarysystem.core.employees.entity.EmployeeBranch;
 import com.gaedet.veterinarysystem.core.employees.repository.EmployeeRepository;
@@ -22,6 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,9 +37,16 @@ public class InitializerService {
     private final EmployeeRepository employeeRepository;
     private final BranchRepository branchRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AnimalRepository animalRepository;
     private final ClinicalServiceRepository clinicalServiceRepository;
-    private final SurgicalOrderRepository surgicalOrderRepository;
+
+    private static final Logger log = LoggerFactory.getLogger(InitializerService.class);
+
+    /** Credenciales del administrador inicial. Si no se definen, NO se crea ningún usuario por defecto. */
+    @Value("${app.bootstrap.admin.username:}")
+    private String bootstrapAdminUsername;
+
+    @Value("${app.bootstrap.admin.password:}")
+    private String bootstrapAdminPassword;
 
     private boolean initialized = false;
 
@@ -55,30 +58,47 @@ public class InitializerService {
         initialized = true;
         ensureSeedDataPresent();
         createAdminUserWithAllRoles();
-        createDefaultSurgicalOrdersIfNotExists();
     }
 
+    /**
+     * Los roles salen del enum {@link RoleName}: se crean los que falten (idempotente) en lugar de depender
+     * de que data.sql se haya ejecutado. Sucursales y catálogo se avisan por log, sin tumbar el arranque.
+     */
     private void ensureSeedDataPresent() {
-        if (roleRepository.count() == 0) {
-            throw new IllegalStateException("No roles found. Verify data.sql was executed.");
+        for (RoleName roleName : RoleName.values()) {
+            if (roleRepository.findByName(roleName).isEmpty()) {
+                Role role = new Role();
+                role.setName(roleName);
+                roleRepository.save(role);
+                log.info("Rol creado: {}", roleName);
+            }
         }
         if (branchRepository.count() == 0) {
-            throw new IllegalStateException("No branches found. Verify data.sql was executed.");
+            log.warn("No hay sucursales registradas. Cargue los datos iniciales (data.sql: spring.sql.init.mode=always).");
         }
         if (clinicalServiceRepository.count() == 0) {
-            throw new IllegalStateException("No clinical services found. Verify data.sql was executed.");
+            log.warn("No hay servicios clínicos registrados. Cargue los datos iniciales o créelos desde el catálogo.");
         }
     }
 
     private void createAdminUserWithAllRoles() {
         if (userRepository.existsByRoles_Name(RoleName.ROLE_ADMIN)) {
-            System.out.println("ℹ️ Admin already exists, skipping creation.");
+            log.info("Ya existe un administrador; no se crea otro.");
+            return;
+        }
+
+        // Seguridad: sin credenciales explícitas (variables de entorno) no se crea ningún admin por defecto.
+        if (bootstrapAdminUsername == null || bootstrapAdminUsername.isBlank()
+                || bootstrapAdminPassword == null || bootstrapAdminPassword.length() < 12) {
+            log.warn("No existe ningún administrador y no se definió BOOTSTRAP_ADMIN_USERNAME/BOOTSTRAP_ADMIN_PASSWORD "
+                    + "(mínimo 12 caracteres). Defínalos para crear el administrador inicial.");
             return;
         }
 
         List<Branch> allBranches = branchRepository.findAll();
         if (allBranches.isEmpty()) {
-            throw new IllegalStateException("No branches available");
+            log.warn("No hay sucursales; no se puede crear el administrador inicial todavía.");
+            return;
         }
 
         Employee adminEmployee = new Employee();
@@ -100,55 +120,14 @@ public class InitializerService {
         employeeRepository.save(adminEmployee);
 
         User admin = new User();
-        admin.setUsername("admin");
-        admin.setPassword(passwordEncoder.encode("adminpassword"));
+        admin.setUsername(bootstrapAdminUsername.trim());
+        admin.setPassword(passwordEncoder.encode(bootstrapAdminPassword));
         admin.setEmployee(adminEmployee);
 
         Set<Role> roles = new HashSet<>(roleRepository.findAll());
         admin.setRoles(roles);
 
         userRepository.save(admin);
-        System.out.println("✅ Admin user created with all roles and assigned to all branches.");
-    }
-
-    private void createDefaultSurgicalOrdersIfNotExists() {
-        if (surgicalOrderRepository.count() > 0) {
-            System.out.println("ℹ️ Ya existen órdenes quirúrgicas, se omite la creación por defecto.");
-            return;
-        }
-
-        Optional<Animal> animalOpt = animalRepository.findAll().stream().findFirst();
-        if (animalOpt.isEmpty()) {
-            System.out.println("⚠️ No hay animales registrados; se omite creación de órdenes quirúrgicas de ejemplo.");
-            return;
-        }
-
-        Optional<Employee> employeeOpt = employeeRepository.findAll().stream().findFirst();
-        if (employeeOpt.isEmpty()) {
-            System.out.println("⚠️ No hay empleados registrados; se omite creación de órdenes quirúrgicas de ejemplo.");
-            return;
-        }
-
-        ClinicalService surgicalService = clinicalServiceRepository.findByNameIgnoreCase("Profilaxis Quirúrgica Canina")
-                .orElseGet(() -> clinicalServiceRepository.findAll().stream()
-                        .filter(service -> service.getClinicalServiceCategory() == ClinicalServiceCategory.SURGERY)
-                        .findFirst()
-                        .orElse(null));
-
-        if (surgicalService == null) {
-            System.out.println("⚠️ No se encontró un servicio quirúrgico, se omite creación de órdenes de ejemplo.");
-            return;
-        }
-
-        SurgicalOrder order = SurgicalOrder.builder()
-                .animal(animalOpt.get())
-                .recommendedService(surgicalService)
-                .requestedBy(employeeOpt.get())
-                .status(SurgicalOrderStatus.PENDING)
-                .notes("Orden quirúrgica de ejemplo generada automáticamente.")
-                .build();
-
-        surgicalOrderRepository.save(order);
-        System.out.println("✅ Orden quirúrgica de ejemplo creada para el animal " + animalOpt.get().getName());
+        log.info("Administrador inicial '{}' creado con todos los roles y sucursales.", admin.getUsername());
     }
 }

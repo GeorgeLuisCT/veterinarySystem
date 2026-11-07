@@ -10,7 +10,7 @@ import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { FloatingLabelInput } from "@/components/floating-label-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 
 import {
@@ -25,6 +25,7 @@ import { ProductUnitTypeLabels } from "@/app/dashboard/inventory/_enums/product-
 import { FrequencyUnitLabels } from "../../enums/frequency-unit";
 import { AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
 import { ProductQuickSearchResponse } from "@/app/dashboard/inventory/_types/product-response";
+import { SegmentedControl } from "@/components/page/segmented-control";
 
 type Option = { value: string; label: string };
 type Mode = "medication" | "instruction";
@@ -127,7 +128,7 @@ export function AddPostOpIndicationModal({
 
   return (
     <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : undefined)}>
-      <DialogContent className="w-[min(92vw,840px)] max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-2xl">
+      <DialogContent className="w-[min(92vw,840px)] max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-2xl">
         <DialogHeader className="space-y-1">
           <DialogTitle className="text-xl">Agregar indicación post operatoria</DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -136,10 +137,16 @@ export function AddPostOpIndicationModal({
         </DialogHeader>
 
         <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)} className="mt-1">
-          <TabsList className="grid w-full grid-cols-2 rounded-full">
-            <TabsTrigger value="medication" className="rounded-full">Medicamento</TabsTrigger>
-            <TabsTrigger value="instruction" className="rounded-full">Instrucción</TabsTrigger>
-          </TabsList>
+          <SegmentedControl<Mode>
+            aria-label="Tipo de indicación"
+            value={mode}
+            onChange={setMode}
+            className="mb-3"
+            options={[
+              { value: "medication", label: "Medicamento" },
+              { value: "instruction", label: "Instrucción" },
+            ]}
+          />
 
           <Form {...form}>
             <form className="mt-4 space-y-4" onSubmit={form.handleSubmit(onSubmit)} noValidate autoComplete="off">
@@ -167,8 +174,8 @@ export function AddPostOpIndicationModal({
                   )}
                 />
 
-                <fieldset className="rounded-xl border p-3">
-                  <legend className="px-1 text-sm font-medium">Dosis</legend>
+                <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                  <legend className="mb-3 text-sm font-semibold text-foreground">Dosis</legend>
                   <div className="grid gap-3 sm:grid-cols-12">
                     <div className="sm:col-span-4">
                       <FormField
@@ -234,8 +241,8 @@ export function AddPostOpIndicationModal({
                   </div>
                 </fieldset>
 
-                <fieldset className="rounded-xl border p-3">
-                  <legend className="px-1 text-sm font-medium">Frecuencia</legend>
+                <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                  <legend className="mb-3 text-sm font-semibold text-foreground">Frecuencia</legend>
                   <div className="grid gap-3 sm:grid-cols-12">
                     <div className="sm:col-span-6">
                       <FormField
@@ -284,8 +291,8 @@ export function AddPostOpIndicationModal({
               </TabsContent>
 
               <TabsContent value="instruction">
-                <fieldset className="rounded-xl border p-3">
-                  <legend className="px-1 text-sm font-medium">Instrucción</legend>
+                <fieldset className="border-t pt-4 first:border-t-0 first:pt-0">
+                  <legend className="mb-3 text-sm font-semibold text-foreground">Instrucción</legend>
                   <FormField
                     control={form.control}
                     name="nonDrugInstruction"

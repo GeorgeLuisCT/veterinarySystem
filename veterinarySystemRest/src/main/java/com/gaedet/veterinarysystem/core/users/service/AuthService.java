@@ -7,7 +7,9 @@ import com.gaedet.veterinarysystem.core.users.dto.TokenUpdateResponse;
 import com.gaedet.veterinarysystem.core.users.entity.User;
 import com.gaedet.veterinarysystem.core.users.repository.UserRepository;
 import com.gaedet.veterinarysystem.security.util.JwtUtils;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -35,7 +37,12 @@ public class AuthService {
         User user = userRepository.findAuthBundleByUsername(request.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
+        if (user.getEmployee() == null) {
+            throw new BadCredentialsException("El usuario no tiene un empleado asociado");
+        }
+
         var branchResponses = user.getEmployee().getEmployeeBranches().stream()
+                .filter(eb -> eb.isActive())
                 .map(eb -> new BranchResponse(
                         eb.getBranch().getId(),
                         eb.getBranch().getName(),
@@ -45,6 +52,10 @@ public class AuthService {
         var roles = user.getRoles().stream()
                 .map(r -> r.getName().name())
                 .toList();
+
+        if (branchResponses.isEmpty()) {
+            throw new BadCredentialsException("El usuario no tiene sucursales activas asignadas");
+        }
 
         Long branchId = branchResponses.size() == 1 ? branchResponses.get(0).getId() : null;
 
@@ -59,6 +70,17 @@ public class AuthService {
     public TokenUpdateResponse updateTokenWithBranch(String username, Long branchId) {
         User user = userRepository.findAuthBundleByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (!user.isActive()) {
+            throw new AccessDeniedException("Usuario desactivado");
+        }
+
+        // Solo se puede operar en sucursales activas asignadas al empleado del usuario
+        boolean belongsToBranch = user.getEmployee() != null && user.getEmployee().getEmployeeBranches().stream()
+                .anyMatch(eb -> eb.isActive() && eb.getBranch().getId().equals(branchId));
+        if (!belongsToBranch) {
+            throw new AccessDeniedException("No tienes acceso a la sucursal seleccionada");
+        }
 
         var roles = user.getRoles().stream()
                 .map(r -> r.getName().name())

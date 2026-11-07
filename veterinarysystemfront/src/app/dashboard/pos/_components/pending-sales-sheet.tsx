@@ -105,21 +105,15 @@ export default function PendingSalesSheet({ branchId }: Props) {
       </SheetTrigger>
 
       <SheetContent
-        className="
-          bg-app-gradient
-          p-0
-          h-dvh sm:h-screen
-          flex flex-col
-          min-h-0
-        "
+        className="bg-app-gradient p-0 h-dvh sm:h-screen flex flex-col min-h-0"
       >
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75">
+        <div className="sticky top-0 z-10 bg-background/95">
           <div className="p-4">
             <SheetHeader>
               <div className="flex items-center gap-2">
                 <span
                   aria-hidden
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary"
                 >
                   <Workflow className="h-4 w-4" />
                 </span>
@@ -167,12 +161,7 @@ export default function PendingSalesSheet({ branchId }: Props) {
         </div>
 
         <ScrollArea
-          className="
-            flex-1
-            min-h-0
-            px-4 pb-4
-            [&_[data-radix-scroll-area-viewport]]:h-full
-          "
+          className="flex-1 min-h-0 px-4 pb-4 [&_[data-radix-scroll-area-viewport]]:h-full"
         >
           <div className="space-y-3 py-3">
             {loading && (

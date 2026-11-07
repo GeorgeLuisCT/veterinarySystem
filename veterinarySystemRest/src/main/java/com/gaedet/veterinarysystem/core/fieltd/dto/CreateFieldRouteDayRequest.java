@@ -9,6 +9,7 @@ import lombok.experimental.SuperBuilder;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.List;
+import javax.validation.Valid;
 
 @Getter
 @Setter
@@ -21,5 +22,6 @@ public class CreateFieldRouteDayRequest {
     private Long vehicleId;
     @NotNull
     private LocalDate routeDate;
+    @Valid
     private List<CreateFieldRouteStopRequest> stops;
 }

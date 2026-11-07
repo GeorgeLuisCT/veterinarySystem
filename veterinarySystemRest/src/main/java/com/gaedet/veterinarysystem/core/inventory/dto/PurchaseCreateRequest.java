@@ -9,6 +9,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import javax.validation.Valid;
 
 @Data
 public class PurchaseCreateRequest {
@@ -21,6 +22,7 @@ public class PurchaseCreateRequest {
     private LocalDateTime date;
     private String description;
     @NotEmpty
+    @Valid
     private List<PurchaseProductRequest> products;
     private Boolean payNow = Boolean.FALSE;
     @DecimalMin(value = "0.00", inclusive = false)
