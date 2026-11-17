@@ -1,6 +1,0 @@
-target
-.mvn
-.git
-.idea
-*.iml
-.DS_Store
