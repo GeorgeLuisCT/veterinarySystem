@@ -7,6 +7,8 @@ using VetSaas.Modules.Finance;
 using VetSaas.Modules.Inventory.Application;
 using VetSaas.Modules.Inventory.Endpoints;
 using VetSaas.Modules.Platform;
+using VetSaas.Modules.Sales.Application;
+using VetSaas.Modules.Sales.Endpoints;
 using VetSaas.Modules.Users.Application;
 using VetSaas.Modules.Users.Endpoints;
 using VetSaas.Modules.Users.Infrastructure;
@@ -48,6 +50,11 @@ public static class ModuleRegistration
         services.AddScoped<IPurchasePayableRegistrar>(sp => sp.GetRequiredService<IAccountPayableService>());
         services.AddScoped<ITreasuryService, TreasuryService>();
 
+        // Ventas y caja
+        services.AddScoped<BillableServiceRegistry>();
+        services.AddScoped<ISaleService, SaleService>();
+        services.AddScoped<ICashSessionService, CashSessionService>();
+
         return services;
     }
 
@@ -59,5 +66,6 @@ public static class ModuleRegistration
         app.MapCustomerEndpoints();
         app.MapInventoryEndpoints();
         app.MapFinanceEndpoints();
+        app.MapSalesEndpoints();
     }
 }

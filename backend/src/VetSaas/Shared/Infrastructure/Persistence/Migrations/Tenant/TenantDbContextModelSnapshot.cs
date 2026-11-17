@@ -1079,6 +1079,376 @@ namespace VetSaas.Shared.Infrastructure.Persistence.Migrations.Tenant
                     b.ToTable("suppliers", (string)null);
                 });
 
+            modelBuilder.Entity("VetSaas.Modules.Sales.Domain.CashSession", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<decimal?>("CalculatedClosingAmount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("calculated_closing_amount");
+
+                    b.Property<long>("CashierId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("cashier_id");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<string>("ClosingNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("closing_notes");
+
+                    b.Property<decimal?>("CountedClosingAmount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("counted_closing_amount");
+
+                    b.Property<decimal?>("DifferenceAmount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("difference_amount");
+
+                    b.Property<DateTime>("OpenedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("opened_at");
+
+                    b.Property<decimal>("OpeningAmount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("opening_amount");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cash_sessions");
+
+                    b.HasIndex("BranchId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_cash_session_one_open_per_branch")
+                        .HasFilter("status = 'OPEN'");
+
+                    b.HasIndex("CashierId")
+                        .HasDatabaseName("idx_cash_session_cashier");
+
+                    b.HasIndex("BranchId", "Status")
+                        .HasDatabaseName("idx_cash_session_branch_status");
+
+                    b.ToTable("cash_sessions", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Sales.Domain.CashSessionMovement", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<long>("CashSessionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("cash_session_id");
+
+                    b.Property<string>("MovementType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("movement_type");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("reference");
+
+                    b.Property<DateTime>("RegisteredAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("registered_at");
+
+                    b.Property<long>("RegisteredById")
+                        .HasColumnType("bigint")
+                        .HasColumnName("registered_by_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cash_session_movements");
+
+                    b.HasIndex("CashSessionId")
+                        .HasDatabaseName("ix_cash_session_movements_cash_session_id");
+
+                    b.HasIndex("RegisteredById")
+                        .HasDatabaseName("ix_cash_session_movements_registered_by_id");
+
+                    b.ToTable("cash_session_movements", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Sales.Domain.Sale", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<long?>("CustomerId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("customer_id");
+
+                    b.Property<string>("DocumentNumber")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("document_number");
+
+                    b.Property<string>("DocumentType")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("document_type");
+
+                    b.Property<decimal>("GrandTotal")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("grand_total");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<long>("SellerId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("seller_id");
+
+                    b.Property<long?>("SourceAttentionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("source_attention_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("status");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("subtotal");
+
+                    b.Property<decimal>("TaxTotal")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("tax_total");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("VoidReason")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("void_reason");
+
+                    b.Property<DateTime?>("VoidedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("voided_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("ix_sales_customer_id");
+
+                    b.HasIndex("SellerId")
+                        .HasDatabaseName("ix_sales_seller_id");
+
+                    b.HasIndex("BranchId", "Status")
+                        .HasDatabaseName("ix_sales_branch_id_status");
+
+                    b.HasIndex("DocumentType", "DocumentNumber")
+                        .HasDatabaseName("ix_sales_document_type_document_number");
+
+                    b.ToTable("sales", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Sales.Domain.SaleDetail", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ItemDescription")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("item_description");
+
+                    b.Property<decimal>("LineSubtotal")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("line_subtotal");
+
+                    b.Property<string>("MetadataJson")
+                        .HasColumnType("text")
+                        .HasColumnName("metadata_json");
+
+                    b.Property<long?>("ProductBatchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_batch_id");
+
+                    b.Property<long?>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,3)")
+                        .HasColumnName("quantity");
+
+                    b.Property<long>("SaleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("sale_id");
+
+                    b.Property<long?>("SaleModeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("sale_mode_id");
+
+                    b.Property<long?>("ServiceItemId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("service_item_id");
+
+                    b.Property<string>("ServiceType")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("service_type");
+
+                    b.Property<decimal?>("TaxAmount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("tax_amount");
+
+                    b.Property<decimal?>("TaxRate")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(6,4)")
+                        .HasColumnName("tax_rate");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("unit_price");
+
+                    b.Property<string>("UnitType")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("unit_type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sale_details");
+
+                    b.HasIndex("ProductBatchId")
+                        .HasDatabaseName("ix_sale_details_product_batch_id");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_sale_details_product_id");
+
+                    b.HasIndex("SaleId")
+                        .HasDatabaseName("ix_sale_details_sale_id");
+
+                    b.HasIndex("SaleModeId")
+                        .HasDatabaseName("ix_sale_details_sale_mode_id");
+
+                    b.HasIndex("ServiceType", "ServiceItemId")
+                        .HasDatabaseName("ix_sale_details_service_type_service_item_id");
+
+                    b.ToTable("sale_details", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Sales.Domain.SalePayment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("AmountPaid")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("amount_paid");
+
+                    b.Property<long>("CashSessionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("cash_session_id");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<DateTime>("PaidAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("paid_at");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("payment_method");
+
+                    b.Property<string>("PaymentReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("payment_reference");
+
+                    b.Property<long>("SaleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("sale_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sale_payments");
+
+                    b.HasIndex("CashSessionId")
+                        .HasDatabaseName("ix_sale_payments_cash_session_id");
+
+                    b.HasIndex("SaleId")
+                        .HasDatabaseName("ix_sale_payments_sale_id");
+
+                    b.ToTable("sale_payments", (string)null);
+                });
+
             modelBuilder.Entity("VetSaas.Modules.Users.Domain.Role", b =>
                 {
                     b.Property<long>("Id")
@@ -1450,6 +1820,134 @@ namespace VetSaas.Shared.Infrastructure.Persistence.Migrations.Tenant
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("VetSaas.Modules.Sales.Domain.CashSession", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_cash_sessions_branches_branch_id");
+
+                    b.HasOne("VetSaas.Modules.Users.Domain.User", "Cashier")
+                        .WithMany()
+                        .HasForeignKey("CashierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_cash_sessions_users_cashier_id");
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Cashier");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Sales.Domain.CashSessionMovement", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Sales.Domain.CashSession", "CashSession")
+                        .WithMany("Movements")
+                        .HasForeignKey("CashSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_cash_session_movements_cash_sessions_cash_session_id");
+
+                    b.HasOne("VetSaas.Modules.Users.Domain.User", "RegisteredBy")
+                        .WithMany()
+                        .HasForeignKey("RegisteredById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_cash_session_movements_users_registered_by_id");
+
+                    b.Navigation("CashSession");
+
+                    b.Navigation("RegisteredBy");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Sales.Domain.Sale", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_branches_branch_id");
+
+                    b.HasOne("VetSaas.Modules.Customers.Domain.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_sales_customer_customer_id");
+
+                    b.HasOne("VetSaas.Modules.Users.Domain.User", "Seller")
+                        .WithMany()
+                        .HasForeignKey("SellerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_users_seller_id");
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Seller");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Sales.Domain.SaleDetail", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.ProductBatch", "ProductBatch")
+                        .WithMany()
+                        .HasForeignKey("ProductBatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_sale_details_product_batch_product_batch_id");
+
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_sale_details_products_product_id");
+
+                    b.HasOne("VetSaas.Modules.Sales.Domain.Sale", "Sale")
+                        .WithMany("Details")
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_sale_details_sales_sale_id");
+
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.ProductSaleMode", "SaleMode")
+                        .WithMany()
+                        .HasForeignKey("SaleModeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_sale_details_product_sale_mode_sale_mode_id");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("ProductBatch");
+
+                    b.Navigation("Sale");
+
+                    b.Navigation("SaleMode");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Sales.Domain.SalePayment", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Sales.Domain.CashSession", "CashSession")
+                        .WithMany()
+                        .HasForeignKey("CashSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_sale_payments_cash_sessions_cash_session_id");
+
+                    b.HasOne("VetSaas.Modules.Sales.Domain.Sale", "Sale")
+                        .WithMany("Payments")
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_sale_payments_sales_sale_id");
+
+                    b.Navigation("CashSession");
+
+                    b.Navigation("Sale");
+                });
+
             modelBuilder.Entity("VetSaas.Modules.Users.Domain.User", b =>
                 {
                     b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Employee")
@@ -1496,6 +1994,18 @@ namespace VetSaas.Shared.Infrastructure.Persistence.Migrations.Tenant
                     b.Navigation("BranchStocks");
 
                     b.Navigation("SaleModes");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Sales.Domain.CashSession", b =>
+                {
+                    b.Navigation("Movements");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Sales.Domain.Sale", b =>
+                {
+                    b.Navigation("Details");
+
+                    b.Navigation("Payments");
                 });
 #pragma warning restore 612, 618
         }
