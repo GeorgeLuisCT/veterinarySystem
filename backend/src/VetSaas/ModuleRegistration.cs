@@ -6,6 +6,8 @@ using VetSaas.Modules.Customers.Endpoints;
 using VetSaas.Modules.Employees.Application;
 using VetSaas.Modules.Employees.Endpoints;
 using VetSaas.Modules.Finance;
+using VetSaas.Modules.Fieldwork.Application;
+using VetSaas.Modules.Fieldwork.Endpoints;
 using VetSaas.Modules.Inventory.Application;
 using VetSaas.Modules.Inventory.Endpoints;
 using VetSaas.Modules.Platform;
@@ -82,6 +84,15 @@ public static class ModuleRegistration
         services.AddScoped<IReminderService, ReminderService>();
         services.AddScoped<IClinicalHistoryService, ClinicalHistoryService>();
 
+        // Trabajo de campo
+        services.AddScoped<IGeoZoneService, GeoZoneService>();
+        services.AddScoped<IFarmService, FarmService>();
+        services.AddScoped<IVehicleService, VehicleService>();
+        services.AddScoped<IFieldVisitService, FieldVisitService>();
+        services.AddScoped<IFieldTaskService, FieldTaskService>();
+        services.AddScoped<IFieldRouteService, FieldRouteService>();
+        services.AddScoped<ITeamStatusService, TeamStatusService>();
+
         return services;
     }
 
@@ -97,5 +108,6 @@ public static class ModuleRegistration
         app.MapClinicCatalogEndpoints();
         app.MapClinicCareEndpoints();
         app.MapClinicProcedureEndpoints();
+        app.MapFieldworkEndpoints();
     }
 }

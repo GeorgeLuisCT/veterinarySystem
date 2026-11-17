@@ -2413,6 +2413,988 @@ namespace VetSaas.Shared.Infrastructure.Persistence.Migrations.Tenant
                     b.ToTable("employee_branch", (string)null);
                 });
 
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.Farm", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AddressLabel")
+                        .HasColumnType("text")
+                        .HasColumnName("address_label");
+
+                    b.Property<long>("CustomerId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("customer_id");
+
+                    b.Property<string>("GpsCoordinates")
+                        .HasColumnType("text")
+                        .HasColumnName("gps_coordinates");
+
+                    b.Property<string>("LocationDescription")
+                        .HasColumnType("text")
+                        .HasColumnName("location_description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<long?>("ZoneId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("zone_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_farms");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("ix_farms_customer_id");
+
+                    b.HasIndex("ZoneId")
+                        .HasDatabaseName("ix_farms_zone_id");
+
+                    b.ToTable("farms", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldRouteDay", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("EmployeeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("employee_id");
+
+                    b.Property<DateOnly>("RouteDate")
+                        .HasColumnType("date")
+                        .HasColumnName("route_date");
+
+                    b.Property<long?>("VehicleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("vehicle_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_field_route_day");
+
+                    b.HasIndex("VehicleId")
+                        .HasDatabaseName("ix_field_route_day_vehicle_id");
+
+                    b.HasIndex("EmployeeId", "RouteDate")
+                        .IsUnique()
+                        .HasDatabaseName("ix_field_route_day_employee_id_route_date");
+
+                    b.ToTable("field_route_day", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldRouteStop", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<TimeOnly?>("Eta")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("eta");
+
+                    b.Property<long>("FieldVisitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("field_visit_id");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<long>("RouteDayId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("route_day_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_field_route_stop");
+
+                    b.HasIndex("FieldVisitId")
+                        .HasDatabaseName("ix_field_route_stop_field_visit_id");
+
+                    b.HasIndex("RouteDayId")
+                        .HasDatabaseName("ix_field_route_stop_route_day_id");
+
+                    b.ToTable("field_route_stop", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldTask", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("AssignedToId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("assigned_to");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_by");
+
+                    b.Property<long?>("CreatedFieldVisitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_field_visit_id");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<DateTime?>("DueAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("due_at");
+
+                    b.Property<long>("FarmId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("farm_id");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("priority");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.Property<long?>("ZoneId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("zone_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_field_tasks");
+
+                    b.HasIndex("AssignedToId")
+                        .HasDatabaseName("ix_field_tasks_assigned_to");
+
+                    b.HasIndex("CreatedById")
+                        .HasDatabaseName("ix_field_tasks_created_by");
+
+                    b.HasIndex("CreatedFieldVisitId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_field_tasks_created_field_visit_id");
+
+                    b.HasIndex("FarmId")
+                        .HasDatabaseName("ix_field_tasks_farm_id");
+
+                    b.HasIndex("Priority")
+                        .HasDatabaseName("ix_field_tasks_priority");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_field_tasks_status");
+
+                    b.HasIndex("ZoneId")
+                        .HasDatabaseName("ix_field_tasks_zone_id");
+
+                    b.ToTable("field_tasks", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldTeamStatusEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("CurrentVisitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("current_visit_id");
+
+                    b.Property<long>("EmployeeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("employee_id");
+
+                    b.Property<string>("GpsCoordinates")
+                        .HasColumnType("text")
+                        .HasColumnName("gps_coordinates");
+
+                    b.Property<DateTime?>("LastPingAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("last_ping_at");
+
+                    b.Property<string>("LocationText")
+                        .HasColumnType("text")
+                        .HasColumnName("location_text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_field_team_status");
+
+                    b.HasIndex("CurrentVisitId")
+                        .HasDatabaseName("ix_field_team_status_current_visit_id");
+
+                    b.HasIndex("EmployeeId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_field_team_status_employee_id");
+
+                    b.ToTable("field_team_status", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisit", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("EndDateTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("end_date_time");
+
+                    b.Property<long?>("FarmId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("farm_id");
+
+                    b.Property<long>("FieldVetId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("field_vet_employee_id");
+
+                    b.Property<string>("Objective")
+                        .HasColumnType("text")
+                        .HasColumnName("objective");
+
+                    b.Property<string>("ReportSummary")
+                        .HasColumnType("text")
+                        .HasColumnName("report_summary");
+
+                    b.Property<int?>("RouteOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("route_order");
+
+                    b.Property<DateTime>("ScheduledDateTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("scheduled_date_time");
+
+                    b.Property<DateTime?>("StartDateTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("start_date_time");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("status");
+
+                    b.Property<long?>("VehicleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("vehicle_id");
+
+                    b.Property<long?>("ZoneId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("zone_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_field_visits");
+
+                    b.HasIndex("FarmId")
+                        .HasDatabaseName("ix_field_visits_farm_id");
+
+                    b.HasIndex("FieldVetId")
+                        .HasDatabaseName("ix_field_visits_field_vet_employee_id");
+
+                    b.HasIndex("ScheduledDateTime")
+                        .HasDatabaseName("ix_field_visits_scheduled_date_time");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_field_visits_status");
+
+                    b.HasIndex("VehicleId")
+                        .HasDatabaseName("ix_field_visits_vehicle_id");
+
+                    b.HasIndex("ZoneId")
+                        .HasDatabaseName("ix_field_visits_zone_id");
+
+                    b.ToTable("field_visits", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitAttachment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("FieldVisitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("field_visit_id");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("file_name");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("file_url");
+
+                    b.Property<string>("MimeType")
+                        .HasColumnType("text")
+                        .HasColumnName("mime_type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_field_visit_attachments");
+
+                    b.HasIndex("FieldVisitId")
+                        .HasDatabaseName("ix_field_visit_attachments_field_visit_id");
+
+                    b.ToTable("field_visit_attachments", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitBiosecurity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("FieldVisitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("field_visit_id");
+
+                    b.Property<bool>("HandHygiene")
+                        .HasColumnType("boolean")
+                        .HasColumnName("hand_hygiene");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<bool>("PpeUsed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("ppe_used");
+
+                    b.Property<bool>("VehicleAndEquipmentCleaned")
+                        .HasColumnType("boolean")
+                        .HasColumnName("vehicle_and_equipment_cleaned");
+
+                    b.HasKey("Id")
+                        .HasName("pk_field_visit_biosecurity");
+
+                    b.HasIndex("FieldVisitId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_field_visit_biosecurity_field_visit_id");
+
+                    b.ToTable("field_visit_biosecurity", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitCompanion", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("EmployeeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("employee_id");
+
+                    b.Property<long>("FieldVisitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("field_visit_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_field_visit_companions");
+
+                    b.HasIndex("EmployeeId")
+                        .HasDatabaseName("ix_field_visit_companions_employee_id");
+
+                    b.HasIndex("FieldVisitId", "EmployeeId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_field_visit_companions_field_visit_id_employee_id");
+
+                    b.ToTable("field_visit_companions", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitProductUsage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("FieldVisitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("field_visit_id");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<int>("QuantityUsed")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity_used");
+
+                    b.Property<long?>("SourceVehicleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("vehicle_id");
+
+                    b.Property<decimal?>("Subtotal")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("subtotal");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("unit");
+
+                    b.Property<decimal?>("UnitPrice")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_field_visit_product_usage");
+
+                    b.HasIndex("FieldVisitId")
+                        .HasDatabaseName("ix_field_visit_product_usage_field_visit_id");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_field_visit_product_usage_product_id");
+
+                    b.HasIndex("SourceVehicleId")
+                        .HasDatabaseName("ix_field_visit_product_usage_vehicle_id");
+
+                    b.ToTable("field_visit_product_usage", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitReport", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Diagnoses")
+                        .HasColumnType("text")
+                        .HasColumnName("diagnoses");
+
+                    b.Property<long>("FieldVisitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("field_visit_id");
+
+                    b.Property<string>("Findings")
+                        .HasColumnType("text")
+                        .HasColumnName("findings");
+
+                    b.Property<string>("Recommendations")
+                        .HasColumnType("text")
+                        .HasColumnName("recommendations");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_field_visit_report");
+
+                    b.HasIndex("FieldVisitId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_field_visit_report_field_visit_id");
+
+                    b.ToTable("field_visit_report", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitServiceAnimal", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AnimalId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("animal_id");
+
+                    b.Property<long>("ServiceItemId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("service_item_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_field_visit_service_animals");
+
+                    b.HasIndex("AnimalId")
+                        .HasDatabaseName("ix_field_visit_service_animals_animal_id");
+
+                    b.HasIndex("ServiceItemId")
+                        .HasDatabaseName("ix_field_visit_service_animals_service_item_id");
+
+                    b.ToTable("field_visit_service_animals", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitServiceGroup", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Breed")
+                        .HasColumnType("text")
+                        .HasColumnName("breed");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<long>("ServiceItemId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("service_item_id");
+
+                    b.Property<string>("Species")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("species");
+
+                    b.HasKey("Id")
+                        .HasName("pk_field_visit_service_groups");
+
+                    b.HasIndex("ServiceItemId")
+                        .HasDatabaseName("ix_field_visit_service_groups_service_item_id");
+
+                    b.ToTable("field_visit_service_groups", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitServiceItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClinicalServiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_service_id");
+
+                    b.Property<long>("FieldVisitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("field_visit_id");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<long?>("PerformedById")
+                        .HasColumnType("bigint")
+                        .HasColumnName("performed_by");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_field_visit_service_items");
+
+                    b.HasIndex("ClinicalServiceId")
+                        .HasDatabaseName("ix_field_visit_service_items_clinical_service_id");
+
+                    b.HasIndex("FieldVisitId")
+                        .HasDatabaseName("ix_field_visit_service_items_field_visit_id");
+
+                    b.HasIndex("PerformedById")
+                        .HasDatabaseName("ix_field_visit_service_items_performed_by");
+
+                    b.ToTable("field_visit_service_items", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitServiceProduct", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AdministrationRoute")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("administration_route");
+
+                    b.Property<decimal?>("Dose")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(12,3)")
+                        .HasColumnName("dose");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<long>("ServiceItemId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("service_item_id");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("unit");
+
+                    b.HasKey("Id")
+                        .HasName("pk_field_visit_service_products");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_field_visit_service_products_product_id");
+
+                    b.HasIndex("ServiceItemId")
+                        .HasDatabaseName("ix_field_visit_service_products_service_item_id");
+
+                    b.ToTable("field_visit_service_products", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.GeoZone", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("GpsCoordinates")
+                        .HasColumnType("text")
+                        .HasColumnName("gps_coordinates");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<long?>("ParentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("parent_id");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_geo_zones");
+
+                    b.HasIndex("ParentId")
+                        .HasDatabaseName("ix_geo_zones_parent_id");
+
+                    b.HasIndex("Name", "ParentId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_geo_zones_name_parent_id");
+
+                    b.ToTable("geo_zones", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.ProductStockMovement", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_by");
+
+                    b.Property<long?>("FieldVisitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("field_visit_id");
+
+                    b.Property<string>("FromType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("from_type");
+
+                    b.Property<string>("MovementType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("movement_type");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<int>("QuantityDelta")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity_delta");
+
+                    b.Property<string>("ToType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("to_type");
+
+                    b.Property<string>("Unit")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("unit");
+
+                    b.Property<long?>("VehicleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("vehicle_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_product_stock_movements");
+
+                    b.HasIndex("BranchId")
+                        .HasDatabaseName("ix_product_stock_movements_branch_id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_product_stock_movements_created_at");
+
+                    b.HasIndex("CreatedById")
+                        .HasDatabaseName("ix_product_stock_movements_created_by");
+
+                    b.HasIndex("FieldVisitId")
+                        .HasDatabaseName("ix_product_stock_movements_field_visit_id");
+
+                    b.HasIndex("MovementType")
+                        .HasDatabaseName("ix_product_stock_movements_movement_type");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_product_stock_movements_product_id");
+
+                    b.HasIndex("VehicleId")
+                        .HasDatabaseName("ix_product_stock_movements_vehicle_id");
+
+                    b.ToTable("product_stock_movements", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.ProductVehicleStock", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("unit");
+
+                    b.Property<long>("VehicleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("vehicle_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_product_vehicle_stock");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_product_vehicle_stock_product_id");
+
+                    b.HasIndex("VehicleId", "ProductId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_product_vehicle_stock_vehicle_id_product_id");
+
+                    b.ToTable("product_vehicle_stock", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.Vehicle", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<long?>("AssignedVetId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("assigned_vet_employee_id");
+
+                    b.Property<long?>("HomeBranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("home_branch_id");
+
+                    b.Property<string>("LicensePlate")
+                        .HasColumnType("text")
+                        .HasColumnName("license_plate");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_vehicles");
+
+                    b.HasIndex("AssignedVetId")
+                        .HasDatabaseName("ix_vehicles_assigned_vet_employee_id");
+
+                    b.HasIndex("HomeBranchId")
+                        .HasDatabaseName("ix_vehicles_home_branch_id");
+
+                    b.HasIndex("LicensePlate")
+                        .IsUnique()
+                        .HasDatabaseName("ix_vehicles_license_plate");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_vehicles_name");
+
+                    b.ToTable("vehicles", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.VehicleLocationPing", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("EmployeeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("employee_id");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("latitude");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("longitude");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text")
+                        .HasColumnName("note");
+
+                    b.Property<double?>("SpeedKmh")
+                        .HasColumnType("double precision")
+                        .HasColumnName("speed_kmh");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("timestamp");
+
+                    b.Property<long>("VehicleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("vehicle_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_vehicle_location_ping");
+
+                    b.HasIndex("EmployeeId")
+                        .HasDatabaseName("ix_vehicle_location_ping_employee_id");
+
+                    b.HasIndex("Timestamp")
+                        .HasDatabaseName("ix_vehicle_location_ping_timestamp");
+
+                    b.HasIndex("VehicleId")
+                        .HasDatabaseName("ix_vehicle_location_ping_vehicle_id");
+
+                    b.ToTable("vehicle_location_ping", (string)null);
+                });
+
             modelBuilder.Entity("VetSaas.Modules.Finance.Domain.AccountMovement", b =>
                 {
                     b.Property<long>("Id")
@@ -4440,6 +5422,451 @@ namespace VetSaas.Shared.Infrastructure.Persistence.Migrations.Tenant
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.Farm", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Customers.Domain.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_farms_customer_customer_id");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.GeoZone", "Zone")
+                        .WithMany()
+                        .HasForeignKey("ZoneId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_farms_geo_zones_zone_id");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Zone");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldRouteDay", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_route_day_employees_employee_id");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_field_route_day_vehicles_vehicle_id");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldRouteStop", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.FieldVisit", "FieldVisit")
+                        .WithMany()
+                        .HasForeignKey("FieldVisitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_route_stop_field_visits_field_visit_id");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.FieldRouteDay", "RouteDay")
+                        .WithMany("Stops")
+                        .HasForeignKey("RouteDayId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_route_stop_field_route_day_route_day_id");
+
+                    b.Navigation("FieldVisit");
+
+                    b.Navigation("RouteDay");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldTask", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "AssignedTo")
+                        .WithMany()
+                        .HasForeignKey("AssignedToId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_field_tasks_employees_assigned_to");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_field_tasks_employees_created_by");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.FieldVisit", "CreatedFieldVisit")
+                        .WithMany()
+                        .HasForeignKey("CreatedFieldVisitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_field_tasks_field_visits_created_field_visit_id");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_tasks_farms_farm_id");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.GeoZone", "Zone")
+                        .WithMany()
+                        .HasForeignKey("ZoneId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_field_tasks_geo_zones_zone_id");
+
+                    b.Navigation("AssignedTo");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("CreatedFieldVisit");
+
+                    b.Navigation("Farm");
+
+                    b.Navigation("Zone");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldTeamStatusEntity", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.FieldVisit", "CurrentVisit")
+                        .WithMany()
+                        .HasForeignKey("CurrentVisitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_field_team_status_field_visits_current_visit_id");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_team_status_employees_employee_id");
+
+                    b.Navigation("CurrentVisit");
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisit", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_field_visits_farms_farm_id");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "FieldVet")
+                        .WithMany()
+                        .HasForeignKey("FieldVetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visits_employees_field_vet_employee_id");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_field_visits_vehicles_vehicle_id");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.GeoZone", "Zone")
+                        .WithMany()
+                        .HasForeignKey("ZoneId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_field_visits_geo_zones_zone_id");
+
+                    b.Navigation("Farm");
+
+                    b.Navigation("FieldVet");
+
+                    b.Navigation("Vehicle");
+
+                    b.Navigation("Zone");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitAttachment", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.FieldVisit", "FieldVisit")
+                        .WithMany("Attachments")
+                        .HasForeignKey("FieldVisitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visit_attachments_field_visits_field_visit_id");
+
+                    b.Navigation("FieldVisit");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitBiosecurity", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.FieldVisit", "FieldVisit")
+                        .WithOne("Biosecurity")
+                        .HasForeignKey("VetSaas.Modules.Fieldwork.Domain.FieldVisitBiosecurity", "FieldVisitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visit_biosecurity_field_visits_field_visit_id");
+
+                    b.Navigation("FieldVisit");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitCompanion", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visit_companions_employees_employee_id");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.FieldVisit", "FieldVisit")
+                        .WithMany("Companions")
+                        .HasForeignKey("FieldVisitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visit_companions_field_visits_field_visit_id");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("FieldVisit");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitProductUsage", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.FieldVisit", "FieldVisit")
+                        .WithMany("ProductUsages")
+                        .HasForeignKey("FieldVisitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visit_product_usage_field_visits_field_visit_id");
+
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visit_product_usage_products_product_id");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.Vehicle", "SourceVehicle")
+                        .WithMany()
+                        .HasForeignKey("SourceVehicleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_field_visit_product_usage_vehicles_vehicle_id");
+
+                    b.Navigation("FieldVisit");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("SourceVehicle");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitReport", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.FieldVisit", "FieldVisit")
+                        .WithOne("Report")
+                        .HasForeignKey("VetSaas.Modules.Fieldwork.Domain.FieldVisitReport", "FieldVisitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visit_report_field_visits_field_visit_id");
+
+                    b.Navigation("FieldVisit");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitServiceAnimal", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Customers.Domain.Animal", "Animal")
+                        .WithMany()
+                        .HasForeignKey("AnimalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visit_service_animals_animal_animal_id");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.FieldVisitServiceItem", "ServiceItem")
+                        .WithMany("Animals")
+                        .HasForeignKey("ServiceItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visit_service_animals_field_visit_service_items_servi");
+
+                    b.Navigation("Animal");
+
+                    b.Navigation("ServiceItem");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitServiceGroup", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.FieldVisitServiceItem", "ServiceItem")
+                        .WithMany("Groups")
+                        .HasForeignKey("ServiceItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visit_service_groups_field_visit_service_items_servic");
+
+                    b.Navigation("ServiceItem");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitServiceItem", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalService", "ClinicalService")
+                        .WithMany()
+                        .HasForeignKey("ClinicalServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visit_service_items_clinical_services_clinical_servic");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.FieldVisit", "FieldVisit")
+                        .WithMany("ServiceItems")
+                        .HasForeignKey("FieldVisitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visit_service_items_field_visits_field_visit_id");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "PerformedBy")
+                        .WithMany()
+                        .HasForeignKey("PerformedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_field_visit_service_items_employees_performed_by");
+
+                    b.Navigation("ClinicalService");
+
+                    b.Navigation("FieldVisit");
+
+                    b.Navigation("PerformedBy");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitServiceProduct", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visit_service_products_products_product_id");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.FieldVisitServiceItem", "ServiceItem")
+                        .WithMany("Products")
+                        .HasForeignKey("ServiceItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_field_visit_service_products_field_visit_service_items_serv");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("ServiceItem");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.GeoZone", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.GeoZone", "Parent")
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_geo_zones_geo_zones_parent_id");
+
+                    b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.ProductStockMovement", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_product_stock_movements_branches_branch_id");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_product_stock_movements_employees_created_by");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.FieldVisit", "FieldVisit")
+                        .WithMany()
+                        .HasForeignKey("FieldVisitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_product_stock_movements_field_visits_field_visit_id");
+
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_stock_movements_products_product_id");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_product_stock_movements_vehicles_vehicle_id");
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("FieldVisit");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.ProductVehicleStock", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_vehicle_stock_products_product_id");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_vehicle_stock_vehicles_vehicle_id");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.Vehicle", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "AssignedVet")
+                        .WithMany()
+                        .HasForeignKey("AssignedVetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_vehicles_employees_assigned_vet_employee_id");
+
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Branch", "HomeBranch")
+                        .WithMany()
+                        .HasForeignKey("HomeBranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_vehicles_branches_home_branch_id");
+
+                    b.Navigation("AssignedVet");
+
+                    b.Navigation("HomeBranch");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.VehicleLocationPing", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_vehicle_location_ping_employees_employee_id");
+
+                    b.HasOne("VetSaas.Modules.Fieldwork.Domain.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_vehicle_location_ping_vehicles_vehicle_id");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Vehicle");
+                });
+
             modelBuilder.Entity("VetSaas.Modules.Finance.Domain.AccountMovement", b =>
                 {
                     b.HasOne("VetSaas.Modules.Finance.Domain.TreasuryAccount", "TreasuryAccount")
@@ -4892,6 +6319,35 @@ namespace VetSaas.Shared.Infrastructure.Persistence.Migrations.Tenant
             modelBuilder.Entity("VetSaas.Modules.Employees.Domain.Employee", b =>
                 {
                     b.Navigation("EmployeeBranches");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldRouteDay", b =>
+                {
+                    b.Navigation("Stops");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisit", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("Biosecurity");
+
+                    b.Navigation("Companions");
+
+                    b.Navigation("ProductUsages");
+
+                    b.Navigation("Report");
+
+                    b.Navigation("ServiceItems");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Fieldwork.Domain.FieldVisitServiceItem", b =>
+                {
+                    b.Navigation("Animals");
+
+                    b.Navigation("Groups");
+
+                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("VetSaas.Modules.Finance.Domain.AccountPayable", b =>
