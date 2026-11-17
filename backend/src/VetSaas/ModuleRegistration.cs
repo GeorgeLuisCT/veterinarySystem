@@ -11,6 +11,7 @@ using VetSaas.Modules.Fieldwork.Endpoints;
 using VetSaas.Modules.Inventory.Application;
 using VetSaas.Modules.Inventory.Endpoints;
 using VetSaas.Modules.Platform;
+using VetSaas.Modules.Reports;
 using VetSaas.Modules.Sales.Application;
 using VetSaas.Modules.Sales.Endpoints;
 using VetSaas.Modules.Users.Application;
@@ -93,6 +94,9 @@ public static class ModuleRegistration
         services.AddScoped<IFieldRouteService, FieldRouteService>();
         services.AddScoped<ITeamStatusService, TeamStatusService>();
 
+        // Reportes (GraphQL)
+        services.AddReports();
+
         return services;
     }
 
@@ -109,5 +113,6 @@ public static class ModuleRegistration
         app.MapClinicCareEndpoints();
         app.MapClinicProcedureEndpoints();
         app.MapFieldworkEndpoints();
+        app.MapReportsEndpoints();
     }
 }

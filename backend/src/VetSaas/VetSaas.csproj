@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <!-- HotChocolate agrega usings globales (HotChocolate.Optional<T> choca con Shared.Json.Optional<T>) -->
+    <HotChocolateImplicitUsings>disable</HotChocolateImplicitUsings>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>VetSaas</RootNamespace>
     <!-- EF1001: TenantHistoryRepository hereda de NpgsqlHistoryRepository (API interna de EF) para guardar el historial de migraciones en el schema de cada empresa. -->
@@ -20,6 +22,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="HotChocolate.AspNetCore" Version="13.9.14" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
