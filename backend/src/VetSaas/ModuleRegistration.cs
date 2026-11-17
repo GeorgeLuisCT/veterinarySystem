@@ -3,6 +3,9 @@ using VetSaas.Modules.Customers.Application;
 using VetSaas.Modules.Customers.Endpoints;
 using VetSaas.Modules.Employees.Application;
 using VetSaas.Modules.Employees.Endpoints;
+using VetSaas.Modules.Finance;
+using VetSaas.Modules.Inventory.Application;
+using VetSaas.Modules.Inventory.Endpoints;
 using VetSaas.Modules.Platform;
 using VetSaas.Modules.Users.Application;
 using VetSaas.Modules.Users.Endpoints;
@@ -31,6 +34,20 @@ public static class ModuleRegistration
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IAnimalService, AnimalService>();
 
+        // Inventario
+        services.AddScoped<IKardexService, KardexService>();
+        services.AddScoped<IInventoryConsumptionService, InventoryConsumptionService>();
+        services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<ICategoryProductService, CategoryProductService>();
+        services.AddScoped<ISupplierService, SupplierService>();
+        services.AddScoped<IInventoryMovementService, InventoryMovementService>();
+
+        // Finanzas
+        services.AddScoped<IAccountMovementService, AccountMovementService>();
+        services.AddScoped<IAccountPayableService, AccountPayableService>();
+        services.AddScoped<IPurchasePayableRegistrar>(sp => sp.GetRequiredService<IAccountPayableService>());
+        services.AddScoped<ITreasuryService, TreasuryService>();
+
         return services;
     }
 
@@ -40,5 +57,7 @@ public static class ModuleRegistration
         app.MapUserEndpoints();
         app.MapEmployeeEndpoints();
         app.MapCustomerEndpoints();
+        app.MapInventoryEndpoints();
+        app.MapFinanceEndpoints();
     }
 }

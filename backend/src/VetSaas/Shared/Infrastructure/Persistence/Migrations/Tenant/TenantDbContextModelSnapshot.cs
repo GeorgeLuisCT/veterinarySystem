@@ -434,6 +434,651 @@ namespace VetSaas.Shared.Infrastructure.Persistence.Migrations.Tenant
                     b.ToTable("employee_branch", (string)null);
                 });
 
+            modelBuilder.Entity("VetSaas.Modules.Finance.Domain.AccountMovement", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("description");
+
+                    b.Property<DateTime>("MovementDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("movement_date");
+
+                    b.Property<string>("MovementType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("movement_type");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("reference");
+
+                    b.Property<long>("TreasuryAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("treasury_account_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_treasury_account_movements");
+
+                    b.HasIndex("TreasuryAccountId")
+                        .HasDatabaseName("ix_treasury_account_movements_treasury_account_id");
+
+                    b.ToTable("treasury_account_movements", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Finance.Domain.AccountPayable", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("AmountPaid")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("amount_paid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("description");
+
+                    b.Property<DateTime>("IssueDateTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("issue_date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("status");
+
+                    b.Property<long?>("SupplierId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("supplier_id");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("total_amount");
+
+                    b.HasKey("Id")
+                        .HasName("pk_accounts_payable");
+
+                    b.HasIndex("SupplierId")
+                        .HasDatabaseName("ix_accounts_payable_supplier_id");
+
+                    b.ToTable("accounts_payable", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Finance.Domain.AccountPayablePayment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AccountPayableId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("account_payable_id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("notes");
+
+                    b.Property<DateTime>("PaymentDateTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("payment_date");
+
+                    b.Property<long>("TreasuryAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("treasury_account_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_account_payable_payments");
+
+                    b.HasIndex("AccountPayableId")
+                        .HasDatabaseName("ix_account_payable_payments_account_payable_id");
+
+                    b.HasIndex("TreasuryAccountId")
+                        .HasDatabaseName("ix_account_payable_payments_treasury_account_id");
+
+                    b.ToTable("account_payable_payments", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Finance.Domain.TreasuryAccount", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_treasury_accounts");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_treasury_accounts_name");
+
+                    b.ToTable("treasury_accounts", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.CategoryProduct", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_category_product");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_category_product_name");
+
+                    b.ToTable("category_product", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.InventoryMovement", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("date");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<long>("EmployeeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("employee_id");
+
+                    b.Property<long>("SourceBranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<long?>("SupplierId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("supplier_id");
+
+                    b.Property<long?>("TargetBranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("target_branch_id");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_inventory_movement");
+
+                    b.HasIndex("Date")
+                        .HasDatabaseName("ix_inventory_movement_date");
+
+                    b.HasIndex("EmployeeId")
+                        .HasDatabaseName("ix_inventory_movement_employee_id");
+
+                    b.HasIndex("SourceBranchId")
+                        .HasDatabaseName("ix_inventory_movement_branch_id");
+
+                    b.HasIndex("SupplierId")
+                        .HasDatabaseName("ix_inventory_movement_supplier_id");
+
+                    b.HasIndex("TargetBranchId")
+                        .HasDatabaseName("ix_inventory_movement_target_branch_id");
+
+                    b.ToTable("inventory_movement", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.InventoryMovementProduct", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("MovementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("movement_id");
+
+                    b.Property<long?>("ProductBatchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_batch_id");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<double>("Quantity")
+                        .HasColumnType("double precision")
+                        .HasColumnName("quantity");
+
+                    b.Property<decimal?>("UnitCost")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(19,2)")
+                        .HasColumnName("unit_cost");
+
+                    b.Property<string>("UnitType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("unit_type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_inventory_movement_product");
+
+                    b.HasIndex("MovementId")
+                        .HasDatabaseName("ix_inventory_movement_product_movement_id");
+
+                    b.HasIndex("ProductBatchId")
+                        .HasDatabaseName("ix_inventory_movement_product_product_batch_id");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_inventory_movement_product_product_id");
+
+                    b.ToTable("inventory_movement_product", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.KardexMovement", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("BatchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("batch_id");
+
+                    b.Property<long>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("date");
+
+                    b.Property<long>("OriginId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("origin_id");
+
+                    b.Property<string>("OriginType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("origin_type");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<decimal>("ResultingStock")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("resulting_stock");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_kardex_movement");
+
+                    b.HasIndex("BatchId")
+                        .HasDatabaseName("ix_kardex_movement_batch_id");
+
+                    b.HasIndex("BranchId")
+                        .HasDatabaseName("ix_kardex_movement_branch_id");
+
+                    b.HasIndex("OriginType", "OriginId")
+                        .HasDatabaseName("ix_kardex_movement_origin_type_origin_id");
+
+                    b.HasIndex("ProductId", "BranchId", "BatchId")
+                        .HasDatabaseName("ix_kardex_movement_product_id_branch_id_batch_id");
+
+                    b.ToTable("kardex_movement", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.Product", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CategoryId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("category_id");
+
+                    b.Property<double>("ContentTotal")
+                        .HasColumnType("double precision")
+                        .HasColumnName("content_total");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<int>("MinStock")
+                        .HasColumnType("integer")
+                        .HasColumnName("min_stock");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Presentation")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("presentation");
+
+                    b.Property<string>("Sku")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("sku");
+
+                    b.Property<string>("UnitType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("unit_type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_products");
+
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("ix_products_category_id");
+
+                    b.HasIndex("Sku")
+                        .IsUnique()
+                        .HasDatabaseName("ix_products_sku");
+
+                    b.ToTable("products", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.ProductAdministrationRoute", b =>
+                {
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<string>("Route")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("route");
+
+                    b.HasKey("ProductId", "Route")
+                        .HasName("pk_product_administration_routes");
+
+                    b.ToTable("product_administration_routes", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.ProductBatch", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("BatchNumber")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("batch_number");
+
+                    b.Property<DateOnly?>("ExpirationDate")
+                        .HasColumnType("date")
+                        .HasColumnName("expiration_date");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_product_batch");
+
+                    b.HasIndex("ProductId", "BatchNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_product_batch_product_id_batch_number");
+
+                    b.ToTable("product_batch", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.ProductBranch", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_product_branch");
+
+                    b.HasIndex("BranchId")
+                        .HasDatabaseName("ix_product_branch_branch_id");
+
+                    b.HasIndex("ProductId", "BranchId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_product_branch_product_id_branch_id");
+
+                    b.ToTable("product_branch", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.ProductSaleMode", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("IsBaseMode")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_base_mode");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(19,2)")
+                        .HasColumnName("price");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<double>("QuantityEquivalent")
+                        .HasColumnType("double precision")
+                        .HasColumnName("quantity_equivalent");
+
+                    b.Property<string>("UnitType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("unit_type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_product_sale_mode");
+
+                    b.HasIndex("ProductId", "UnitType")
+                        .IsUnique()
+                        .HasDatabaseName("uk_product_base_mode")
+                        .HasFilter("is_base_mode IS TRUE");
+
+                    b.ToTable("product_sale_mode", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.Supplier", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("text")
+                        .HasColumnName("address");
+
+                    b.Property<string>("BankAccountNumber")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("bank_account_number");
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("bank_name");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text")
+                        .HasColumnName("email");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("text")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("Ruc")
+                        .HasColumnType("text")
+                        .HasColumnName("ruc");
+
+                    b.Property<string>("SupplierType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("supplier_type");
+
+                    b.Property<string>("Website")
+                        .HasColumnType("text")
+                        .HasColumnName("website");
+
+                    b.HasKey("Id")
+                        .HasName("pk_suppliers");
+
+                    b.ToTable("suppliers", (string)null);
+                });
+
             modelBuilder.Entity("VetSaas.Modules.Users.Domain.Role", b =>
                 {
                     b.Property<long>("Id")
@@ -598,6 +1243,213 @@ namespace VetSaas.Shared.Infrastructure.Persistence.Migrations.Tenant
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("VetSaas.Modules.Finance.Domain.AccountMovement", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Finance.Domain.TreasuryAccount", "TreasuryAccount")
+                        .WithMany()
+                        .HasForeignKey("TreasuryAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_treasury_account_movements_treasury_accounts_treasury_accou");
+
+                    b.Navigation("TreasuryAccount");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Finance.Domain.AccountPayable", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_accounts_payable_suppliers_supplier_id");
+
+                    b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Finance.Domain.AccountPayablePayment", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Finance.Domain.AccountPayable", "AccountPayable")
+                        .WithMany("Payments")
+                        .HasForeignKey("AccountPayableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_account_payable_payments_accounts_payable_account_payable_id");
+
+                    b.HasOne("VetSaas.Modules.Finance.Domain.TreasuryAccount", "TreasuryAccount")
+                        .WithMany()
+                        .HasForeignKey("TreasuryAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_account_payable_payments_treasury_accounts_treasury_account");
+
+                    b.Navigation("AccountPayable");
+
+                    b.Navigation("TreasuryAccount");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.InventoryMovement", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_movement_employees_employee_id");
+
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Branch", "SourceBranch")
+                        .WithMany()
+                        .HasForeignKey("SourceBranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_movement_branches_branch_id");
+
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_inventory_movement_suppliers_supplier_id");
+
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Branch", "TargetBranch")
+                        .WithMany()
+                        .HasForeignKey("TargetBranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_inventory_movement_branches_target_branch_id");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("SourceBranch");
+
+                    b.Navigation("Supplier");
+
+                    b.Navigation("TargetBranch");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.InventoryMovementProduct", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.InventoryMovement", "Movement")
+                        .WithMany("Products")
+                        .HasForeignKey("MovementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_movement_product_inventory_movement_movement_id");
+
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.ProductBatch", "ProductBatch")
+                        .WithMany()
+                        .HasForeignKey("ProductBatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_inventory_movement_product_product_batch_product_batch_id");
+
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_movement_product_products_product_id");
+
+                    b.Navigation("Movement");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("ProductBatch");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.KardexMovement", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.ProductBatch", "Batch")
+                        .WithMany()
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_kardex_movement_product_batch_batch_id");
+
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_kardex_movement_branches_branch_id");
+
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_kardex_movement_products_product_id");
+
+                    b.Navigation("Batch");
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.Product", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.CategoryProduct", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_products_category_product_category_id");
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.ProductAdministrationRoute", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", null)
+                        .WithMany("AdministrationRoutes")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_administration_routes_products_product_id");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.ProductBatch", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_batch_products_product_id");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.ProductBranch", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_branch_branches_branch_id");
+
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany("BranchStocks")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_branch_products_product_id");
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.ProductSaleMode", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany("SaleModes")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_sale_mode_products_product_id");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("VetSaas.Modules.Users.Domain.User", b =>
                 {
                     b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Employee")
@@ -625,6 +1477,25 @@ namespace VetSaas.Shared.Infrastructure.Persistence.Migrations.Tenant
             modelBuilder.Entity("VetSaas.Modules.Employees.Domain.Employee", b =>
                 {
                     b.Navigation("EmployeeBranches");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Finance.Domain.AccountPayable", b =>
+                {
+                    b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.InventoryMovement", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Inventory.Domain.Product", b =>
+                {
+                    b.Navigation("AdministrationRoutes");
+
+                    b.Navigation("BranchStocks");
+
+                    b.Navigation("SaleModes");
                 });
 #pragma warning restore 612, 618
         }

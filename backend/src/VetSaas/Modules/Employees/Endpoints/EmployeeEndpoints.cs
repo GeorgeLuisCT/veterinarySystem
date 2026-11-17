@@ -2,6 +2,7 @@ using VetSaas.Modules.Branches.Application;
 using VetSaas.Modules.Employees.Application;
 using VetSaas.Modules.Users.Domain;
 using VetSaas.Shared.Application;
+using VetSaas.Shared.Infrastructure.Http;
 using VetSaas.Shared.Infrastructure.Security;
 using VetSaas.Shared.Infrastructure.Validation;
 using static VetSaas.Modules.Users.Domain.RoleName;
@@ -48,7 +49,7 @@ public static class EmployeeEndpoints
             Results.Ok(await service.RestoreAsync(id, branchId, ct)))
             .RequireRoles(ROLE_ADMIN, ROLE_MANAGER);
 
-        group.MapGet("/by-roles", async (RoleName[] roles, ICurrentUser current, IEmployeeService service, CancellationToken ct) =>
+        group.MapGet("/by-roles", async (QueryList<RoleName> roles, ICurrentUser current, IEmployeeService service, CancellationToken ct) =>
         {
             if (current.BranchId is not long branchId) return Results.BadRequest();
             return Results.Ok(await service.GetByUserRolesAndBranchAsync(roles, branchId, ct));

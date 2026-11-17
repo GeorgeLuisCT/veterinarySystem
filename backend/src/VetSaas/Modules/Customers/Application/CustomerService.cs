@@ -64,7 +64,7 @@ public sealed record CustomerResponse(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? PhoneNumber,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Email,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Address,
-    bool IsActive)
+    [property: JsonPropertyName("active")] bool IsActive)
 {
     public static CustomerResponse From(Customer customer) => new(customer.Id, customer.Name,
         customer.DocumentType is null ? null : DocumentTypeResponse.From(customer.DocumentType),

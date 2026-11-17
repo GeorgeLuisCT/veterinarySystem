@@ -39,6 +39,22 @@ public partial class TenantDbContext : DbContext
         }
     }
 
+    /// <summary>
+    /// Ejecuta la operación dentro de una transacción (equivale a @Transactional): si ya hay una abierta la reutiliza,
+    /// así un servicio puede llamar a otro sin anidar transacciones.
+    /// </summary>
+    public async Task<T> InTransactionAsync<T>(Func<Task<T>> work, CancellationToken ct = default)
+    {
+        if (Database.CurrentTransaction is not null) return await work();
+        await using var transaction = await Database.BeginTransactionAsync(ct);
+        T result = await work();
+        await transaction.CommitAsync(ct);
+        return result;
+    }
+
+    public Task InTransactionAsync(Func<Task> work, CancellationToken ct = default) =>
+        InTransactionAsync(async () => { await work(); return true; }, ct);
+
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         // Fechas y horas «de pared» de la clínica (sin zona), igual que las ve el usuario.

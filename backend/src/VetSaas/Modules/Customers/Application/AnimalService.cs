@@ -67,7 +67,7 @@ public sealed record AnimalResponse(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? MicrochipNumber,
     IReadOnlyCollection<string> Allergies,
     IReadOnlyCollection<string> ChronicConditions,
-    bool IsActive)
+    [property: JsonPropertyName("active")] bool IsActive)
 {
     public static AnimalResponse From(Animal animal) => new(animal.Id, animal.Name, animal.PhotoUrl,
         animal.Owner is null ? null : CustomerResponse.From(animal.Owner), animal.Species, animal.Breed,
