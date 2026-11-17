@@ -70,6 +70,18 @@ public static class ModuleRegistration
         services.AddScoped<VetSaas.Modules.Sales.Application.IBillableServiceAdapter, ClinicalServiceItemBillableAdapter>();
         services.AddScoped<VetSaas.Modules.Sales.Application.IBillableServiceAdapter, LaboratoryItemBillableAdapter>();
 
+        // Clínica: hospitalización, cirugía, laboratorio, peluquería e historia
+        services.AddScoped<ICageService, CageService>();
+        services.AddScoped<IHospitalizationService, HospitalizationService>();
+        services.AddScoped<ISurgicalOrderService, SurgicalOrderService>();
+        services.AddScoped<ISurgicalReportService, SurgicalReportService>();
+        services.AddScoped<ILaboratoryRequestService, LaboratoryRequestService>();
+        services.AddScoped<IGroomingSessionService, GroomingSessionService>();
+        services.AddScoped<VetSaas.Modules.Sales.Application.IBillableServiceAdapter, GroomingSessionBillableAdapter>();
+        services.AddScoped<IMedicalRecordService, MedicalRecordService>();
+        services.AddScoped<IReminderService, ReminderService>();
+        services.AddScoped<IClinicalHistoryService, ClinicalHistoryService>();
+
         return services;
     }
 
@@ -84,5 +96,6 @@ public static class ModuleRegistration
         app.MapSalesEndpoints();
         app.MapClinicCatalogEndpoints();
         app.MapClinicCareEndpoints();
+        app.MapClinicProcedureEndpoints();
     }
 }
