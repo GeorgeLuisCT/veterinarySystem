@@ -3,12 +3,15 @@ import { LoginResponse } from "../types/auth";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { getAaxiosErrorMessage } from "@/helpers/error";
+import { getTenant, setTenant } from "@/services/tenant";
 
 const cookieExpiration = parseInt(process.env.NEXT_PUBLIC_COOKIE_EXPIRATION || "1", 10);
 
-export const login = async (username: string, password: string): Promise<LoginResponse> => {
+export const login = async (username: string, password: string, company?: string): Promise<LoginResponse> => {
   try {
-    const { data }: { data: LoginResponse } = await api.post("/auth/login", { username, password });
+    const tenant = company?.trim().toLowerCase() || getTenant() || undefined;
+    const { data }: { data: LoginResponse } = await api.post("/auth/login", { username, password, company: tenant });
+    if (tenant) setTenant(tenant);
 
     if (!data.token) throw new Error("No token received");
 

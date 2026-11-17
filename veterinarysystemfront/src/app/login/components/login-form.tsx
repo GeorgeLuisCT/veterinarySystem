@@ -13,6 +13,7 @@ import PublicPortalService from "@/app/landing/service/public-portal-service";
 import { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import { PawPrint } from "lucide-react";
+import { getTenant } from "@/services/tenant";
 
 function makeLCG(seed: number) {
   let s = seed >>> 0;
@@ -27,6 +28,8 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
+  // Código de la empresa (multiempresa); se precarga con ?empresa=, la última usada o NEXT_PUBLIC_TENANT
+  const [tenant, setTenantCode] = useState("");
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -45,6 +48,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
   }, []);
 
   useEffect(() => {
+    setTenantCode(getTenant() ?? "");
     (async () => {
       try {
         const data = await PublicPortalService.getCompanyInfo();
@@ -61,7 +65,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
     setLoading(true);
 
     try {
-      const data = await login(user, password);
+      const data = await login(user, password, tenant || undefined);
       if (remember) {
         // opcional: guarda el usuario para autocompletar
         localStorage.setItem("lastUser", user);
@@ -115,6 +119,21 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
         {/* Cuerpo “card” */}
         <CardContent className="p-6 md:p-8">
           <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <Label htmlFor="tenant" className="text-teal-900">Empresa</Label>
+              <Input
+                id="tenant"
+                type="text"
+                value={tenant}
+                onChange={(e) => setTenantCode(e.target.value.trim().toLowerCase())}
+                className="h-11 rounded-full bg-teal-50/70 placeholder:text-teal-400 focus-visible:ring-teal-400"
+                placeholder="Código de tu clínica (ej. coryvet)"
+                autoComplete="organization"
+                autoCapitalize="none"
+                spellCheck={false}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="user" className="text-teal-900">Usuario</Label>
               <Input

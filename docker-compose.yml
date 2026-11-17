@@ -15,24 +15,29 @@ services:
     networks:
       - internal_net
 
-  # 2. Backend (Spring Boot)
+  # 2. Backend (.NET 8, multiempresa: un schema de PostgreSQL por empresa)
   backend:
     build:
-      context: ./veterinarySystemRest
+      context: ./backend
       dockerfile: Dockerfile
     container_name: veterinarysystem_api
     restart: always
     environment:
-      DB_HOST: database
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION}
-      # Administrador inicial (solo se crea si no existe ninguno; contraseña de mínimo 12 caracteres)
-      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-}
-      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      ConnectionStrings__Default: "Host=database;Port=5432;Database=${DB_NAME};Username=${DB_USERNAME};Password=${DB_PASSWORD}"
+      Jwt__Secret: ${JWT_SECRET}
+      Jwt__ExpirationMs: ${JWT_EXPIRATION:-86400000}
+      Cors__Origins: ${CORS_ORIGINS:-https://veterinarysystem.gaedet.com}
+      # Dominio base para resolver la empresa por subdominio (<empresa>.dominio). Vacío = solo cabecera X-Tenant / ?company=
+      Tenancy__BaseDomain: ${TENANCY_BASE_DOMAIN:-}
+      # Superadministrador de la plataforma (alta/suspensión de empresas); solo se crea si no existe
+      Platform__BootstrapAdminEmail: ${PLATFORM_ADMIN_EMAIL:-}
+      Platform__BootstrapAdminPassword: ${PLATFORM_ADMIN_PASSWORD:-}
+      # Empresa inicial (opcional): se crea con su schema y su administrador si aún no existe
+      Tenancy__BootstrapTenant__Slug: ${BOOTSTRAP_TENANT_SLUG:-}
+      Tenancy__BootstrapTenant__Name: ${BOOTSTRAP_TENANT_NAME:-}
+      Tenancy__BootstrapTenant__AdminUsername: ${BOOTSTRAP_ADMIN_USERNAME:-}
+      Tenancy__BootstrapTenant__AdminPassword: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      Tenancy__BootstrapTenant__AdminEmail: ${BOOTSTRAP_ADMIN_EMAIL:-}
     depends_on:
       - database
     networks:
