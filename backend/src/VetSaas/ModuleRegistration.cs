@@ -11,6 +11,7 @@ using VetSaas.Modules.Fieldwork.Endpoints;
 using VetSaas.Modules.Inventory.Application;
 using VetSaas.Modules.Inventory.Endpoints;
 using VetSaas.Modules.Platform;
+using VetSaas.Modules.PublicPortal;
 using VetSaas.Modules.Reports;
 using VetSaas.Modules.Sales.Application;
 using VetSaas.Modules.Sales.Endpoints;
@@ -97,6 +98,9 @@ public static class ModuleRegistration
         // Reportes (GraphQL)
         services.AddReports();
 
+        // Portal público (anónimo, empresa resuelta por cabecera/parámetro/subdominio)
+        services.AddPublicPortal();
+
         return services;
     }
 
@@ -114,5 +118,6 @@ public static class ModuleRegistration
         app.MapClinicProcedureEndpoints();
         app.MapFieldworkEndpoints();
         app.MapReportsEndpoints();
+        app.MapPublicPortalEndpoints();
     }
 }
