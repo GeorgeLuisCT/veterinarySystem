@@ -1,4 +1,6 @@
 using VetSaas.Modules.Branches.Application;
+using VetSaas.Modules.Clinic.Application;
+using VetSaas.Modules.Clinic.Endpoints;
 using VetSaas.Modules.Customers.Application;
 using VetSaas.Modules.Customers.Endpoints;
 using VetSaas.Modules.Employees.Application;
@@ -55,6 +57,19 @@ public static class ModuleRegistration
         services.AddScoped<ISaleService, SaleService>();
         services.AddScoped<ICashSessionService, CashSessionService>();
 
+        // Clínica: catálogos
+        services.AddScoped<IClinicalServiceService, ClinicalServiceService>();
+        services.AddScoped<IHealthPlanService, HealthPlanService>();
+        services.AddScoped<IPrescriptionTemplateService, PrescriptionTemplateService>();
+        services.AddScoped<ILaboratoryTestService, LaboratoryTestService>();
+
+        // Clínica: agenda, recepción y consulta
+        services.AddScoped<IAppointmentService, AppointmentService>();
+        services.AddScoped<IAttentionService, AttentionService>();
+        services.AddScoped<IClinicalAttentionService, ClinicalAttentionService>();
+        services.AddScoped<VetSaas.Modules.Sales.Application.IBillableServiceAdapter, ClinicalServiceItemBillableAdapter>();
+        services.AddScoped<VetSaas.Modules.Sales.Application.IBillableServiceAdapter, LaboratoryItemBillableAdapter>();
+
         return services;
     }
 
@@ -67,5 +82,7 @@ public static class ModuleRegistration
         app.MapInventoryEndpoints();
         app.MapFinanceEndpoints();
         app.MapSalesEndpoints();
+        app.MapClinicCatalogEndpoints();
+        app.MapClinicCareEndpoints();
     }
 }

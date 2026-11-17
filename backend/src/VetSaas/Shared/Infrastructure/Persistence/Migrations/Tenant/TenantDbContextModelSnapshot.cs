@@ -23,6 +23,25 @@ namespace VetSaas.Shared.Infrastructure.Persistence.Migrations.Tenant
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ClinicalServiceProduct", b =>
+                {
+                    b.Property<long>("ClinicalServiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_service_id");
+
+                    b.Property<long>("RequiredProductsId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("required_products_id");
+
+                    b.HasKey("ClinicalServiceId", "RequiredProductsId")
+                        .HasName("pk_clinical_service_required_products");
+
+                    b.HasIndex("RequiredProductsId")
+                        .HasDatabaseName("ix_clinical_service_required_products_required_products_id");
+
+                    b.ToTable("clinical_service_required_products", (string)null);
+                });
+
             modelBuilder.Entity("RoleUser", b =>
                 {
                     b.Property<long>("RolesId")
@@ -187,6 +206,1966 @@ namespace VetSaas.Shared.Infrastructure.Persistence.Migrations.Tenant
                         .HasDatabaseName("ix_operating_rooms_branch_id");
 
                     b.ToTable("operating_rooms", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.AnestheticDrug", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("DoseAmount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(10,4)")
+                        .HasColumnName("dose_amount");
+
+                    b.Property<string>("DoseUnit")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("dose_unit");
+
+                    b.Property<string>("Phase")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("phase");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<string>("Route")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("route");
+
+                    b.Property<long>("SurgicalReportId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("surgical_report_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_anesthetic_drugs");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_anesthetic_drugs_product_id");
+
+                    b.HasIndex("SurgicalReportId")
+                        .HasDatabaseName("ix_anesthetic_drugs_surgical_report_id");
+
+                    b.ToTable("anesthetic_drugs", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.Appointment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AnimalId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("animal_id");
+
+                    b.Property<long?>("AssignedEmployeeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("employee_id");
+
+                    b.Property<long>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<int?>("EstimatedDurationMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("estimated_duration_minutes");
+
+                    b.Property<string>("RequestNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("request_notes");
+
+                    b.Property<string>("RequesterEmail")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)")
+                        .HasColumnName("requester_email");
+
+                    b.Property<string>("RequesterName")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)")
+                        .HasColumnName("requester_name");
+
+                    b.Property<string>("RequesterPhone")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("requester_phone");
+
+                    b.Property<DateTime>("StartDateTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("start_date_time");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_appointments");
+
+                    b.HasIndex("AnimalId")
+                        .HasDatabaseName("ix_appointments_animal_id");
+
+                    b.HasIndex("AssignedEmployeeId")
+                        .HasDatabaseName("ix_appointments_employee_id");
+
+                    b.HasIndex("BranchId", "StartDateTime")
+                        .HasDatabaseName("ix_appointments_branch_id_start_date_time");
+
+                    b.ToTable("appointments", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.Attentions", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AnimalId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("animal_id");
+
+                    b.Property<long?>("AppointmentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("appointment_id");
+
+                    b.Property<long>("AttendingEmployeeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("attending_employee_id");
+
+                    b.Property<long>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<DateTime>("CheckInTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("check_in_time");
+
+                    b.Property<bool>("IsEmergency")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_emergency");
+
+                    b.Property<long?>("ServiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_service_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<long?>("SurgicalOrderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("surgical_order_id");
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_attentions");
+
+                    b.HasIndex("AnimalId")
+                        .HasDatabaseName("ix_attentions_animal_id");
+
+                    b.HasIndex("AppointmentId")
+                        .IsUnique()
+                        .HasDatabaseName("uq_attentions_appointment");
+
+                    b.HasIndex("AttendingEmployeeId")
+                        .HasDatabaseName("ix_attentions_attending_employee_id");
+
+                    b.HasIndex("ServiceId")
+                        .HasDatabaseName("ix_attentions_clinical_service_id");
+
+                    b.HasIndex("SurgicalOrderId")
+                        .HasDatabaseName("ix_attentions_surgical_order_id");
+
+                    b.HasIndex("BranchId", "Status")
+                        .HasDatabaseName("ix_attentions_branch_id_status");
+
+                    b.ToTable("attentions", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.BranchClinicalService", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<long>("ClinicalServiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_service_id");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.HasKey("Id")
+                        .HasName("pk_branch_clinical_services");
+
+                    b.HasIndex("ClinicalServiceId")
+                        .HasDatabaseName("ix_branch_clinical_services_clinical_service_id");
+
+                    b.HasIndex("BranchId", "ClinicalServiceId")
+                        .IsUnique()
+                        .HasDatabaseName("uk_branch_service");
+
+                    b.ToTable("branch_clinical_services", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.Cage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<bool>("IsOccupied")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_occupied");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Size")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("size");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cages");
+
+                    b.HasIndex("BranchId")
+                        .HasDatabaseName("ix_cages_branch_id");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cages_name");
+
+                    b.ToTable("cages", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.ClinicalAppointmentDetail", b =>
+                {
+                    b.Property<long>("AppointmentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("appointment_id");
+
+                    b.Property<string>("ClinicalNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("clinical_notes");
+
+                    b.Property<long>("ClinicalServiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_service_id");
+
+                    b.Property<string>("ConsultationReason")
+                        .HasColumnType("text")
+                        .HasColumnName("consultation_reason");
+
+                    b.Property<long>("VeterinarianId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("veterinarian_id");
+
+                    b.HasKey("AppointmentId")
+                        .HasName("pk_clinical_appointment_details");
+
+                    b.HasIndex("ClinicalServiceId")
+                        .HasDatabaseName("ix_clinical_appointment_details_clinical_service_id");
+
+                    b.HasIndex("VeterinarianId")
+                        .HasDatabaseName("ix_clinical_appointment_details_veterinarian_id");
+
+                    b.ToTable("clinical_appointment_details", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.ClinicalAttention", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Assessment")
+                        .HasColumnType("text")
+                        .HasColumnName("assessment");
+
+                    b.Property<long>("AttentionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("attention_id");
+
+                    b.Property<int?>("HeartRate")
+                        .HasColumnType("integer")
+                        .HasColumnName("heart_rate");
+
+                    b.Property<string>("Objective")
+                        .HasColumnType("text")
+                        .HasColumnName("objective");
+
+                    b.Property<string>("Plan")
+                        .HasColumnType("text")
+                        .HasColumnName("plan");
+
+                    b.Property<int?>("RespiratoryRate")
+                        .HasColumnType("integer")
+                        .HasColumnName("respiratory_rate");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Subjective")
+                        .HasColumnType("text")
+                        .HasColumnName("subjective");
+
+                    b.Property<double?>("TemperatureCelsius")
+                        .HasColumnType("double precision")
+                        .HasColumnName("temperature_celsius");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTime>("VisitDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("visit_date");
+
+                    b.Property<double?>("WeightKg")
+                        .HasColumnType("double precision")
+                        .HasColumnName("weight_kg");
+
+                    b.HasKey("Id")
+                        .HasName("pk_clinical_attention");
+
+                    b.HasIndex("AttentionId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_clinical_attention_attention_id");
+
+                    b.ToTable("clinical_attention", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.ClinicalService", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ClinicalServiceCategory")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("clinical_service_category");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(19,2)")
+                        .HasColumnName("price");
+
+                    b.Property<int?>("ReminderPeriod")
+                        .HasColumnType("integer")
+                        .HasColumnName("reminder_period");
+
+                    b.Property<string>("ReminderPeriodUnit")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("reminder_period_unit");
+
+                    b.Property<List<string>>("RequiredSampleTypes")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("required_sample_types");
+
+                    b.HasKey("Id")
+                        .HasName("pk_clinical_services");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_clinical_services_name");
+
+                    b.ToTable("clinical_services", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.ClinicalServiceItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClinicalAttentionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_attention_id");
+
+                    b.Property<long>("ClinicalServiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_service_id");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("quantity");
+
+                    b.Property<long?>("SaleDetailId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("sale_detail_id");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("subtotal");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_clinical_service_items");
+
+                    b.HasIndex("ClinicalAttentionId")
+                        .HasDatabaseName("ix_clinical_service_items_clinical_attention_id");
+
+                    b.HasIndex("ClinicalServiceId")
+                        .HasDatabaseName("ix_clinical_service_items_clinical_service_id");
+
+                    b.ToTable("clinical_service_items", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.ClinicalServiceProduct", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AdministrationRoute")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("administration_route");
+
+                    b.Property<long?>("ClinicalServiceItemId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_service_item_id");
+
+                    b.Property<decimal?>("Dose")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(19,2)")
+                        .HasColumnName("dose");
+
+                    b.Property<long?>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<string>("Unit")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("unit");
+
+                    b.HasKey("Id")
+                        .HasName("pk_clinical_service_product");
+
+                    b.HasIndex("ClinicalServiceItemId")
+                        .HasDatabaseName("ix_clinical_service_product_clinical_service_item_id");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_clinical_service_product_product_id");
+
+                    b.ToTable("clinical_service_product", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.EvolutionNote", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AuthorId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("author_employee_id");
+
+                    b.Property<long>("HospitalizationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("hospitalization_id");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("note");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("timestamp");
+
+                    b.HasKey("Id")
+                        .HasName("pk_evolution_notes");
+
+                    b.HasIndex("AuthorId")
+                        .HasDatabaseName("ix_evolution_notes_author_employee_id");
+
+                    b.HasIndex("HospitalizationId")
+                        .HasDatabaseName("ix_evolution_notes_hospitalization_id");
+
+                    b.ToTable("evolution_notes", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.GroomingAppointmentDetail", b =>
+                {
+                    b.Property<long>("AppointmentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("appointment_id");
+
+                    b.Property<long>("ClinicalServiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_service_id");
+
+                    b.Property<string>("OwnerSpecialNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("owner_special_notes");
+
+                    b.Property<long>("StylistId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("stylist_id");
+
+                    b.HasKey("AppointmentId")
+                        .HasName("pk_grooming_appointment_details");
+
+                    b.HasIndex("ClinicalServiceId")
+                        .HasDatabaseName("ix_grooming_appointment_details_clinical_service_id");
+
+                    b.HasIndex("StylistId")
+                        .HasDatabaseName("ix_grooming_appointment_details_stylist_id");
+
+                    b.ToTable("grooming_appointment_details", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.GroomingMaterialUsed", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("GroomingSessionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("grooming_session_id");
+
+                    b.Property<long?>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(12,3)")
+                        .HasColumnName("quantity");
+
+                    b.Property<decimal?>("Subtotal")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("subtotal");
+
+                    b.Property<decimal?>("UnitPrice")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("unit_price");
+
+                    b.Property<string>("UnitType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("unit_type");
+
+                    b.Property<string>("UnregisteredProductName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("unregistered_product_name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_grooming_materials_used");
+
+                    b.HasIndex("GroomingSessionId")
+                        .HasDatabaseName("ix_grooming_materials_used_grooming_session_id");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_grooming_materials_used_product_id");
+
+                    b.ToTable("grooming_materials_used", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.GroomingSession", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("AssignedProfessionalId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("assigned_professional_id");
+
+                    b.Property<long>("AttentionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("attention_id");
+
+                    b.Property<string>("BehaviorNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("behavior_notes");
+
+                    b.Property<decimal?>("ChargedPrice")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("charged_price");
+
+                    b.Property<string>("ClinicalObservations")
+                        .HasColumnType("text")
+                        .HasColumnName("clinical_observations");
+
+                    b.Property<DateTime?>("FinishedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("finished_at");
+
+                    b.Property<List<string>>("PhotoUrls")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("photo_urls");
+
+                    b.Property<long?>("SaleDetailId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("sale_detail_id");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_grooming_sessions");
+
+                    b.HasIndex("AssignedProfessionalId")
+                        .HasDatabaseName("ix_grooming_sessions_assigned_professional_id");
+
+                    b.HasIndex("AttentionId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_grooming_sessions_attention_id");
+
+                    b.HasIndex("Status", "StartedAt")
+                        .HasDatabaseName("idx_grooming_status_start");
+
+                    b.ToTable("grooming_sessions", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.HealthPlan", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(19,2)")
+                        .HasColumnName("price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_health_plans");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_health_plans_name");
+
+                    b.ToTable("health_plans", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.HealthPlanServiceItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClinicalServiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_service_id");
+
+                    b.Property<long>("HealthPlanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("health_plan_id");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.HasKey("Id")
+                        .HasName("pk_health_plan_service_items");
+
+                    b.HasIndex("ClinicalServiceId")
+                        .HasDatabaseName("ix_health_plan_service_items_clinical_service_id");
+
+                    b.HasIndex("HealthPlanId")
+                        .HasDatabaseName("ix_health_plan_service_items_health_plan_id");
+
+                    b.ToTable("health_plan_service_items", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.Hospitalization", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("AdmissionDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("admission_date");
+
+                    b.Property<string>("AdmissionNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("admission_notes");
+
+                    b.Property<string>("AdmissionTiming")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("admission_timing");
+
+                    b.Property<long>("AnimalId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("animal_id");
+
+                    b.Property<long?>("AttentionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("attention_id");
+
+                    b.Property<long>("CageId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("cage_id");
+
+                    b.Property<string>("Cause")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("cause");
+
+                    b.Property<long?>("ClinicalServiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_service_id");
+
+                    b.Property<DateTime?>("DischargeDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("discharge_date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_hospitalizations");
+
+                    b.HasIndex("AnimalId")
+                        .HasDatabaseName("ix_hospitalizations_animal_id");
+
+                    b.HasIndex("AttentionId")
+                        .HasDatabaseName("ix_hospitalizations_attention_id");
+
+                    b.HasIndex("CageId")
+                        .HasDatabaseName("ix_hospitalizations_cage_id");
+
+                    b.HasIndex("ClinicalServiceId")
+                        .HasDatabaseName("ix_hospitalizations_clinical_service_id");
+
+                    b.ToTable("hospitalizations", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.HospitalizationVitalSign", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("HeartRate")
+                        .HasColumnType("integer")
+                        .HasColumnName("heart_rate");
+
+                    b.Property<long>("HospitalizationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("hospitalization_id");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<long>("RecordedById")
+                        .HasColumnType("bigint")
+                        .HasColumnName("recorded_by_employee_id");
+
+                    b.Property<int?>("RespiratoryRate")
+                        .HasColumnType("integer")
+                        .HasColumnName("respiratory_rate");
+
+                    b.Property<double?>("TemperatureCelsius")
+                        .HasColumnType("double precision")
+                        .HasColumnName("temperature_celsius");
+
+                    b.Property<double?>("WeightKg")
+                        .HasColumnType("double precision")
+                        .HasColumnName("weight_kg");
+
+                    b.HasKey("Id")
+                        .HasName("pk_hospitalization_vital_signs");
+
+                    b.HasIndex("HospitalizationId")
+                        .HasDatabaseName("ix_hospitalization_vital_signs_hospitalization_id");
+
+                    b.HasIndex("RecordedById")
+                        .HasDatabaseName("ix_hospitalization_vital_signs_recorded_by_employee_id");
+
+                    b.ToTable("hospitalization_vital_signs", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.LaboratoryRequest", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AnimalId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("animal_id");
+
+                    b.Property<long?>("ClinicalAttentionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_attention_id");
+
+                    b.Property<string>("ClinicalNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("clinical_notes");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<long>("LaboratoryId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("laboratory_id");
+
+                    b.Property<long?>("RequestingEmployeeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("requesting_employee_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_laboratory_requests");
+
+                    b.HasIndex("AnimalId")
+                        .HasDatabaseName("ix_laboratory_requests_animal_id");
+
+                    b.HasIndex("ClinicalAttentionId")
+                        .HasDatabaseName("ix_laboratory_requests_clinical_attention_id");
+
+                    b.HasIndex("LaboratoryId")
+                        .HasDatabaseName("ix_laboratory_requests_laboratory_id");
+
+                    b.HasIndex("RequestingEmployeeId")
+                        .HasDatabaseName("ix_laboratory_requests_requesting_employee_id");
+
+                    b.ToTable("laboratory_requests", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.LaboratoryRequestItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("LaboratoryRequestId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("laboratory_request_id");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("processed_at");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("quantity");
+
+                    b.Property<DateTime?>("ReportedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("reported_at");
+
+                    b.Property<DateTime?>("RequestedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("requested_at");
+
+                    b.Property<long?>("SaleDetailId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("sale_detail_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("status");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("subtotal");
+
+                    b.Property<long>("TestId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("test_id");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("unit_price");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("verified_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_laboratory_request_items");
+
+                    b.HasIndex("LaboratoryRequestId")
+                        .HasDatabaseName("ix_laboratory_request_items_laboratory_request_id");
+
+                    b.HasIndex("TestId")
+                        .HasDatabaseName("ix_laboratory_request_items_test_id");
+
+                    b.ToTable("laboratory_request_items", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.LaboratoryResultValue", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool?>("BooleanValue")
+                        .HasColumnType("boolean")
+                        .HasColumnName("boolean_value");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text")
+                        .HasColumnName("comment");
+
+                    b.Property<string>("Flag")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("flag");
+
+                    b.Property<double?>("NumericValue")
+                        .HasColumnType("double precision")
+                        .HasColumnName("numeric_value");
+
+                    b.Property<bool?>("OutOfRange")
+                        .HasColumnType("boolean")
+                        .HasColumnName("out_of_range");
+
+                    b.Property<long>("ParameterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("parameter_id");
+
+                    b.Property<long>("RequestItemId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("request_item_id");
+
+                    b.Property<string>("TextValue")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("text_value");
+
+                    b.Property<string>("UnitOverride")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("unit_override");
+
+                    b.HasKey("Id")
+                        .HasName("pk_laboratory_result_values");
+
+                    b.HasIndex("ParameterId")
+                        .HasDatabaseName("ix_laboratory_result_values_parameter_id");
+
+                    b.HasIndex("RequestItemId", "ParameterId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_laboratory_result_values_request_item_id_parameter_id");
+
+                    b.ToTable("laboratory_result_values", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.LaboratoryTest", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("code");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_laboratory_tests");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_laboratory_tests_code");
+
+                    b.ToTable("laboratory_tests", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.LaboratoryTestLaboratory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<long>("LaboratoryId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("laboratory_id");
+
+                    b.Property<long>("LaboratoryTestId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("laboratory_test_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_laboratory_test_laboratories");
+
+                    b.HasIndex("LaboratoryId")
+                        .HasDatabaseName("ix_laboratory_test_laboratories_laboratory_id");
+
+                    b.HasIndex("LaboratoryTestId", "LaboratoryId")
+                        .IsUnique()
+                        .HasDatabaseName("uk_test_lab");
+
+                    b.ToTable("laboratory_test_laboratories", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.LaboratoryTestParameter", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("AgeMaxMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("age_max_months");
+
+                    b.Property<int?>("AgeMinMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("age_min_months");
+
+                    b.Property<string>("AllowedOptions")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("allowed_options");
+
+                    b.Property<int?>("Decimals")
+                        .HasColumnType("integer")
+                        .HasColumnName("decimals");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("name");
+
+                    b.Property<double?>("RefMax")
+                        .HasColumnType("double precision")
+                        .HasColumnName("ref_max");
+
+                    b.Property<double?>("RefMin")
+                        .HasColumnType("double precision")
+                        .HasColumnName("ref_min");
+
+                    b.Property<string>("RefText")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("ref_text");
+
+                    b.Property<string>("Sex")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("sex");
+
+                    b.Property<string>("Species")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("species");
+
+                    b.Property<long>("TestId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("test_id");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("unit");
+
+                    b.Property<string>("ValueType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("value_type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_laboratory_test_parameters");
+
+                    b.HasIndex("TestId")
+                        .HasDatabaseName("ix_laboratory_test_parameters_test_id");
+
+                    b.ToTable("laboratory_test_parameters", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.MedicalRecordEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AnimalId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("animal_id");
+
+                    b.Property<long?>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("category");
+
+                    b.Property<long?>("ClinicalServiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_service_id");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_by_employee_id");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<long?>("SourceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("source_id");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(180)
+                        .HasColumnType("character varying(180)")
+                        .HasColumnName("title");
+
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("visibility");
+
+                    b.HasKey("Id")
+                        .HasName("pk_medical_record_entries");
+
+                    b.HasIndex("BranchId")
+                        .HasDatabaseName("ix_medical_record_entries_branch_id");
+
+                    b.HasIndex("ClinicalServiceId")
+                        .HasDatabaseName("ix_medical_record_entries_clinical_service_id");
+
+                    b.HasIndex("CreatedById")
+                        .HasDatabaseName("ix_medical_record_entries_created_by_employee_id");
+
+                    b.HasIndex("AnimalId", "OccurredAt")
+                        .HasDatabaseName("ix_medical_record_entries_animal_id_occurred_at");
+
+                    b.ToTable("medical_record_entries", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.MedicationAdministration", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("AdministeredAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("administered_at");
+
+                    b.Property<long?>("AdministeredById")
+                        .HasColumnType("bigint")
+                        .HasColumnName("administered_by_employee_id");
+
+                    b.Property<long>("AnimalId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("animal_id");
+
+                    b.Property<long?>("ClinicalAttentionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_attention_id");
+
+                    b.Property<decimal?>("DoseAmount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("dose_amount");
+
+                    b.Property<string>("DoseUnit")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("dose_unit");
+
+                    b.Property<string>("FrequencyUnit")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("frequency_unit");
+
+                    b.Property<int?>("FrequencyValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("frequency_value");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<string>("Route")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("route");
+
+                    b.HasKey("Id")
+                        .HasName("pk_medication_administrations");
+
+                    b.HasIndex("AdministeredById")
+                        .HasDatabaseName("ix_medication_administrations_administered_by_employee_id");
+
+                    b.HasIndex("AnimalId")
+                        .HasDatabaseName("ix_medication_administrations_animal_id");
+
+                    b.HasIndex("ClinicalAttentionId")
+                        .HasDatabaseName("ix_medication_administrations_clinical_attention_id");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_medication_administrations_product_id");
+
+                    b.ToTable("medication_administrations", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.PostOperativeIndication", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal?>("DoseAmount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(10,4)")
+                        .HasColumnName("dose_amount");
+
+                    b.Property<string>("DoseUnit")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("dose_unit");
+
+                    b.Property<string>("FrequencyUnit")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("frequency_unit");
+
+                    b.Property<int?>("FrequencyValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("frequency_value");
+
+                    b.Property<string>("NonDrugInstruction")
+                        .HasColumnType("text")
+                        .HasColumnName("non_drug_instruction");
+
+                    b.Property<long?>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<string>("Route")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("route");
+
+                    b.Property<long>("SurgicalReportId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("surgical_report_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_post_operative_indications");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_post_operative_indications_product_id");
+
+                    b.HasIndex("SurgicalReportId")
+                        .HasDatabaseName("ix_post_operative_indications_surgical_report_id");
+
+                    b.ToTable("post_operative_indications", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.PrescriptionTemplate", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("purpose");
+
+                    b.HasKey("Id")
+                        .HasName("pk_prescription_templates");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_prescription_templates_name");
+
+                    b.ToTable("prescription_templates", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.PrescriptionTemplateMedication", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CustomMedicationName")
+                        .HasColumnType("text")
+                        .HasColumnName("custom_medication_name");
+
+                    b.Property<decimal>("DosageAmount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(12,3)")
+                        .HasColumnName("dosage_amount");
+
+                    b.Property<string>("DosageUnit")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("dosage_unit");
+
+                    b.Property<string>("DurationUnit")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("duration_unit");
+
+                    b.Property<int>("DurationValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("duration_value");
+
+                    b.Property<string>("FrequencyUnit")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("frequency_unit");
+
+                    b.Property<int>("FrequencyValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("frequency_value");
+
+                    b.Property<string>("Instructions")
+                        .HasColumnType("text")
+                        .HasColumnName("instructions");
+
+                    b.Property<long>("PrescriptionTemplateId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("prescription_template_id");
+
+                    b.Property<long?>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_prescription_template_medications");
+
+                    b.HasIndex("PrescriptionTemplateId")
+                        .HasDatabaseName("ix_prescription_template_medications_prescription_template_id");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_prescription_template_medications_product_id");
+
+                    b.ToTable("prescription_template_medications", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.Reminder", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AnimalId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("animal_id");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("due_date");
+
+                    b.Property<string>("ReminderType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("reminder_type");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_reminders");
+
+                    b.HasIndex("AnimalId")
+                        .HasDatabaseName("ix_reminders_animal_id");
+
+                    b.ToTable("reminders", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.SurgicalAppointmentDetail", b =>
+                {
+                    b.Property<long>("AppointmentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("appointment_id");
+
+                    b.Property<long?>("AnesthetistId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("anesthetist_id");
+
+                    b.Property<long>("FinalServiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("final_service_id");
+
+                    b.Property<long?>("OperatingRoomId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("operating_room_id");
+
+                    b.Property<long?>("OrderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("order_id");
+
+                    b.Property<string>("PrepInstructions")
+                        .HasColumnType("text")
+                        .HasColumnName("prep_instructions");
+
+                    b.Property<long>("SurgeonId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("surgeon_id");
+
+                    b.HasKey("AppointmentId")
+                        .HasName("pk_surgical_appointment_details");
+
+                    b.HasIndex("AnesthetistId")
+                        .HasDatabaseName("ix_surgical_appointment_details_anesthetist_id");
+
+                    b.HasIndex("FinalServiceId")
+                        .HasDatabaseName("ix_surgical_appointment_details_final_service_id");
+
+                    b.HasIndex("OperatingRoomId")
+                        .HasDatabaseName("ix_surgical_appointment_details_operating_room_id");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique()
+                        .HasDatabaseName("uk_surgical_detail_order");
+
+                    b.HasIndex("SurgeonId")
+                        .HasDatabaseName("ix_surgical_appointment_details_surgeon_id");
+
+                    b.ToTable("surgical_appointment_details", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.SurgicalMaterial", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<long>("SurgicalReportId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("surgical_report_id");
+
+                    b.Property<string>("UnitType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("unit_type");
+
+                    b.Property<string>("UnregisteredProductName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("unregistered_product_name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_surgical_materials");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_surgical_materials_product_id");
+
+                    b.HasIndex("SurgicalReportId")
+                        .HasDatabaseName("ix_surgical_materials_surgical_report_id");
+
+                    b.ToTable("surgical_materials", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.SurgicalOrder", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AnimalId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("animal_id");
+
+                    b.Property<long?>("ClinicalAttentionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clinical_attention_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<long?>("OperatingRoomId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("operating_room_id");
+
+                    b.Property<long>("RecommendedServiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("recommended_service_id");
+
+                    b.Property<long>("RequestedById")
+                        .HasColumnType("bigint")
+                        .HasColumnName("requested_by_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_surgical_orders");
+
+                    b.HasIndex("AnimalId")
+                        .HasDatabaseName("ix_surgical_orders_animal_id");
+
+                    b.HasIndex("ClinicalAttentionId")
+                        .HasDatabaseName("ix_surgical_orders_clinical_attention_id");
+
+                    b.HasIndex("OperatingRoomId")
+                        .HasDatabaseName("ix_surgical_orders_operating_room_id");
+
+                    b.HasIndex("RecommendedServiceId")
+                        .HasDatabaseName("ix_surgical_orders_recommended_service_id");
+
+                    b.HasIndex("RequestedById")
+                        .HasDatabaseName("ix_surgical_orders_requested_by_id");
+
+                    b.ToTable("surgical_orders", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.SurgicalReport", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("AnesthesiologistId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("anesthesiologist_id");
+
+                    b.Property<long?>("AssistantId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("assistant_id");
+
+                    b.Property<long>("AttentionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("attention_id");
+
+                    b.Property<string>("Findings")
+                        .HasColumnType("text")
+                        .HasColumnName("findings");
+
+                    b.Property<string>("Monitoring")
+                        .HasColumnType("text")
+                        .HasColumnName("monitoring");
+
+                    b.Property<long?>("OperatingRoomId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("operating_room_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("status");
+
+                    b.Property<long?>("SurgeonId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("surgeon_id");
+
+                    b.Property<DateTime?>("SurgeryEndAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("surgery_end_at");
+
+                    b.Property<DateTime?>("SurgeryStartAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("surgery_start_at");
+
+                    b.Property<string>("SurgicalTechniqueDescription")
+                        .HasColumnType("text")
+                        .HasColumnName("surgical_technique_description");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_surgical_reports");
+
+                    b.HasIndex("AnesthesiologistId")
+                        .HasDatabaseName("ix_surgical_reports_anesthesiologist_id");
+
+                    b.HasIndex("AssistantId")
+                        .HasDatabaseName("ix_surgical_reports_assistant_id");
+
+                    b.HasIndex("AttentionId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_surgical_reports_attention_id");
+
+                    b.HasIndex("OperatingRoomId")
+                        .HasDatabaseName("ix_surgical_reports_operating_room_id");
+
+                    b.HasIndex("SurgeonId")
+                        .HasDatabaseName("ix_surgical_reports_surgeon_id");
+
+                    b.ToTable("surgical_reports", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.TreatmentSchedule", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<long?>("CompletedById")
+                        .HasColumnType("bigint")
+                        .HasColumnName("completed_by_employee_id");
+
+                    b.Property<long>("HospitalizationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("hospitalization_id");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_completed");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<DateTime>("ScheduledTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("scheduled_time");
+
+                    b.Property<string>("TreatmentName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("treatment_name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_treatment_schedules");
+
+                    b.HasIndex("CompletedById")
+                        .HasDatabaseName("ix_treatment_schedules_completed_by_employee_id");
+
+                    b.HasIndex("HospitalizationId")
+                        .HasDatabaseName("ix_treatment_schedules_hospitalization_id");
+
+                    b.ToTable("treatment_schedules", (string)null);
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.TreatmentScheduleProductUsage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<long>("TreatmentScheduleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("treatment_schedule_id");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("unit");
+
+                    b.HasKey("Id")
+                        .HasName("pk_treatment_schedule_products");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_treatment_schedule_products_product_id");
+
+                    b.HasIndex("TreatmentScheduleId")
+                        .HasDatabaseName("ix_treatment_schedule_products_treatment_schedule_id");
+
+                    b.ToTable("treatment_schedule_products", (string)null);
                 });
 
             modelBuilder.Entity("VetSaas.Modules.Customers.Domain.Animal", b =>
@@ -1515,6 +3494,23 @@ namespace VetSaas.Shared.Infrastructure.Persistence.Migrations.Tenant
                     b.ToTable("users", (string)null);
                 });
 
+            modelBuilder.Entity("ClinicalServiceProduct", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalService", null)
+                        .WithMany()
+                        .HasForeignKey("ClinicalServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_clinical_service_required_products_clinical_services_clinic");
+
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", null)
+                        .WithMany()
+                        .HasForeignKey("RequiredProductsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_clinical_service_required_products_products_required_produc");
+                });
+
             modelBuilder.Entity("RoleUser", b =>
                 {
                     b.HasOne("VetSaas.Modules.Users.Domain.Role", null)
@@ -1566,6 +3562,837 @@ namespace VetSaas.Shared.Infrastructure.Persistence.Migrations.Tenant
                         .HasConstraintName("fk_operating_rooms_branches_branch_id");
 
                     b.Navigation("Branch");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.AnestheticDrug", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_anesthetic_drugs_products_product_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.SurgicalReport", "SurgicalReport")
+                        .WithMany("AnestheticProtocol")
+                        .HasForeignKey("SurgicalReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_anesthetic_drugs_surgical_reports_surgical_report_id");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("SurgicalReport");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.Appointment", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Customers.Domain.Animal", "Animal")
+                        .WithMany()
+                        .HasForeignKey("AnimalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_appointments_animal_animal_id");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "AssignedEmployee")
+                        .WithMany()
+                        .HasForeignKey("AssignedEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_appointments_employees_employee_id");
+
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_appointments_branches_branch_id");
+
+                    b.Navigation("Animal");
+
+                    b.Navigation("AssignedEmployee");
+
+                    b.Navigation("Branch");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.Attentions", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Customers.Domain.Animal", "Animal")
+                        .WithMany()
+                        .HasForeignKey("AnimalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attentions_animal_animal_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.Appointment", "Appointment")
+                        .WithOne()
+                        .HasForeignKey("VetSaas.Modules.Clinic.Domain.Attentions", "AppointmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_attentions_appointments_appointment_id");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "AttendingEmployee")
+                        .WithMany()
+                        .HasForeignKey("AttendingEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attentions_employees_attending_employee_id");
+
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attentions_branches_branch_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalService", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_attentions_clinical_services_clinical_service_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.SurgicalOrder", "SurgicalOrder")
+                        .WithMany()
+                        .HasForeignKey("SurgicalOrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_attentions_surgical_orders_surgical_order_id");
+
+                    b.Navigation("Animal");
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("AttendingEmployee");
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Service");
+
+                    b.Navigation("SurgicalOrder");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.BranchClinicalService", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_branch_clinical_services_branches_branch_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalService", "ClinicalService")
+                        .WithMany("BranchLinks")
+                        .HasForeignKey("ClinicalServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_branch_clinical_services_clinical_services_clinical_service");
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("ClinicalService");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.Cage", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_cages_branches_branch_id");
+
+                    b.Navigation("Branch");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.ClinicalAppointmentDetail", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.Appointment", "Appointment")
+                        .WithOne("ClinicalDetail")
+                        .HasForeignKey("VetSaas.Modules.Clinic.Domain.ClinicalAppointmentDetail", "AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_clinical_appointment_details_appointments_appointment_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalService", "ClinicalService")
+                        .WithMany()
+                        .HasForeignKey("ClinicalServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_clinical_appointment_details_clinical_services_clinical_ser");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Veterinarian")
+                        .WithMany()
+                        .HasForeignKey("VeterinarianId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_clinical_appointment_details_employees_veterinarian_id");
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("ClinicalService");
+
+                    b.Navigation("Veterinarian");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.ClinicalAttention", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.Attentions", "Attention")
+                        .WithOne()
+                        .HasForeignKey("VetSaas.Modules.Clinic.Domain.ClinicalAttention", "AttentionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_clinical_attention_attentions_attention_id");
+
+                    b.Navigation("Attention");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.ClinicalServiceItem", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalAttention", "ClinicalAttention")
+                        .WithMany("ServiceItems")
+                        .HasForeignKey("ClinicalAttentionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_clinical_service_items_clinical_attention_clinical_attentio");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalService", "ClinicalService")
+                        .WithMany()
+                        .HasForeignKey("ClinicalServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_clinical_service_items_clinical_services_clinical_service_id");
+
+                    b.Navigation("ClinicalAttention");
+
+                    b.Navigation("ClinicalService");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.ClinicalServiceProduct", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalServiceItem", "ClinicalServiceItem")
+                        .WithMany("Products")
+                        .HasForeignKey("ClinicalServiceItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_clinical_service_product_clinical_service_items_clinical_se");
+
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_clinical_service_product_products_product_id");
+
+                    b.Navigation("ClinicalServiceItem");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.EvolutionNote", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_evolution_notes_employees_author_employee_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.Hospitalization", "Hospitalization")
+                        .WithMany("EvolutionNotes")
+                        .HasForeignKey("HospitalizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_evolution_notes_hospitalizations_hospitalization_id");
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Hospitalization");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.GroomingAppointmentDetail", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.Appointment", "Appointment")
+                        .WithOne("GroomingDetail")
+                        .HasForeignKey("VetSaas.Modules.Clinic.Domain.GroomingAppointmentDetail", "AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_grooming_appointment_details_appointments_appointment_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalService", "ClinicalService")
+                        .WithMany()
+                        .HasForeignKey("ClinicalServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_grooming_appointment_details_clinical_services_clinical_ser");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Stylist")
+                        .WithMany()
+                        .HasForeignKey("StylistId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_grooming_appointment_details_employees_stylist_id");
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("ClinicalService");
+
+                    b.Navigation("Stylist");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.GroomingMaterialUsed", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.GroomingSession", "GroomingSession")
+                        .WithMany("MaterialsUsed")
+                        .HasForeignKey("GroomingSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_grooming_materials_used_grooming_sessions_grooming_session_");
+
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_grooming_materials_used_products_product_id");
+
+                    b.Navigation("GroomingSession");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.GroomingSession", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "AssignedProfessional")
+                        .WithMany()
+                        .HasForeignKey("AssignedProfessionalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_grooming_sessions_employees_assigned_professional_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.Attentions", "Attention")
+                        .WithOne()
+                        .HasForeignKey("VetSaas.Modules.Clinic.Domain.GroomingSession", "AttentionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_grooming_sessions_attentions_attention_id");
+
+                    b.Navigation("AssignedProfessional");
+
+                    b.Navigation("Attention");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.HealthPlanServiceItem", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalService", "ClinicalService")
+                        .WithMany()
+                        .HasForeignKey("ClinicalServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_health_plan_service_items_clinical_services_clinical_servic");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.HealthPlan", "HealthPlan")
+                        .WithMany("ServiceItems")
+                        .HasForeignKey("HealthPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_health_plan_service_items_health_plans_health_plan_id");
+
+                    b.Navigation("ClinicalService");
+
+                    b.Navigation("HealthPlan");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.Hospitalization", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Customers.Domain.Animal", "Animal")
+                        .WithMany()
+                        .HasForeignKey("AnimalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_hospitalizations_animal_animal_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.Attentions", "Attention")
+                        .WithMany()
+                        .HasForeignKey("AttentionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_hospitalizations_attentions_attention_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.Cage", "Cage")
+                        .WithMany()
+                        .HasForeignKey("CageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_hospitalizations_cages_cage_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalService", "ClinicalService")
+                        .WithMany()
+                        .HasForeignKey("ClinicalServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_hospitalizations_clinical_services_clinical_service_id");
+
+                    b.Navigation("Animal");
+
+                    b.Navigation("Attention");
+
+                    b.Navigation("Cage");
+
+                    b.Navigation("ClinicalService");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.HospitalizationVitalSign", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.Hospitalization", "Hospitalization")
+                        .WithMany("VitalSigns")
+                        .HasForeignKey("HospitalizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_hospitalization_vital_signs_hospitalizations_hospitalizatio");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "RecordedBy")
+                        .WithMany()
+                        .HasForeignKey("RecordedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_hospitalization_vital_signs_employees_recorded_by_employee_");
+
+                    b.Navigation("Hospitalization");
+
+                    b.Navigation("RecordedBy");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.LaboratoryRequest", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Customers.Domain.Animal", "Animal")
+                        .WithMany()
+                        .HasForeignKey("AnimalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_laboratory_requests_animal_animal_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalAttention", "ClinicalAttention")
+                        .WithMany("LaboratoryRequests")
+                        .HasForeignKey("ClinicalAttentionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_laboratory_requests_clinical_attention_clinical_attention_id");
+
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Laboratory", "Laboratory")
+                        .WithMany()
+                        .HasForeignKey("LaboratoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_laboratory_requests_laboratories_laboratory_id");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "RequestingEmployee")
+                        .WithMany()
+                        .HasForeignKey("RequestingEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_laboratory_requests_employees_requesting_employee_id");
+
+                    b.Navigation("Animal");
+
+                    b.Navigation("ClinicalAttention");
+
+                    b.Navigation("Laboratory");
+
+                    b.Navigation("RequestingEmployee");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.LaboratoryRequestItem", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.LaboratoryRequest", "LaboratoryRequest")
+                        .WithMany("Items")
+                        .HasForeignKey("LaboratoryRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_laboratory_request_items_laboratory_requests_laboratory_req");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.LaboratoryTest", "Test")
+                        .WithMany()
+                        .HasForeignKey("TestId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_laboratory_request_items_laboratory_tests_test_id");
+
+                    b.Navigation("LaboratoryRequest");
+
+                    b.Navigation("Test");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.LaboratoryResultValue", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.LaboratoryTestParameter", "Parameter")
+                        .WithMany()
+                        .HasForeignKey("ParameterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_laboratory_result_values_laboratory_test_parameters_paramet");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.LaboratoryRequestItem", "RequestItem")
+                        .WithMany("Results")
+                        .HasForeignKey("RequestItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_laboratory_result_values_laboratory_request_items_request_i");
+
+                    b.Navigation("Parameter");
+
+                    b.Navigation("RequestItem");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.LaboratoryTestLaboratory", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Laboratory", "Laboratory")
+                        .WithMany()
+                        .HasForeignKey("LaboratoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_laboratory_test_laboratories_laboratories_laboratory_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.LaboratoryTest", "LaboratoryTest")
+                        .WithMany("LaboratoryLinks")
+                        .HasForeignKey("LaboratoryTestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_laboratory_test_laboratories_laboratory_tests_laboratory_te");
+
+                    b.Navigation("Laboratory");
+
+                    b.Navigation("LaboratoryTest");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.LaboratoryTestParameter", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.LaboratoryTest", "Test")
+                        .WithMany("Parameters")
+                        .HasForeignKey("TestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_laboratory_test_parameters_laboratory_tests_test_id");
+
+                    b.Navigation("Test");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.MedicalRecordEntry", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Customers.Domain.Animal", "Animal")
+                        .WithMany()
+                        .HasForeignKey("AnimalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_medical_record_entries_animal_animal_id");
+
+                    b.HasOne("VetSaas.Modules.Branches.Domain.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_medical_record_entries_branches_branch_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalService", "ClinicalService")
+                        .WithMany()
+                        .HasForeignKey("ClinicalServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_medical_record_entries_clinical_services_clinical_service_id");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_medical_record_entries_employees_created_by_employee_id");
+
+                    b.Navigation("Animal");
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("ClinicalService");
+
+                    b.Navigation("CreatedBy");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.MedicationAdministration", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "AdministeredBy")
+                        .WithMany()
+                        .HasForeignKey("AdministeredById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_medication_administrations_employees_administered_by_employ");
+
+                    b.HasOne("VetSaas.Modules.Customers.Domain.Animal", "Animal")
+                        .WithMany()
+                        .HasForeignKey("AnimalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_medication_administrations_animal_animal_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalAttention", "ClinicalAttention")
+                        .WithMany("MedicationAdministrations")
+                        .HasForeignKey("ClinicalAttentionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_medication_administrations_clinical_attention_clinical_atte");
+
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_medication_administrations_products_product_id");
+
+                    b.Navigation("AdministeredBy");
+
+                    b.Navigation("Animal");
+
+                    b.Navigation("ClinicalAttention");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.PostOperativeIndication", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_post_operative_indications_products_product_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.SurgicalReport", "SurgicalReport")
+                        .WithMany("PostOperativeIndications")
+                        .HasForeignKey("SurgicalReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_post_operative_indications_surgical_reports_surgical_report");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("SurgicalReport");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.PrescriptionTemplateMedication", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.PrescriptionTemplate", "PrescriptionTemplate")
+                        .WithMany("Medications")
+                        .HasForeignKey("PrescriptionTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_prescription_template_medications_prescription_templates_pr");
+
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_prescription_template_medications_products_product_id");
+
+                    b.Navigation("PrescriptionTemplate");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.Reminder", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Customers.Domain.Animal", "Animal")
+                        .WithMany()
+                        .HasForeignKey("AnimalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reminders_animal_animal_id");
+
+                    b.Navigation("Animal");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.SurgicalAppointmentDetail", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Anesthetist")
+                        .WithMany()
+                        .HasForeignKey("AnesthetistId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_surgical_appointment_details_employees_anesthetist_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.Appointment", "Appointment")
+                        .WithOne("SurgicalDetail")
+                        .HasForeignKey("VetSaas.Modules.Clinic.Domain.SurgicalAppointmentDetail", "AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_surgical_appointment_details_appointments_appointment_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalService", "FinalService")
+                        .WithMany()
+                        .HasForeignKey("FinalServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_surgical_appointment_details_clinical_services_final_servic");
+
+                    b.HasOne("VetSaas.Modules.Branches.Domain.OperatingRoom", "OperatingRoom")
+                        .WithMany()
+                        .HasForeignKey("OperatingRoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_surgical_appointment_details_operating_rooms_operating_room");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.SurgicalOrder", "Order")
+                        .WithOne("ScheduledDetail")
+                        .HasForeignKey("VetSaas.Modules.Clinic.Domain.SurgicalAppointmentDetail", "OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_surgical_appointment_details_surgical_orders_order_id");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Surgeon")
+                        .WithMany()
+                        .HasForeignKey("SurgeonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_surgical_appointment_details_employees_surgeon_id");
+
+                    b.Navigation("Anesthetist");
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("FinalService");
+
+                    b.Navigation("OperatingRoom");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Surgeon");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.SurgicalMaterial", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_surgical_materials_products_product_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.SurgicalReport", "SurgicalReport")
+                        .WithMany("MaterialsUsed")
+                        .HasForeignKey("SurgicalReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_surgical_materials_surgical_reports_surgical_report_id");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("SurgicalReport");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.SurgicalOrder", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Customers.Domain.Animal", "Animal")
+                        .WithMany()
+                        .HasForeignKey("AnimalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_surgical_orders_animal_animal_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalAttention", "ClinicalAttention")
+                        .WithMany("SurgicalOrders")
+                        .HasForeignKey("ClinicalAttentionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_surgical_orders_clinical_attention_clinical_attention_id");
+
+                    b.HasOne("VetSaas.Modules.Branches.Domain.OperatingRoom", "OperatingRoom")
+                        .WithMany()
+                        .HasForeignKey("OperatingRoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_surgical_orders_operating_rooms_operating_room_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.ClinicalService", "RecommendedService")
+                        .WithMany()
+                        .HasForeignKey("RecommendedServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_surgical_orders_clinical_services_recommended_service_id");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "RequestedBy")
+                        .WithMany()
+                        .HasForeignKey("RequestedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_surgical_orders_employees_requested_by_id");
+
+                    b.Navigation("Animal");
+
+                    b.Navigation("ClinicalAttention");
+
+                    b.Navigation("OperatingRoom");
+
+                    b.Navigation("RecommendedService");
+
+                    b.Navigation("RequestedBy");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.SurgicalReport", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Anesthesiologist")
+                        .WithMany()
+                        .HasForeignKey("AnesthesiologistId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_surgical_reports_employees_anesthesiologist_id");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Assistant")
+                        .WithMany()
+                        .HasForeignKey("AssistantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_surgical_reports_employees_assistant_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.Attentions", "Attention")
+                        .WithOne()
+                        .HasForeignKey("VetSaas.Modules.Clinic.Domain.SurgicalReport", "AttentionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_surgical_reports_attentions_attention_id");
+
+                    b.HasOne("VetSaas.Modules.Branches.Domain.OperatingRoom", "OperatingRoom")
+                        .WithMany()
+                        .HasForeignKey("OperatingRoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_surgical_reports_operating_rooms_operating_room_id");
+
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "Surgeon")
+                        .WithMany()
+                        .HasForeignKey("SurgeonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_surgical_reports_employees_surgeon_id");
+
+                    b.Navigation("Anesthesiologist");
+
+                    b.Navigation("Assistant");
+
+                    b.Navigation("Attention");
+
+                    b.Navigation("OperatingRoom");
+
+                    b.Navigation("Surgeon");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.TreatmentSchedule", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Employees.Domain.Employee", "CompletedBy")
+                        .WithMany()
+                        .HasForeignKey("CompletedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_treatment_schedules_employees_completed_by_employee_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.Hospitalization", "Hospitalization")
+                        .WithMany("TreatmentSchedules")
+                        .HasForeignKey("HospitalizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_treatment_schedules_hospitalizations_hospitalization_id");
+
+                    b.Navigation("CompletedBy");
+
+                    b.Navigation("Hospitalization");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.TreatmentScheduleProductUsage", b =>
+                {
+                    b.HasOne("VetSaas.Modules.Inventory.Domain.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_treatment_schedule_products_products_product_id");
+
+                    b.HasOne("VetSaas.Modules.Clinic.Domain.TreatmentSchedule", "TreatmentSchedule")
+                        .WithMany("ProductUsages")
+                        .HasForeignKey("TreatmentScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_treatment_schedule_products_treatment_schedules_treatment_s");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("TreatmentSchedule");
                 });
 
             modelBuilder.Entity("VetSaas.Modules.Customers.Domain.Animal", b =>
@@ -1970,6 +4797,96 @@ namespace VetSaas.Shared.Infrastructure.Persistence.Migrations.Tenant
             modelBuilder.Entity("VetSaas.Modules.Branches.Domain.Company", b =>
                 {
                     b.Navigation("Branches");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.Appointment", b =>
+                {
+                    b.Navigation("ClinicalDetail");
+
+                    b.Navigation("GroomingDetail");
+
+                    b.Navigation("SurgicalDetail");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.ClinicalAttention", b =>
+                {
+                    b.Navigation("LaboratoryRequests");
+
+                    b.Navigation("MedicationAdministrations");
+
+                    b.Navigation("ServiceItems");
+
+                    b.Navigation("SurgicalOrders");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.ClinicalService", b =>
+                {
+                    b.Navigation("BranchLinks");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.ClinicalServiceItem", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.GroomingSession", b =>
+                {
+                    b.Navigation("MaterialsUsed");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.HealthPlan", b =>
+                {
+                    b.Navigation("ServiceItems");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.Hospitalization", b =>
+                {
+                    b.Navigation("EvolutionNotes");
+
+                    b.Navigation("TreatmentSchedules");
+
+                    b.Navigation("VitalSigns");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.LaboratoryRequest", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.LaboratoryRequestItem", b =>
+                {
+                    b.Navigation("Results");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.LaboratoryTest", b =>
+                {
+                    b.Navigation("LaboratoryLinks");
+
+                    b.Navigation("Parameters");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.PrescriptionTemplate", b =>
+                {
+                    b.Navigation("Medications");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.SurgicalOrder", b =>
+                {
+                    b.Navigation("ScheduledDetail");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.SurgicalReport", b =>
+                {
+                    b.Navigation("AnestheticProtocol");
+
+                    b.Navigation("MaterialsUsed");
+
+                    b.Navigation("PostOperativeIndications");
+                });
+
+            modelBuilder.Entity("VetSaas.Modules.Clinic.Domain.TreatmentSchedule", b =>
+                {
+                    b.Navigation("ProductUsages");
                 });
 
             modelBuilder.Entity("VetSaas.Modules.Employees.Domain.Employee", b =>
