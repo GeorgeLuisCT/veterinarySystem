@@ -11,6 +11,17 @@ import type {
 } from "../../types/medical-history-response";
 import { ClinicalServiceCategoryLabels } from "../../enums/clinical-service-category";
 import { PageSection } from "@/components/page/page-section";
+import { ProductUnitType, ProductUnitTypeAbbreviations } from "@/app/dashboard/inventory/_enums/product-unit-type";
+import { AdministrationRoute, AdministrationRouteLabels } from "@/app/dashboard/inventory/_enums/administration-route";
+import { FrequencyUnit, FrequencyUnitLabels } from "@/app/dashboard/clinical/enums/frequency-unit";
+import { SurgicalReportStatus, SurgicalReportStatusLabels } from "@/app/dashboard/clinical/enums/surgical-report-status";
+import { HospitalizationStatus, HospitalizationStatusLabels } from "@/app/dashboard/clinical/enums/hospitalization-status";
+
+/** El estado de un procedimiento viene como texto: de cirugía o de hospitalización según su tipo. */
+const procedureStatusLabel = (p: { type: string; status?: string }) =>
+  (p.type === "SURGERY"
+    ? SurgicalReportStatusLabels[p.status as SurgicalReportStatus]
+    : HospitalizationStatusLabels[p.status as HospitalizationStatus]) ?? p.status;
 
 const EMPTY_LABEL = "—";
 
@@ -81,16 +92,20 @@ function MedicationList({ medications }: { medications: ClinicalHistoryMedicatio
               {medication.doseAmount !== undefined && (
                 <Badge variant="outline">
                   {medication.doseAmount}
-                  {medication.doseUnit ? ` ${medication.doseUnit.toLowerCase()}` : ""}
+                  {medication.doseUnit ? ` ${ProductUnitTypeAbbreviations[medication.doseUnit as ProductUnitType] ?? medication.doseUnit}` : ""}
                 </Badge>
               )}
-              {medication.route && <Badge variant="secondary">{medication.route}</Badge>}
+              {medication.route && (
+                <Badge variant="secondary">
+                  {AdministrationRouteLabels[medication.route as AdministrationRoute] ?? medication.route}
+                </Badge>
+              )}
             </div>
             <div className="mt-1 text-xs text-muted-foreground space-y-1">
               {medication.administeredAt && <div>Dosis aplicada: {formatDateTime(medication.administeredAt)}</div>}
               {medication.frequencyValue && medication.frequencyUnit && (
                 <div>
-                  Frecuencia: cada {medication.frequencyValue} {medication.frequencyUnit.toLowerCase()}
+                  Frecuencia: cada {medication.frequencyValue} {(FrequencyUnitLabels[medication.frequencyUnit as FrequencyUnit] ?? medication.frequencyUnit).toLowerCase()}
                 </div>
               )}
               {medication.administeredBy && <div>Personal: {medication.administeredBy}</div>}
@@ -228,7 +243,7 @@ function ProceduresTab({ procedures }: { procedures: ClinicalHistoryProcedure[] 
               Inicio: {formatDateTime(procedure.startedAt)} • Fin: {formatDateTime(procedure.endedAt)}
             </p>
             {procedure.professionalInCharge && <p>Responsable: {procedure.professionalInCharge}</p>}
-            {procedure.status && <p>Estado: {procedure.status}</p>}
+            {procedure.status && <p>Estado: {procedureStatusLabel(procedure)}</p>}
           </div>
           {procedure.notes && (
             <p className="mt-2 text-sm text-muted-foreground whitespace-pre-line">{procedure.notes}</p>

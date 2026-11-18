@@ -21,7 +21,7 @@ export default function FieldworkControlCenterPage() {
           description="Planifica tareas, asigna equipos y da seguimiento a las visitas."
           actions={
             <Button asChild size="sm">
-              <Link href="/dashboard/fieldwork/control-center/vehicles">
+              <Link href="/dashboard/settings/vehicles">
                 <Car className="mr-2 h-4 w-4" />
                 Gestionar vehículos
               </Link>

@@ -33,7 +33,7 @@ public record BaseSupplierRequest
     public string? Website { get; init; }
     public string? ContactPhone { get; init; }
     public string? Email { get; init; }
-    public SupplierType? SupplierType { get; init; }
+    public string? SupplierType { get; init; }
     public string? BankAccountNumber { get; init; }
     public string? BankName { get; init; }
 }
@@ -80,7 +80,7 @@ public sealed record SupplierResponse(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Website,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ContactPhone,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Email,
-    SupplierType SupplierType,
+    string SupplierType,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? BankAccountNumber,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? BankName,
     bool Active)
@@ -90,7 +90,7 @@ public sealed record SupplierResponse(
 }
 
 public sealed record SupplierSummaryResponse(long Id, string? Name, string? Ruc, string? Address, string? Website,
-    string? Phone, string? Email, SupplierType? SupplierType, string? BankName, string? BankAccountNumber, bool? Active)
+    string? Phone, string? Email, string? SupplierType, string? BankName, string? BankAccountNumber, bool? Active)
 {
     public static SupplierSummaryResponse From(Supplier s) => new(s.Id, s.Name, s.Ruc, s.Address, s.Website, s.Phone,
         s.Email, s.SupplierType, s.BankName, s.BankAccountNumber, s.Active);
@@ -114,12 +114,12 @@ public record BaseProductRequest
     public int? MinStock { get; init; }
     public long? CategoryId { get; init; }
     public string? Sku { get; init; }
-    public ProductPresentationType? Presentation { get; init; }
+    public string? Presentation { get; init; }
     public ProductUnitType? BaseUnitType { get; init; }
     public ProductUnitType? MainUnitType { get; init; }
     public decimal? StandardPrice { get; init; }
     public double? ContentTotal { get; init; }
-    public HashSet<AdministrationRoute>? AdministrationRoutes { get; init; }
+    public HashSet<string>? AdministrationRoutes { get; init; }
     public List<ProductSaleModeRequest>? SaleModes { get; init; }
 }
 
@@ -187,11 +187,11 @@ public sealed record ProductResponse(
     string Description,
     int MinStock,
     string Sku,
-    ProductPresentationType Presentation,
+    string Presentation,
     ProductUnitType UnitType,
     double ContentTotal,
     decimal StandardPrice,
-    IReadOnlyCollection<AdministrationRoute> AdministrationRoutes,
+    IReadOnlyCollection<string> AdministrationRoutes,
     IReadOnlyList<SaleModeSummary> SaleModes,
     IReadOnlyList<BranchStockSummary> BranchStocks,
     decimal StockMainUnit,
@@ -207,11 +207,11 @@ public sealed record ProductSummaryResponse(
     string? Description,
     int? MinStock,
     string? Sku,
-    ProductPresentationType? Presentation,
+    string? Presentation,
     ProductUnitType? UnitType,
     double? ContentTotal,
     decimal? StandardPrice,
-    IReadOnlyCollection<AdministrationRoute>? AdministrationRoutes,
+    IReadOnlyCollection<string>? AdministrationRoutes,
     IReadOnlyList<SaleModeSummary>? SaleModes,
     IReadOnlyList<BranchStockSummary>? BranchStocks,
     decimal? StockMainUnit,
@@ -227,7 +227,7 @@ public sealed record ProductQuickSearchResponse(long Id, string Name, string Pre
     decimal? StandardPrice, ProductUnitType UnitType, decimal ContentTotal);
 
 public sealed record ProductBasicResponse(long Id, string Name, string Sku, ProductUnitType UnitType,
-    ProductPresentationType Presentation)
+    string Presentation)
 {
     public static ProductBasicResponse From(Product p) => new(p.Id, p.Name, p.Sku, p.UnitType, p.Presentation);
 }

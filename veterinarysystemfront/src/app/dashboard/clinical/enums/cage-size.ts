@@ -1,18 +1,12 @@
-export enum CageSize {
-    SMALL = "SMALL",
-    MEDIUM = "MEDIUM",
-    LARGE = "LARGE",
-  }
-  
-  export const CageSizeLabels: Record<CageSize, string> = {
-    [CageSize.SMALL]: "Pequeña",
-    [CageSize.MEDIUM]: "Mediana",
-    [CageSize.LARGE]: "Grande",
-  };
-  
-  export const CageSizeOptions = (
-    Object.values(CageSize) as CageSize[]
-  ).map((value) => ({
-    value,
-    label: CageSizeLabels[value],
-  }));
+import { CatalogKey, catalogEnum, catalogLabels, catalogOptions } from "@/lib/catalogs";
+
+/** Tamaños de jaula: catálogo editable (Configuración → Catálogos). */
+export const CageSize = catalogEnum(CatalogKey.CageSize, {
+  SMALL: { label: "Pequeña" },
+  MEDIUM: { label: "Mediana" },
+  LARGE: { label: "Grande" },
+});
+export type CageSize = string;
+
+export const CageSizeLabels = catalogLabels(CatalogKey.CageSize);
+export const CageSizeOptions = catalogOptions(CatalogKey.CageSize);

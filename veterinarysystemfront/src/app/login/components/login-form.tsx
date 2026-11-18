@@ -14,6 +14,7 @@ import { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import { PawPrint } from "lucide-react";
 import { getTenant } from "@/services/tenant";
+import { resolveHomePage } from "@/services/preferences-service";
 
 function makeLCG(seed: number) {
   let s = seed >>> 0;
@@ -73,7 +74,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
       if (data.branches && data.branches.length > 0) {
         setBranches(data.branches as BranchResponse[]);
       } else {
-        router.push("/dashboard/pos/sales/new");
+        router.push(await resolveHomePage());
       }
     } catch (err) {
       setError(getAaxiosErrorMessage(err));

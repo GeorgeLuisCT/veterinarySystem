@@ -21,6 +21,7 @@ import { SupplierDetail } from "./supplier-detail";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import SupplierFilters from "./supplier-filters";
 import { Badge } from "@/components/ui/badge";
+import { SupplierTypeLabels } from "@/app/dashboard/inventory/_enums/supplier-type";
 
 enum SupplierPanel {
   View = "view",
@@ -81,7 +82,7 @@ export default function MainSupplier() {
         header: "Tipo",
         cell: ({ row }) => (
           <Badge variant="secondary" className="rounded-full">
-            {row.original.supplierType}
+            {SupplierTypeLabels[row.original.supplierType] ?? row.original.supplierType}
           </Badge>
         ),
       },

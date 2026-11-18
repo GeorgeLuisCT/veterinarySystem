@@ -205,3 +205,45 @@ public static class ReportFormat
     public static string F2(double v) => v.ToString("F2", Inv);
     public static string Int(int v) => v.ToString(Inv);
 }
+
+/// <summary>
+/// Textos en español de los códigos que aparecen en los desgloses (estados, medios de pago, roles, especies…).
+/// El <c>key</c> de cada ítem sigue siendo el código; solo cambia el <c>label</c> que se muestra. Coinciden con los del frontend.
+/// </summary>
+public static class ReportLabels
+{
+    private static Func<string?, string> Map(params (string Code, string Label)[] pairs)
+    {
+        var dict = pairs.ToDictionary(p => p.Code, p => p.Label, StringComparer.OrdinalIgnoreCase);
+        return code => code is not null && dict.TryGetValue(code, out string? label) ? label : code ?? "";
+    }
+
+    public static readonly Func<string?, string> ClinicalAttention = Map(("OPEN", "Abierta"), ("IN_PROGRESS", "En progreso"),
+        ("WAITING_LAB", "Esperando a laboratorio"), ("READY_TO_BILL", "Listo para facturar"), ("CLOSED", "Cerrada"), ("CANCELED", "Cancelada"));
+
+    public static readonly Func<string?, string> LabRequest = Map(("REQUESTED", "Solicitado"), ("IN_PROGRESS", "En progreso"),
+        ("COMPLETED", "Completado"), ("CANCELED", "Cancelado"));
+
+    public static readonly Func<string?, string> SurgicalReport = Map(("DRAFT", "Borrador"), ("IN_PROGRESS", "En progreso"),
+        ("READY_TO_BILL", "Listo para facturar"), ("COMPLETED", "Completado"), ("CANCELLED", "Cancelado"));
+
+    public static readonly Func<string?, string> FieldVisit = Map(("PLANNED", "Planificada"), ("IN_PROGRESS", "En progreso"),
+        ("COMPLETED", "Completada"), ("CANCELED", "Cancelada"));
+
+    public static readonly Func<string?, string> Appointment = Map(("REQUESTED", "Solicitada"), ("SCHEDULED", "Programada"),
+        ("CONFIRMED", "Confirmada"), ("CHECKED_IN", "Registrada"), ("IN_PROGRESS", "En curso"), ("COMPLETED", "Completada"),
+        ("CANCELED", "Cancelada"), ("NO_SHOW", "No asistió"), ("ASSIGNED", "Asignada"));
+
+    public static readonly Func<string?, string> PaymentMethod = Map(("CASH", "Efectivo"), ("CREDIT_CARD", "Tarjeta de crédito"),
+        ("DEBIT_CARD", "Tarjeta de débito"), ("YAPE", "Yape"), ("PLIN", "Plin"), ("BANK_TRANSFER", "Transferencia bancaria"),
+        ("MOBILE_PAYMENT", "Pago móvil"), ("CHECK", "Cheque"), ("OTHER", "Otros"));
+
+    public static readonly Func<string?, string> CashMovement = Map(("INCOME", "Ingresos"), ("EXPENSE", "Egresos"));
+
+    public static readonly Func<string?, string> Payable = Map(("PENDING", "Pendiente"), ("PARTIALLY_PAID", "Pago parcial"), ("PAID", "Pagada"));
+
+    public static readonly Func<string?, string> Role = Map(("ROLE_USER", "Cliente"), ("ROLE_ADMIN", "Administrador"),
+        ("ROLE_VETERINARIAN", "Veterinario"), ("ROLE_ASSISTANT", "Asistente"), ("ROLE_RECEPTIONIST", "Recepcionista"),
+        ("ROLE_MANAGER", "Gerente"), ("ROLE_GROOMER", "Peluquero"), ("ROLE_SUPERVISOR", "Supervisor"),
+        ("ROLE_WAREHOUSE", "Encargado de almacén"), ("ROLE_CASHIER", "Cajero"));
+}

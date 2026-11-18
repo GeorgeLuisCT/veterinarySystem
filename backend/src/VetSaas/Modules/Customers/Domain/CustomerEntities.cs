@@ -1,3 +1,4 @@
+using VetSaas.Modules.Catalogs;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -29,33 +30,6 @@ namespace VetSaas.Modules.Customers.Domain
 
     public enum AnimalSex { MALE, FEMALE, CASTRATED_MALE, SPAYED_FEMALE }
 
-    public enum AnimalSpecies
-    {
-        /// <summary>Perro</summary>
-        CANINE,
-        /// <summary>Gato</summary>
-        FELINE,
-        RABBIT,
-        HAMSTER,
-        /// <summary>Cobayo / cuy</summary>
-        GUINEA_PIG,
-        /// <summary>Ave</summary>
-        AVIAN,
-        REPTILE,
-        /// <summary>Caballo, burro, mula</summary>
-        EQUINE,
-        /// <summary>Vaca, toro, buey</summary>
-        BOVINE,
-        /// <summary>Oveja</summary>
-        OVINE,
-        /// <summary>Cabra</summary>
-        CAPRINE,
-        /// <summary>Cerdo</summary>
-        PORCINE,
-        /// <summary>Llama, alpaca</summary>
-        CAMELID,
-        OTHER
-    }
 
     [Table("animal")]
     public class Animal
@@ -66,7 +40,7 @@ namespace VetSaas.Modules.Customers.Domain
         public Customer Owner { get; set; } = null!;
         public string Name { get; set; } = null!;
         [MaxLength(2048)] public string? PhotoUrl { get; set; }
-        public AnimalSpecies Species { get; set; }
+        [Catalog(CatalogKeys.AnimalSpecies)] [MaxLength(60)] public string Species { get; set; }
         public string? Breed { get; set; }
         public DateOnly BirthDate { get; set; }
         public AnimalSex? Sex { get; set; }

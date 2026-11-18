@@ -2,11 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  PlusCircle,
+  Settings2,
   FileText,
-  MoreHorizontal,
-  Edit,
-  Trash2,
   HeartPulse,
   Pill,
   ClipboardEdit,
@@ -26,15 +23,6 @@ import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import { NewHospitalizationModal } from "../components/hospitalization/new-hospitalization-modal";
 import DashboardLayoutSection from "../../dashboard-layout-section";
-import { NewCageModal } from "../components/hospitalization/add-cage-modal";
-import { EditCageModal } from "../components/hospitalization/edit-cage-modal";
-import { DeleteCageModal } from "../components/hospitalization/delete-cage-modal";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { AnimalSpeciesDetails } from "../../crm/patients/enums/animal-species";
 import { CageSizeLabels } from "../enums/cage-size";
 import { formatAdmissionTime } from "@/utils/farmated-dates";
@@ -71,13 +59,8 @@ export default function HospitalizationBoardPage() {
   const [loading, setLoading] = useState(true);
 
   const [isAdmitModalOpen, setAdmitModalOpen] = useState(false);
-  const [isAddCageModalOpen, setAddCageModalOpen] = useState(false);
-  const [isEditCageModalOpen, setEditCageModalOpen] = useState(false);
-  const [isDeleteCageModalOpen, setDeleteCageModalOpen] = useState(false);
 
   const [selectedCage, setSelectedCage] = useState<CageResponse | null>(null);
-  const [cageToEdit, setCageToEdit] = useState<CageResponse | null>(null);
-  const [cageToDelete, setCageToDelete] = useState<CageResponse | null>(null);
 
   const fetchBoardData = useCallback(async () => {
     if (!userInfo?.selectedBranch?.id) return;
@@ -107,55 +90,14 @@ export default function HospitalizationBoardPage() {
     setSelectedCage(cage);
     setAdmitModalOpen(true);
   };
-  const handleOpenEditModal = (cage: CageResponse) => {
-    setCageToEdit(cage);
-    setEditCageModalOpen(true);
-  };
-  const handleOpenDeleteModal = (cage: CageResponse) => {
-    setCageToDelete(cage);
-    setDeleteCageModalOpen(true);
-  };
-  const handleCageCreated = (newCage: CageResponse) => {
-    setCages((prev) => [newCage, ...prev].sort((a, b) => a.name.localeCompare(b.name)));
-  };
   const handleCageUpdated = (updatedCage: CageResponse) => {
     setCages((prev) => prev.map((c) => (c.id === updatedCage.id ? updatedCage : c)));
-  };
-  const handleCageDeleted = (deletedCageId: number) => {
-    setCages((prev) => prev.filter((c) => c.id !== deletedCageId));
   };
   const handleHospitalizationCreated = (updatedCage: CageResponse) => {
     handleCageUpdated(updatedCage);
     setSelectedCage(null);
     setAdmitModalOpen(false);
   };
-
-  const CageActions = ({ cage, isHeaderDark }: { cage: CageResponse; isHeaderDark: boolean }) => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className={`h-8 w-8 p-0 absolute top-2 right-2 focus-visible:ring-offset-0 focus-visible:ring-2 focus-visible:ring-white/70 ${isHeaderDark ? "text-white hover:bg-white/20" : "text-muted-foreground hover:bg-gray-200"}`}
-        >
-          <MoreHorizontal className="h-5 w-5" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => handleOpenEditModal(cage)}>
-          <Edit className="mr-2 h-4 w-4" />
-          Editar
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => handleOpenDeleteModal(cage)}
-          disabled={cage.occupied}
-          className="text-destructive focus:text-destructive focus:bg-red-50"
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          Eliminar
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
 
   const OccupiedCageCard = ({ cage }: { cage: CageResponse }) => {
     const hosp = cage.currentHospitalization!;
@@ -277,8 +219,7 @@ export default function HospitalizationBoardPage() {
           className={`relative flex items-center justify-between p-3 text-white ${causeDetails.colorClass}`}
         >
           <h3 className="font-bold text-lg">{cage.name}</h3>
-          <CageActions cage={cage} isHeaderDark={true} />
-        </div>
+          </div>
 
         <CardContent className="p-4 flex flex-col flex-grow">
           <div className="flex items-start gap-4 mb-4">
@@ -379,7 +320,6 @@ export default function HospitalizationBoardPage() {
     >
       <div className={`relative flex items-center justify-between p-3 text-white`}>
         <h3 className="font-semibold text-lg">{cage.name}</h3>
-        <CageActions cage={cage} isHeaderDark={true} />
       </div>
 
       <CardContent className="flex flex-grow flex-col items-center justify-center p-6 text-center">
@@ -403,8 +343,11 @@ export default function HospitalizationBoardPage() {
           description="Estado en tiempo real de las jaulas y pacientes internados."
           actions={
             <>
-              <Button onClick={() => setAddCageModalOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Agregar Jaula
+              {/* Las jaulas se administran en Configuración */}
+              <Button variant="secondary" asChild>
+                <Link href="/dashboard/settings/cages">
+                  <Settings2 className="mr-2 h-4 w-4" /> Administrar jaulas
+                </Link>
               </Button>
             </>
           }
@@ -427,23 +370,6 @@ export default function HospitalizationBoardPage() {
             onSuccess={handleHospitalizationCreated}
           />
         )}
-        <NewCageModal
-          open={isAddCageModalOpen}
-          onOpenChange={setAddCageModalOpen}
-          onSuccess={handleCageCreated}
-        />
-        <EditCageModal
-          open={isEditCageModalOpen}
-          onOpenChange={setEditCageModalOpen}
-          onSuccess={handleCageUpdated}
-          cageToEdit={cageToEdit}
-        />
-        <DeleteCageModal
-          open={isDeleteCageModalOpen}
-          onOpenChange={setDeleteCageModalOpen}
-          onSuccess={handleCageDeleted}
-          cageToDelete={cageToDelete}
-        />
       </PageContainer>
     </DashboardLayoutSection>
   );

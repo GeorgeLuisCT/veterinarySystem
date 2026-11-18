@@ -20,7 +20,7 @@ public interface IProductService
 }
 
 public sealed record ProductListFilter(int Page, int Size, string? Q, long? CategoryId, long? BranchId, bool? Active,
-    ProductPresentationType? Presentation, ProductUnitType? UnitType, AdministrationRoute? Route, bool? HasSaleModes,
+    string? Presentation, ProductUnitType? UnitType, string? Route, bool? HasSaleModes,
     bool? AvailableOnly, bool? MinStockAlertOnly);
 
 public sealed class ProductService : IProductService
@@ -122,11 +122,11 @@ public sealed class ProductService : IProductService
                 MinStock = request.MinStock!.Value,
                 Category = category,
                 Sku = request.Sku!,
-                Presentation = request.Presentation!.Value,
+                Presentation = request.Presentation!,
                 UnitType = request.BaseUnitType!.Value,
                 ContentTotal = request.ContentTotal!.Value,
             };
-            foreach (AdministrationRoute route in request.AdministrationRoutes ?? new())
+            foreach (string route in request.AdministrationRoutes ?? new())
                 product.AdministrationRoutes.Add(new ProductAdministrationRoute { Route = route });
 
             // El producto queda enlazado a todas las sucursales; solo las elegidas quedan activas.
@@ -278,12 +278,12 @@ public sealed class ProductService : IProductService
             product.Description = request.Description!;
             product.MinStock = request.MinStock!.Value;
             product.Sku = request.Sku!;
-            product.Presentation = request.Presentation!.Value;
+            product.Presentation = request.Presentation!;
             product.UnitType = request.BaseUnitType!.Value;
             product.Category = category;
             product.ContentTotal = request.ContentTotal!.Value;
             product.AdministrationRoutes.Clear();
-            foreach (AdministrationRoute route in request.AdministrationRoutes ?? new())
+            foreach (string route in request.AdministrationRoutes ?? new())
                 product.AdministrationRoutes.Add(new ProductAdministrationRoute { ProductId = product.Id, Route = route });
             UpdateOrAddSaleModes(product, request);
 

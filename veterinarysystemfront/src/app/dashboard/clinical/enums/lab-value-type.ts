@@ -4,3 +4,10 @@ export enum LabValueType {
     BOOLEAN = "BOOLEAN",
     SELECT = "SELECT",
 }
+
+export const LabValueTypeLabels: Record<LabValueType, string> = {
+    [LabValueType.NUMERIC]: "Numérico",
+    [LabValueType.TEXT]: "Texto",
+    [LabValueType.BOOLEAN]: "Sí / No",
+    [LabValueType.SELECT]: "Lista de opciones",
+};

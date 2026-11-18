@@ -26,20 +26,12 @@ import GeoZoneForm from './geo-zone-form';
 import FarmForm from './farm-form';
 import { GeoZoneType, GeoZoneTypeLabels } from '../enums/geo-zone-type';
 
-type TabKey = 'zones' | 'farms';
-
+/** Granjas. Las zonas geográficas se administran en Configuración (se exporta ZonesTable para esa pantalla). */
 export default function FieldworkFarmsMain() {
-  const [tab, setTab] = React.useState<TabKey>('zones');
   return (
     <div className='flex h-full flex-col gap-3'>
-        <div className='inline-flex rounded-md border'>
-          <Button variant={tab === 'zones' ? 'default' : 'ghost'} className='rounded-r-none' onClick={() => setTab('zones')}>Zonas</Button>
-          <Button variant={tab === 'farms' ? 'default' : 'ghost'} className='rounded-l-none' onClick={() => setTab('farms')}>Granjas</Button>
-        </div>
-        
-        {tab === 'zones' ? <ZonesTable /> : <FarmsTable />}
-      
-      </div>
+      <FarmsTable />
+    </div>
   );
 }
 
@@ -65,7 +57,7 @@ function usePaged<T, P extends { page?: number; size?: number }>(fetcher: (param
   return { pageData, loading, pageIndex, setPageIndex, pageSize, setPageSize, load };
 }
 
-function ZonesTable() {
+export function ZonesTable() {
   const { toast } = useToast();
   const [q, setQ] = React.useState<string>('');
   const [type, setType] = React.useState<string>('ALL');

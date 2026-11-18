@@ -23,7 +23,7 @@ export default function AttachmentDialog({ open, onOpenChange, visitId, onSucces
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Adjuntar archivo</DialogTitle>
           <DialogDescription>Agrega soporte multimedia o documentos.</DialogDescription>

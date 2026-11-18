@@ -11,7 +11,7 @@ public record BaseAnimalRequest
 {
     public string? Name { get; init; }
     public long? OwnerId { get; init; }
-    public AnimalSpecies? Species { get; init; }
+    public string? Species { get; init; }
     public string? Breed { get; init; }
     public DateOnly? BirthDate { get; init; }
 }
@@ -45,14 +45,14 @@ public sealed class AnimalUpdateRequestValidator : BaseAnimalValidator<AnimalUpd
 }
 
 public sealed record AnimalBasicResponse(long AnimalId, string AnimalName, string? AnimalPhotoUrl,
-    AnimalSpecies AnimalSpecies, string? AnimalBreed, AnimalSex? Sex, string? MicrochipNumber)
+    string AnimalSpecies, string? AnimalBreed, AnimalSex? Sex, string? MicrochipNumber)
 {
     public static AnimalBasicResponse From(Animal animal) => new(animal.Id, animal.Name, animal.PhotoUrl,
         animal.Species, animal.Breed, animal.Sex, animal.MicrochipNumber);
 }
 
 public sealed record AnimalQuickSearchResponse(long Id, string Name, DateOnly BirthDate, string OwnerName,
-    AnimalSpecies Species, string? PhotoUrl, string? MicrochipNumber);
+    string Species, string? PhotoUrl, string? MicrochipNumber);
 
 /// <summary>Detalle del paciente; los campos sin valor no se envían.</summary>
 public sealed record AnimalResponse(
@@ -60,7 +60,7 @@ public sealed record AnimalResponse(
     string Name,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? PhotoUrl,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] CustomerResponse? Owner,
-    AnimalSpecies Species,
+    string Species,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Breed,
     DateOnly BirthDate,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] AnimalSex? Sex,
@@ -75,7 +75,7 @@ public sealed record AnimalResponse(
 }
 
 public sealed record AnimalSummaryResponse(long Id, string Name, DateOnly BirthDate, string? Breed,
-    AnimalSpecies Species, string OwnerName, bool IsActive);
+    string Species, string OwnerName, bool IsActive);
 
 /// <summary>Historial de compras del paciente agrupado por categoría (hoy siempre vacío, como en el backend anterior).</summary>
 public sealed record SaleProductsGrouped(IReadOnlyDictionary<string, List<object>> Categories)
@@ -130,7 +130,7 @@ public sealed class AnimalService : IAnimalService
         {
             Name = request.Name!,
             Owner = owner,
-            Species = request.Species!.Value,
+            Species = request.Species!,
             Breed = request.Breed,
             BirthDate = request.BirthDate!.Value,
             IsActive = true,
@@ -168,7 +168,7 @@ public sealed class AnimalService : IAnimalService
             ?? throw new NotFoundException("Dueño no encontrado");
         animal.Name = request.Name!;
         animal.Owner = owner;
-        animal.Species = request.Species!.Value;
+        animal.Species = request.Species!;
         animal.Breed = request.Breed;
         animal.BirthDate = request.BirthDate!.Value;
         await _db.SaveChangesAsync(ct);

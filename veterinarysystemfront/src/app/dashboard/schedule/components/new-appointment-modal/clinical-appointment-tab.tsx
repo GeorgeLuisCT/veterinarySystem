@@ -14,6 +14,7 @@ import { ClinicalServiceCategory } from "@/app/dashboard/clinical/enums/clinical
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import type { Option } from "../types";
+import { AnimalPickerField } from "@/app/dashboard/crm/patients/components/animal-picker-field";
 
 interface ClinicalAppointmentTabProps {
   form: UseFormReturn<CreateClinicalAppointmentRequest>;
@@ -25,6 +26,7 @@ interface ClinicalAppointmentTabProps {
   syncBranchBetweenForms: (value: number, source: "clinical" | "grooming" | "surgical") => void;
   animalOptions: Option[];
   onSearchAnimals: (query: string) => void;
+  onRequestCreateAnimal: (query: string) => void;
   loadEmployees: (query?: string) => Promise<Option[]>;
   open: boolean;
 }
@@ -39,6 +41,7 @@ export function ClinicalAppointmentTab({
   syncBranchBetweenForms,
   animalOptions,
   onSearchAnimals,
+  onRequestCreateAnimal,
   loadEmployees,
   open,
 }: ClinicalAppointmentTabProps) {
@@ -172,18 +175,14 @@ export function ClinicalAppointmentTab({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <FloatingLabelSelect
+                    <AnimalPickerField
                       id="clinical-animalId"
-                      label="Mascota"
-                      value={field.value ? String(field.value) : ""}
-                      onValueChange={(value) => field.onChange(Number(value))}
-                      options={animalOptions.map((animal) => ({
-                        value: String(animal.id),
-                        label: animal.label,
-                      }))}
+                      value={field.value}
+                      onChange={field.onChange}
+                      options={animalOptions}
                       onSearch={onSearchAnimals}
+                      onRequestCreate={onRequestCreateAnimal}
                       disabled={isSubmitting}
-                      emptyMessage="No se encontraron mascotas."
                     />
                   </FormControl>
                   <FormMessage />

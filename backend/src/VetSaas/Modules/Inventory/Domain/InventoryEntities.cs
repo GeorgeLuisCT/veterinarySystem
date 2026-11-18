@@ -1,3 +1,4 @@
+using VetSaas.Modules.Catalogs;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +10,6 @@ namespace VetSaas.Modules.Inventory.Domain
 {
     public enum AdjustmentType { ENTRY, EXIT }
 
-    public enum AdministrationRoute
-    {
-        INTRAMUSCULAR, INTRAVENOSA, SUBCUTANEA, ORAL, TOPICA, INHALATORIA, INTRADERMICA,
-        OFTALMICA, OTICA, NASAL, RECTAL, VAGINAL, SUBLINGUAL, BUCAL
-    }
 
     public enum InventoryMovementType { PURCHASE, TRANSFER, ADJUSTMENT, SALE, SERVICE }
 
@@ -23,17 +19,12 @@ namespace VetSaas.Modules.Inventory.Domain
         ADJUSTMENT_ENTRY, ADJUSTMENT_EXIT, TRANSFER_ENTRY, TRANSFER_EXIT
     }
 
-    public enum ProductPresentationType
-    {
-        BOTTLE, BAG, BOX, JAR, SACHET, BLISTER, CAN, TUBE, PACK, AMPOULE, SYRINGE, GALLON, CASE, ROLL, UNIT
-    }
 
     public enum ProductUnitType
     {
         KILOGRAM, GRAM, MILLIGRAM, MICROGRAM, LITER, MILLILITER, UNIT, CAPSULE, TABLET, PACK, BOX
     }
 
-    public enum SupplierType { NATURAL, JURIDICAL, COMPANY }
 
     public static class InventoryEnumExtensions
     {
@@ -74,7 +65,7 @@ namespace VetSaas.Modules.Inventory.Domain
         public string? Website { get; set; }
         public string? Phone { get; set; }
         public string? Email { get; set; }
-        public SupplierType SupplierType { get; set; }
+        [Catalog(CatalogKeys.SupplierType)] [MaxLength(60)] public string SupplierType { get; set; }
         [MaxLength(50)] public string? BankName { get; set; }
         [MaxLength(30)] public string? BankAccountNumber { get; set; }
         public bool Active { get; set; } = true;
@@ -90,7 +81,7 @@ namespace VetSaas.Modules.Inventory.Domain
         public long CategoryId { get; set; }
         public CategoryProduct Category { get; set; } = null!;
         [MaxLength(50)] public string Sku { get; set; } = null!;
-        public ProductPresentationType Presentation { get; set; }
+        [Catalog(CatalogKeys.ProductPresentation)] [MaxLength(60)] public string Presentation { get; set; }
         /// <summary>Unidad base: en ella se lleva todo el stock (kardex).</summary>
         public ProductUnitType UnitType { get; set; }
         /// <summary>Cuántas unidades base trae la unidad principal de venta.</summary>
@@ -100,14 +91,14 @@ namespace VetSaas.Modules.Inventory.Domain
         public ICollection<ProductBranch> BranchStocks { get; set; } = new List<ProductBranch>();
 
         [NotMapped]
-        public IEnumerable<AdministrationRoute> Routes => AdministrationRoutes.Select(r => r.Route);
+        public IEnumerable<string> Routes => AdministrationRoutes.Select(r => r.Route);
     }
 
     [Table("product_administration_routes")]
     public class ProductAdministrationRoute
     {
         public long ProductId { get; set; }
-        public AdministrationRoute Route { get; set; }
+        [Catalog(CatalogKeys.AdministrationRoute)] [MaxLength(60)] public string Route { get; set; }
     }
 
     /// <summary>Habilitación del producto en una sucursal (no guarda stock: el stock es la suma del kardex).</summary>

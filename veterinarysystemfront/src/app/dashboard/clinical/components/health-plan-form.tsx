@@ -25,6 +25,7 @@ import { HealthPlanResponse } from "../types/health-plan-response";
 import HealthPlanService from "../service/health-plan-service";
 import ClinicalServiceService from "../service/clinical-service-service";
 import { ClinicalServiceQuickSearchResponse } from "../types/clinical-service-response";
+import { ClinicalServiceCategory, ClinicalServiceCategoryLabels } from "@/app/dashboard/clinical/enums/clinical-service-category";
 
 interface HealthPlanFormProps {
   setOpen: (open: boolean) => void;
@@ -133,7 +134,7 @@ const ServiceSelector = ({
               <Search className="ml-2 h-4 w-4 shrink-0 opacity-70" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[360px] p-0">
+          <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-[14rem] p-0" align="start">
             <Command>
               <div className="border-b border-border px-3 py-2">
                 <CommandInput
@@ -160,7 +161,7 @@ const ServiceSelector = ({
                         >
                           <span className="font-medium">{service.name}</span>
                           <span className="text-xs text-muted-foreground">
-                            {service.clinicalServiceCategory}
+                            {ClinicalServiceCategoryLabels[service.clinicalServiceCategory] ?? service.clinicalServiceCategory}
                           </span>
                           {service.price !== null && (
                             <span className="text-xs text-muted-foreground">
@@ -191,7 +192,7 @@ const ServiceSelector = ({
       </div>
       {selectedService?.category && (
         <Badge variant="secondary" className="w-fit">
-          {selectedService.category}
+          {ClinicalServiceCategoryLabels[selectedService.category as ClinicalServiceCategory] ?? selectedService.category}
         </Badge>
       )}
     </div>

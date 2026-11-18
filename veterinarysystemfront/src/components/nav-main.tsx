@@ -19,6 +19,8 @@ import { useUser } from "@/context/user-context";
 import { navigationConfig } from "@/config/navigation";
 import { RoleName } from "@/enums/role-name";
 import { useSidebar } from "@/components/ui/sidebar";
+import { usePref } from "@/context/preferences-context";
+import { PREF } from "@/config/preferences";
 
 export function NavMain({
   mainTitle,
@@ -43,8 +45,11 @@ export function NavMain({
   }, [pathname, wasNavigated, isMobile, setOpenMobile]);
 
   const userRoles = userInfo?.roles || [];
+  // Preferencia de la sucursal: módulos que no se usan aquí no aparecen en el menú (los permisos no cambian).
+  const hiddenModules = usePref(PREF.hiddenModules);
 
   const filteredItems = items
+    .filter((section) => !("key" in section && hiddenModules.includes(section.key as string)))
     .filter((section) => section.rolesAllowed.some((role) => userRoles.includes(role as RoleName)))
     .map((section) => {
       const childItems =

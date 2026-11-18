@@ -36,6 +36,16 @@ import { SurgicalAppointmentTab } from "./new-appointment-modal/surgical-appoint
 import type { Option } from "./types";
 import { AnimalSpeciesLabels } from "../../crm/patients/enums/animal-species";
 import { SegmentedControl } from "@/components/page/segmented-control";
+import { usePref } from "@/context/preferences-context";
+import { PREF } from "@/config/preferences";
+import {
+  QuickAnimalView,
+  QUICK_ANIMAL_DESCRIPTION,
+  QUICK_ANIMAL_TITLE,
+  quickAnimalLabel,
+  useQuickAnimalView,
+  type QuickCreatedAnimal,
+} from "@/app/dashboard/crm/patients/components/quick-animal-view";
 
 type NewAppointmentModalTab = "clinical" | "grooming" | "surgical";
 
@@ -79,6 +89,11 @@ export function NewAppointmentModal({ open, onOpenChange, onCreated, initialDate
   const [animalOptions, setAnimalOptions] = React.useState<Option[]>([]);
   const [branchOptions, setBranchOptions] = React.useState<Option[]>([]);
   const [branchesLoading, setBranchesLoading] = React.useState(false);
+  // Vista "Nueva mascota": reemplaza el contenido del modal sin desmontar la cita (no se pierde lo llenado).
+  const quickAnimal = useQuickAnimalView();
+  // Preferencia de la sucursal: duración que se propone en cada cita nueva (0 = no proponer).
+  const suggestedDuration = usePref(PREF.appointmentDuration);
+  const resetQuickAnimal = quickAnimal.reset;
 
   const branchDefaultValues = React.useMemo(
     () => (fixedBranchId ? { branchId: fixedBranchId } : {}),
@@ -238,6 +253,7 @@ export function NewAppointmentModal({ open, onOpenChange, onCreated, initialDate
   const handleModalToggle = React.useCallback(
     (nextOpen: boolean) => {
       if (!nextOpen) {
+        resetQuickAnimal();
         setActiveTab("clinical");
         clinicalForm.reset({
           ...clinicalDefaultValues,
@@ -254,7 +270,7 @@ export function NewAppointmentModal({ open, onOpenChange, onCreated, initialDate
       }
       onOpenChange(nextOpen);
     },
-    [branchDefaultValues, clinicalForm, groomingForm, onOpenChange, surgicalForm]
+    [branchDefaultValues, clinicalForm, groomingForm, onOpenChange, surgicalForm, resetQuickAnimal]
   );
 
   React.useEffect(() => {
@@ -287,7 +303,26 @@ export function NewAppointmentModal({ open, onOpenChange, onCreated, initialDate
     clinicalForm.setValue("startDateTime", formattedDateTime);
     groomingForm.setValue("startDateTime", formattedDateTime);
     surgicalForm.setValue("startDateTime", formattedDateTime);
-  }, [open, initialDateTime, clinicalForm, groomingForm, surgicalForm]);
+
+    if (suggestedDuration > 0) {
+      if (!clinicalForm.getValues("estimatedDurationMinutes")) clinicalForm.setValue("estimatedDurationMinutes", suggestedDuration);
+      if (!groomingForm.getValues("estimatedDurationMinutes")) groomingForm.setValue("estimatedDurationMinutes", suggestedDuration);
+      if (!surgicalForm.getValues("estimatedDurationMinutes")) surgicalForm.setValue("estimatedDurationMinutes", suggestedDuration);
+    }
+  }, [open, initialDateTime, clinicalForm, groomingForm, surgicalForm, suggestedDuration]);
+
+  // La mascota recién registrada se agrega a las opciones y queda seleccionada en la pestaña activa.
+  const handleAnimalCreated = React.useCallback(
+    (animal: QuickCreatedAnimal) => {
+      const option = { id: animal.id, label: quickAnimalLabel(animal) };
+      setAnimalOptions((prev) => [option, ...prev.filter((o) => o.id !== option.id)]);
+      const opts = { shouldValidate: true, shouldDirty: true } as const;
+      if (activeTab === "clinical") clinicalForm.setValue("animalId", animal.id, opts);
+      else if (activeTab === "grooming") groomingForm.setValue("animalId", animal.id, opts);
+      else surgicalForm.setValue("animalId", animal.id, opts);
+    },
+    [activeTab, clinicalForm, groomingForm, surgicalForm]
+  );
 
   const handleSearchAnimals = React.useCallback(
     (query: string) => {
@@ -386,15 +421,23 @@ export function NewAppointmentModal({ open, onOpenChange, onCreated, initialDate
 
   return (
     <Dialog open={open} onOpenChange={handleModalToggle}>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent className="overflow-hidden sm:max-w-4xl" onEscapeKeyDown={quickAnimal.handleEscapeKeyDown}>
         <DialogHeader>
-          <DialogTitle>Crear nueva cita</DialogTitle>
+          <DialogTitle>{quickAnimal.active ? QUICK_ANIMAL_TITLE : "Crear nueva cita"}</DialogTitle>
           <DialogDescription>
-            Completa la información según el tipo de cita que deseas agendar.
+            {quickAnimal.active
+              ? QUICK_ANIMAL_DESCRIPTION
+              : "Completa la información según el tipo de cita que deseas agendar."}
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as NewAppointmentModalTab)}>
+        <QuickAnimalView view={quickAnimal} idPrefix="appointment-new-animal" onCreated={handleAnimalCreated} />
+
+        <Tabs
+          value={activeTab}
+          className={quickAnimal.mainClassName}
+          onValueChange={(value) => setActiveTab(value as NewAppointmentModalTab)}
+        >
           <SegmentedControl<NewAppointmentModalTab>
             aria-label="Tipo de cita"
             value={activeTab}
@@ -422,6 +465,7 @@ export function NewAppointmentModal({ open, onOpenChange, onCreated, initialDate
                 syncBranchBetweenForms={syncBranchBetweenForms}
                 animalOptions={animalOptions}
                 onSearchAnimals={handleSearchAnimals}
+                onRequestCreateAnimal={quickAnimal.open}
                 loadEmployees={loadEmployees}
                 open={open}
               />
@@ -443,6 +487,7 @@ export function NewAppointmentModal({ open, onOpenChange, onCreated, initialDate
                 syncBranchBetweenForms={syncBranchBetweenForms}
                 animalOptions={animalOptions}
                 onSearchAnimals={handleSearchAnimals}
+                onRequestCreateAnimal={quickAnimal.open}
                 loadEmployees={loadEmployees}
                 open={open}
                 selectedBranchId={selectedBranchId}
@@ -465,6 +510,7 @@ export function NewAppointmentModal({ open, onOpenChange, onCreated, initialDate
                 syncBranchBetweenForms={syncBranchBetweenForms}
                 animalOptions={animalOptions}
                 onSearchAnimals={handleSearchAnimals}
+                onRequestCreateAnimal={quickAnimal.open}
                 loadEmployees={loadEmployees}
                 open={open}
               />

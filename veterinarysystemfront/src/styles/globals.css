@@ -213,3 +213,29 @@
 .bg-app-gradient {
   background-color: var(--background);
 }
+
+/* ---- Preferencias de apariencia (context/preferences-context.tsx) ---- */
+/* Tamaño de letra: todo lo dimensionado en rem crece junto con la raíz. */
+html[data-font-size="large"] {
+  font-size: 112.5%;
+}
+html[data-font-size="xlarge"] {
+  font-size: 125%;
+}
+/* Densidad compacta: filas más bajas en todas las tablas (letra algo menor, botones y rellenos internos más chicos). */
+html[data-density="compact"] [data-slot="table-cell"] {
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 0.8125rem;
+}
+html[data-density="compact"] [data-slot="table-cell"] .py-2 {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+html[data-density="compact"] [data-slot="table-cell"] [data-slot="button"] {
+  height: 1.75rem;
+  min-height: 1.75rem;
+}
+html[data-density="compact"] [data-slot="table-head"] {
+  height: 2rem;
+}

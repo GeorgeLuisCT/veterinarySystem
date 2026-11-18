@@ -1,56 +1,28 @@
-export enum ProductPresentationType {
-  BOTTLE = "BOTTLE",
-  BAG = "BAG",
-  BOX = "BOX",
-  JAR = "JAR",
-  SACHET = "SACHET",
-  BLISTER = "BLISTER",
-  CAN = "CAN",
-  TUBE = "TUBE",
-  PACK = "PACK",
-  AMPOULE = "AMPOULE",
-  SYRINGE = "SYRINGE",
-  GALLON = "GALLON",
-  CASE = "CASE",
-  ROLL = "ROLL",
-  UNIT = "UNIT",
-}
+import { CatalogKey, catalogEnum, catalogLabels, catalogOptions, catalogPlurals } from "@/lib/catalogs";
 
-export const ProductPresentationTypeLabels: Record<ProductPresentationType, string> = {
-  [ProductPresentationType.BOTTLE]: "Botella",
-  [ProductPresentationType.BAG]: "Bolsa",
-  [ProductPresentationType.BOX]: "Caja",
-  [ProductPresentationType.JAR]: "Frasco",
-  [ProductPresentationType.SACHET]: "Sobre",
-  [ProductPresentationType.BLISTER]: "Blíster",
-  [ProductPresentationType.CAN]: "Lata",
-  [ProductPresentationType.TUBE]: "Tubo",
-  [ProductPresentationType.PACK]: "Paquete",
-  [ProductPresentationType.AMPOULE]: "Ampolla",
-  [ProductPresentationType.SYRINGE]: "Jeringa precargada",
-  [ProductPresentationType.GALLON]: "Galón",
-  [ProductPresentationType.CASE]: "Estuche",
-  [ProductPresentationType.ROLL]: "Rollo",
-  [ProductPresentationType.UNIT]: "Unidad",
-};
+/** Presentaciones de producto: catálogo editable (Configuración → Catálogos). */
+export const ProductPresentationType = catalogEnum(CatalogKey.ProductPresentation, {
+  BOTTLE: { label: "Botella", plural: "Botellas" },
+  BAG: { label: "Bolsa", plural: "Bolsas" },
+  BOX: { label: "Caja", plural: "Cajas" },
+  JAR: { label: "Frasco", plural: "Frascos" },
+  SACHET: { label: "Sobre", plural: "Sobres" },
+  BLISTER: { label: "Blíster", plural: "Blísters" },
+  CAN: { label: "Lata", plural: "Latas" },
+  TUBE: { label: "Tubo", plural: "Tubos" },
+  PACK: { label: "Paquete", plural: "Paquetes" },
+  AMPOULE: { label: "Ampolla", plural: "Ampollas" },
+  SYRINGE: { label: "Jeringa precargada", plural: "Jeringas precargadas" },
+  GALLON: { label: "Galón", plural: "Galones" },
+  CASE: { label: "Estuche", plural: "Estuches" },
+  ROLL: { label: "Rollo", plural: "Rollos" },
+  UNIT: { label: "Unidad", plural: "Unidades" },
+});
+export type ProductPresentationType = string;
 
-export const ProductPresentationTypeLabelsPlural: Record<ProductPresentationType, string> = {
-  [ProductPresentationType.BOTTLE]: "Botellas",
-  [ProductPresentationType.BAG]: "Bolsas",
-  [ProductPresentationType.BOX]: "Cajas",
-  [ProductPresentationType.JAR]: "Frascos",
-  [ProductPresentationType.SACHET]: "Sobres",
-  [ProductPresentationType.BLISTER]: "Blísters",
-  [ProductPresentationType.CAN]: "Latas",
-  [ProductPresentationType.TUBE]: "Tubos",
-  [ProductPresentationType.PACK]: "Paquetes",
-  [ProductPresentationType.AMPOULE]: "Ampollas",
-  [ProductPresentationType.SYRINGE]: "Jeringas precargadas",
-  [ProductPresentationType.GALLON]: "Galones",
-  [ProductPresentationType.CASE]: "Estuches",
-  [ProductPresentationType.ROLL]: "Rollos",
-  [ProductPresentationType.UNIT]: "Unidades",
-};
+export const ProductPresentationTypeLabels = catalogLabels(CatalogKey.ProductPresentation);
+export const ProductPresentationTypeLabelsPlural = catalogPlurals(CatalogKey.ProductPresentation);
+export const ProductPresentationTypeOptions = catalogOptions(CatalogKey.ProductPresentation);
 
 export function getProductPresentationTypeLabel(presentation: ProductPresentationType): string {
   return ProductPresentationTypeLabels[presentation] || presentation;
@@ -60,12 +32,6 @@ export function getProductPresentationTypeLabelPlural(presentation: ProductPrese
   return ProductPresentationTypeLabelsPlural[presentation] || ProductPresentationTypeLabels[presentation] || presentation;
 }
 
-export function getProductPresentationTypeLabelByQuantity(
-  presentation: ProductPresentationType,
-  quantity: number
-): string {
-  if (quantity === 1) {
-    return getProductPresentationTypeLabel(presentation);
-  }
-  return getProductPresentationTypeLabelPlural(presentation);
+export function getProductPresentationTypeLabelByQuantity(presentation: ProductPresentationType, quantity: number): string {
+  return quantity === 1 ? getProductPresentationTypeLabel(presentation) : getProductPresentationTypeLabelPlural(presentation);
 }

@@ -1,3 +1,4 @@
+using VetSaas.Modules.Catalogs;
 using System.Globalization;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -12,16 +13,6 @@ namespace VetSaas.Modules.Clinic.Application;
 
 internal static class ClinicFormat
 {
-    public static string? Species(AnimalSpecies? s) => s switch
-    {
-        null => null,
-        AnimalSpecies.CANINE => "Canino", AnimalSpecies.FELINE => "Felino", AnimalSpecies.RABBIT => "Conejo",
-        AnimalSpecies.HAMSTER => "Hámster", AnimalSpecies.GUINEA_PIG => "Cobayo/Cuyo", AnimalSpecies.AVIAN => "Ave",
-        AnimalSpecies.REPTILE => "Reptil", AnimalSpecies.EQUINE => "Equino", AnimalSpecies.BOVINE => "Bovino",
-        AnimalSpecies.OVINE => "Ovino", AnimalSpecies.CAPRINE => "Caprino", AnimalSpecies.PORCINE => "Porcino",
-        AnimalSpecies.CAMELID => "Camélido", _ => "Otro",
-    };
-
     public static string? Sex(AnimalSex? s) => s switch
     {
         null => null,
@@ -64,7 +55,7 @@ internal static class ClinicFormat
 // Registros médicos (línea de tiempo)
 // =====================================================================================================
 
-public sealed record MedicalRecordSummaryResponse(DateTime OccurredAt, MedicalRecordCategory Category, string? Title);
+public sealed record MedicalRecordSummaryResponse(DateTime OccurredAt, string Category, string? Title);
 
 public interface IMedicalRecordService
 {
@@ -111,7 +102,7 @@ public sealed class ReminderUpdateStatusValidator : AbstractValidator<ReminderUp
 }
 
 public sealed record ReminderListItemResponse(long? Id, string? ExternalId, bool Automatic, bool Deletable, ReminderType ReminderType,
-    ReminderStatus Status, DateOnly DueDate, string Subject, string? Detail, long AnimalId, string AnimalName, AnimalSpecies AnimalSpecies,
+    ReminderStatus Status, DateOnly DueDate, string Subject, string? Detail, long AnimalId, string AnimalName, string AnimalSpecies,
     long? OwnerId, string? OwnerName, string? OwnerPhone, string? OwnerEmail, string? BranchName);
 
 public sealed record ReminderQueryFilters(string? Query, IReadOnlyCollection<ReminderType>? Types, IReadOnlyCollection<ReminderStatus>? Statuses,
@@ -259,14 +250,14 @@ public sealed class ReminderService : IReminderService
 // Historia clínica
 // =====================================================================================================
 
-public sealed record ClinicalHistoryAnimalSummaryResponse(long AnimalId, string AnimalName, AnimalSpecies Species, string? SpeciesLabel,
+public sealed record ClinicalHistoryAnimalSummaryResponse(long AnimalId, string AnimalName, string Species, string? SpeciesLabel,
     string? Breed, AnimalSex? Sex, string? OwnerName, string? OwnerPhone, string? OwnerEmail, string? Microchip, DateOnly BirthDate, string Age,
     bool Active, DateTime? LastVisitDate, string? LastVisitService, string? LastVeterinarian, long TotalConsultations, long TotalLabRequests,
     long TotalProcedures, double? LastRecordedWeightKg);
 
 public sealed record HistoryOwnerInfo(long Id, string Name, string? Email, string? PhoneNumber, string? Address, string? DocumentType, string DocumentNumber);
 
-public sealed record HistoryPatientInfo(long AnimalId, string Name, string? PhotoUrl, AnimalSpecies Species, string? SpeciesLabel, string? Breed,
+public sealed record HistoryPatientInfo(long AnimalId, string Name, string? PhotoUrl, string Species, string? SpeciesLabel, string? Breed,
     AnimalSex? Sex, string? SexLabel, DateOnly BirthDate, string Age, string? Microchip, bool Active, IReadOnlyCollection<string> Allergies,
     IReadOnlyCollection<string> ChronicConditions, HistoryOwnerInfo? Owner, DateTime? LastVisitDate, string? LastVisitService, string? LastVeterinarian);
 
@@ -319,7 +310,7 @@ public sealed record ClinicalHistoryDetailResponse(HistoryPatientInfo Patient, H
 
 public interface IClinicalHistoryService
 {
-    Task<PaginatedResponse<ClinicalHistoryAnimalSummaryResponse>> SearchAnimalsAsync(string? query, IReadOnlyCollection<AnimalSpecies>? species,
+    Task<PaginatedResponse<ClinicalHistoryAnimalSummaryResponse>> SearchAnimalsAsync(string? query, IReadOnlyCollection<string>? species,
         bool? active, int page, int size, CancellationToken ct = default);
     Task<ClinicalHistoryDetailResponse> GetAnimalHistoryAsync(long animalId, DateOnly? from, DateOnly? to, CancellationToken ct = default);
 }
@@ -336,7 +327,7 @@ public sealed class ClinicalHistoryService : IClinicalHistoryService
     }
 
     public async Task<PaginatedResponse<ClinicalHistoryAnimalSummaryResponse>> SearchAnimalsAsync(string? query,
-        IReadOnlyCollection<AnimalSpecies>? species, bool? active, int page, int size, CancellationToken ct = default)
+        IReadOnlyCollection<string>? species, bool? active, int page, int size, CancellationToken ct = default)
     {
         IQueryable<Animal> animals = _db.Animals.AsNoTracking().Include(a => a.Owner);
         if (!string.IsNullOrWhiteSpace(query))
@@ -368,11 +359,12 @@ public sealed class ClinicalHistoryService : IClinicalHistoryService
             .GroupBy(c => c.Attention.AnimalId)
             .ToDictionary(g => g.Key, g => g.OrderByDescending(c => c.VisitDate).First());
 
+        Dictionary<string, string> speciesLabels = await _db.CatalogLabelsAsync(CatalogKeys.AnimalSpecies, ct);
         DateOnly today = _clock.Today;
         return pageResult.Map(a =>
         {
             latest.TryGetValue(a.Id, out ClinicalAttention? last);
-            return new ClinicalHistoryAnimalSummaryResponse(a.Id, a.Name, a.Species, ClinicFormat.Species(a.Species), a.Breed, a.Sex,
+            return new ClinicalHistoryAnimalSummaryResponse(a.Id, a.Name, a.Species, speciesLabels.GetValueOrDefault(a.Species, a.Species), a.Breed, a.Sex,
                 a.Owner?.Name, a.Owner?.PhoneNumber, a.Owner?.Email, a.MicrochipNumber, a.BirthDate, ClinicFormat.Age(a.BirthDate, today),
                 a.IsActive, last?.VisitDate, last?.Attention.Service?.Name, last?.Attention.AttendingEmployee?.FullName,
                 consultations.GetValueOrDefault(a.Id), labs.GetValueOrDefault(a.Id),
@@ -471,7 +463,9 @@ public sealed class ClinicalHistoryService : IClinicalHistoryService
             .Select(c => new HistoryWeightEntry(c.VisitDate, c.WeightKg!.Value, c.Id)).OrderBy(w => w.RecordedAt).ToList();
 
         Customer? owner = animal.Owner;
-        var patient = new HistoryPatientInfo(animal.Id, animal.Name, animal.PhotoUrl, animal.Species, ClinicFormat.Species(animal.Species),
+        Dictionary<string, string> speciesLabels = await _db.CatalogLabelsAsync(CatalogKeys.AnimalSpecies, ct);
+        var patient = new HistoryPatientInfo(animal.Id, animal.Name, animal.PhotoUrl, animal.Species,
+            speciesLabels.GetValueOrDefault(animal.Species, animal.Species),
             animal.Breed, animal.Sex, ClinicFormat.Sex(animal.Sex), animal.BirthDate, ClinicFormat.Age(animal.BirthDate, _clock.Today),
             animal.MicrochipNumber, animal.IsActive, animal.Allergies.Distinct().ToList(), animal.ChronicConditions.Distinct().ToList(),
             owner is null ? null : new HistoryOwnerInfo(owner.Id, owner.Name, owner.Email, owner.PhoneNumber, owner.Address,

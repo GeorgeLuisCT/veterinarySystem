@@ -120,6 +120,9 @@ public sealed class ReportDb
 
     public Task<List<ReportRow>> QueryAsync(string sql, SqlWhere where, CancellationToken ct) => QueryAsync(sql, where.Params, ct);
 
+    /// <summary>Textos de un catálogo editable (p. ej. especies), para mostrar el nombre configurado por la empresa.</summary>
+    public Task<Dictionary<string, string>> CatalogLabelsAsync(string key, CancellationToken ct) => _db.CatalogLabelsAsync(key, ct);
+
     public async Task<ReportRow> OneAsync(string sql, IReadOnlyDictionary<string, object>? parameters, CancellationToken ct) =>
         (await QueryAsync(sql, parameters, ct)).FirstOrDefault() ?? new ReportRow(new Dictionary<string, object?>());
 
@@ -146,11 +149,11 @@ public abstract class ReportProviderBase : IReportDataProvider
     }
 
     /// <summary>Breakdown de conteo por columna (patrón "SELECT x, COUNT(*) AS qty ... GROUP BY x").</summary>
-    protected static ReportBreakdownItem CountItem(ReportRow r, string labelKey)
+    protected static ReportBreakdownItem CountItem(ReportRow r, string labelKey, Func<string?, string>? translate = null)
     {
-        string label = r.S(labelKey) ?? "";
+        string code = r.S(labelKey) ?? "";
         int qty = r.I("qty");
-        return new ReportBreakdownItem { Key = label, Label = label, Value = qty, FormattedValue = Int(qty) };
+        return new ReportBreakdownItem { Key = code, Label = translate is null ? code : translate(code), Value = qty, FormattedValue = Int(qty) };
     }
 
     protected static ReportMetric CountMetric(string key, string label, int value, string unit) =>
@@ -377,7 +380,7 @@ public sealed class FinanceReportProvider : ReportProviderBase
             SELECT status, COUNT(*) AS qty, SUM(total_amount - amount_paid) AS balance FROM accounts_payable GROUP BY status
             """, (IReadOnlyDictionary<string, object>?)null, ct)).Select(r => new ReportBreakdownItem
         {
-            Key = r.S("status")!, Label = r.S("status")!, Value = r.D("balance"), FormattedValue = Currency(r.M("balance")),
+            Key = r.S("status")!, Label = ReportLabels.Payable(r.S("status")), Value = r.D("balance"), FormattedValue = Currency(r.M("balance")),
             Metadata = { new ReportKeyValue("Operaciones", Int(r.I("qty"))) },
         }).ToList();
 
@@ -460,10 +463,10 @@ public sealed class ClinicReportProvider : ReportProviderBase
         var sw = SurgeryWhere(f);
         int surgeries = (await Db.OneAsync($"SELECT COUNT(*) AS qty{SurgFrom}{sw} AND sr.status IN ('DRAFT','IN_PROGRESS','READY_TO_BILL')", sw, ct)).I("qty");
 
-        var statusItems = (await Db.QueryAsync($"SELECT ca.status, COUNT(*) AS qty{AttFrom}{aw} GROUP BY ca.status", aw, ct)).Select(r => CountItem(r, "status")).ToList();
+        var statusItems = (await Db.QueryAsync($"SELECT ca.status, COUNT(*) AS qty{AttFrom}{aw} GROUP BY ca.status", aw, ct)).Select(r => CountItem(r, "status", ReportLabels.ClinicalAttention)).ToList();
         var lw2 = LabWhere(f);
-        var labItems = (await Db.QueryAsync($"SELECT lr.status, COUNT(*) AS qty{LabFrom}{lw2} GROUP BY lr.status", lw2, ct)).Select(r => CountItem(r, "status")).ToList();
-        var surgItems = (await Db.QueryAsync($"SELECT sr.status, COUNT(*) AS qty{SurgFrom}{sw} GROUP BY sr.status", sw, ct)).Select(r => CountItem(r, "status")).ToList();
+        var labItems = (await Db.QueryAsync($"SELECT lr.status, COUNT(*) AS qty{LabFrom}{lw2} GROUP BY lr.status", lw2, ct)).Select(r => CountItem(r, "status", ReportLabels.LabRequest)).ToList();
+        var surgItems = (await Db.QueryAsync($"SELECT sr.status, COUNT(*) AS qty{SurgFrom}{sw} GROUP BY sr.status", sw, ct)).Select(r => CountItem(r, "status", ReportLabels.SurgicalReport)).ToList();
         var timeline = (await Db.QueryAsync($"""
             SELECT DATE(ca.visit_date) AS bucket_date, COUNT(*) AS qty{AttFrom}{aw}
             GROUP BY DATE(ca.visit_date) ORDER BY bucket_date LIMIT 90
@@ -519,7 +522,7 @@ public sealed class FieldworkReportProvider : ReportProviderBase
             FROM field_visits fv{Joins}{w}
             """, w, ct);
         var status = (await Db.QueryAsync($"SELECT fv.status, COUNT(*) AS qty FROM field_visits fv{Joins}{w} GROUP BY fv.status", w, ct))
-            .Select(r => CountItem(r, "status")).ToList();
+            .Select(r => CountItem(r, "status", ReportLabels.FieldVisit)).ToList();
         var zones = (await Db.QueryAsync($"""
             SELECT COALESCE(gz.name, 'Sin zona') AS zone_name, COUNT(*) AS qty FROM field_visits fv{Joins}{w}
             GROUP BY zone_name ORDER BY qty DESC LIMIT 5
@@ -591,7 +594,7 @@ public sealed class CashboxReportProvider : ReportProviderBase
             GROUP BY sp.payment_method
             """, w, ct)).Select(r => new ReportBreakdownItem
         {
-            Key = r.S("method")!, Label = r.S("method")!, Value = r.D("amount"), FormattedValue = Currency(r.M("amount")),
+            Key = r.S("method")!, Label = ReportLabels.PaymentMethod(r.S("method")), Value = r.D("amount"), FormattedValue = Currency(r.M("amount")),
         }).ToList();
 
         var movements = (await Db.QueryAsync($"""
@@ -601,7 +604,7 @@ public sealed class CashboxReportProvider : ReportProviderBase
             """, w, ct)).Select(r =>
         {
             decimal abs = Math.Abs(r.M("amount"));
-            return new ReportBreakdownItem { Key = r.S("movement_type")!, Label = r.S("movement_type")!, Value = (double)abs, FormattedValue = Currency(abs) };
+            return new ReportBreakdownItem { Key = r.S("movement_type")!, Label = ReportLabels.CashMovement(r.S("movement_type")), Value = (double)abs, FormattedValue = Currency(abs) };
         }).ToList();
 
         var timeline = (await Db.QueryAsync($"""
@@ -713,8 +716,9 @@ public sealed class AnimalsReportProvider : ReportProviderBase
             FROM animal a{w}
             """, w, ct);
         double avgAge = s.D("avg_age");
+        Dictionary<string, string> speciesLabels = await Db.CatalogLabelsAsync(Catalogs.CatalogKeys.AnimalSpecies, ct);
         var species = (await Db.QueryAsync($"SELECT a.species, COUNT(*) AS qty FROM animal a{w} GROUP BY a.species", w, ct))
-            .Select(r => CountItem(r, "species")).ToList();
+            .Select(r => CountItem(r, "species", code => code is not null && speciesLabels.TryGetValue(code, out string? l) ? l : code ?? "")).ToList();
         var owners = (await Db.QueryAsync($"""
             SELECT c.name AS owner, COUNT(*) AS qty FROM animal a JOIN customer c ON c.id = a.customer_id{w}
             GROUP BY c.name ORDER BY qty DESC LIMIT 5
@@ -848,7 +852,7 @@ public sealed class UsersReportProvider : ReportProviderBase
             SELECT r.name AS role_name, COUNT(*) AS qty
             FROM users u JOIN user_roles ur ON ur.user_id = u.id JOIN roles r ON r.id = ur.roles_id
             GROUP BY r.name ORDER BY qty DESC
-            """, (IReadOnlyDictionary<string, object>?)null, ct)).Select(r => CountItem(r, "role_name")).ToList();
+            """, (IReadOnlyDictionary<string, object>?)null, ct)).Select(r => CountItem(r, "role_name", ReportLabels.Role)).ToList();
 
         return new ReportCollection
         {
@@ -889,7 +893,7 @@ public sealed class PublicPortalReportProvider : ReportProviderBase
             FROM appointments a{w}
             """, w, ct);
         var status = (await Db.QueryAsync($"SELECT a.status, COUNT(*) AS qty FROM appointments a{w} GROUP BY a.status", w, ct))
-            .Select(r => CountItem(r, "status")).ToList();
+            .Select(r => CountItem(r, "status", ReportLabels.Appointment)).ToList();
         var timeline = (await Db.QueryAsync($"""
             SELECT DATE(a.start_date_time) AS bucket_date, COUNT(*) AS qty FROM appointments a{w}
             GROUP BY DATE(a.start_date_time) ORDER BY bucket_date LIMIT 90

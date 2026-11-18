@@ -1,3 +1,4 @@
+using VetSaas.Modules.Catalogs;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -10,11 +11,9 @@ using VetSaas.Modules.Inventory.Domain;
 
 namespace VetSaas.Modules.Fieldwork.Domain
 {
-    public enum FieldTaskPriority { LOW, MEDIUM, HIGH, URGENT }
     public enum FieldTaskStatus { PENDING, ASSIGNED, IN_PROGRESS, DONE, CANCELED }
     public enum FieldTeamStatus { OFFLINE, ON_ROUTE, IN_VISIT, FINISHED }
     public enum FieldVisitStatus { PLANNED, IN_PROGRESS, COMPLETED, CANCELED }
-    public enum GeoZoneType { COUNTRY, REGION, PROVINCE, DISTRICT, SECTOR, CUSTOM }
     public enum StockLocationType { BRANCH_WAREHOUSE, VEHICLE, FIELD }
     public enum StockMovementType { LOAD_TO_VEHICLE, UNLOAD_TO_WAREHOUSE, CONSUMPTION, ADJUSTMENT }
 
@@ -23,7 +22,7 @@ namespace VetSaas.Modules.Fieldwork.Domain
     {
         public long Id { get; set; }
         public string Name { get; set; } = null!;
-        public GeoZoneType Type { get; set; } = GeoZoneType.SECTOR;
+        [Catalog(CatalogKeys.GeoZoneType)] [MaxLength(60)] public string Type { get; set; } = "SECTOR";
         public long? ParentId { get; set; }
         public GeoZone? Parent { get; set; }
         public string? GpsCoordinates { get; set; }
@@ -231,7 +230,7 @@ namespace VetSaas.Modules.Fieldwork.Domain
         public long Id { get; set; }
         public long ServiceItemId { get; set; }
         public FieldVisitServiceItem ServiceItem { get; set; } = null!;
-        [MaxLength(32)] public AnimalSpecies? Species { get; set; }
+        [Catalog(CatalogKeys.AnimalSpecies)] [MaxLength(60)] public string? Species { get; set; }
         public string? Breed { get; set; }
         public int? Quantity { get; set; }
         public string? Description { get; set; }
@@ -247,7 +246,7 @@ namespace VetSaas.Modules.Fieldwork.Domain
         public Product Product { get; set; } = null!;
         [Column(TypeName = "numeric(12,3)")] public decimal? Dose { get; set; }
         [MaxLength(32)] public ProductUnitType Unit { get; set; }
-        [MaxLength(32)] public AdministrationRoute AdministrationRoute { get; set; }
+        [Catalog(CatalogKeys.AdministrationRoute)] [MaxLength(60)] public string AdministrationRoute { get; set; }
     }
 
     [Table("field_tasks")]
@@ -260,7 +259,7 @@ namespace VetSaas.Modules.Fieldwork.Domain
         public long? ZoneId { get; set; }
         public GeoZone? Zone { get; set; }
         public string? Description { get; set; }
-        public FieldTaskPriority Priority { get; set; }
+        [Catalog(CatalogKeys.FieldTaskPriority)] [MaxLength(60)] public string Priority { get; set; }
         public FieldTaskStatus Status { get; set; }
         [Column("assigned_to")] public long? AssignedToId { get; set; }
         public Employee? AssignedTo { get; set; }

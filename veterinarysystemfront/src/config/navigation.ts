@@ -6,13 +6,14 @@ import {
   CalendarDays,
   MapPin,
   PiggyBank,
-  UserCog,
+  Settings,
   BarChart3,
   Wallet,
-  BookHeart,
   Hospital,
   Scissors,
 } from "lucide-react";
+import { RoleName } from "@/enums/role-name";
+import { SETTINGS_GROUPS, SETTINGS_URL } from "@/config/settings";
 
 export const navigationConfig = {
   // La información de usuario y equipos se mantiene igual
@@ -32,6 +33,7 @@ export const navigationConfig = {
     // --- MÓDULO 1: RECEPCIÓN Y AGENDA ---
     {
       title: "Agenda",
+      key: "schedule",
       url: "/dashboard/schedule",
       icon: CalendarDays,
       rolesAllowed: ["ROLE_ADMIN", "ROLE_RECEPTIONIST", "ROLE_MANAGER", "ROLE_VETERINARIAN"],
@@ -43,6 +45,7 @@ export const navigationConfig = {
     },
     {
       title: "Clientes y Pacientes",
+      key: "crm",
       url: "/dashboard/crm",
       icon: Users,
       rolesAllowed: ["ROLE_ADMIN", "ROLE_RECEPTIONIST", "ROLE_MANAGER", "ROLE_VETERINARIAN"],
@@ -55,6 +58,7 @@ export const navigationConfig = {
     // --- MÓDULO 2: CLÍNICO ---
     {
       title: "Módulo Clínico",
+      key: "clinical",
       url: "/dashboard/clinical",
       icon: Stethoscope,
       rolesAllowed: ["ROLE_VETERINARIAN", "ROLE_ASSISTANT", "ROLE_ADMIN"],
@@ -64,13 +68,13 @@ export const navigationConfig = {
         { title: "Hospitalización", url: "/dashboard/clinical/hospitalization", icon: Hospital, rolesAllowed: ["ROLE_VETERINARIAN", "ROLE_ASSISTANT"] },
         { title: "Laboratorio", url: "/dashboard/clinical/laboratory", icon: Hospital, rolesAllowed: ["ROLE_VETERINARIAN", "ROLE_ASSISTANT"] },
         { title: "Quirófano", url: "/dashboard/clinical/operating-room", icon: Hospital, rolesAllowed: ["ROLE_VETERINARIAN", "ROLE_ASSISTANT"] },
-        { title: "Catálogo Clínico", url: "/dashboard/clinical/catalog", icon: BookHeart, rolesAllowed: ["ROLE_ADMIN", "ROLE_VETERINARIAN"] },
       ],
     },
 
     // --- MÓDULO 3: OPERACIONES Y VENTAS ---
     {
       title: "Punto de Venta",
+      key: "pos",
       url: "/dashboard/pos",
       icon: ShoppingCart,
       rolesAllowed: ["ROLE_ADMIN", "ROLE_CASHIER", "ROLE_MANAGER", "ROLE_RECEPTIONIST"],
@@ -81,6 +85,7 @@ export const navigationConfig = {
     },
     {
       title: "Caja",
+      key: "cashbox",
       url: "/dashboard/cashbox",
       icon: Wallet,
       rolesAllowed: ["ROLE_ADMIN", "ROLE_CASHIER", "ROLE_MANAGER"],
@@ -91,12 +96,12 @@ export const navigationConfig = {
     },
     {
       title: "Inventario",
+      key: "inventory",
       url: "/dashboard/inventory",
       icon: Boxes,
       rolesAllowed: ["ROLE_ADMIN", "ROLE_WAREHOUSE", "ROLE_MANAGER"],
       items: [
         { title: "Productos", url: "/dashboard/inventory/products", rolesAllowed: ["ROLE_WAREHOUSE"] },
-        { title: "Proveedores", url: "/dashboard/inventory/suppliers", rolesAllowed: ["ROLE_WAREHOUSE", "ROLE_ADMIN"] },
         { title: "Compras", url: "/dashboard/inventory/movements/purchase", rolesAllowed: ["ROLE_ADMIN"] },
         { title: "Movimientos", url: "/dashboard/inventory/movements", rolesAllowed: ["ROLE_ADMIN", "ROLE_WAREHOUSE"] },
       ],
@@ -105,6 +110,7 @@ export const navigationConfig = {
     // --- MÓDULO 4: VETERINARIA DE CAMPO ---
     {
       title: "Veterinaria de Campo",
+      key: "fieldwork",
       url: "/dashboard/fieldwork",
       icon: MapPin,
       rolesAllowed: ["ROLE_VETERINARIAN", "ROLE_ADMIN"],
@@ -113,11 +119,12 @@ export const navigationConfig = {
         { title: "Visitas a Granjas", url: "/dashboard/fieldwork/visits", rolesAllowed: ["ROLE_VETERINARIAN"] },
         { title: "Gestión de Insumos", url: "/dashboard/fieldwork/supplies", rolesAllowed: ["ROLE_ADMIN", "ROLE_VETERINARIAN"] },
         { title: "Centro de Control", url: "/dashboard/fieldwork/control-center", rolesAllowed: ["ROLE_VETERINARIAN"] },
-        { title: "Gestión de Granjas", url: "/dashboard/fieldwork/farms", rolesAllowed: ["ROLE_ADMIN", "ROLE_VETERINARIAN"] },
+        { title: "Granjas", url: "/dashboard/fieldwork/farms", rolesAllowed: ["ROLE_ADMIN", "ROLE_VETERINARIAN"] },
       ],
     },
     {
       title: "Peluquería",
+      key: "grooming",
       url: "/dashboard/grooming",
       icon: Scissors,
       rolesAllowed: ["ROLE_ADMIN", "ROLE_GROOMER", "ROLE_MANAGER"],
@@ -129,6 +136,7 @@ export const navigationConfig = {
   projects: [
     {
       title: "Reportes",
+      key: "reports",
       url: "/dashboard/reports",
       icon: BarChart3,
       rolesAllowed: ["ROLE_ADMIN", "ROLE_MANAGER"],
@@ -136,6 +144,7 @@ export const navigationConfig = {
     },
     {
       title: "Finanzas",
+      key: "finance",
       url: "/dashboard/finance",
       icon: PiggyBank,
       rolesAllowed: ["ROLE_ADMIN"],
@@ -144,21 +153,14 @@ export const navigationConfig = {
         { title: "Cuentas por Pagar", url: "/dashboard/finance/payable", rolesAllowed: ["ROLE_ADMIN"] },
       ],
     },
+    // Catálogos y ajustes: cada tarjeta de la página filtra por rol; «Preferencias» la ve todo el mundo.
     {
-      title: "Personal",
-      url: "/dashboard/staff",
-      icon: UserCog,
-      rolesAllowed: ["ROLE_ADMIN", "ROLE_MANAGER"],
+      key: "settings",
+      title: "Configuración",
+      url: "/dashboard/settings",
+      icon: Settings,
+      rolesAllowed: Object.values(RoleName) as string[],
       items: [],
-    },
-    {
-      title: "Seguridad",
-      url: "/dashboard/security",
-      icon: Users,
-      rolesAllowed: ["ROLE_ADMIN"],
-      items: [
-        { title: "Usuarios", url: "/dashboard/security/users", rolesAllowed: ["ROLE_ADMIN"] },
-      ],
     },
   ],
 };
@@ -172,3 +174,9 @@ export const breadcrumbMap: Record<string, { title: string; subtitle?: string }>
     });
     return acc;
   }, {} as Record<string, { title: string; subtitle?: string }>);
+
+// Las pantallas de Configuración no van en el menú (se entra por su página), pero sí en el breadcrumb.
+SETTINGS_GROUPS.flatMap((g) => g.items).forEach((item) => {
+  breadcrumbMap[item.href] = { title: "Configuración", subtitle: item.label };
+});
+breadcrumbMap[SETTINGS_URL] = { title: "Configuración" };

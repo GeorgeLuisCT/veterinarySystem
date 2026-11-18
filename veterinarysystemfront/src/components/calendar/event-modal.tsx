@@ -15,6 +15,8 @@ import { Calendar, MapPin, Users, Bell, Repeat, Trash2, Copy, Save, Sparkles } f
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 
+const CALENDAR_TYPE_LABELS: Record<string, string> = { personal: "Personal", work: "Trabajo", family: "Familia", other: "Otro" }
+
 const eventColors = [
   { name: "Blue", value: "#3B82F6" },
   { name: "Green", value: "#10B981" },
@@ -317,7 +319,7 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: calendar.color }} />
                         <span>{calendar.name}</span>
                         <Badge variant="outline" className="text-xs ml-auto">
-                          {calendar.type}
+                          {CALENDAR_TYPE_LABELS[calendar.type] ?? calendar.type}
                         </Badge>
                       </div>
                     </SelectItem>

@@ -1,3 +1,4 @@
+using VetSaas.Modules.Catalogs;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using VetSaas.Modules.Branches.Domain;
@@ -40,7 +41,7 @@ public class Cage
 {
     public long Id { get; set; }
     public string Name { get; set; } = null!;
-    public CageSize Size { get; set; }
+    [Catalog(CatalogKeys.CageSize)] [MaxLength(60)] public string Size { get; set; }
     public bool IsOccupied { get; set; }
     public long BranchId { get; set; }
     public Branch Branch { get; set; } = null!;
@@ -129,12 +130,12 @@ public class LaboratoryTestParameter
     public LaboratoryTest Test { get; set; } = null!;
     [MaxLength(80)] public string Name { get; set; } = null!;
     [MaxLength(16)] public LabValueType ValueType { get; set; }
-    [MaxLength(24)] public LabUnit Unit { get; set; }
+    [Catalog(CatalogKeys.LabUnit)] [MaxLength(60)] public string Unit { get; set; }
     [MaxLength(400)] public string? AllowedOptions { get; set; }
     public double? RefMin { get; set; }
     public double? RefMax { get; set; }
     [MaxLength(200)] public string? RefText { get; set; }
-    [MaxLength(32)] public AnimalSpecies? Species { get; set; }
+    [Catalog(CatalogKeys.AnimalSpecies)] [MaxLength(60)] public string? Species { get; set; }
     [MaxLength(16)] public AnimalSex? Sex { get; set; }
     public int? AgeMinMonths { get; set; }
     public int? AgeMaxMonths { get; set; }
@@ -282,7 +283,7 @@ public class ClinicalServiceProduct
     public Product? Product { get; set; }
     public decimal? Dose { get; set; }
     public ProductUnitType? Unit { get; set; }
-    public AdministrationRoute? AdministrationRoute { get; set; }
+    [Catalog(CatalogKeys.AdministrationRoute)] [MaxLength(60)] public string? AdministrationRoute { get; set; }
 }
 
 [Table("medication_administrations")]
@@ -296,7 +297,7 @@ public class MedicationAdministration
     public DateTime AdministeredAt { get; set; }
     [Column(TypeName = "numeric(10,2)")] public decimal? DoseAmount { get; set; }
     [MaxLength(24)] public ProductUnitType? DoseUnit { get; set; }
-    [MaxLength(24)] public AdministrationRoute? Route { get; set; }
+    [Catalog(CatalogKeys.AdministrationRoute)] [MaxLength(60)] public string? Route { get; set; }
     public int? FrequencyValue { get; set; }
     [MaxLength(20)] public FrequencyUnit? FrequencyUnit { get; set; }
     [Column("administered_by_employee_id")] public long? AdministeredById { get; set; }
@@ -313,7 +314,7 @@ public class MedicalRecordEntry
     public long AnimalId { get; set; }
     public Animal Animal { get; set; } = null!;
     public DateTime OccurredAt { get; set; }
-    [MaxLength(32)] public MedicalRecordCategory Category { get; set; }
+    [Catalog(CatalogKeys.MedicalRecordCategory)] [MaxLength(60)] public string Category { get; set; }
     public long? ClinicalServiceId { get; set; }
     public ClinicalService? ClinicalService { get; set; }
     public long? SourceId { get; set; }
@@ -536,7 +537,7 @@ public class AnestheticDrug
     [MaxLength(32)] public AnestheticPhase Phase { get; set; }
     [Column(TypeName = "numeric(10,4)")] public decimal DoseAmount { get; set; }
     [MaxLength(24)] public ProductUnitType DoseUnit { get; set; }
-    [MaxLength(24)] public AdministrationRoute? Route { get; set; }
+    [Catalog(CatalogKeys.AdministrationRoute)] [MaxLength(60)] public string? Route { get; set; }
 }
 
 [Table("surgical_materials")]
@@ -565,7 +566,7 @@ public class PostOperativeIndication
     [MaxLength(24)] public ProductUnitType? DoseUnit { get; set; }
     public int? FrequencyValue { get; set; }
     [MaxLength(20)] public FrequencyUnit? FrequencyUnit { get; set; }
-    [MaxLength(24)] public AdministrationRoute? Route { get; set; }
+    [Catalog(CatalogKeys.AdministrationRoute)] [MaxLength(60)] public string? Route { get; set; }
 }
 
 // ---- Peluquería ----

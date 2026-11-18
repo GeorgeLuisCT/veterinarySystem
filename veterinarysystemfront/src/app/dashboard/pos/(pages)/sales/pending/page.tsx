@@ -19,6 +19,7 @@ import { SaleStatus } from "../../../_types/sale-enums";
 
 import { PageHeader } from "@/components/page/page-header";
 import { PageContainer } from "@/components/page/page-container";
+import { SalesDocumentTypeLabels } from "@/app/dashboard/pos/_types/sale-enums";
 export default function PendingSalesPage() {
   const [sales, setSales] = useState<SaleSummaryResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,7 +88,7 @@ export default function PendingSalesPage() {
                 <TableRow key={sale.id}>
                   <TableCell>{sale.id}</TableCell>
                   <TableCell>
-                    {sale.documentType} • {sale.documentNumber}
+                    {SalesDocumentTypeLabels[sale.documentType] ?? sale.documentType} • {sale.documentNumber}
                   </TableCell>
                   <TableCell>{new Date(sale.createdAt).toLocaleString()}</TableCell>
                   <TableCell>S/ {sale.grandTotal.toFixed(2)}</TableCell>

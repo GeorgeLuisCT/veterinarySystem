@@ -67,7 +67,7 @@ export function SearchPopover<T>({
           <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[320px] p-0">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-[14rem] p-0" align="start">
         <Command>
           <CommandInput placeholder="Buscar..." value={query} onValueChange={setQuery} className="h-9" />
           <CommandList>

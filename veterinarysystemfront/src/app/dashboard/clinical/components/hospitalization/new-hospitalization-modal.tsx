@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -29,6 +30,15 @@ import { getAaxiosErrorMessage } from "@/helpers/error";
 import { CageResponse } from "@/app/dashboard/clinical/types/cage-response";
 import HospitalizationService from "../../service/hospitalization-service";
 import AnimalService from "@/app/dashboard/crm/patients/service/animal-service";
+import { AnimalPickerField } from "@/app/dashboard/crm/patients/components/animal-picker-field";
+import {
+  QuickAnimalView,
+  QUICK_ANIMAL_DESCRIPTION,
+  QUICK_ANIMAL_TITLE,
+  quickAnimalLabel,
+  useQuickAnimalView,
+  type QuickCreatedAnimal,
+} from "@/app/dashboard/crm/patients/components/quick-animal-view";
 
 import { createHospitalizationSchema } from "../../types/hospitalization-request";
 import { AdmissionTiming } from "../../enums/admission-timing";
@@ -52,6 +62,9 @@ export function NewHospitalizationModal({ open, onOpenChange, cage, onSuccess }:
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [animalOptions, setAnimalOptions] = useState<Option[]>([]);
+  // Vista "Nueva mascota" dentro del modal (sin abrir otro modal ni perder lo llenado).
+  const quickAnimal = useQuickAnimalView();
+  const resetQuickAnimal = quickAnimal.reset;
 
   // Solo permitir: WAITING (ESPERA) y OTHER (OTROS)
   const causeOptionsLimited = useMemo(
@@ -114,6 +127,19 @@ export function NewHospitalizationModal({ open, onOpenChange, cage, onSuccess }:
     void fetchAnimals();
   }, [open, fetchAnimals]);
 
+  useEffect(() => {
+    if (!open) resetQuickAnimal();
+  }, [open, resetQuickAnimal]);
+
+  const handleAnimalCreated = useCallback(
+    (animal: QuickCreatedAnimal) => {
+      const option = { id: animal.id, label: quickAnimalLabel(animal) };
+      setAnimalOptions((prev) => [option, ...prev.filter((o) => o.id !== option.id)]);
+      form.setValue("animalId", animal.id, { shouldValidate: true, shouldDirty: true });
+    },
+    [form]
+  );
+
   const onSubmit = async (data: FormShape) => {
     setIsSubmitting(true);
     try {
@@ -135,11 +161,15 @@ export function NewHospitalizationModal({ open, onOpenChange, cage, onSuccess }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="overflow-hidden sm:max-w-[600px]" onEscapeKeyDown={quickAnimal.handleEscapeKeyDown}>
         <DialogHeader>
-          <DialogTitle>Admitir Paciente en {cage.name}</DialogTitle>
+          <DialogTitle>{quickAnimal.active ? QUICK_ANIMAL_TITLE : `Admitir Paciente en ${cage.name}`}</DialogTitle>
+          {quickAnimal.active && <DialogDescription>{QUICK_ANIMAL_DESCRIPTION}</DialogDescription>}
         </DialogHeader>
 
+        <QuickAnimalView view={quickAnimal} idPrefix="hospitalization-new-animal" onCreated={handleAnimalCreated} />
+
+        <div className={quickAnimal.mainClassName}>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Mascota */}
@@ -149,18 +179,14 @@ export function NewHospitalizationModal({ open, onOpenChange, cage, onSuccess }:
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <FloatingLabelSelect
+                    <AnimalPickerField
                       id="hospitalization-animalId"
-                      label="Mascota"
-                      value={field.value ? String(field.value) : ""}
-                      onValueChange={(value) => field.onChange(Number(value))}
-                      options={animalOptions.map((animal) => ({
-                        value: String(animal.id),
-                        label: animal.label,
-                      }))}
+                      value={field.value}
+                      onChange={field.onChange}
+                      options={animalOptions}
                       onSearch={handleSearchAnimals}
+                      onRequestCreate={quickAnimal.open}
                       disabled={isSubmitting}
-                      emptyMessage="No se encontraron mascotas."
                     />
                   </FormControl>
                   <FormMessage />
@@ -227,6 +253,7 @@ export function NewHospitalizationModal({ open, onOpenChange, cage, onSuccess }:
             </DialogFooter>
           </form>
         </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

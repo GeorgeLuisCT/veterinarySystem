@@ -3,7 +3,7 @@ import { GeoZoneType } from '../enums/geo-zone-type';
 
 const baseSchema = z.object({
   name: z.string().trim().min(1, 'El nombre es obligatorio.').max(255, 'No puede exceder 255 caract.'),
-  type: z.nativeEnum(GeoZoneType),
+  type: z.string({ required_error: "El tipo de zona es obligatorio" }).min(1, "El tipo de zona es obligatorio"),
   parentId: z.number().int().positive().optional(),
   gpsCoordinates: z.string().trim().max(255, 'No puede exceder 255 caract.').optional(),
   active: z.boolean().optional(),

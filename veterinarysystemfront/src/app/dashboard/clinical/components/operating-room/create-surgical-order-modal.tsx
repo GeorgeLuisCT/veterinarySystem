@@ -5,6 +5,14 @@ import { OperatingRoomResponse } from "@/app/dashboard/branche/types/operating-r
 import ClinicalServiceService from "@/app/dashboard/clinical/service/clinical-service-service";
 import { ClinicalServiceQuickSearchResponse } from "@/app/dashboard/clinical/types/clinical-service-response";
 import AnimalService from "@/app/dashboard/crm/patients/service/animal-service";
+import {
+  QuickAnimalView,
+  QUICK_ANIMAL_DESCRIPTION,
+  QUICK_ANIMAL_TITLE,
+  quickAnimalLabel,
+  useQuickAnimalView,
+  type QuickCreatedAnimal,
+} from "@/app/dashboard/crm/patients/components/quick-animal-view";
 import { AnimalSummaryResponse } from "@/app/dashboard/crm/patients/types/animal-summary-response";
 import SurgicalOrderService from "@/app/dashboard/schedule/service/surgical-order-service";
 import { CreateSurgicalOrderRequest, createSurgicalOrderSchema } from "@/app/dashboard/schedule/types/surgical-order-request";
@@ -12,7 +20,7 @@ import EmployeeService from "@/app/dashboard/staff/service/employee-service";
 import { EmployeeSummaryResponse } from "@/app/dashboard/staff/types/employee-summary-response";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/context/user-context";
@@ -41,6 +49,9 @@ export function CreateSurgicalOrderModal({ open, onClose, onCreated }: CreateSur
   const [requestedByOptions, setRequestedByOptions] = useState<Option[]>([]);
   const [operatingRoomOptions, setOperatingRoomOptions] = useState<Option[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  // Vista "Nueva mascota" dentro del modal (sin abrir otro modal ni perder lo llenado).
+  const quickAnimal = useQuickAnimalView();
+  const resetQuickAnimal = quickAnimal.reset;
 
   const form = useForm<CreateSurgicalOrderRequest>({
     resolver: zodResolver(createSurgicalOrderSchema),
@@ -54,6 +65,16 @@ export function CreateSurgicalOrderModal({ open, onClose, onCreated }: CreateSur
     },
     mode: "onChange",
   });
+
+  useEffect(() => {
+    if (!open) resetQuickAnimal();
+  }, [open, resetQuickAnimal]);
+
+  const handleAnimalCreated = (animal: QuickCreatedAnimal) => {
+    const option = { value: String(animal.id), label: quickAnimalLabel(animal) };
+    setAnimalOptions((prev) => [option, ...prev.filter((o) => o.value !== option.value)]);
+    form.setValue("animalId", animal.id, { shouldValidate: true, shouldDirty: true });
+  };
 
   useEffect(() => {
     if (!open) {
@@ -130,10 +151,13 @@ export function CreateSurgicalOrderModal({ open, onClose, onCreated }: CreateSur
 
   return (
     <Dialog open={open} onOpenChange={(value) => (!value ? onClose() : undefined)}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="overflow-hidden sm:max-w-2xl" onEscapeKeyDown={quickAnimal.handleEscapeKeyDown}>
         <DialogHeader>
-          <DialogTitle>Nueva orden quirúrgica</DialogTitle>
+          <DialogTitle>{quickAnimal.active ? QUICK_ANIMAL_TITLE : "Nueva orden quirúrgica"}</DialogTitle>
+          {quickAnimal.active && <DialogDescription>{QUICK_ANIMAL_DESCRIPTION}</DialogDescription>}
         </DialogHeader>
+        <QuickAnimalView view={quickAnimal} idPrefix="surgical-order-new-animal" onCreated={handleAnimalCreated} />
+        <div className={quickAnimal.mainClassName}>
         <Form {...form}>
           <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
             <div className="grid gap-4 md:grid-cols-2">
@@ -152,6 +176,10 @@ export function CreateSurgicalOrderModal({ open, onClose, onCreated }: CreateSur
                         onSearch={searchAnimals}
                         disabled={loadingOptions}
                         emptyMessage="Busque y seleccione una mascota"
+                        createOption={{
+                          onCreate: quickAnimal.open,
+                          label: (query) => (query ? `Registrar "${query}" como nueva mascota` : "Registrar nueva mascota"),
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -249,6 +277,7 @@ export function CreateSurgicalOrderModal({ open, onClose, onCreated }: CreateSur
             </DialogFooter>
           </form>
         </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

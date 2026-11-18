@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
     Popover,
@@ -33,6 +33,11 @@ interface FloatingLabelSelectProps {
     className?: string
     emptyMessage?: string
     onSearch?: (query: string) => void
+    /** Acción al final de la lista para registrar lo buscado sin salir del formulario (ej. "+ Registrar \"Toby\""). */
+    createOption?: {
+        onCreate: (query: string) => void
+        label?: (query: string) => string
+    }
 }
 
 export function FloatingLabelSelect({
@@ -45,6 +50,7 @@ export function FloatingLabelSelect({
     className,
     emptyMessage = "No se encontraron resultados.",
     onSearch,
+    createOption,
 }: FloatingLabelSelectProps) {
     const [open, setOpen] = React.useState(false)
     const [searchQuery, setSearchQuery] = React.useState("")
@@ -60,7 +66,8 @@ export function FloatingLabelSelect({
     }
 
     const selectedLabel = options.find(opt => opt.value === value)?.label || ""
-    const hasValue = value !== null && value !== undefined && value !== "" && value !== "0"
+    // La etiqueta sube si hay un valor o si se está mostrando el texto de una opción (p. ej. «Sin unidad», cuyo valor es "").
+    const hasValue = (value !== null && value !== undefined && value !== "" && value !== "0") || selectedLabel !== ""
 
     function parseAsterisks(text: string) {
         const parts = text.split(/(\*[^*]+\*)/g);
@@ -95,7 +102,7 @@ export function FloatingLabelSelect({
                         <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                     </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-[14rem] p-0" align="start">
                     <Command>
                         <CommandInput
                             value={searchQuery}
@@ -117,6 +124,25 @@ export function FloatingLabelSelect({
                                     {parseAsterisks(option.label)}
                                 </CommandItem>
                             ))}
+                            {createOption && (
+                                <CommandItem
+                                    forceMount
+                                    value="__create__"
+                                    className="border-t text-primary"
+                                    onSelect={() => {
+                                        createOption.onCreate(searchQuery.trim())
+                                        setOpen(false)
+                                        setSearchQuery("")
+                                    }}
+                                >
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    {createOption.label
+                                        ? createOption.label(searchQuery.trim())
+                                        : searchQuery.trim()
+                                            ? `Registrar "${searchQuery.trim()}"`
+                                            : "Registrar nuevo"}
+                                </CommandItem>
+                            )}
                         </CommandList>
                     </Command>
                 </PopoverContent>

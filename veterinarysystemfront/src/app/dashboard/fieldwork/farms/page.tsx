@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { MapPinned } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import FieldworkFarmsMain from "@/app/dashboard/fieldwork/components/fieldwork-farms-main";
 import DashboardLayoutSection from "@/app/dashboard/dashboard-layout-section";
 import { PageContainer } from "@/components/page/page-container";
@@ -10,8 +13,16 @@ export default function FieldworkFarmsPage() {
     <DashboardLayoutSection>
       <PageContainer>
         <PageHeader
-          title="Zonas y granjas"
-          description="Administra zonas geográficas y unidades de producción."
+          title="Granjas"
+          description="Administra las unidades de producción que atiendes."
+          actions={
+            <Button variant="secondary" asChild>
+              <Link href="/dashboard/settings/geo-zones">
+                <MapPinned className="mr-2 h-4 w-4" />
+                Zonas geográficas
+              </Link>
+            </Button>
+          }
         />
         <FieldworkFarmsMain />
       </PageContainer>

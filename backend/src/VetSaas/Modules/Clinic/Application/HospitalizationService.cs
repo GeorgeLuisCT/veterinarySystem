@@ -14,7 +14,7 @@ namespace VetSaas.Modules.Clinic.Application;
 
 // ---- DTOs ----
 
-public sealed record CageRequest(string? Name, CageSize? Size, long? BranchId);
+public sealed record CageRequest(string? Name, string? Size, long? BranchId);
 
 public sealed class CageRequestValidator : AbstractValidator<CageRequest>
 {
@@ -153,7 +153,7 @@ public sealed record CurrentHospitalizationBrief(long Id, AnimalBasicResponse An
     long? AttentionId, HospitalizationVitalSignResponse? LatestVitalSign, TreatmentScheduleBriefResponse? NextTreatmentSchedule,
     EvolutionNoteResponse? LatestEvolutionNote);
 
-public sealed record CageResponse(long Id, string Name, CageSize Size, [property: JsonPropertyName("occupied")] bool IsOccupied, long BranchId,
+public sealed record CageResponse(long Id, string Name, string Size, [property: JsonPropertyName("occupied")] bool IsOccupied, long BranchId,
     string? BranchName, CurrentHospitalizationBrief? CurrentHospitalization);
 
 internal static class HospitalizationMapping
@@ -204,7 +204,7 @@ internal static class HospitalizationMapping
 
 public interface ICageService
 {
-    Task<PaginatedResponse<CageResponse>> ListAsync(long? branchId, string? name, CageSize? size, bool? isOccupied, int page, int pageSize, CancellationToken ct = default);
+    Task<PaginatedResponse<CageResponse>> ListAsync(long? branchId, string? name, string? size, bool? isOccupied, int page, int pageSize, CancellationToken ct = default);
     Task<CageResponse> GetAsync(long id, CancellationToken ct = default);
     Task<CageResponse> CreateAsync(CageRequest r, CancellationToken ct = default);
     Task<CageResponse> UpdateAsync(long id, CageRequest r, CancellationToken ct = default);
@@ -226,7 +226,7 @@ public sealed class CageService : ICageService
     private async Task<Cage> RequireAsync(long id, CancellationToken ct) =>
         await _db.Cages.Include(c => c.Branch).FirstOrDefaultAsync(c => c.Id == id, ct) ?? throw new NotFoundException("Cage not found with id: " + id);
 
-    public async Task<PaginatedResponse<CageResponse>> ListAsync(long? branchId, string? name, CageSize? size, bool? isOccupied, int page,
+    public async Task<PaginatedResponse<CageResponse>> ListAsync(long? branchId, string? name, string? size, bool? isOccupied, int page,
         int pageSize, CancellationToken ct = default)
     {
         IQueryable<Cage> query = _db.Cages.AsNoTracking().Include(c => c.Branch);
@@ -249,7 +249,7 @@ public sealed class CageService : ICageService
     public async Task<CageResponse> CreateAsync(CageRequest r, CancellationToken ct = default)
     {
         var branch = await _db.Branches.FirstOrDefaultAsync(b => b.Id == r.BranchId, ct) ?? throw new NotFoundException("Branch not found with id: " + r.BranchId);
-        var cage = new Cage { Name = r.Name!, Size = r.Size!.Value, Branch = branch, IsOccupied = false };
+        var cage = new Cage { Name = r.Name!, Size = r.Size!, Branch = branch, IsOccupied = false };
         _db.Cages.Add(cage);
         await _db.SaveChangesAsync(ct);
         return HospitalizationMapping.ToCage(cage, null);
@@ -260,7 +260,7 @@ public sealed class CageService : ICageService
         Cage cage = await RequireAsync(id, ct);
         var branch = await _db.Branches.FirstOrDefaultAsync(b => b.Id == r.BranchId, ct) ?? throw new NotFoundException("Branch not found with id: " + r.BranchId);
         cage.Name = r.Name!;
-        cage.Size = r.Size!.Value;
+        cage.Size = r.Size!;
         cage.Branch = branch;
         await _db.SaveChangesAsync(ct);
         return HospitalizationMapping.ToCage(cage, await CurrentAsync(cage, ct));

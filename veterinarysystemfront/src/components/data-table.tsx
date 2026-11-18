@@ -184,36 +184,26 @@ export default function DataTable<T>({
   
   return (
     <div className="w-full h-full rounded-lg text-foreground flex flex-col">
-      <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          {onSearch && (
-            <Input
-              placeholder={searchPlaceholder || "Buscar..."}
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="w-full sm:w-64"
-            />
-          )}
-          {headerSlotLeft}
-        </div>
+      {/* Cabecera: solo si hay buscador o filtros (la cantidad por página va abajo, junto a la paginación). */}
+      {(onSearch || headerSlotLeft || headerSlotRight) && (
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            {onSearch && (
+              <Input
+                placeholder={searchPlaceholder || "Buscar..."}
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="w-full sm:w-64"
+              />
+            )}
+            {headerSlotLeft}
+          </div>
 
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
-          {headerSlotRight}
-          <select
-            className="border border-border rounded-md p-1 bg-background"
-            value={pageSize}
-            onChange={(e) => {
-              onPageSizeChange(Number(e.target.value));
-            }}
-          >
-            {[10, 20, 50, 100].map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
+          {headerSlotRight && (
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">{headerSlotRight}</div>
+          )}
         </div>
-      </div>
+      )}
 
       <div className="flex-1 overflow-auto rounded-lg border border-border relative max-h-full">
         {loading && (
@@ -290,24 +280,43 @@ export default function DataTable<T>({
         </Table>
       </div>
       
-      <div className="flex justify-between items-center mt-4">
-        <Button
-          variant="outline"
-          disabled={pageIndex === 0 || loading}
-          onClick={() => onPageIndexChange(Math.max(pageIndex - 1, 0))}
-        >
-          Anterior
-        </Button>
-        <span>
-          Página {pageIndex + 1} de {totalPages}
-        </span>
-        <Button
-          variant="outline"
-          disabled={pageIndex + 1 >= totalPages || loading}
-          onClick={() => onPageIndexChange(pageIndex + 1)}
-        >
-          Siguiente
-        </Button>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          Mostrar
+          <select
+            className="rounded-md border border-border bg-background p-1 text-foreground"
+            value={pageSize}
+            onChange={(e) => onPageSizeChange(Number(e.target.value))}
+            aria-label="Filas por página"
+          >
+            {[10, 20, 50, 100].map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+          por página
+        </label>
+
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            disabled={pageIndex === 0 || loading}
+            onClick={() => onPageIndexChange(Math.max(pageIndex - 1, 0))}
+          >
+            Anterior
+          </Button>
+          <span className="text-sm">
+            Página {pageIndex + 1} de {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            disabled={pageIndex + 1 >= totalPages || loading}
+            onClick={() => onPageIndexChange(pageIndex + 1)}
+          >
+            Siguiente
+          </Button>
+        </div>
       </div>
     </div>
   );

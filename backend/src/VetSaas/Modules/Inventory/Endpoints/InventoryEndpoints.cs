@@ -48,8 +48,8 @@ public static class InventoryEndpoints
             Results.Ok(await s.GetManyAsync(ids, ct)));
 
         products.MapGet("/", async (IProductService s, CancellationToken ct, int page = 0, int size = 10, string? q = null,
-                long? categoryId = null, long? branchId = null, bool? active = null, ProductPresentationType? presentation = null,
-                ProductUnitType? unitType = null, AdministrationRoute? route = null, bool? hasSaleModes = null,
+                long? categoryId = null, long? branchId = null, bool? active = null, string? presentation = null,
+                ProductUnitType? unitType = null, string? route = null, bool? hasSaleModes = null,
                 bool? availableOnly = null, bool? minStockAlertOnly = null) =>
             Results.Ok(await s.ListAsync(new ProductListFilter(page, size, q, categoryId, branchId, active, presentation, unitType,
                 route, hasSaleModes, availableOnly, minStockAlertOnly), ct)));

@@ -192,19 +192,6 @@ export function LaboratoryTestsMain() {
                     </div>
                     <Button onClick={openCreateModal}><PlusCircle className="mr-2 h-4 w-4" />Añadir Nuevo</Button>
                 </div>
-                <div className="mt-4">
-                    <Select onValueChange={(value) => setLaboratoryFilter(value === "all" ? undefined : Number(value))}>
-                        <SelectTrigger className="w-[240px]">
-                            <SelectValue placeholder="Filtrar por laboratorio" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Todos los laboratorios</SelectItem>
-                            {allLaboratories.map(lab => (
-                                <SelectItem key={lab.id} value={String(lab.id)}>{lab.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
             </CardHeader>
             <CardContent className="h-full">
                 <DataTable<LaboratoryTestSummaryResponse>
@@ -218,13 +205,26 @@ export function LaboratoryTestsMain() {
                     onPageIndexChange={setPageIndex}
                     onPageSizeChange={handlePageSizeChange}
                     searchPlaceholder="Buscar por código o nombre…"
+                    headerSlotLeft={
+                        <Select onValueChange={(value) => setLaboratoryFilter(value === "all" ? undefined : Number(value))}>
+                            <SelectTrigger className="w-full sm:w-[240px]" aria-label="Filtrar por laboratorio">
+                                <SelectValue placeholder="Todos los laboratorios" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Todos los laboratorios</SelectItem>
+                                {allLaboratories.map(lab => (
+                                    <SelectItem key={lab.id} value={String(lab.id)}>{lab.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    }
                     getRowKey={(row) => row.id}
                     onRowClick={onRowClick}
                     emptyState={<div className="text-muted-foreground">No se encontraron pruebas.</div>}
                 />
 
                 <Dialog open={activeModal === "create"} onOpenChange={(open) => !open && closeModal()}>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="sm:max-w-2xl">
                         <DialogHeader>
                             <DialogTitle>Registrar Prueba de Laboratorio</DialogTitle>
                             <DialogDescription>
@@ -236,7 +236,7 @@ export function LaboratoryTestsMain() {
                 </Dialog>
 
                 <Dialog open={activeModal === "edit"} onOpenChange={(open) => !open && closeModal()}>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="sm:max-w-2xl">
                         <DialogHeader>
                             <DialogTitle>Editar Prueba de Laboratorio</DialogTitle>
                             <DialogDescription>
@@ -254,7 +254,7 @@ export function LaboratoryTestsMain() {
                 </Dialog>
 
                 <Dialog open={activeModal === "detail"} onOpenChange={(open) => !open && closeModal()}>
-                    <DialogContent className="max-w-3xl">
+                    <DialogContent className="sm:max-w-3xl">
                         <DialogHeader>
                             <DialogTitle>Detalle de la Prueba de Laboratorio</DialogTitle>
                             <DialogDescription>

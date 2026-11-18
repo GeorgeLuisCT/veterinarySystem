@@ -113,7 +113,7 @@ export default function CloseSessionDialog({
           Cerrar caja
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Cierre de caja</DialogTitle>
         </DialogHeader>

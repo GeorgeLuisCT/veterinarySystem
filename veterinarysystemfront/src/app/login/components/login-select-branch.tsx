@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BranchResponse } from "@/app/dashboard/branche/types/branch-response";
 import { selectBranch } from "@/app/dashboard/branche/services/select-branch";
+import { resolveHomePage } from "@/services/preferences-service";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import { Building2, CheckCircle2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,7 +28,7 @@ export function LoginSelectBranch({ branches }: LoginSelectBranchProps) {
 
     try {
       const token = await selectBranch(selectedBranch);
-      if (token) window.location.href = "/dashboard/pos/sales/new";
+      if (token) window.location.href = await resolveHomePage(selectedBranch);
     } catch (err: unknown) {
       setError(getAaxiosErrorMessage(err));
     } finally {
@@ -37,7 +38,7 @@ export function LoginSelectBranch({ branches }: LoginSelectBranchProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-2xl overflow-hidden border-0 p-0">
+      <DialogContent className="sm:max-w-2xl overflow-hidden border-0 p-0">
         {/* Banner estilo pastel */}
         <div className="relative h-28 w-full bg-gradient-to-r from-teal-500 to-cyan-500">
           <div className="absolute inset-0 opacity-20" />

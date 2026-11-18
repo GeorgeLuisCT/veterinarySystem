@@ -101,7 +101,7 @@ export function CreateTaskModal({ open, onOpenChange, onCreated }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Crear tarea de campo</DialogTitle>
           <DialogDescription>Registra las granjas que requieren planificación antes de asignar un equipo.</DialogDescription>

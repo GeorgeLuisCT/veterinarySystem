@@ -1,24 +1,15 @@
-export enum GeoZoneType {
-  COUNTRY = "COUNTRY",
-  REGION = "REGION",
-  PROVINCE = "PROVINCE",
-  DISTRICT = "DISTRICT",
-  SECTOR = "SECTOR",
-  CUSTOM = "CUSTOM",
-}
+import { CatalogKey, catalogEnum, catalogLabels, catalogOptions } from "@/lib/catalogs";
 
-export const GeoZoneTypeLabels: Record<GeoZoneType, string> = {
-  [GeoZoneType.COUNTRY]: "País",
-  [GeoZoneType.REGION]: "Región",
-  [GeoZoneType.PROVINCE]: "Provincia",
-  [GeoZoneType.DISTRICT]: "Distrito",
-  [GeoZoneType.SECTOR]: "Sector",
-  [GeoZoneType.CUSTOM]: "Personalizado",
-};
+/** Tipos de zona: catálogo editable (Configuración → Catálogos). */
+export const GeoZoneType = catalogEnum(CatalogKey.GeoZoneType, {
+  COUNTRY: { label: "País" },
+  REGION: { label: "Región" },
+  PROVINCE: { label: "Provincia" },
+  DISTRICT: { label: "Distrito" },
+  SECTOR: { label: "Sector" },
+  CUSTOM: { label: "Personalizado" },
+});
+export type GeoZoneType = string;
 
-export const GeoZoneTypeOptions = (
-  Object.values(GeoZoneType) as GeoZoneType[]
-).map((value) => ({
-  value,
-  label: GeoZoneTypeLabels[value],
-}));
+export const GeoZoneTypeLabels = catalogLabels(CatalogKey.GeoZoneType);
+export const GeoZoneTypeOptions = catalogOptions(CatalogKey.GeoZoneType);

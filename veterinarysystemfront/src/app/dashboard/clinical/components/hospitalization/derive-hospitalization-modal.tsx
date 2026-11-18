@@ -41,6 +41,7 @@ import { ClinicalServiceCategory } from "../../enums/clinical-service-category";
 import CageService from "../../service/cage-service";
 import { PaginatedResponse } from "@/types/paginated-response";
 import { CageResponse } from "../../types/cage-response";
+import { CageSizeLabels } from "@/app/dashboard/clinical/enums/cage-size";
 
 type Props = {
   open: boolean;
@@ -279,7 +280,7 @@ export default function DeriveHospitalizationModal({ open, onOpenChange, detail,
                       onValueChange={(v) => field.onChange(Number(v))}
                       options={cages.map((c) => ({
                         value: String(c.id),
-                        label: `${c.name} • ${c.size} • ${c.branchName}`,
+                        label: `${c.name} • ${CageSizeLabels[c.size] ?? c.size} • ${c.branchName}`,
                       }))}
                       disabled={cagesLoading || submitting}
                       emptyMessage={

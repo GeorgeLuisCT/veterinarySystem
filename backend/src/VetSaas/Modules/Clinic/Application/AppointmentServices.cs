@@ -1,3 +1,4 @@
+using VetSaas.Modules.Preferences;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using VetSaas.Modules.Branches.Application;
@@ -126,8 +127,6 @@ public interface IAppointmentService
 
 public sealed class AppointmentService : IAppointmentService
 {
-    private const int DefaultDurationMinutes = 30;
-    private const int PastToleranceMinutes = 30;
     private static readonly AppointmentStatus[] Flow =
     {
         AppointmentStatus.REQUESTED, AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED,
@@ -137,10 +136,13 @@ public sealed class AppointmentService : IAppointmentService
     private readonly TenantDbContext _db;
     private readonly IClock _clock;
 
-    public AppointmentService(TenantDbContext db, IClock clock)
+    private readonly IPreferenceService _prefs;
+
+    public AppointmentService(TenantDbContext db, IClock clock, IPreferenceService prefs)
     {
         _db = db;
         _clock = clock;
+        _prefs = prefs;
     }
 
     internal static bool IsFinal(AppointmentStatus s) => s is AppointmentStatus.COMPLETED or AppointmentStatus.CANCELED or AppointmentStatus.NO_SHOW;
@@ -194,9 +196,12 @@ public sealed class AppointmentService : IAppointmentService
         long? excludeId, CancellationToken ct)
     {
         if (start is null) throw new InvalidArgumentException("La fecha y hora de la cita es obligatoria");
-        if (start < _clock.Now.AddMinutes(-PastToleranceMinutes))
+        // Preferencias de la sucursal (por defecto 30 y 30 minutos, como antes).
+        int pastTolerance = await _prefs.IntAsync(Prefs.PastTolerance, ct: ct);
+        int assumedDuration = await _prefs.IntAsync(Prefs.AssumedAppointmentDuration, ct: ct);
+        if (start < _clock.Now.AddMinutes(-pastTolerance))
             throw new InvalidArgumentException("No se puede agendar una cita en una fecha/hora pasada");
-        DateTime end = start.Value.AddMinutes(duration ?? DefaultDurationMinutes);
+        DateTime end = start.Value.AddMinutes(duration ?? assumedDuration);
         DateTime from = start.Value.AddHours(-12);
 
         var candidates = await _db.Appointments.AsNoTracking()
@@ -210,7 +215,7 @@ public sealed class AppointmentService : IAppointmentService
         foreach (Appointment other in candidates)
         {
             if (excludeId == other.Id) continue;
-            DateTime otherEnd = other.StartDateTime.AddMinutes(other.EstimatedDurationMinutes ?? DefaultDurationMinutes);
+            DateTime otherEnd = other.StartDateTime.AddMinutes(other.EstimatedDurationMinutes ?? assumedDuration);
             if (!(start < otherEnd && other.StartDateTime < end)) continue;
             if (employeeId is not null && other.AssignedEmployeeId == employeeId)
                 throw new BusinessRuleException($"El profesional ya tiene una cita en ese horario ({other.StartDateTime:HH:mm} - {otherEnd:HH:mm})");

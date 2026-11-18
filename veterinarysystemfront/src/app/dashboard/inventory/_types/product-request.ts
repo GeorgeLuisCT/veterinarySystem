@@ -35,7 +35,7 @@ const productSchemaBase = z.object({
   ),
 
   saleModes: z.array(ProductSaleModeRequestSchema),
-  administrationRoutes: z.array(z.nativeEnum(AdministrationRoute)).optional(),
+  administrationRoutes: z.array(z.string().min(1)).optional(),
 });
 
 export const productCreateSchema = productSchemaBase.extend({

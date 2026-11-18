@@ -12,6 +12,13 @@ import {
 import AnimalService from "@/app/dashboard/crm/patients/service/animal-service";
 import { AnimalQuickSearchResponse } from "@/app/dashboard/crm/patients/types/animal-quick-search-response";
 import {
+  QuickAnimalView,
+  QUICK_ANIMAL_DESCRIPTION,
+  QUICK_ANIMAL_TITLE,
+  useQuickAnimalView,
+  type QuickCreatedAnimal,
+} from "@/app/dashboard/crm/patients/components/quick-animal-view";
+import {
   AdministrationRoute,
   AdministrationRouteLabels,
 } from "@/app/dashboard/inventory/_enums/administration-route";
@@ -67,6 +74,9 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
   const [employeeOptions, setEmployeeOptions] = React.useState<SelectOption[]>([]);
 
   const [animalOptions, setAnimalOptions] = React.useState<AnimalQuickSearchResponse[]>([]);
+  // Vista "Nueva mascota" dentro del diálogo (sin abrir otro modal ni perder lo llenado).
+  const quickAnimal = useQuickAnimalView();
+  const resetQuickAnimal = quickAnimal.reset;
   const [productOptionsMap, setProductOptionsMap] = React.useState<Record<number, SelectOption[]>>(
     {}
   );
@@ -359,6 +369,27 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
     }
   };
 
+  // El animal recién registrado se suma a los ya seleccionados (el campo es de selección múltiple).
+  const handleAnimalCreated = React.useCallback(
+    (animal: QuickCreatedAnimal) => {
+      setAnimalOptions((prev) => [
+        {
+          id: animal.id,
+          name: animal.name,
+          species: animal.species,
+          ownerName: animal.ownerName,
+          birthDate: "",
+          photoUrl: null,
+          microchipNumber: null,
+        },
+        ...prev.filter((a) => a.id !== animal.id),
+      ]);
+      const current = getValues("animalIds") ?? [];
+      setValue("animalIds", Array.from(new Set([...current, animal.id])), { shouldValidate: true, shouldDirty: true });
+    },
+    [getValues, setValue]
+  );
+
   const handleAddGroup = React.useCallback(() => {
     appendGroup({
       species: defaultSpecies,
@@ -381,6 +412,7 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
 
   React.useEffect(() => {
     if (!open) {
+      resetQuickAnimal();
       setTab("general");
       reset({
         clinicalServiceId: undefined,
@@ -398,15 +430,19 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
       replaceProducts([]);
       setProductOptionsMap({});
     }
-  }, [open, reset, replaceProducts]);
+  }, [open, reset, replaceProducts, resetQuickAnimal]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="sm:max-w-2xl overflow-hidden" onEscapeKeyDown={quickAnimal.handleEscapeKeyDown}>
         <DialogHeader>
-          <DialogTitle>Añadir servicio</DialogTitle>
-          <DialogDescription>Registra la prestación realizada en la visita.</DialogDescription>
+          <DialogTitle>{quickAnimal.active ? QUICK_ANIMAL_TITLE : "Añadir servicio"}</DialogTitle>
+          <DialogDescription>
+            {quickAnimal.active ? QUICK_ANIMAL_DESCRIPTION : "Registra la prestación realizada en la visita."}
+          </DialogDescription>
         </DialogHeader>
+        <QuickAnimalView view={quickAnimal} idPrefix="field-service-new-animal" onCreated={handleAnimalCreated} />
+        <div className={quickAnimal.mainClassName}>
         <Form {...form}>
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit, onInvalid)}>
             <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="gap-3">
@@ -583,6 +619,11 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
                               selected={field.value ?? []}
                               onChange={(selected) => field.onChange(selected)}
                               onSearch={handleSearchAnimals}
+                              createOption={{
+                                onCreate: quickAnimal.open,
+                                label: (query) =>
+                                  query ? `Registrar "${query}" como nuevo animal` : "Registrar nuevo animal",
+                              }}
                             />
                             <p className="text-xs text-muted-foreground">
                               Selecciona uno o varios animales registrados para vincular el
@@ -910,6 +951,7 @@ export default function ServiceItemDialog({ open, onOpenChange, visitId, onSucce
             </div>
           </form>
         </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -11,7 +11,7 @@ public static class FieldworkEndpoints
     {
         // ---- Zonas ----
         var zones = app.MapGroup("/api/geo-zones").WithTags("Fieldwork");
-        zones.MapGet("/", async (IGeoZoneService s, CancellationToken ct, int page = 0, int size = 10, string? q = null, GeoZoneType? type = null,
+        zones.MapGet("/", async (IGeoZoneService s, CancellationToken ct, int page = 0, int size = 10, string? q = null, string? type = null,
             long? parentId = null, bool? active = null) => Results.Ok(await s.ListAsync(page, size, q, type, parentId, active, ct)));
         zones.MapGet("/detail", async (long id, IGeoZoneService s, CancellationToken ct) => Results.Ok(await s.GetAsync(id, ct)));
         zones.MapPost("/", async (CreateGeoZoneRequest r, IGeoZoneService s, CancellationToken ct) => Results.Ok(await s.CreateAsync(r, ct)))
@@ -82,7 +82,7 @@ public static class FieldworkEndpoints
         // ---- Tareas ----
         var tasks = app.MapGroup("/api/fieldwork/tasks").WithTags("Fieldwork");
         tasks.MapGet("/", async (IFieldTaskService s, CancellationToken ct, int page = 0, int size = 10, string? q = null, FieldTaskStatus? status = null,
-                FieldTaskPriority? priority = null, long? assignedToId = null, long? farmId = null, long? zoneId = null, DateTime? dueFrom = null,
+                string? priority = null, long? assignedToId = null, long? farmId = null, long? zoneId = null, DateTime? dueFrom = null,
                 DateTime? dueTo = null) =>
             Results.Ok(await s.ListAsync(page, size, q, status, priority, assignedToId, farmId, zoneId, dueFrom, dueTo, ct)));
         tasks.MapGet("/detail", async (long id, IFieldTaskService s, CancellationToken ct) => Results.Ok(await s.GetAsync(id, ct)));

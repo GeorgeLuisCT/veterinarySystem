@@ -34,9 +34,9 @@ const CALENDAR_COLORS = [
 
 const CALENDAR_TYPES = [
   { value: "personal", label: "Personal" },
-  { value: "work", label: "Work" },
-  { value: "family", label: "Family" },
-  { value: "other", label: "Other" },
+  { value: "work", label: "Trabajo" },
+  { value: "family", label: "Familia" },
+  { value: "other", label: "Otro" },
 ]
 
 export function CalendarModal() {

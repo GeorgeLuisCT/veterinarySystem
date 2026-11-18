@@ -326,7 +326,7 @@ export default function ClinicalServicesMain() {
         />
 
         <Dialog open={activeModal === "create"} onOpenChange={(open) => !open && closeModal()}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>Registrar servicio clínico</DialogTitle>
               <DialogDescription>
@@ -338,7 +338,7 @@ export default function ClinicalServicesMain() {
         </Dialog>
 
         <Dialog open={activeModal === "edit"} onOpenChange={(open) => !open && closeModal()}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>Editar servicio clínico</DialogTitle>
               <DialogDescription>
@@ -356,7 +356,7 @@ export default function ClinicalServicesMain() {
         </Dialog>
 
         <Dialog open={activeModal === "detail"} onOpenChange={(open) => !open && closeModal()}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle>Detalle del servicio clínico</DialogTitle>
               <DialogDescription>

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { X, ChevronsUpDown } from "lucide-react";
+import { X, ChevronsUpDown, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -29,6 +29,11 @@ interface FloatingLabelMultiSelectProps<T> {
     className?: string;
     emptyMessage?: string;
     onSearch?: (query: string) => void;
+    /** Acción al final de la lista para registrar lo buscado sin salir del formulario (ej. "+ Registrar \"Toby\""). */
+    createOption?: {
+        onCreate: (query: string) => void;
+        label?: (query: string) => string;
+    };
 }
 
 export function FloatingLabelMultiSelect<T extends string | number | boolean>({
@@ -40,6 +45,7 @@ export function FloatingLabelMultiSelect<T extends string | number | boolean>({
     className,
     emptyMessage = "No se encontraron resultados.",
     onSearch,
+    createOption,
 }: FloatingLabelMultiSelectProps<T>) {
     const [isFocused, setIsFocused] = React.useState(false);
     const [open, setOpen] = React.useState(false);
@@ -134,7 +140,7 @@ export function FloatingLabelMultiSelect<T extends string | number | boolean>({
                         <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                     </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-[14rem] p-0" align="start">
                     <Command>
                         <CommandInput placeholder="Buscar..." value={searchQuery} onValueChange={handleSearchChange} />
                         <CommandList>
@@ -174,6 +180,25 @@ export function FloatingLabelMultiSelect<T extends string | number | boolean>({
                                     );
                                 })}
                             </CommandGroup>
+                            {createOption && (
+                                <CommandItem
+                                    forceMount
+                                    value="__create__"
+                                    className="border-t text-primary"
+                                    onSelect={() => {
+                                        createOption.onCreate(searchQuery.trim());
+                                        setOpen(false);
+                                        setSearchQuery("");
+                                    }}
+                                >
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    {createOption.label
+                                        ? createOption.label(searchQuery.trim())
+                                        : searchQuery.trim()
+                                            ? `Registrar "${searchQuery.trim()}"`
+                                            : "Registrar nuevo"}
+                                </CommandItem>
+                            )}
                         </CommandList>
                     </Command>
                 </PopoverContent>

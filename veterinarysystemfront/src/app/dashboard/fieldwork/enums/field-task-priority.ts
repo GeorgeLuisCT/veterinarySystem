@@ -1,20 +1,13 @@
-export enum FieldTaskPriority {
-  LOW = "LOW",
-  MEDIUM = "MEDIUM",
-  HIGH = "HIGH",
-  URGENT = "URGENT",
-}
+import { CatalogKey, catalogEnum, catalogLabels, catalogOptions } from "@/lib/catalogs";
 
-export const FieldTaskPriorityLabels: Record<FieldTaskPriority, string> = {
-  [FieldTaskPriority.LOW]: "Baja",
-  [FieldTaskPriority.MEDIUM]: "Media",
-  [FieldTaskPriority.HIGH]: "Alta",
-  [FieldTaskPriority.URGENT]: "Urgente",
-};
+/** Prioridades de tarea: catálogo editable (Configuración → Catálogos), de menor a mayor. */
+export const FieldTaskPriority = catalogEnum(CatalogKey.FieldTaskPriority, {
+  LOW: { label: "Baja" },
+  MEDIUM: { label: "Media" },
+  HIGH: { label: "Alta" },
+  URGENT: { label: "Urgente" },
+});
+export type FieldTaskPriority = string;
 
-export const FieldTaskPriorityOptions = (
-  Object.values(FieldTaskPriority) as FieldTaskPriority[]
-).map((value) => ({
-  value,
-  label: FieldTaskPriorityLabels[value],
-}));
+export const FieldTaskPriorityLabels = catalogLabels(CatalogKey.FieldTaskPriority);
+export const FieldTaskPriorityOptions = catalogOptions(CatalogKey.FieldTaskPriority);

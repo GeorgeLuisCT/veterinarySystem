@@ -40,7 +40,7 @@ public sealed record UpdateClinicalAttentionRequest(
     Optional<int?> RespiratoryRate);
 
 public sealed record AddClinicalAttentionMedicationRequest(long? ProductId, DateTime? AdministeredAt, decimal? DoseAmount,
-    ProductUnitType? DoseUnit, AdministrationRoute? Route, int? FrequencyValue, FrequencyUnit? FrequencyUnit,
+    ProductUnitType? DoseUnit, string? Route, int? FrequencyValue, FrequencyUnit? FrequencyUnit,
     long? AdministeredByEmployeeId, string? Notes);
 
 public sealed class AddClinicalAttentionMedicationValidator : AbstractValidator<AddClinicalAttentionMedicationRequest>
@@ -52,7 +52,7 @@ public sealed class AddClinicalAttentionMedicationValidator : AbstractValidator<
     }
 }
 
-public sealed record AddClinicalServiceProductRequest(long? ProductId, decimal? Dose, ProductUnitType? Unit, AdministrationRoute? AdministrationRoute);
+public sealed record AddClinicalServiceProductRequest(long? ProductId, decimal? Dose, ProductUnitType? Unit, string? AdministrationRoute);
 
 public sealed record AddClinicalAttentionServiceItemRequest(long? ClinicalServiceId, decimal? UnitPrice, decimal? Quantity, string? Notes,
     List<AddClinicalServiceProductRequest>? Products);
@@ -106,11 +106,11 @@ public sealed record ClinicalAttentionSummaryResponse(long Id, uint Version, lon
     string? AttendingEmployeeFullName);
 
 public sealed record MedicationAdministrationResponse(long Id, long ProductId, string? ProductName, DateTime AdministeredAt,
-    decimal? DoseAmount, ProductUnitType? DoseUnit, AdministrationRoute? Route, int? FrequencyValue, FrequencyUnit? FrequencyUnit,
+    decimal? DoseAmount, ProductUnitType? DoseUnit, string? Route, int? FrequencyValue, FrequencyUnit? FrequencyUnit,
     long? AdministeredByEmployeeId, string? AdministeredByEmployeeFullName, string? Notes);
 
 public sealed record ClinicalServiceProductResponse(long Id, ProductBasicResponse? Product, decimal? Dose, ProductUnitType? Unit,
-    AdministrationRoute? AdministrationRoute);
+    string? AdministrationRoute);
 
 public sealed record ClinicalServiceItemResponse(long Id, long ClinicalServiceId, string ClinicalServiceName,
     ClinicalServiceCategory ClinicalServiceCategory, IReadOnlyList<ClinicalServiceProductResponse> Products, decimal UnitPrice,

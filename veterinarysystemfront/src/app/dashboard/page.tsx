@@ -7,9 +7,12 @@ import { PageContainer } from "@/components/page/page-container";
 import { PageHeader } from "@/components/page/page-header";
 import { useUser } from "@/context/user-context";
 import { navigationConfig } from "@/config/navigation";
+import { usePref } from "@/context/preferences-context";
+import { PREF } from "@/config/preferences";
 
 type NavItem = { title: string; url: string; rolesAllowed: string[] };
 type NavSection = {
+  key?: string;
   title: string;
   url?: string;
   icon?: React.ComponentType<{ className?: string }>;
@@ -22,9 +25,10 @@ export default function DashboardPage() {
   const { userInfo } = useUser();
   const roles: string[] = userInfo?.roles ?? [];
   const allowed = (r: string[]) => r.some((role) => roles.includes(role));
+  const hiddenModules = usePref(PREF.hiddenModules);
 
   const sections = ([...navigationConfig.navMain, ...navigationConfig.projects] as NavSection[])
-    .filter((s) => allowed(s.rolesAllowed))
+    .filter((s) => allowed(s.rolesAllowed) && !(s.key && hiddenModules.includes(s.key)))
     .map((s) => ({
       ...s,
       // Módulos sin sub-ítems (p. ej. Reportes) se muestran como un único enlace

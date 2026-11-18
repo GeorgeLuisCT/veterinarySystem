@@ -2,30 +2,15 @@
 "use client";
 
 import * as React from "react";
-import { PlusCircle, List, FolderPlus, Settings } from "lucide-react";
+import Link from "next/link";
+import { PlusCircle, Tags } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuGroup,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 
 import { useUser } from "@/context/user-context";
 import { ProductProvider } from "../../_context/product-context-type";
 import DashboardLayoutSection from "@/app/dashboard/dashboard-layout-section";
 import MainInvetory from "../../_components/main-invetory";
 import { ProductForm } from "../../_components/product-form";
-import { CategoryForm } from "../../_components/category-form";
-import { ManageCategorieProduct } from "../../_components/manage-categorie-product";
 import { PageContainer } from "@/components/page/page-container";
 import { PageHeader } from "@/components/page/page-header";
 
@@ -33,8 +18,6 @@ export default function InventoryPage() {
   const { userInfo } = useUser();
 
   const [openProduct, setOpenProduct] = React.useState(false);
-  const [openCategory, setOpenCategory] = React.useState(false);
-  const [openManage, setOpenManage] = React.useState(false);
 
   const branchId = userInfo?.selectedBranch?.id ?? 0;
 
@@ -44,7 +27,7 @@ export default function InventoryPage() {
         <PageContainer>
           <PageHeader
             title="Inventario"
-            description="Gestiona productos, categorías y disponibilidad por sucursal."
+            description="Gestiona productos y su disponibilidad por sucursal."
             actions={
               <>
                 <div className="flex flex-wrap items-center gap-2">
@@ -53,26 +36,13 @@ export default function InventoryPage() {
                     Registrar producto
                   </Button>
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="secondary">
-                        <List className="mr-2 h-4 w-4" />
-                        Categorías
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56">
-                      <DropdownMenuGroup>
-                        <DropdownMenuItem onSelect={() => setOpenCategory(true)}>
-                          <FolderPlus className="mr-2 h-4 w-4" />
-                          Nueva categoría
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setOpenManage(true)}>
-                          <Settings className="mr-2 h-4 w-4" />
-                          Administrar categorías
-                        </DropdownMenuItem>
-                      </DropdownMenuGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {/* Las categorías se administran en Configuración */}
+                  <Button variant="secondary" asChild>
+                    <Link href="/dashboard/settings/product-categories">
+                      <Tags className="mr-2 h-4 w-4" />
+                      Categorías
+                    </Link>
+                  </Button>
                 </div>
               </>
             }
@@ -84,31 +54,6 @@ export default function InventoryPage() {
 
       <ProductForm open={openProduct} setOpen={setOpenProduct} />
 
-      {/* Dialog: Nueva categoría */}
-      <Dialog open={openCategory} onOpenChange={setOpenCategory}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Nueva Categoría</DialogTitle>
-            <DialogDescription>
-              Crea una nueva categoría para organizar mejor tus productos.
-            </DialogDescription>
-          </DialogHeader>
-          <CategoryForm setOpen={setOpenCategory} />
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog: Administrar categorías */}
-      <Dialog open={openManage} onOpenChange={setOpenManage}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Administrar Categorías</DialogTitle>
-            <DialogDescription>
-              Edita, elimina o reordena las categorías de productos disponibles.
-            </DialogDescription>
-          </DialogHeader>
-          <ManageCategorieProduct />
-        </DialogContent>
-      </Dialog>
     </ProductProvider>
   );
 }

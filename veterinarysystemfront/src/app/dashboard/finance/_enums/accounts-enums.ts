@@ -1,21 +1,15 @@
-export enum TreasuryAccountType {
-  BANK = "BANK",
-  CASH = "CASH",
-  DIGITAL = "DIGITAL",
-}
+import { CatalogKey, catalogEnum, catalogLabels, catalogOptions } from "@/lib/catalogs";
 
-export const TreasuryAccountTypeLabels: Record<TreasuryAccountType, string> = {
-  [TreasuryAccountType.BANK]: "Banco",
-  [TreasuryAccountType.CASH]: "Efectivo",
-  [TreasuryAccountType.DIGITAL]: "Digital",
-};
+/** Tipos de cuenta de tesorería: catálogo editable (Configuración → Catálogos). */
+export const TreasuryAccountType = catalogEnum(CatalogKey.TreasuryAccountType, {
+  BANK: { label: "Banco" },
+  CASH: { label: "Efectivo" },
+  DIGITAL: { label: "Digital" },
+});
+export type TreasuryAccountType = string;
 
-export const TreasuryAccountTypeOptions = (
-  Object.values(TreasuryAccountType) as TreasuryAccountType[]
-).map((value) => ({
-  value,
-  label: TreasuryAccountTypeLabels[value],
-}));
+export const TreasuryAccountTypeLabels = catalogLabels(CatalogKey.TreasuryAccountType);
+export const TreasuryAccountTypeOptions = catalogOptions(CatalogKey.TreasuryAccountType);
 
 export enum AccountMovementType {
   CASHBOX_CLOSING = "CASHBOX_CLOSING",

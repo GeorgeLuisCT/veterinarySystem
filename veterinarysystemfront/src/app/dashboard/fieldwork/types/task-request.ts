@@ -7,7 +7,7 @@ export const createTaskSchema = z.object({
   zoneId: z.number().int().positive().optional(),
   farmIds: z.array(z.number().int().positive()).min(1, 'Selecciona al menos una finca'),
   description: z.string().max(2000).optional(),
-  priority: z.nativeEnum(FieldTaskPriority),
+  priority: z.string({ required_error: "La prioridad es obligatoria" }).min(1, "La prioridad es obligatoria"),
   status: z.nativeEnum(FieldTaskStatus).default(FieldTaskStatus.PENDING),
   dueAt: z.string().optional(),
 });
@@ -17,7 +17,7 @@ export const updateTaskSchema = z.object({
   zoneId: z.number().int().positive().optional(),
   farmId: z.number().int().positive(),
   description: z.string().max(2000).optional(),
-  priority: z.nativeEnum(FieldTaskPriority),
+  priority: z.string({ required_error: "La prioridad es obligatoria" }).min(1, "La prioridad es obligatoria"),
   status: z.nativeEnum(FieldTaskStatus),
   dueAt: z.string().optional(),
 });

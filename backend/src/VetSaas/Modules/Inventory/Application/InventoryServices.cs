@@ -111,7 +111,7 @@ public sealed class SupplierService : ISupplierService
         s.Website = r.Website;
         s.Phone = r.ContactPhone;
         s.Email = r.Email;
-        s.SupplierType = r.SupplierType!.Value;
+        s.SupplierType = r.SupplierType!;
         s.BankAccountNumber = r.BankAccountNumber;
         s.BankName = r.BankName;
     }
@@ -143,10 +143,8 @@ public sealed class SupplierService : ISupplierService
         if (!string.IsNullOrWhiteSpace(supplierType))
         {
             // Un tipo desconocido no coincide con nada (como en el backend anterior).
-            if (Enum.TryParse(supplierType.Trim().ToUpperInvariant(), out SupplierType type) && Enum.IsDefined(type))
-                query = query.Where(s => s.SupplierType == type);
-            else
-                query = query.Where(_ => false);
+            string type = supplierType.Trim().ToUpperInvariant();
+            query = query.Where(s => s.SupplierType == type);
         }
         if (active is not null) query = query.Where(s => s.Active == active);
         var result = await query.OrderBy(s => s.Name).ThenBy(s => s.Id).ToPageAsync(page, size, ct);

@@ -4,6 +4,7 @@ import * as React from "react";
 import TeamStatusService from "../../services/team-status-service";
 import type { TeamStatusResponse } from "../../types/team-status-response";
 import { PageSection } from "@/components/page/page-section";
+import { FieldTeamStatusLabels } from "@/app/dashboard/fieldwork/enums/field-team-status";
 
 export default function TeamStatusGrid() {
   const [team, setTeam] = React.useState<TeamStatusResponse[]>([]);
@@ -43,7 +44,7 @@ export default function TeamStatusGrid() {
                 <p className="text-xs text-muted-foreground">Ubicación: {t.locationText ?? "—"}</p>
               </div>
               <span className="rounded-full bg-primary/10 px-2 py-1 text-xs text-primary">
-                {t.status}
+                {FieldTeamStatusLabels[t.status] ?? t.status}
               </span>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">

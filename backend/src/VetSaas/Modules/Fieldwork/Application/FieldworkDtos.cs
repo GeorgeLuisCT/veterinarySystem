@@ -11,7 +11,7 @@ namespace VetSaas.Modules.Fieldwork.Application;
 public record CreateGeoZoneRequest
 {
     public string? Name { get; init; }
-    public GeoZoneType? Type { get; init; }
+    public string? Type { get; init; }
     public long? ParentId { get; init; }
     public string? GpsCoordinates { get; init; }
     public bool? Active { get; init; }
@@ -29,8 +29,8 @@ public class GeoZoneValidator<T> : AbstractValidator<T> where T : CreateGeoZoneR
 public sealed class CreateGeoZoneValidator : GeoZoneValidator<CreateGeoZoneRequest>;
 public sealed class UpdateGeoZoneValidator : GeoZoneValidator<UpdateGeoZoneRequest>;
 
-public sealed record GeoZoneSummaryResponse(long Id, string Name, GeoZoneType Type, long? ParentId, string? ParentName, bool Active);
-public sealed record GeoZoneResponse(long Id, string Name, GeoZoneType Type, long? ParentId, string? ParentName, string? GpsCoordinates, bool Active);
+public sealed record GeoZoneSummaryResponse(long Id, string Name, string Type, long? ParentId, string? ParentName, bool Active);
+public sealed record GeoZoneResponse(long Id, string Name, string Type, long? ParentId, string? ParentName, string? GpsCoordinates, bool Active);
 
 // ---- Fincas ----
 public record CreateFarmRequest
@@ -157,8 +157,8 @@ public sealed class UpdateFieldVisitReportValidator : AbstractValidator<UpdateFi
     public UpdateFieldVisitReportValidator() => RuleFor(r => r.Version).NotNull().WithMessage("La versión es obligatoria");
 }
 
-public sealed record FieldVisitServiceGroupInput(AnimalSpecies? Species, string? Breed, int? Quantity, string? Description);
-public sealed record FieldVisitServiceProductInput(long? ProductId, decimal? Dose, ProductUnitType? Unit, AdministrationRoute? AdministrationRoute);
+public sealed record FieldVisitServiceGroupInput(string? Species, string? Breed, int? Quantity, string? Description);
+public sealed record FieldVisitServiceProductInput(long? ProductId, decimal? Dose, ProductUnitType? Unit, string? AdministrationRoute);
 
 public sealed record AddServiceItemRequest(long? ClinicalServiceId, int? Quantity, decimal? UnitPrice, long? PerformedById, string? Notes,
     List<long>? AnimalIds, List<FieldVisitServiceGroupInput>? Groups, List<FieldVisitServiceProductInput>? Products);
@@ -213,9 +213,9 @@ public sealed class AddAttachmentValidator : AbstractValidator<AddAttachmentRequ
 public sealed record SetBiosecurityRequest(bool? VehicleAndEquipmentCleaned, bool? PpeUsed, bool? HandHygiene, string? Notes);
 
 public sealed record FieldVisitCompanionResponse(long EmployeeId, string EmployeeName);
-public sealed record FieldVisitServiceAnimalResponse(long Id, long AnimalId, string? AnimalName, AnimalSpecies? Species, string? Breed);
-public sealed record FieldVisitServiceGroupResponse(long Id, AnimalSpecies? Species, string? Breed, int? Quantity, string? Description);
-public sealed record FieldVisitServiceProductResponse(long Id, ProductBasicResponse? Product, decimal? Dose, ProductUnitType Unit, AdministrationRoute AdministrationRoute);
+public sealed record FieldVisitServiceAnimalResponse(long Id, long AnimalId, string? AnimalName, string? Species, string? Breed);
+public sealed record FieldVisitServiceGroupResponse(long Id, string? Species, string? Breed, int? Quantity, string? Description);
+public sealed record FieldVisitServiceProductResponse(long Id, ProductBasicResponse? Product, decimal? Dose, ProductUnitType Unit, string AdministrationRoute);
 public sealed record FieldVisitServiceItemResponse(long Id, long ClinicalServiceId, string ClinicalServiceName, int Quantity, decimal UnitPrice,
     long? PerformedById, string? PerformedByName, string? Notes, IReadOnlyList<FieldVisitServiceAnimalResponse> Animals,
     IReadOnlyList<FieldVisitServiceGroupResponse> Groups, IReadOnlyList<FieldVisitServiceProductResponse> Products);
@@ -236,7 +236,7 @@ public sealed record FieldVisitResponse(long Id, long? FarmId, string? FarmName,
     IReadOnlyList<FieldVisitAttachmentResponse> Attachments, FieldVisitReportResponse? Report);
 
 // ---- Tareas, rutas y estado del equipo ----
-public sealed record CreateFieldTaskRequest(string? Title, long? ZoneId, List<long>? FarmIds, string? Description, FieldTaskPriority? Priority,
+public sealed record CreateFieldTaskRequest(string? Title, long? ZoneId, List<long>? FarmIds, string? Description, string? Priority,
     FieldTaskStatus? Status, DateTime? DueAt);
 
 public sealed class CreateFieldTaskValidator : AbstractValidator<CreateFieldTaskRequest>
@@ -249,7 +249,7 @@ public sealed class CreateFieldTaskValidator : AbstractValidator<CreateFieldTask
     }
 }
 
-public sealed record UpdateFieldTaskRequest(string? Title, long? ZoneId, long? FarmId, string? Description, FieldTaskPriority? Priority,
+public sealed record UpdateFieldTaskRequest(string? Title, long? ZoneId, long? FarmId, string? Description, string? Priority,
     FieldTaskStatus? Status, DateTime? DueAt);
 
 public sealed class UpdateFieldTaskValidator : AbstractValidator<UpdateFieldTaskRequest>
@@ -274,11 +274,11 @@ public sealed class AssignFieldTaskValidator : AbstractValidator<AssignFieldTask
     }
 }
 
-public record FieldTaskSummaryResponse(long Id, string Title, long FarmId, string? FarmName, long? ZoneId, string? ZoneName, FieldTaskPriority Priority,
+public record FieldTaskSummaryResponse(long Id, string Title, long FarmId, string? FarmName, long? ZoneId, string? ZoneName, string Priority,
     FieldTaskStatus Status, long? AssignedToId, string? AssignedToName, DateTime? DueAt, long? CreatedFieldVisitId,
     FieldVisitStatus? CreatedFieldVisitStatus, long? VehicleId, string? VehicleName);
 
-public sealed record FieldTaskResponse(long Id, string Title, long FarmId, string? FarmName, long? ZoneId, string? ZoneName, FieldTaskPriority Priority,
+public sealed record FieldTaskResponse(long Id, string Title, long FarmId, string? FarmName, long? ZoneId, string? ZoneName, string Priority,
     FieldTaskStatus Status, long? AssignedToId, string? AssignedToName, DateTime? DueAt, long? CreatedFieldVisitId,
     FieldVisitStatus? CreatedFieldVisitStatus, long? VehicleId, string? VehicleName, string? Description);
 

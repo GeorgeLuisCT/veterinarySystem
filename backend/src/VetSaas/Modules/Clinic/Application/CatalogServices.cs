@@ -597,7 +597,7 @@ public sealed class PrescriptionTemplateService : IPrescriptionTemplateService
 public sealed record LaboratoryActivationInput(long? LaboratoryId, bool? Active);
 public sealed record LaboratoryStateResponse(long LaboratoryId, string LaboratoryName, bool Active);
 
-public sealed record CreateLaboratoryTestParameterRequest(string? Name, LabValueType? ValueType, LabUnit? Unit, string? AllowedOptions,
+public sealed record CreateLaboratoryTestParameterRequest(string? Name, LabValueType? ValueType, string? Unit, string? AllowedOptions,
     double? RefMin, double? RefMax, string? RefText, int? Decimals);
 
 public record CreateLaboratoryTestRequest
@@ -637,7 +637,7 @@ public class LaboratoryTestRequestValidator<T> : AbstractValidator<T> where T : 
 public sealed class CreateLaboratoryTestValidator : LaboratoryTestRequestValidator<CreateLaboratoryTestRequest>;
 public sealed class UpdateLaboratoryTestValidator : LaboratoryTestRequestValidator<UpdateLaboratoryTestRequest>;
 
-public sealed record LaboratoryTestParameterResponse(long Id, string Name, LabValueType ValueType, LabUnit Unit, string? AllowedOptions,
+public sealed record LaboratoryTestParameterResponse(long Id, string Name, LabValueType ValueType, string Unit, string? AllowedOptions,
     double? RefMin, double? RefMax, string? RefText, int? Decimals)
 {
     public static LaboratoryTestParameterResponse From(LaboratoryTestParameter p) =>
@@ -742,7 +742,7 @@ public sealed class LaboratoryTestService : ILaboratoryTestService
         foreach (CreateLaboratoryTestParameterRequest p in r.Parameters ?? new())
             test.Parameters.Add(new LaboratoryTestParameter
             {
-                Test = test, Name = p.Name!, ValueType = p.ValueType!.Value, Unit = p.Unit!.Value, AllowedOptions = p.AllowedOptions,
+                Test = test, Name = p.Name!, ValueType = p.ValueType!.Value, Unit = p.Unit!, AllowedOptions = p.AllowedOptions,
                 RefMin = p.RefMin, RefMax = p.RefMax, RefText = p.RefText, Decimals = p.Decimals,
             });
     }

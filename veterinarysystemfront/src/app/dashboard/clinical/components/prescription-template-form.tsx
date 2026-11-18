@@ -11,7 +11,6 @@ import { FloatingLabelInput } from "@/components/floating-label-input";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandGroup, CommandInput, CommandItem, CommandEmpty, CommandList } from "@/components/ui/command";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/context/user-context";
@@ -154,7 +153,10 @@ const MedicationProductSelector = ({
             <Button
               type="button"
               variant="outline"
-              className="flex-1 justify-between"
+              className={cn(
+                "h-9 flex-1 justify-between border-muted-foreground font-normal",
+                !selectedProduct && "text-muted-foreground"
+              )}
               disabled={disabled}
             >
               <span className="truncate">
@@ -163,7 +165,7 @@ const MedicationProductSelector = ({
               <Search className="ml-2 h-4 w-4 shrink-0 opacity-70" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[360px] p-0">
+          <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-[14rem] p-0" align="start">
             <Command>
               <div className="border-b border-border px-3 py-2">
                 <CommandInput
@@ -214,11 +216,6 @@ const MedicationProductSelector = ({
           </Button>
         )}
       </div>
-      {selectedProduct && (
-        <Badge variant="secondary" className="w-fit">
-          Producto seleccionado
-        </Badge>
-      )}
     </div>
   );
 };
@@ -438,50 +435,43 @@ export function PrescriptionTemplateForm({ setOpen, templateId, onSuccess }: Pre
     }
   };
 
+  const busy = form.formState.isSubmitting;
+
   return (
-    <div className="max-h-[80vh] overflow-auto">
+    <div className="max-h-[75vh] overflow-y-auto pr-1">
       {loading ? (
         <div className="flex h-40 items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : (
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-1">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <FloatingLabelInput
-                      {...field}
-                      id="template-name"
-                      label="Nombre de la plantilla"
-                      disabled={form.formState.isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="purpose"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <FloatingLabelInput
-                      {...field}
-                      id="template-purpose"
-                      label="Propósito clínico"
-                      disabled={form.formState.isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 p-1">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <FloatingLabelInput {...field} id="template-name" label="Nombre de la plantilla" disabled={busy} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="purpose"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <FloatingLabelInput {...field} id="template-purpose" label="Propósito clínico" disabled={busy} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
@@ -492,7 +482,8 @@ export function PrescriptionTemplateForm({ setOpen, templateId, onSuccess }: Pre
                     <Textarea
                       id="template-notes"
                       placeholder="Notas generales para la prescripción (opcional)"
-                      disabled={form.formState.isSubmitting}
+                      disabled={busy}
+                      className="min-h-[64px]"
                       value={field.value ?? ""}
                       onChange={(event) => field.onChange(event.target.value)}
                     />
@@ -502,16 +493,10 @@ export function PrescriptionTemplateForm({ setOpen, templateId, onSuccess }: Pre
               )}
             />
 
-            <div className="space-y-3 rounded-md border border-border p-3">
+            <section className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold">Medicamentos</h3>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleAddMedication}
-                  disabled={form.formState.isSubmitting}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={handleAddMedication} disabled={busy}>
                   <Plus className="mr-2 h-4 w-4" />
                   Añadir medicamento
                 </Button>
@@ -524,45 +509,38 @@ export function PrescriptionTemplateForm({ setOpen, templateId, onSuccess }: Pre
               )}
 
               {fields.map((field, index) => (
-                <div
-                  key={field.id}
-                  className="space-y-3 rounded-md border border-dashed border-border p-3"
-                >
+                <div key={field.id} className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <h4 className="text-sm font-semibold">Medicamento #{index + 1}</h4>
+                    <h4 className="text-sm font-semibold">Medicamento {index + 1}</h4>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
+                      className="text-muted-foreground"
                       onClick={() => handleRemoveMedication(index)}
-                      disabled={form.formState.isSubmitting || fields.length === 1}
+                      disabled={busy || fields.length === 1}
                     >
-                      <X className="mr-2 h-4 w-4" />
+                      <X className="mr-1 h-4 w-4" />
                       Quitar
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  {/* Qué medicamento: del inventario o con un nombre libre */}
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <FormField
                       control={form.control}
                       name={`medications.${index}.productId`}
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <div className="space-y-2">
-                              <input
-                                type="hidden"
-                                name={field.name}
-                                value={field.value ?? ""}
-                                ref={field.ref}
-                              />
+                            <div>
+                              <input type="hidden" name={field.name} value={field.value ?? ""} ref={field.ref} />
                               <MedicationProductSelector
                                 selectedProduct={selectedProducts[index]}
-                                onSelectProduct={(product) =>
-                                  handleSelectProduct(index, product)
-                                }
+                                onSelectProduct={(product) => handleSelectProduct(index, product)}
                                 onClear={() => handleClearProduct(index)}
-                                disabled={form.formState.isSubmitting}
+                                disabled={busy}
+                                placeholder="Producto del inventario"
                               />
                             </div>
                           </FormControl>
@@ -570,7 +548,6 @@ export function PrescriptionTemplateForm({ setOpen, templateId, onSuccess }: Pre
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name={`medications.${index}.customMedicationName`}
@@ -580,8 +557,8 @@ export function PrescriptionTemplateForm({ setOpen, templateId, onSuccess }: Pre
                             <FloatingLabelInput
                               {...customNameField}
                               id={`medications-${index}-custom-name`}
-                              label="Nombre personalizado"
-                              disabled={form.formState.isSubmitting}
+                              label="O nombre personalizado"
+                              disabled={busy}
                             />
                           </FormControl>
                           <FormMessage />
@@ -590,146 +567,154 @@ export function PrescriptionTemplateForm({ setOpen, templateId, onSuccess }: Pre
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-                    <FormField
-                      control={form.control}
-                      name={`medications.${index}.dosageAmount`}
-                      render={({ field: dosageAmountField }) => (
-                        <FormItem>
-                          <FormControl>
-                            <FloatingLabelInput
-                              {...dosageAmountField}
-                              id={`medications-${index}-dosage-amount`}
-                              type="number"
-                              step="0.01"
-                              label="Cantidad por dosis"
-                              disabled={form.formState.isSubmitting}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  {/* Cuánto, cada cuánto y por cuánto tiempo */}
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <fieldset className="space-y-2">
+                      <legend className="mb-2 text-xs font-medium text-muted-foreground">Dosis</legend>
+                      <div className="grid grid-cols-2 gap-2">
+                        <FormField
+                          control={form.control}
+                          name={`medications.${index}.dosageAmount`}
+                          render={({ field: f }) => (
+                            <FormItem>
+                              <FormControl>
+                                <FloatingLabelInput
+                                  {...f}
+                                  id={`medications-${index}-dosage-amount`}
+                                  type="number"
+                                  step="0.01"
+                                  label="Cantidad"
+                                  disabled={busy}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`medications.${index}.dosageUnit`}
+                          render={({ field: f }) => (
+                            <FormItem>
+                              <FormControl>
+                                <FloatingLabelSelect
+                                  id={`medications-${index}-dosage-unit`}
+                                  label="Unidad"
+                                  value={f.value ?? ""}
+                                  onValueChange={(v) => f.onChange(v === "" ? undefined : (v as ProductUnitType))}
+                                  options={dosageUnitOptions}
+                                  disabled={busy}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </fieldset>
 
-                    <FormField
-                      control={form.control}
-                      name={`medications.${index}.dosageUnit`}
-                      render={({ field: dosageUnitField }) => (
-                        <FormItem>
-                          <FormControl>
-                            <FloatingLabelSelect
-                              id={`medications-${index}-dosage-unit`}
-                              label="Unidad de dosificación"
-                              value={dosageUnitField.value ?? ""}
-                              onValueChange={(v) => dosageUnitField.onChange(v === "" ? undefined : (v as ProductUnitType))}
-                              options={dosageUnitOptions}
-                              disabled={form.formState.isSubmitting}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <fieldset className="space-y-2">
+                      <legend className="mb-2 text-xs font-medium text-muted-foreground">Frecuencia</legend>
+                      <div className="grid grid-cols-2 gap-2">
+                        <FormField
+                          control={form.control}
+                          name={`medications.${index}.frequencyValue`}
+                          render={({ field: f }) => (
+                            <FormItem>
+                              <FormControl>
+                                <FloatingLabelInput
+                                  {...f}
+                                  id={`medications-${index}-frequency-value`}
+                                  type="number"
+                                  step="1"
+                                  label="Cada"
+                                  disabled={busy}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`medications.${index}.frequencyUnit`}
+                          render={({ field: f }) => (
+                            <FormItem>
+                              <FormControl>
+                                <FloatingLabelSelect
+                                  id={`medications-${index}-frequency-unit`}
+                                  label="Unidad"
+                                  value={f.value}
+                                  onValueChange={(value) => f.onChange(value as FrequencyUnit)}
+                                  options={frequencyOptions}
+                                  disabled={busy}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </fieldset>
 
-                    <FormField
-                      control={form.control}
-                      name={`medications.${index}.frequencyValue`}
-                      render={({ field: frequencyValueField }) => (
-                        <FormItem>
-                          <FormControl>
-                            <FloatingLabelInput
-                              {...frequencyValueField}
-                              id={`medications-${index}-frequency-value`}
-                              type="number"
-                              step="1"
-                              label="Frecuencia"
-                              disabled={form.formState.isSubmitting}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name={`medications.${index}.frequencyUnit`}
-                      render={({ field: frequencyUnitField }) => (
-                        <FormItem>
-                          <FormControl>
-                            <FloatingLabelSelect
-                              id={`medications-${index}-frequency-unit`}
-                              label="Unidad de frecuencia"
-                              value={frequencyUnitField.value}
-                              onValueChange={(value) =>
-                                frequencyUnitField.onChange(value as FrequencyUnit)
-                              }
-                              options={frequencyOptions}
-                              disabled={form.formState.isSubmitting}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-                    <FormField
-                      control={form.control}
-                      name={`medications.${index}.durationValue`}
-                      render={({ field: durationValueField }) => (
-                        <FormItem>
-                          <FormControl>
-                            <FloatingLabelInput
-                              {...durationValueField}
-                              id={`medications-${index}-duration-value`}
-                              type="number"
-                              step="1"
-                              label="Duración"
-                              disabled={form.formState.isSubmitting}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name={`medications.${index}.durationUnit`}
-                      render={({ field: durationUnitField }) => (
-                        <FormItem>
-                          <FormControl>
-                            <FloatingLabelSelect
-                              id={`medications-${index}-duration-unit`}
-                              label="Unidad de duración"
-                              value={durationUnitField.value}
-                              onValueChange={(value) =>
-                                durationUnitField.onChange(value as TimeUnit)
-                              }
-                              options={durationOptions}
-                              disabled={form.formState.isSubmitting}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <fieldset className="space-y-2">
+                      <legend className="mb-2 text-xs font-medium text-muted-foreground">Duración</legend>
+                      <div className="grid grid-cols-2 gap-2">
+                        <FormField
+                          control={form.control}
+                          name={`medications.${index}.durationValue`}
+                          render={({ field: f }) => (
+                            <FormItem>
+                              <FormControl>
+                                <FloatingLabelInput
+                                  {...f}
+                                  id={`medications-${index}-duration-value`}
+                                  type="number"
+                                  step="1"
+                                  label="Durante"
+                                  disabled={busy}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`medications.${index}.durationUnit`}
+                          render={({ field: f }) => (
+                            <FormItem>
+                              <FormControl>
+                                <FloatingLabelSelect
+                                  id={`medications-${index}-duration-unit`}
+                                  label="Unidad"
+                                  value={f.value}
+                                  onValueChange={(value) => f.onChange(value as TimeUnit)}
+                                  options={durationOptions}
+                                  disabled={busy}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </fieldset>
                   </div>
 
                   <FormField
                     control={form.control}
                     name={`medications.${index}.instructions`}
-                    render={({ field: instructionsField }) => (
+                    render={({ field: f }) => (
                       <FormItem>
                         <FormControl>
                           <Textarea
                             id={`medications-${index}-instructions`}
                             placeholder="Instrucciones para el propietario (opcional)"
-                            disabled={form.formState.isSubmitting}
-                            value={instructionsField.value ?? ""}
-                            onChange={(event) => instructionsField.onChange(event.target.value)}
+                            disabled={busy}
+                            className="min-h-[56px]"
+                            value={f.value ?? ""}
+                            onChange={(event) => f.onChange(event.target.value)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -738,13 +723,14 @@ export function PrescriptionTemplateForm({ setOpen, templateId, onSuccess }: Pre
                   />
                 </div>
               ))}
-            </div>
+            </section>
 
-            <div className="flex justify-center">
-              <Button type="submit" disabled={form.formState.isSubmitting} className="w-48">
-                {form.formState.isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+            <div className="flex justify-end gap-2 border-t pt-4">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={busy}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={busy}>
+                {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {templateId ? "Guardar cambios" : "Registrar plantilla"}
               </Button>
             </div>

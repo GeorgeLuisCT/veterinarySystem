@@ -15,6 +15,7 @@ import { OperatingRoomService } from "@/app/dashboard/branche/services/operating
 import { useToast } from "@/hooks/use-toast";
 import { getAaxiosErrorMessage } from "@/helpers/error";
 import type { Option, SelectOption } from "../types";
+import { AnimalPickerField } from "@/app/dashboard/crm/patients/components/animal-picker-field";
 import SurgicalOrderService from "../../service/surgical-order-service";
 
 interface SurgicalAppointmentTabProps {
@@ -27,6 +28,7 @@ interface SurgicalAppointmentTabProps {
   syncBranchBetweenForms: (value: number, source: "clinical" | "grooming" | "surgical") => void;
   animalOptions: Option[];
   onSearchAnimals: (query: string) => void;
+  onRequestCreateAnimal: (query: string) => void;
   loadEmployees: (query?: string) => Promise<Option[]>;
   open: boolean;
   selectedBranchId: number | null;
@@ -42,6 +44,7 @@ export function SurgicalAppointmentTab({
   syncBranchBetweenForms,
   animalOptions,
   onSearchAnimals,
+  onRequestCreateAnimal,
   loadEmployees,
   open,
   selectedBranchId,
@@ -344,18 +347,14 @@ export function SurgicalAppointmentTab({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <FloatingLabelSelect
+                    <AnimalPickerField
                       id="surgical-animalId"
-                      label="Mascota"
-                      value={field.value ? String(field.value) : ""}
-                      onValueChange={(value) => field.onChange(Number(value))}
-                      options={animalOptions.map((animal) => ({
-                        value: String(animal.id),
-                        label: animal.label,
-                      }))}
+                      value={field.value}
+                      onChange={field.onChange}
+                      options={animalOptions}
                       onSearch={onSearchAnimals}
+                      onRequestCreate={onRequestCreateAnimal}
                       disabled={isSubmitting}
-                      emptyMessage="No se encontraron mascotas."
                     />
                   </FormControl>
                   <FormMessage />

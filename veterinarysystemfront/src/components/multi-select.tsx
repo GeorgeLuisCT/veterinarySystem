@@ -89,7 +89,7 @@ export function MultiSelect<T extends string | number | boolean>({
           </div>
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-[14rem] p-0" align="start">
         <Command>
           <CommandInput placeholder="Buscar..." />
           <CommandList>

@@ -7,6 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import LaboratoryTestService from "../service/laboratory-test-service";
 import { LaboratoryTestResponse, LaboratoryTestParameterResponse } from "../types/laboratory-test-response";
 import { getAaxiosErrorMessage } from "@/helpers/error";
+import { LabValueTypeLabels } from "@/app/dashboard/clinical/enums/lab-value-type";
+import { LabUnitLabels } from "@/app/dashboard/clinical/enums/lab-unit";
 
 interface LaboratoryTestDetailProps {
   labTestId: number;
@@ -147,8 +149,8 @@ export default function LaboratoryTestDetail({ labTestId }: LaboratoryTestDetail
                 className="flex items-center justify-between rounded-md border border-dashed border-border px-3 py-2"
               >
                 <div className="flex flex-col">
-                  <span className="font-medium text-foreground">{param.name} ({param.valueType})</span>
-                  <span className="text-xs text-muted-foreground">Unidad: {param.unit || "N/A"}</span>
+                  <span className="font-medium text-foreground">{param.name} ({LabValueTypeLabels[param.valueType] ?? param.valueType})</span>
+                  <span className="text-xs text-muted-foreground">Unidad: {param.unit ? LabUnitLabels[param.unit] ?? param.unit : "N/A"}</span>
                 </div>
                 <div className="text-xs text-muted-foreground">
                   Ref: {getReferenceRange(param)}

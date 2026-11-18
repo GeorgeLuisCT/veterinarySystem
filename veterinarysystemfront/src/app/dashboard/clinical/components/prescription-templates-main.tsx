@@ -221,7 +221,7 @@ export function PrescriptionTemplatesMain() {
         />
 
         <Dialog open={activeModal === "create"} onOpenChange={(open) => !open && closeModal()}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle>Crear plantilla de prescripción</DialogTitle>
               <DialogDescription>
@@ -233,7 +233,7 @@ export function PrescriptionTemplatesMain() {
         </Dialog>
 
         <Dialog open={activeModal === "view"} onOpenChange={(open) => !open && closeModal()}>
-          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+          <DialogContent className="max-h-[90vh] sm:max-w-2xl overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{templateForEdit?.name ?? "Detalle de plantilla"}</DialogTitle>
               <DialogDescription>Medicamentos y notas de la plantilla.</DialogDescription>
@@ -243,7 +243,7 @@ export function PrescriptionTemplatesMain() {
         </Dialog>
 
         <Dialog open={activeModal === "edit"} onOpenChange={(open) => !open && closeModal()}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle>Editar plantilla de prescripción</DialogTitle>
               <DialogDescription>

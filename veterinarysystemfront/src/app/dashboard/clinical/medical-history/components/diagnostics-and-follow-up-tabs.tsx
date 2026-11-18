@@ -11,6 +11,7 @@ import type {
 } from "../../types/medical-history-response";
 import { LabRequestStatusLabels } from "../../enums/lab-request-status";
 import { PageSection } from "@/components/page/page-section";
+import { LabUnit, LabUnitSymbols } from "@/app/dashboard/clinical/enums/lab-unit";
 
 const EmptyState = ({ icon: Icon, message }: { icon: React.ComponentType<{ className?: string }>; message: string }) => (
   <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
@@ -93,7 +94,7 @@ function LabsTab({ labResults }: { labResults: ClinicalHistoryLabResult[] }) {
                       <td className="px-3 py-2 font-medium text-foreground">{parameter.name ?? "—"}</td>
                       <td className="px-3 py-2">
                         {parameter.value ?? "—"}
-                        {parameter.unit ? ` ${parameter.unit}` : ""}
+                        {parameter.unit ? ` ${LabUnitSymbols[parameter.unit as LabUnit] ?? parameter.unit}` : ""}
                       </td>
                       <td className="px-3 py-2 text-muted-foreground">{parameter.referenceRange ?? "—"}</td>
                       <td className="px-3 py-2 text-muted-foreground">{parameter.flag ?? "—"}</td>

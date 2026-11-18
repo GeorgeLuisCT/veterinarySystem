@@ -61,7 +61,7 @@ export default function TransferDialog({ product, vehicleId, branchId, onClose, 
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Agregar al vehículo</DialogTitle>
           <DialogDescription>Traslada unidades del almacén de sucursal al vehículo seleccionado.</DialogDescription>

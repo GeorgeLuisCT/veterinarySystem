@@ -14,7 +14,7 @@ public static class ProcedureEndpoints
     {
         // ---- Jaulas ----
         var cages = app.MapGroup("/api/cages").WithTags("Hospitalization");
-        cages.MapGet("/", async (ICageService s, CancellationToken ct, long? branchId = null, string? name = null, CageSize? size = null,
+        cages.MapGet("/", async (ICageService s, CancellationToken ct, long? branchId = null, string? name = null, string? size = null,
                 bool? isOccupied = null, int page = 0, int pageSize = 10) =>
             Results.Ok(await s.ListAsync(branchId, name, size, isOccupied, page, pageSize, ct)));
         cages.MapGet("/{id:long}", async (long id, ICageService s, CancellationToken ct) => Results.Ok(await s.GetAsync(id, ct)));
@@ -125,7 +125,7 @@ public static class ProcedureEndpoints
         var history = app.MapGroup("/api/history/clinical").WithTags("History")
             .RequireRoles(ROLE_ADMIN, ROLE_MANAGER, ROLE_VETERINARIAN, ROLE_ASSISTANT);
         history.MapGet("/animals", async (IClinicalHistoryService s, CancellationToken ct, int page = 0, int size = 10, string? query = null,
-                QueryList<AnimalSpecies>? species = null, bool? active = null) =>
+                QueryList<string>? species = null, bool? active = null) =>
             Results.Ok(await s.SearchAnimalsAsync(query, species, active, page, size, ct)));
         history.MapGet("/animal", async (long animalId, IClinicalHistoryService s, CancellationToken ct, DateOnly? from = null, DateOnly? to = null) =>
             Results.Ok(await s.GetAnimalHistoryAsync(animalId, from, to, ct)));

@@ -62,7 +62,7 @@ const mapVisitToEvent = (v: FieldVisitSummaryResponse): CalendarEvent => {
     startDate: start,
     endDate: end,
     color,
-    category: v.status,
+    category: FieldVisitStatusLabels[v.status] ?? v.status,
     location: target,
     calendarId,
     attendees: attendees.length ? attendees : undefined,

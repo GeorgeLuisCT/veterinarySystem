@@ -21,7 +21,7 @@ internal static class FieldText
 
 public interface IGeoZoneService
 {
-    Task<PaginatedResponse<GeoZoneSummaryResponse>> ListAsync(int page, int size, string? q, GeoZoneType? type, long? parentId, bool? active, CancellationToken ct = default);
+    Task<PaginatedResponse<GeoZoneSummaryResponse>> ListAsync(int page, int size, string? q, string? type, long? parentId, bool? active, CancellationToken ct = default);
     Task<GeoZoneResponse> GetAsync(long id, CancellationToken ct = default);
     Task<GeoZoneResponse> CreateAsync(CreateGeoZoneRequest r, CancellationToken ct = default);
     Task<GeoZoneResponse> UpdateAsync(long id, UpdateGeoZoneRequest r, CancellationToken ct = default);
@@ -39,7 +39,7 @@ public sealed class GeoZoneService : IGeoZoneService
     private async Task<GeoZone> RequireAsync(long id, CancellationToken ct) =>
         await _db.GeoZones.Include(z => z.Parent).FirstOrDefaultAsync(z => z.Id == id, ct) ?? throw new InvalidArgumentException("GeoZone no encontrado: id=" + id);
 
-    public async Task<PaginatedResponse<GeoZoneSummaryResponse>> ListAsync(int page, int size, string? q, GeoZoneType? type, long? parentId,
+    public async Task<PaginatedResponse<GeoZoneSummaryResponse>> ListAsync(int page, int size, string? q, string? type, long? parentId,
         bool? active, CancellationToken ct = default)
     {
         IQueryable<GeoZone> query = _db.GeoZones.AsNoTracking().Include(z => z.Parent);
@@ -67,7 +67,7 @@ public sealed class GeoZoneService : IGeoZoneService
     private static void Apply(GeoZone z, CreateGeoZoneRequest r)
     {
         z.Name = r.Name!.Trim();
-        z.Type = r.Type!.Value;
+        z.Type = r.Type!;
         z.GpsCoordinates = FieldText.TrimToNull(r.GpsCoordinates);
         if (r.Active is not null) z.Active = r.Active.Value;
         z.ParentId = r.ParentId is > 0 ? r.ParentId : null;
@@ -608,7 +608,7 @@ public sealed class FieldVisitService : IFieldVisitService
                     ?? throw new InvalidArgumentException("Producto no encontrado: id=" + p.ProductId);
                 item.Products.Add(new FieldVisitServiceProduct
                 {
-                    ServiceItem = item, Product = product, Dose = p.Dose, Unit = p.Unit!.Value, AdministrationRoute = p.AdministrationRoute!.Value,
+                    ServiceItem = item, Product = product, Dose = p.Dose, Unit = p.Unit!.Value, AdministrationRoute = p.AdministrationRoute!,
                 });
             }
             _db.FieldVisitServiceItems.Add(item);
@@ -703,7 +703,7 @@ public sealed class FieldVisitService : IFieldVisitService
 
 public interface IFieldTaskService
 {
-    Task<PaginatedResponse<FieldTaskSummaryResponse>> ListAsync(int page, int size, string? q, FieldTaskStatus? status, FieldTaskPriority? priority,
+    Task<PaginatedResponse<FieldTaskSummaryResponse>> ListAsync(int page, int size, string? q, FieldTaskStatus? status, string? priority,
         long? assignedToId, long? farmId, long? zoneId, DateTime? dueFrom, DateTime? dueTo, CancellationToken ct = default);
     Task<FieldTaskResponse> GetAsync(long id, CancellationToken ct = default);
     Task<List<FieldTaskResponse>> CreateAsync(CreateFieldTaskRequest r, long? createdById, CancellationToken ct = default);
@@ -748,7 +748,7 @@ public sealed class FieldTaskService : IFieldTaskService
         await Full().FirstOrDefaultAsync(t => t.Id == id, ct) ?? throw new InvalidArgumentException("Tarea no encontrada");
 
     public async Task<PaginatedResponse<FieldTaskSummaryResponse>> ListAsync(int page, int size, string? q, FieldTaskStatus? status,
-        FieldTaskPriority? priority, long? assignedToId, long? farmId, long? zoneId, DateTime? dueFrom, DateTime? dueTo, CancellationToken ct = default)
+        string? priority, long? assignedToId, long? farmId, long? zoneId, DateTime? dueFrom, DateTime? dueTo, CancellationToken ct = default)
     {
         IQueryable<FieldTask> query = Full().AsNoTracking();
         if (!string.IsNullOrWhiteSpace(q))
@@ -779,7 +779,7 @@ public sealed class FieldTaskService : IFieldTaskService
                 Farm farm = await _db.Farms.FirstOrDefaultAsync(f => f.Id == farmId, ct) ?? throw new InvalidArgumentException("Finca no encontrada: id=" + farmId);
                 tasks.Add(new FieldTask
                 {
-                    Title = r.Title!.Trim(), FarmId = farm.Id, ZoneId = r.ZoneId ?? farm.ZoneId, Description = r.Description, Priority = r.Priority!.Value,
+                    Title = r.Title!.Trim(), FarmId = farm.Id, ZoneId = r.ZoneId ?? farm.ZoneId, Description = r.Description, Priority = r.Priority!,
                     Status = r.Status ?? FieldTaskStatus.PENDING, DueAt = r.DueAt, CreatedById = createdById, CreatedAt = _clock.Now,
                 });
             }
@@ -800,7 +800,7 @@ public sealed class FieldTaskService : IFieldTaskService
             if (r.ZoneId is not null) task.ZoneId = r.ZoneId;
             else if (farm.ZoneId is not null) task.ZoneId = farm.ZoneId;
             task.Description = r.Description;
-            task.Priority = r.Priority!.Value;
+            task.Priority = r.Priority!;
             task.Status = r.Status!.Value;
             task.DueAt = r.DueAt;
             task.Farm = null!;

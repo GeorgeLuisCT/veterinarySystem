@@ -65,10 +65,7 @@ export function SelectableCombobox<T, V>({
                                     <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent
-                                style={{ width: triggerRef.current?.offsetWidth }}
-                                className="p-0"
-                            >
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-[14rem] p-0" align="start">
                                 <Command>
                                     <CommandInput
                                         placeholder="Buscar..."

@@ -166,7 +166,7 @@ public sealed record UpdateSurgicalReportRequest(uint? Version, Optional<DateTim
     Optional<string?> SurgicalTechniqueDescription);
 
 public sealed record AddSurgicalReportAnestheticDrugRequest(long? ProductId, AnestheticPhase? Phase, decimal? DoseAmount,
-    ProductUnitType? DoseUnit, AdministrationRoute? Route);
+    ProductUnitType? DoseUnit, string? Route);
 
 public sealed class AddSurgicalReportAnestheticDrugValidator : AbstractValidator<AddSurgicalReportAnestheticDrugRequest>
 {
@@ -193,7 +193,7 @@ public sealed class AddSurgicalReportMaterialValidator : AbstractValidator<AddSu
 }
 
 public sealed record AddSurgicalReportPostOperativeIndicationRequest(long? ProductId, decimal? DoseAmount, ProductUnitType? DoseUnit,
-    int? FrequencyValue, FrequencyUnit? FrequencyUnit, AdministrationRoute? Route, string? NonDrugInstruction);
+    int? FrequencyValue, FrequencyUnit? FrequencyUnit, string? Route, string? NonDrugInstruction);
 
 public sealed class AddSurgicalReportPostOperativeIndicationValidator : AbstractValidator<AddSurgicalReportPostOperativeIndicationRequest>
 {
@@ -207,13 +207,13 @@ public sealed class AddSurgicalReportPostOperativeIndicationValidator : Abstract
 }
 
 public sealed record AnestheticDrugResponse(long Id, long ProductId, string? ProductName, AnestheticPhase Phase, decimal DoseAmount,
-    ProductUnitType DoseUnit, AdministrationRoute? Route);
+    ProductUnitType DoseUnit, string? Route);
 
 public sealed record SurgicalMaterialResponse(long Id, long? ProductId, string? ProductName, string? UnregisteredProductName, int Quantity,
     ProductUnitType UnitType);
 
 public sealed record PostOperativeIndicationResponse(long Id, long? ProductId, string? ProductName, string? NonDrugInstruction,
-    decimal? DoseAmount, ProductUnitType? DoseUnit, int? FrequencyValue, FrequencyUnit? FrequencyUnit, AdministrationRoute? Route);
+    decimal? DoseAmount, ProductUnitType? DoseUnit, int? FrequencyValue, FrequencyUnit? FrequencyUnit, string? Route);
 
 public sealed record SurgicalReportSummaryResponse(long Id, uint Version, long AttentionId, DateTime? SurgeryStartAt, DateTime? SurgeryEndAt,
     SurgicalReportStatus Status, AnimalBasicResponse? AnimalBasicResponse, string? ClinicalServiceName, BranchResponse? Branch, long? SurgeonId,

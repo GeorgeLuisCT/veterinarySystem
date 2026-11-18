@@ -3,6 +3,14 @@
 import { AnimalSpecies, AnimalSpeciesLabels } from "@/app/dashboard/crm/patients/enums/animal-species";
 import { AnimalService } from "@/app/dashboard/crm/patients/service/animal-service";
 import type { AnimalQuickSearchResponse } from "@/app/dashboard/crm/patients/types/animal-quick-search-response";
+import {
+  QuickAnimalView,
+  QUICK_ANIMAL_DESCRIPTION,
+  QUICK_ANIMAL_TITLE,
+  quickAnimalLabel,
+  useQuickAnimalView,
+  type QuickCreatedAnimal,
+} from "@/app/dashboard/crm/patients/components/quick-animal-view";
 import { FloatingLabelDateInput } from "@/components/floating-label-date-input";
 import type { Option as MultiSelectOption } from "@/components/floating-label-multi-select";
 import { FloatingLabelSelect } from "@/components/floating-label-select";
@@ -52,6 +60,9 @@ export function CreateReminderDialog({ open, onOpenChange, onCreated }: Props) {
     MultiSelectOption<string>[]
   >([]);
   const [creating, setCreating] = useState(false);
+  // Vista "Nueva mascota" dentro del diálogo (sin abrir otro modal ni perder lo llenado).
+  const quickAnimal = useQuickAnimalView();
+  const resetQuickAnimal = quickAnimal.reset;
   const [createForm, setCreateForm] = useState<CreateReminderForm>({
     animalId: "",
     reminderType: ReminderType.VACCINATION,
@@ -65,6 +76,13 @@ export function CreateReminderDialog({ open, onOpenChange, onCreated }: Props) {
       dueDate: "",
     });
     setAnimalOptions([]);
+    resetQuickAnimal();
+  }, [resetQuickAnimal]);
+
+  const handleAnimalCreated = useCallback((animal: QuickCreatedAnimal) => {
+    const option = { value: String(animal.id), label: quickAnimalLabel(animal) };
+    setAnimalOptions((prev) => [option, ...prev.filter((o) => o.value !== option.value)]);
+    setCreateForm((prev) => ({ ...prev, animalId: option.value }));
   }, []);
 
   useEffect(() => {
@@ -141,13 +159,15 @@ export function CreateReminderDialog({ open, onOpenChange, onCreated }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-lg overflow-hidden" onEscapeKeyDown={quickAnimal.handleEscapeKeyDown}>
         <DialogHeader>
-          <DialogTitle>Nuevo recordatorio</DialogTitle>
+          <DialogTitle>{quickAnimal.active ? QUICK_ANIMAL_TITLE : "Nuevo recordatorio"}</DialogTitle>
           <DialogDescription>
-            Agenda un recordatorio manual para un paciente.
+            {quickAnimal.active ? QUICK_ANIMAL_DESCRIPTION : "Agenda un recordatorio manual para un paciente."}
           </DialogDescription>
         </DialogHeader>
+        <QuickAnimalView view={quickAnimal} idPrefix="reminder-new-animal" onCreated={handleAnimalCreated} />
+        <div className={quickAnimal.mainClassName}>
         <div className="space-y-4">
           <div>
             <FloatingLabelSelect
@@ -160,6 +180,10 @@ export function CreateReminderDialog({ open, onOpenChange, onCreated }: Props) {
               options={animalOptions}
               onSearch={handleAnimalSearch}
               emptyMessage="Sin resultados. Escribe al menos 2 caracteres."
+              createOption={{
+                onCreate: quickAnimal.open,
+                label: (query) => (query ? `Registrar "${query}" como nueva mascota` : "Registrar nueva mascota"),
+              }}
             />
           </div>
           <div>
@@ -212,6 +236,7 @@ export function CreateReminderDialog({ open, onOpenChange, onCreated }: Props) {
             Guardar
           </Button>
         </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

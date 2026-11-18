@@ -1,3 +1,5 @@
+using VetSaas.Modules.Preferences;
+using VetSaas.Modules.Catalogs;
 using System.Collections.Concurrent;
 using System.Globalization;
 using FluentValidation;
@@ -16,7 +18,7 @@ namespace VetSaas.Modules.PublicPortal;
 
 // ---- DTOs ----
 public sealed record PublicCompanyResponse(string Name, string Industry);
-public sealed record PublicAnimalSummaryResponse(long Id, string Name, string? PhotoUrl, AnimalSpecies? Species, string? SpeciesLabel, string? Breed,
+public sealed record PublicAnimalSummaryResponse(long Id, string Name, string? PhotoUrl, string? Species, string? SpeciesLabel, string? Breed,
     AnimalSex? Sex);
 public sealed record PublicAppointmentResponse(long AppointmentId, AppointmentStatus Status, AppointmentType Type, DateTime RequestedStart,
     string BranchName, string AnimalName);
@@ -53,18 +55,17 @@ public sealed class PublicAppointmentValidator : AbstractValidator<PublicAppoint
 /// </summary>
 public sealed class PublicPortalRateLimiter
 {
-    public const int MaxAttempts = 10;
-    public static readonly TimeSpan Window = TimeSpan.FromMinutes(10);
     private readonly ConcurrentDictionary<string, Queue<DateTime>> _attempts = new();
 
-    public void Check(string key)
+    /// <summary>Registra un intento; 429 si ya hubo <paramref name="maxAttempts"/> en la ventana (preferencias del portal).</summary>
+    public void Check(string key, int maxAttempts, TimeSpan window)
     {
-        DateTime now = DateTime.UtcNow, threshold = now - Window;
+        DateTime now = DateTime.UtcNow, threshold = now - window;
         Queue<DateTime> queue = _attempts.GetOrAdd(key, _ => new Queue<DateTime>());
         lock (queue)
         {
             while (queue.Count > 0 && queue.Peek() < threshold) queue.Dequeue();
-            if (queue.Count >= MaxAttempts)
+            if (queue.Count >= maxAttempts)
                 throw new StatusException(StatusCodes.Status429TooManyRequests, "Demasiados intentos. Espera unos minutos antes de volver a consultar.");
             queue.Enqueue(now);
         }
@@ -118,7 +119,9 @@ public sealed class PublicPortalService : IPublicPortalService
     {
         Customer customer = await ResolveCustomerAsync(documentTypeId, documentNumber, ct);
         var animals = await _db.Animals.AsNoTracking().Where(a => a.OwnerId == customer.Id && a.IsActive).OrderBy(a => a.Name).ToListAsync(ct);
-        return animals.Select(a => new PublicAnimalSummaryResponse(a.Id, a.Name, a.PhotoUrl, a.Species, SpeciesLabel(a.Species), a.Breed, a.Sex)).ToList();
+        Dictionary<string, string> speciesLabels = await _db.CatalogLabelsAsync(CatalogKeys.AnimalSpecies, ct);
+        return animals.Select(a => new PublicAnimalSummaryResponse(a.Id, a.Name, a.PhotoUrl, a.Species,
+            speciesLabels.GetValueOrDefault(a.Species, a.Species), a.Breed, a.Sex)).ToList();
     }
 
     public async Task<ClinicalHistoryDetailResponse> GetClinicalHistoryAsync(long documentTypeId, string? documentNumber, long animalId,
@@ -176,13 +179,6 @@ public sealed class PublicPortalService : IPublicPortalService
         if (animal.OwnerId != customer.Id) throw new BadRequestException("La mascota no pertenece al cliente autenticado.");
     }
 
-    private static string? SpeciesLabel(AnimalSpecies? species)
-    {
-        if (species is null) return null;
-        string lower = species.Value.ToString().Replace('_', ' ').ToLower(CultureInfo.InvariantCulture);
-        return char.ToUpperInvariant(lower[0]) + lower[1..];
-    }
-
     private static string? Trim(string? v) => string.IsNullOrWhiteSpace(v) ? null : v.Trim();
 }
 
@@ -210,31 +206,32 @@ public static class PublicPortalEndpoints
         group.MapGet("/clinical-history/animals", async (long documentTypeId, string documentNumber, HttpContext http, PublicPortalRateLimiter limiter,
             IPublicPortalService s, CancellationToken ct) =>
         {
-            Throttle(http, limiter, documentNumber);
+            await ThrottleAsync(http, limiter, documentNumber);
             return Results.Ok(await s.GetAnimalsAsync(documentTypeId, documentNumber, ct));
         });
         group.MapGet("/clinical-history", async (long documentTypeId, string documentNumber, long animalId, HttpContext http,
             PublicPortalRateLimiter limiter, IPublicPortalService s, CancellationToken ct) =>
         {
-            Throttle(http, limiter, documentNumber);
+            await ThrottleAsync(http, limiter, documentNumber);
             return Results.Ok(await s.GetClinicalHistoryAsync(documentTypeId, documentNumber, animalId, ct));
         });
         group.MapPost("/appointments/request", async (PublicAppointmentRequest r, HttpContext http, PublicPortalRateLimiter limiter,
             IPublicPortalService s, CancellationToken ct) =>
         {
-            Throttle(http, limiter, r.DocumentNumber);
+            await ThrottleAsync(http, limiter, r.DocumentNumber);
             return Results.Json(await s.RequestAppointmentAsync(r, ct), statusCode: StatusCodes.Status201Created);
         }).Validate<PublicAppointmentRequest>();
     }
 
     /// <summary>IP real (ya resuelta por ForwardedHeaders detrás de nginx) y documento por empresa: solo frena abuso, no autoriza.</summary>
-    private static void Throttle(HttpContext http, PublicPortalRateLimiter limiter, string? documentNumber)
+    private static async Task ThrottleAsync(HttpContext http, PublicPortalRateLimiter limiter, string? documentNumber)
     {
-        limiter.Check("ip:" + (http.Connection.RemoteIpAddress?.ToString() ?? "unknown"));
+        var prefs = http.RequestServices.GetRequiredService<IPreferenceService>();
+        int maxAttempts = await prefs.IntAsync(PortalPrefs.MaxAttempts, ct: http.RequestAborted);
+        var window = TimeSpan.FromMinutes(await prefs.IntAsync(PortalPrefs.WindowMinutes, ct: http.RequestAborted));
+        string tenant = http.RequestServices.GetRequiredService<ITenantContext>().Current?.Slug ?? "";
+        limiter.Check($"ip:{tenant}:{http.Connection.RemoteIpAddress}", maxAttempts, window);
         if (!string.IsNullOrWhiteSpace(documentNumber))
-        {
-            string tenant = http.RequestServices.GetRequiredService<ITenantContext>().Current?.Slug ?? "";
-            limiter.Check($"doc:{tenant}:{documentNumber.Trim()}");
-        }
+            limiter.Check($"doc:{tenant}:{documentNumber.Trim()}", maxAttempts, window);
     }
 }

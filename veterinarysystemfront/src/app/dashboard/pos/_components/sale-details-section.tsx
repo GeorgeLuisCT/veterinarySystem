@@ -222,7 +222,7 @@ export default function SaleDetailsSection({
                   <ChevronsUpDown className="ml-2 h-4 w-4 opacity-60" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="p-0 w-[min(33rem,95vw)]">
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-[14rem] p-0" align="start">
                 <Command shouldFilter={false}>
                   <CommandInput
                     value={query}

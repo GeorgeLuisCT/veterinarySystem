@@ -73,7 +73,7 @@ export default function ProductUsageDialog({ open, onOpenChange, visitId, onSucc
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Añadir insumo</DialogTitle>
           <DialogDescription>Registra el consumo de productos durante la visita.</DialogDescription>

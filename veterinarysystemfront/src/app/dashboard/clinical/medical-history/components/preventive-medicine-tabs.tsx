@@ -11,6 +11,7 @@ import type {
 } from "../../types/medical-history-response";
 import { ClinicalServiceCategory, ClinicalServiceCategoryLabels } from "../../enums/clinical-service-category";
 import { PageSection } from "@/components/page/page-section";
+import { GroomingStatusLabels } from "@/app/dashboard/grooming/enums/grooming-status";
 
 const EmptyState = ({ icon: Icon, message }: { icon: React.ComponentType<{ className?: string }>; message: string }) => (
   <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
@@ -93,7 +94,7 @@ function GroomingList({ entries }: { entries: ClinicalHistoryGroomingEntry[] }) 
         <Card key={entry.id} className="p-4">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-semibold text-foreground">{entry.serviceName}</p>
-            <Badge variant="outline">{entry.status}</Badge>
+            <Badge variant="outline">{GroomingStatusLabels[entry.status] ?? entry.status}</Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
             Inicio: {formatDate(entry.startedAt)} • Fin: {formatDate(entry.finishedAt)}

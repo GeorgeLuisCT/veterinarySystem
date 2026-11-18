@@ -224,7 +224,7 @@ export function HealthPlansMain() {
         />
 
         <Dialog open={activeModal === "create"} onOpenChange={(open) => !open && closeModal()}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle>Crear plan de salud</DialogTitle>
               <DialogDescription>
@@ -236,7 +236,7 @@ export function HealthPlansMain() {
         </Dialog>
 
         <Dialog open={activeModal === "edit"} onOpenChange={(open) => !open && closeModal()}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle>Editar plan de salud</DialogTitle>
               <DialogDescription>

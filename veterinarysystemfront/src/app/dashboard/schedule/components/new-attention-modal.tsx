@@ -21,6 +21,15 @@ import { useForm } from "react-hook-form";
 import { BranchService } from "@/app/dashboard/branche/services/branch-service";
 import ClinicalServiceService from "@/app/dashboard/clinical/service/clinical-service-service";
 import AnimalService from "@/app/dashboard/crm/patients/service/animal-service";
+import { AnimalPickerField } from "@/app/dashboard/crm/patients/components/animal-picker-field";
+import {
+  QuickAnimalView,
+  QUICK_ANIMAL_DESCRIPTION,
+  QUICK_ANIMAL_TITLE,
+  quickAnimalLabel,
+  useQuickAnimalView,
+  type QuickCreatedAnimal,
+} from "@/app/dashboard/crm/patients/components/quick-animal-view";
 import EmployeeService from "@/app/dashboard/staff/service/employee-service";
 import { useUser } from "@/context/user-context";
 import { getAaxiosErrorMessage } from "@/helpers/error";
@@ -69,6 +78,9 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
   const [submitting, setSubmitting] = React.useState(false);
 
   const [animalOptions, setAnimalOptions] = React.useState<Option[]>([]);
+  // Vista "Nueva mascota" dentro del modal (sin abrir otro modal ni perder lo llenado).
+  const quickAnimal = useQuickAnimalView();
+  const resetQuickAnimal = quickAnimal.reset;
   const [employeeOptions, setEmployeeOptions] = React.useState<Option[]>([]);
   const [serviceOptions, setServiceOptions] = React.useState<Option[]>([]);
   const [branchOptions, setBranchOptions] = React.useState<Option[]>([]);
@@ -307,6 +319,15 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
     void loadServices(attentionType);
   }, [attentionType, open, form, loadServices]);
 
+  const handleAnimalCreated = React.useCallback(
+    (animal: QuickCreatedAnimal) => {
+      const option = { id: animal.id, label: quickAnimalLabel(animal) };
+      setAnimalOptions((prev) => [option, ...prev.filter((o) => o.id !== option.id)]);
+      form.setValue("animalId", animal.id, { shouldValidate: true, shouldDirty: true });
+    },
+    [form]
+  );
+
   const handleSearchAnimals = React.useCallback(
     (query: string) => {
       void loadAnimals(query);
@@ -333,6 +354,7 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
       if (!nextOpen) {
         form.reset(createDefaultValues());
         setAnimalOptions([]);
+        resetQuickAnimal();
         setEmployeeOptions([]);
         setServiceOptions([]);
         if (!hasFixedBranch) {
@@ -341,7 +363,7 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
       }
       onOpenChange(nextOpen);
     },
-    [createDefaultValues, form, hasFixedBranch, onOpenChange]
+    [createDefaultValues, form, hasFixedBranch, onOpenChange, resetQuickAnimal]
   );
 
   const onSubmit = React.useCallback(
@@ -381,14 +403,22 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
 
   return (
     <Dialog open={open} onOpenChange={handleModalToggle}>
-      <DialogContent className="w-[min(95vw,900px)] sm:max-w-3xl rounded-lg">
+      <DialogContent
+        className="w-[min(95vw,900px)] overflow-hidden sm:max-w-3xl rounded-lg"
+        onEscapeKeyDown={quickAnimal.handleEscapeKeyDown}
+      >
         <DialogHeader>
-          <DialogTitle>Registrar atención</DialogTitle>
+          <DialogTitle>{quickAnimal.active ? QUICK_ANIMAL_TITLE : "Registrar atención"}</DialogTitle>
           <DialogDescription>
-            Completa la información para registrar una atención inmediata.
+            {quickAnimal.active
+              ? QUICK_ANIMAL_DESCRIPTION
+              : "Completa la información para registrar una atención inmediata."}
           </DialogDescription>
         </DialogHeader>
 
+        <QuickAnimalView view={quickAnimal} idPrefix="attention-new-animal" onCreated={handleAnimalCreated} />
+
+        <div className={quickAnimal.mainClassName}>
         {initialLoading ? (
           <div className="flex h-40 items-center justify-center text-muted-foreground">
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -432,18 +462,14 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <FloatingLabelSelect
+                          <AnimalPickerField
                             id="attention-animalId"
-                            label="Mascota"
-                            value={field.value ? String(field.value) : ""}
-                            onValueChange={(value) => field.onChange(Number(value))}
-                            options={animalOptions.map((animal) => ({
-                              value: String(animal.id),
-                              label: animal.label,
-                            }))}
+                            value={field.value}
+                            onChange={field.onChange}
+                            options={animalOptions}
                             onSearch={handleSearchAnimals}
+                            onRequestCreate={quickAnimal.open}
                             disabled={submitting}
-                            emptyMessage="No se encontraron mascotas."
                           />
                         </FormControl>
                         <FormMessage />
@@ -621,6 +647,7 @@ export function NewAttentionModal({ open, onOpenChange, onCreated, origin = "DEF
             </form>
           </Form>
         )}
+        </div>
       </DialogContent>
     </Dialog>
   );

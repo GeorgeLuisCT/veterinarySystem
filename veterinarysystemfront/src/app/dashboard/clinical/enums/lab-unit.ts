@@ -1,106 +1,53 @@
-// lab-unit.ts
+import { CatalogKey, catalogAbbreviation, catalogAbbreviations, catalogEnum, catalogLabels, catalogOptions } from "@/lib/catalogs";
 
-export enum LabUnit {
-  NONE = "NONE",
-  PERCENT = "PERCENT",
-  G_PER_DL = "G_PER_DL",
-  MG_PER_DL = "MG_PER_DL",
-  UG_PER_DL = "UG_PER_DL",
-  NG_PER_ML = "NG_PER_ML",
-  MMOL_PER_L = "MMOL_PER_L",
-  MOL_PER_L = "MOL_PER_L",
-  U_PER_L = "U_PER_L",
-  IU_PER_L = "IU_PER_L",
-  K_U_PER_L = "K_U_PER_L",
-  X10_3_PER_UL = "X10_3_PER_UL",
-  X10_6_PER_UL = "X10_6_PER_UL",
-  CELLS_PER_UL = "CELLS_PER_UL",
-  PLATELETS_PER_UL = "PLATELETS_PER_UL",
-  FL = "FL",
-  PG = "PG",
-  G_PER_L = "G_PER_L",
-  MG_PER_L = "MG_PER_L",
-  UMOL_PER_L = "UMOL_PER_L",
-  MS = "MS",
-  SEC = "SEC",
-  MIN = "MIN",
-}
+/** Unidades de laboratorio: catálogo editable (Configuración → Catálogos). El símbolo es la abreviatura del catálogo. */
+export const LabUnit = catalogEnum(CatalogKey.LabUnit, {
+  NONE: { label: "Sin unidad", abbreviation: "" },
+  PERCENT: { label: "Porcentaje", abbreviation: "%" },
+  G_PER_DL: { label: "Gramo por decilitro", abbreviation: "g/dL" },
+  MG_PER_DL: { label: "Miligramo por decilitro", abbreviation: "mg/dL" },
+  UG_PER_DL: { label: "Microgramo por decilitro", abbreviation: "µg/dL" },
+  NG_PER_ML: { label: "Nanogramo por mililitro", abbreviation: "ng/mL" },
+  MMOL_PER_L: { label: "Milimol por litro", abbreviation: "mmol/L" },
+  MOL_PER_L: { label: "Mol por litro", abbreviation: "mol/L" },
+  U_PER_L: { label: "Unidades por litro", abbreviation: "U/L" },
+  IU_PER_L: { label: "Unidades internacionales por litro", abbreviation: "IU/L" },
+  K_U_PER_L: { label: "Kilo-unidades por litro", abbreviation: "kU/L" },
+  X10_3_PER_UL: { label: "×10³ por microlitro", abbreviation: "x10^3/µL" },
+  X10_6_PER_UL: { label: "×10⁶ por microlitro", abbreviation: "x10^6/µL" },
+  CELLS_PER_UL: { label: "Células por microlitro", abbreviation: "cél/µL" },
+  PLATELETS_PER_UL: { label: "Plaquetas por microlitro", abbreviation: "plt/µL" },
+  FL: { label: "Femtolitro", abbreviation: "fL" },
+  PG: { label: "Picogramo", abbreviation: "pg" },
+  G_PER_L: { label: "Gramo por litro", abbreviation: "g/L" },
+  MG_PER_L: { label: "Miligramo por litro", abbreviation: "mg/L" },
+  UMOL_PER_L: { label: "Micromol por litro", abbreviation: "µmol/L" },
+  MS: { label: "Milisegundo", abbreviation: "ms" },
+  SEC: { label: "Segundo", abbreviation: "s" },
+  MIN: { label: "Minuto", abbreviation: "min" },
+});
+export type LabUnit = string;
 
-// Etiquetas legibles (ES)
-export const LabUnitLabels: Record<LabUnit, string> = {
-  [LabUnit.NONE]: "—",
-  [LabUnit.PERCENT]: "Porcentaje",
-  [LabUnit.G_PER_DL]: "Gramo por decilitro",
-  [LabUnit.MG_PER_DL]: "Miligramo por decilitro",
-  [LabUnit.UG_PER_DL]: "Microgramo por decilitro",
-  [LabUnit.NG_PER_ML]: "Nanogramo por mililitro",
-  [LabUnit.MMOL_PER_L]: "Milimol por litro",
-  [LabUnit.MOL_PER_L]: "Mol por litro",
-  [LabUnit.U_PER_L]: "Unidades por litro",
-  [LabUnit.IU_PER_L]: "Unidades internacionales por litro",
-  [LabUnit.K_U_PER_L]: "Kilo-unidades por litro",
-  [LabUnit.X10_3_PER_UL]: "×10³ por microlitro",
-  [LabUnit.X10_6_PER_UL]: "×10⁶ por microlitro",
-  [LabUnit.CELLS_PER_UL]: "Células por microlitro",
-  [LabUnit.PLATELETS_PER_UL]: "Plaquetas por microlitro",
-  [LabUnit.FL]: "Femtolitro",
-  [LabUnit.PG]: "Picogramo",
-  [LabUnit.G_PER_L]: "Gramo por litro",
-  [LabUnit.MG_PER_L]: "Miligramo por litro",
-  [LabUnit.UMOL_PER_L]: "Micromol por litro",
-  [LabUnit.MS]: "Milisegundo",
-  [LabUnit.SEC]: "Segundo",
-  [LabUnit.MIN]: "Minuto",
-};
+export const LabUnitLabels = catalogLabels(CatalogKey.LabUnit);
+export const LabUnitSymbols = catalogAbbreviations(CatalogKey.LabUnit);
 
-// Símbolos/abreviaturas (tal cual en tu backend)
-export const LabUnitSymbols: Record<LabUnit, string> = {
-  [LabUnit.NONE]: "",
-  [LabUnit.PERCENT]: "%",
-  [LabUnit.G_PER_DL]: "g/dL",
-  [LabUnit.MG_PER_DL]: "mg/dL",
-  [LabUnit.UG_PER_DL]: "µg/dL",
-  [LabUnit.NG_PER_ML]: "ng/mL",
-  [LabUnit.MMOL_PER_L]: "mmol/L",
-  [LabUnit.MOL_PER_L]: "mol/L",
-  [LabUnit.U_PER_L]: "U/L",
-  [LabUnit.IU_PER_L]: "IU/L",
-  [LabUnit.K_U_PER_L]: "kU/L",
-  [LabUnit.X10_3_PER_UL]: "x10^3/µL",
-  [LabUnit.X10_6_PER_UL]: "x10^6/µL",
-  [LabUnit.CELLS_PER_UL]: "cél/µL",
-  [LabUnit.PLATELETS_PER_UL]: "plt/µL",
-  [LabUnit.FL]: "fL",
-  [LabUnit.PG]: "pg",
-  [LabUnit.G_PER_L]: "g/L",
-  [LabUnit.MG_PER_L]: "mg/L",
-  [LabUnit.UMOL_PER_L]: "µmol/L",
-  [LabUnit.MS]: "ms",
-  [LabUnit.SEC]: "s",
-  [LabUnit.MIN]: "min",
-};
-
-// Helpers similares a los de ProductUnitType
 export function getLabUnitLabel(unit: LabUnit): string {
   return LabUnitLabels[unit] ?? unit;
 }
 
 export function getLabUnitSymbol(unit: LabUnit): string {
-  return LabUnitSymbols[unit] ?? "";
+  return catalogAbbreviation(CatalogKey.LabUnit, unit);
 }
 
-// Formateo rápido de valor + unidad (omite símbolo si NONE)
-export function formatValueWithLabUnit(
-  value: number | string,
-  unit: LabUnit
-): string {
+/** Valor + símbolo de la unidad (sin símbolo si la unidad no tiene). */
+export function formatValueWithLabUnit(value: number | string, unit: LabUnit): string {
   const sym = getLabUnitSymbol(unit);
   return sym ? `${value} ${sym}` : `${value}`;
 }
 
-// Opciones típicas para un <Select/>
-export const LabUnitOptions = Object.values(LabUnit).map((u) => ({
-  value: u,
-  label: `${LabUnitLabels[u]}${LabUnitSymbols[u] ? ` (${LabUnitSymbols[u]})` : ""}`,
-  symbol: LabUnitSymbols[u],
+/** Opciones para un selector: «Nombre (símbolo)». */
+export const LabUnitOptions = catalogOptions(CatalogKey.LabUnit, (i) => ({
+  value: i.code,
+  label: `${i.label}${i.abbreviation ? ` (${i.abbreviation})` : ""}`,
+  symbol: i.abbreviation ?? "",
 }));

@@ -112,7 +112,7 @@ export function FloatingLabelSingleBadgeSelect<T extends string | number | boole
             <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0" align="start">
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-[14rem] p-0" align="start">
           <Command>
             <CommandInput placeholder="Buscar..." value={searchQuery} onValueChange={handleSearchChange} />
             <CommandList>

@@ -1,3 +1,4 @@
+using VetSaas.Modules.Catalogs;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using FluentValidation;
@@ -17,7 +18,6 @@ namespace VetSaas.Modules.Finance.Domain
 
     public enum AccountPayableStatus { PENDING, PARTIALLY_PAID, PAID }
 
-    public enum TreasuryAccountType { BANK, CASH, DIGITAL }
 
     /// <summary>Cuenta de tesorería (banco, caja fuerte, billetera). Su saldo es la suma de sus movimientos.</summary>
     [Table("treasury_accounts")]
@@ -25,7 +25,7 @@ namespace VetSaas.Modules.Finance.Domain
     {
         public long Id { get; set; }
         [MaxLength(120)] public string Name { get; set; } = null!;
-        [MaxLength(20)] public TreasuryAccountType Type { get; set; }
+        [Catalog(CatalogKeys.TreasuryAccountType)] [MaxLength(60)] public string Type { get; set; }
         [MaxLength(500)] public string? Description { get; set; }
         public bool Active { get; set; } = true;
     }
@@ -102,8 +102,8 @@ namespace VetSaas.Modules.Finance
 
     public sealed record CreateAccountMovementRequest(decimal? Amount, string? Description, DateTime? MovementDate, bool? Income);
     public sealed record CreateAccountPayableRequest(long? SupplierId, string? Description, DateTime? IssueDateTime, decimal? TotalAmount);
-    public sealed record CreateTreasuryAccountRequest(string? Name, TreasuryAccountType? Type, string? Description);
-    public sealed record UpdateTreasuryAccountRequest(string? Name, TreasuryAccountType? Type, string? Description);
+    public sealed record CreateTreasuryAccountRequest(string? Name, string? Type, string? Description);
+    public sealed record UpdateTreasuryAccountRequest(string? Name, string? Type, string? Description);
     public sealed record ExpenseRequest(long? TreasuryAccountId, string? Description, decimal? Amount, DateTime? OccurredAt);
     public sealed record RegisterPaymentRequest(decimal? Amount, long? TreasuryAccountId, DateTime? PaymentDateTime, string? Notes);
     public sealed record TransferRequest(long? SourceAccountId, long? TargetAccountId, string? Description, decimal? Amount, DateTime? OccurredAt);
@@ -195,7 +195,7 @@ namespace VetSaas.Modules.Finance
 
     public sealed record TransferResponse(AccountMovementResponse SourceMovement, AccountMovementResponse DestinationMovement);
 
-    public sealed record TreasuryAccountResponse(long Id, string Name, TreasuryAccountType Type, string? Description, bool Active,
+    public sealed record TreasuryAccountResponse(long Id, string Name, string Type, string? Description, bool Active,
         decimal CurrentBalance);
 
     // ---- Servicios ----
@@ -460,7 +460,7 @@ namespace VetSaas.Modules.Finance
             await EnsureUniqueNameAsync(request.Name, null, ct);
             var account = new TreasuryAccount
             {
-                Name = request.Name!.Trim(), Description = request.Description, Type = request.Type!.Value, Active = true,
+                Name = request.Name!.Trim(), Description = request.Description, Type = request.Type!, Active = true,
             };
             _db.TreasuryAccounts.Add(account);
             await _db.SaveChangesAsync(ct);
@@ -473,7 +473,7 @@ namespace VetSaas.Modules.Finance
             await EnsureUniqueNameAsync(request.Name, id, ct);
             account.Name = request.Name!.Trim();
             account.Description = request.Description;
-            account.Type = request.Type!.Value;
+            account.Type = request.Type!;
             await _db.SaveChangesAsync(ct);
             return await ToResponseAsync(account, ct);
         }
